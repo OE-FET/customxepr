@@ -137,3 +137,7 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# measurement scripts
+ESR measurement scripts/*
+!ESR measurement scripts/FI_ESR_template.py
