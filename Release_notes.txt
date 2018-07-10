@@ -24,6 +24,7 @@ Bug fixes in v1.4.4:
 * Temperature stability after measurement is now given as a rounded figure to
   0.01 K accuracy.
 * Improvements to customtune stability when starting far away from well tuned.
+* Fixed labeling of combo-boxes in ChoseSensorDialog
 
 New in v1.4.3:
 * Aborts current ESR measurement and suspends all pending jobs if temperature
@@ -118,9 +119,9 @@ New in v1.2.1:
 
 New in v1.2.0:
 * Timeout warning for Xepr scans, adjusted for expected measurement time
-* Timeout warning for temperature stabilization, adjusted for expected ramp
+* Timeout warning for temperature stabilisation, adjusted for expected ramp
   time
-* Implemeted "Abort" functionality in all long running class methods
+* Implemented "Abort" functionality in all long running class methods
   (setTemperature, customtune, pause, runExperiment, etc.)
 
 """
