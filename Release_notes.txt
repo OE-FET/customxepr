@@ -1,7 +1,3 @@
-e"""
-Created on Tue Aug 23 11:03:57 2016
-
-@author: Sam Schott  (ss2151@cam.ac.uk)
 
 (c) Sam Schott; This work is licensed under a Creative Commons
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
@@ -11,6 +7,7 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 REQUIRED:
 Linux or macOSX
 Python 2.7
+Python dependencies
 NI-VISA
 PyQT4 or PyQt5 (PyQt 5 preferred)
 
