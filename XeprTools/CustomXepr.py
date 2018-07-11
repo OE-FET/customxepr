@@ -10,10 +10,12 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 To Do:
 
-* Switch from visa backend from proprietary NI-VISA backend to open source
-  pyvisa-py once feature parity is reached. (Some functions we rely on, such as
-  viClear, are not implemented yet.)
-  -> when available
+* Fix ETA calculation for power saturation measurements: exp['SweepData'].value
+  may return an empty string for custom MW power sweeps (likely a bug in Xepr)
+
+* Switch from proprietary NI-VISA backend to open source pyvisa-py once feature
+  feature parity is reached. (Some functions we rely on, such as viClear, are
+  not implemented yet.)
 
 * Digital helium flowmeter to monitor and control actual gas flow instead of
   neadle valve postion
