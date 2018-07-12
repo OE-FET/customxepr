@@ -1031,7 +1031,7 @@ class CustomXepr(QtCore.QObject):
                 # Pause measurement and suspend all pending jobs after 15 min
                 # of temperature instability
                 if n_out > 60*15:
-                    logger.warning('Temperature could not be stabilized for ' +
+                    logger.error('Temperature could not be stabilized for ' +
                                    '15 min. Pausing current measurement and ' +
                                    'all pending jobs.')
                     exp.aqExpPause()
