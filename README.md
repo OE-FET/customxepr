@@ -4,7 +4,7 @@ An Python instrument control software for a Bruker E500 spectrometer, a Mercuryi
 
 ## Overview
 
-`CustomXepr' for Linux and macOS X enables the interaction with all instruments involved in electron spin resonance (ESR) measurements: the Bruker E500 spectrometer, through Bruker's Xepr Python API, the Oxford Instruments MercuryiTC temperature controller, and the Keithley 2600 series of source measurement units (SMUs).
+*CustomXepr* for Linux and macOS X enables the interaction with all instruments involved in electron spin resonance (ESR) measurements: the Bruker E500 spectrometer, through Bruker's Xepr Python API, the Oxford Instruments MercuryiTC temperature controller, and the Keithley 2600 series of source measurement units (SMUs).
 
 The aim of CustomXepr is twofold: First and foremost, it enables the user to automate and schedule full measurement plans which may run for weeks without user input. Second, it complements the functionality of Bruker's Xepr control software. This includes for instance powerful logging capabilities for all key events, a more accurate determination of the cavity's Q-value from its frequency response, more reliable tuning of the cavity, the ability to re-tune the cavity during long-running measurements, logging of the cryostat temperature during measurements, and many more. On the other hand, low level functionality and communication with the spectrometer remains with Xepr.
 
@@ -33,47 +33,45 @@ The detection and escalation of possible problems is key to enabling unattended 
 CustomXepr has a user interface which displays all jobs waiting in the queue, all results returned from previous jobs, and all logging messages. Common tasks such as pausing, aborting and clearing jobs, plotting and saving returned data, and setting temperature stability tolerances can be performed through the interface itself. However, apart from tuning the cavity and reading a Q factor, all jobs  must be scheduled programmatically through the console. For example, a measurement script which cycles through different temperatures and records ESR spectra and transfer curves at each step reads as follows:
 
 ```python
+# get preconfigured experiment from Xepr
+Exp = xepr.XeprExperiment('Experiment')
+# set-up modulation amplitudes in Gauss for different temperatures
+modAmp = {5: 3, 50: 2, 100: 1, 150: 1, 200: 1, 250: 1.5, 300: 2}
 
-	# get preconfigured experiment from Xepr
-	Exp = xepr.XeprExperiment('Experiment')
-	# set-up modulation amplitudes in Gauss for different temperatures
-	modAmp = {5: 3, 50: 2, 100: 1, 150: 1, 200: 1, 250: 1.5, 300: 2}
+# specify folder to save data
+folder = '/path/to/folder/'
+title = 'my_sample'
 	
-	# specify folder to save data
-	folder = '/path/to/folder/'
-	title = 'my_sample'
+for T in [5, 50, 100, 150, 200, 250, 300]:
+	# =================================================================
+	# Prepare temperature
+	# =================================================================
+	customXepr.setTemperature(T)        # set desired temperature 
+	customXepr.customtune()             # tune the cavity
+	customXepr.getQValueCalc(folder, T) # measure and save the Q factor
 	
-	for T in [5, 50, 100, 150, 200, 250, 300]:
-		# =================================================================
-		# Prepare temperature
-		# =================================================================
-		customXepr.setTemperature(T)        # set desired temperature 
-		customXepr.customtune()             # tune the cavity
-		customXepr.getQValueCalc(folder, T) # measure and save the Q factor
-		
-		# =================================================================
-		# Perform FET measurements
-		# =================================================================
-		# generate file name for transfer curve
-		transferFile = folder + title + '_' + str(T) + 'K_transfer.txt'
-		# record default transfer curve and save to file
-		customXepr.transferMeasurement(transferFile)
-		
-		# =================================================================
-		# Perform ESR measurements at Vg = -70V and Vg = 0V
-		# =================================================================
-		for Vg in [0, -70]:
-	   		customXepr.biasGate(Vg)  # bias gate
-			# perform preconfigured ESR measurement
-			customXepr.runExperiment(Exp, ModAmp=modAmp[T])
-			customXepr.biasGate(0)  # set gate voltage to zero
+	# =================================================================
+	# Perform FET measurements
+	# =================================================================
+	# generate file name for transfer curve
+	transferFile = folder + title + '_' + str(T) + 'K_transfer.txt'
+	# record default transfer curve and save to file
+	customXepr.transferMeasurement(transferFile)
+	
+	# =================================================================
+	# Perform ESR measurements at Vg = -70V and Vg = 0V
+	# =================================================================
+	for Vg in [0, -70]:
+	  	customXepr.biasGate(Vg)  # bias gate
+		# perform preconfigured ESR measurement
+		customXepr.runExperiment(Exp, ModAmp=modAmp[T])
+		customXepr.biasGate(0)  # set gate voltage to zero
         
-    		# save ESR spectrum to file
-			esrDataFile = folder + title + '_' + str(T) + 'K_Vg_' + str(Vg)
-			customXepr.saveCurrentData(esrDataFile)
-        
-	customXepr.setStandby()  # ramp down field and set MW bridge to standby
-	
+    	# save ESR spectrum to file
+		esrDataFile = folder + title + '_' + str(T) + 'K_Vg_' + str(Vg)
+		customXepr.saveCurrentData(esrDataFile)
+       
+customXepr.setStandby()  # ramp down field and set MW bridge to standby	
 ```
 
 In this code, all functions belonging to CustomXepr will be added to the job queue and will be carried out successively such that, for instance, ESR measurements will not start while the temperature is still being ramped.
