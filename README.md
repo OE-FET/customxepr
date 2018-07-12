@@ -1,6 +1,6 @@
 # CustomXepr
 
-A Python instrument controller an GUI for Bruker E500 ESR spectrometers, MercuryiTC temperature controllers and Keithley 2600 series source measurement units.
+A Python instrument controller and GUI for Bruker E500 ESR spectrometers, MercuryiTC temperature controllers and Keithley 2600 series source measurement units.
 
 ## Overview
 
@@ -14,7 +14,7 @@ The aim of CustomXepr is twofold: First and foremost, it enables the user to aut
 
 CustomXepr's core consists of functions for preconfigured tasks, such as changing the cryostat temperature, recording a transfer curve, performing a preconfigured ESR measurement.
 For instance, `customXepr.setTemperature(110)` tells the MercuryiTC to change its temperature set-point to 110 K and waits until the latter is reached and maintained with the desired stability (default: ±0.1 K for 120 sec). It also adjust the helium flow if necessary and will warn the user if the target temperature cannot be reached within the expected time.
-`customXepr.runExperiment(PowerSat)` will run the preconfigured ESR measurement `PowerSat' while tuning the cavity between scans and monitoring the temperature stability during the measurement.
+`customXepr.runExperiment(PowerSat)` will run the preconfigured ESR measurement "PowerSat" while tuning the cavity between scans and monitoring the temperature stability during the measurement.
 
 Such built in jobs are not performed immediately but are queued and executed in the background after the successful completion of the previous jobs. Any data returned by a job, such as a transfer curve or a cavity mode picture, will be kept in a result queue and saved to a specified file if requested. CustomXepr functions that are expected to run for longer than 1 sec can gracefully abort upon user request without leaving the setup in an inconsistent state.
 
@@ -84,3 +84,29 @@ CustomXepr includes a Python driver for the MercuryiTC temperature controller an
 The user interface for the cryostat plots historic temperature readings going back up to 24\,h and provides access to relevant temperature control settings such as gas flow, heater power, and ramping speed while lower-level configurations such as calibration tables must be changed programatically.
 ## Keithley controls
 As with the cryostat, CustomXepr includes a Python driver for the Keithley 2600 series and a high-level user interface which allows the user to configure, record and save voltage sweeps such as transfer and output measurements. Since there typically is no need to provide a live stream of readings from the Keithley, the data from an IV-curve is buffered locally on the instrument and only transferred to CustomXepr after completion of a measurement.
+
+## System requirements
+*Required*:
+Linux or macOSX
+Python 2.7
+NI-VISA
+PyQT4 or PyQt5 (PyQt 5 preferred)
+Python dependencies
+
+*Optional*:
+Bruker Xepr software (ESR related functions will not work without Xepr)
+fping   - command line tool for pings with millisecond timeout
+Postfix - mail transfer agent for macOSX and Linux, required for email
+          notifications
+	  
+*Python modules*:
+matplotlib
+decorator
+pyvisa
+qtpy
+lmfit
+numpy
+yagmail
+pyqtgraph
+qdarkstyle
+jupyter_qtconsole_colorschemes
