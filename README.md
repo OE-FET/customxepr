@@ -1,6 +1,6 @@
 # CustomXepr
 
-An Python instrument control software for a Bruker E500 spectrometer, a MercuryiTC temperature controller and Keithley 2600 SMUs.
+A Python instrument controller an GUI for Bruker E500 ESR spectrometers, MercuryiTC temperature controllers and Keithley 2600 series source measurement units.
 
 ## Overview
 
