@@ -4,7 +4,7 @@ A Python instrument controller and GUI for Bruker E500 ESR spectrometers, Mercur
 
 ## Overview
 
-*CustomXepr* for Linux and macOS X enables the interaction with all instruments involved in electron spin resonance (ESR) measurements: the Bruker E500 spectrometer, through Bruker's Xepr Python API, the Oxford Instruments MercuryiTC temperature controller, and the Keithley 2600 series of source measurement units (SMUs).
+*CustomXepr* for Linux and macOSX enables the interaction with all instruments involved in electron spin resonance (ESR) measurements: the Bruker E500 spectrometer, through Bruker's Xepr Python API, the Oxford Instruments MercuryiTC temperature controller, and the Keithley 2600 series of source measurement units (SMUs).
 
 The aim of CustomXepr is twofold: First and foremost, it enables the user to automate and schedule full measurement plans which may run for weeks without user input. Second, it complements the functionality of Bruker's Xepr control software. This includes for instance powerful logging capabilities for all key events, a more accurate determination of the cavity's Q-value from its frequency response, more reliable tuning of the cavity, the ability to re-tune the cavity during long-running measurements, logging of the cryostat temperature during measurements, and many more. On the other hand, low level functionality and communication with the spectrometer remains with Xepr.
 
