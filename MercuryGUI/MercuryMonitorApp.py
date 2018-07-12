@@ -331,8 +331,9 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.CurrentYData = self.yData[-numberDP:]
 
         # update axis limits
-        xLimNew = [max(-self.horizontalSlider.value(), self.CurrentXData[0]), 1.0/60]
-        yLimNew = [floor(min(self.CurrentYData)), ceil(max(self.CurrentYData)) + 0.1]
+        if not self.CurrentXData == []:
+            xLimNew = [max(-self.horizontalSlider.value(), self.CurrentXData[0]), 1.0/60]
+            yLimNew = [floor(min(self.CurrentYData)), ceil(max(self.CurrentYData)) + 0.1]
 
         # In the rare instance that floor(min(x)) == ceil(max(x)), we avoid
         # throwing an error by taking floor(min(x)) == ceil(max(x) + 0.1)
