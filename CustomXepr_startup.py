@@ -20,7 +20,7 @@ try:
     from IPython import get_ipython
     ipython = get_ipython()
     ipython.magic("%autoreload 0")
-    
+
 except ImportError:
     pass
 

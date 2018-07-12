@@ -265,6 +265,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
         SAVE_RESULT = ['SweepData', 'ModePicture']
 
         indexes = self.resultQueueDisplay.selectedIndexes()
+        if indexes == []:
+            return
+        
         i0, i1 = indexes[0].row(), indexes[-1].row()
 
         self.popup_menu = QtWidgets.QMenu()

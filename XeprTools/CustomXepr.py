@@ -619,8 +619,8 @@ class CustomXepr(QtCore.QObject):
             fq_offset = self.hidden['LockOffset'].value
 
     def _tunePhase(self):
-        """Tunes the phase of the MW reference arm to maximise the diode
-        current.
+        """
+        Tunes the phase of the MW reference arm to maximise the diode current.
         """
         # timeout for phase tuning
         self._tuning_timeout = 60

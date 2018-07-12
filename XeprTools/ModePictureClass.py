@@ -135,9 +135,9 @@ class ModePicture(object):
         self.yfit = self.result.best_fit
         self.lz = offset - comps['lorentz_peak']
 
-        plt.plot(self.xMHzTot, self.modePicTot, 'b.')
+        plt.plot(self.xMHzTot, self.modePicTot, '.', color='#2980B9')
         plt.plot(self.xMHzTot, self.lz, 'k--')
-        plt.plot(self.xMHzTot, self.yfit, 'r-')
+        plt.plot(self.xMHzTot, self.yfit, '-', color='#C70039')
 
         plt.legend(['Mode picture', 'Cavity dip', 'Total fit'])
         plt.xlabel('Microwave frequency [MHz]')

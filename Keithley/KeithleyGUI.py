@@ -20,6 +20,7 @@ elif QtCore.PYQT_VERSION_STR[0] == '4':
 
 # custom imports
 from HelpFunctions import LedIndicator
+from SweepDataClass import SweepData
 
 
 class KeithleyGuiApp(QtWidgets.QMainWindow):
@@ -87,6 +88,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self.actionDisconnect.triggered.connect(self._on_disconnect_clicked)
         self.action_Exit.triggered.connect(self._on_exit_clicked)
         self.actionSave_last_sweep.triggered.connect(self._on_save_clicked)
+        self.actionLoad_data_from_file.triggered.connect(self._on_load_clicked)
 
         self.actionSave_last_sweep.setEnabled(False)
 
@@ -219,6 +221,11 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
 
     def _on_save_clicked(self):
         self.sweepData.save()
+
+    def _on_load_clicked(self):
+        self.sweepData = SweepData()
+        self.sweepData.load()
+        self.plot_new_data()
 
     def _on_exit_clicked(self):
         self.keithley.disconnect()

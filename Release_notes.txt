@@ -18,13 +18,18 @@ Postfix - mail transfer agent for macOSX and Linux, required for email
 
 %----------- Release notes ----------------------------------------------------
 
+New in v1.4.4:
+* SweepData class for Keithley IV curves updated to support loading of data
+  from a previously saved file. This is reflected in the Keithley GUI which
+  now includes a "Load data from file" menu item.
+
 Bug fixes in v1.4.4:
 * Fixed a bug that would not allow editing of the email address list while a
   job is running.
 * Temperature stability after measurement is now given as a rounded figure to
   0.01 K accuracy.
 * Improvements to customtune stability when starting far away from well tuned.
-* Fixed labeling of combo-boxes in ChoseSensorDialog
+* Fixed labeling of comboboxes in ChoseSensorDialog
 
 New in v1.4.3:
 * Aborts current ESR measurement and suspends all pending jobs if temperature

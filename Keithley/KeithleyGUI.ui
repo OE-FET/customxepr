@@ -649,6 +649,7 @@
      <string>&amp;File</string>
     </property>
     <addaction name="actionSave_last_sweep"/>
+    <addaction name="actionLoad_data_from_file"/>
     <addaction name="separator"/>
     <addaction name="action_Exit"/>
    </widget>
@@ -688,6 +689,11 @@
   <action name="actionTb1">
    <property name="text">
     <string>tb1</string>
+   </property>
+  </action>
+  <action name="actionLoad_data_from_file">
+   <property name="text">
+    <string>Load data from file</string>
    </property>
   </action>
  </widget>
