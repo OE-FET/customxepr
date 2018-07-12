@@ -1,3 +1,8 @@
+
+# check if all require packages are installed
+from HelpFunctions import check_dependencies
+exit_code = check_dependencies('dependencies.txt')
+
 # system imports
 import sys
 import os

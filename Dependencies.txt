@@ -1,10 +1,9 @@
 matplotlib
 decorator
-PyVISA
-QtPy
+pyvisa
+qtpy
 lmfit
 numpy
-pyenchant
 yagmail
 pyqtgraph
 qdarkstyle
