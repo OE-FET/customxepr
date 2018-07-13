@@ -13,7 +13,7 @@ The aim of CustomXepr is twofold: First and foremost, it enables the user to aut
 ## Job-scheduling
 
 CustomXepr's core consists of functions for preconfigured tasks, such as changing the cryostat temperature, recording a transfer curve, performing a preconfigured ESR measurement.
-For instance, `customXepr.setTemperature(110)` tells the MercuryiTC to change its temperature set-point to 110 K and waits until the latter is reached and maintained with the desired stability (default: ±0.1 K for 120 sec). It also adjust the helium flow if necessary and will warn the user if the target temperature cannot be reached within the expected time.
+For instance, `customXepr.setTemperature(110)` tells the MercuryiTC to change its temperature set-point to 110 K and waits until the latter is reached and maintained with the desired stability (default: ±0.1 K for 120 sec). It also adjusts the helium flow if necessary and warns the user if the target temperature cannot be reached within the expected time.
 `customXepr.runExperiment(PowerSat)` will run the preconfigured ESR measurement "PowerSat" while tuning the cavity between scans and monitoring the temperature stability during the measurement.
 
 Such built in jobs are not performed immediately but are queued and executed in the background after the successful completion of the previous jobs. Any data returned by a job, such as a transfer curve or a cavity mode picture, will be kept in a result queue and saved to a specified file if requested. CustomXepr functions that are expected to run for longer than 1 sec can gracefully abort upon user request without leaving the setup in an inconsistent state.
