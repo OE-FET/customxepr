@@ -11,7 +11,7 @@ The aim of CustomXepr is twofold: First and foremost, it enables the user to aut
 ![Screenshot of CustomXepr GUI](/Screenshots/Screenshot_all_dark.png)
 
 ## Instrument communication
-CustomXepr communicates through all instruments over ethernet connections. Communication to the Keithley and MercuryiTC is handled through NI-VISA, which means that very little in the source code needs to be changed when switching to a different interface. It is planned to switch from NI-VISA to the open source pyvisa-py backend in the mid-term.
+CustomXepr communicates with all instruments over ethernet connections. Communication to the Keithley and MercuryiTC is handled through NI-VISA, which means that very little in the source code needs to be changed when switching to a different interface. It is planned to switch from NI-VISA to the open source pyvisa-py backend in the mid-term.
 
 ## Job-scheduling
 
