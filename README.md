@@ -10,6 +10,9 @@ The aim of CustomXepr is twofold: First and foremost, it enables the user to aut
 
 ![Screenshot of CustomXepr GUI](/Screenshots/Screenshot_all_dark.png)
 
+## Instrument communication
+CustomXepr communicates through all instruments over ethernet connections. Communication to the Keithley and MercuryiTC is handled through NI-VISA, which means that very little in the source code needs to be changed when switching to a different interface. It is planned to switch from NI-VISA to the open source pyvisa-py backend in the mid-term.
+
 ## Job-scheduling
 
 CustomXepr's core consists of functions for preconfigured tasks, such as changing the cryostat temperature, recording a transfer curve, performing a preconfigured ESR measurement.
@@ -81,7 +84,8 @@ In this code, all functions belonging to CustomXepr will be added to the job que
 ## Mercury controls
 CustomXepr includes a Python driver for the MercuryiTC temperature controller and a higher-level worker thread which regularly queries the MercuryiTC for its sensor readings and provides a live stream of this data to other parts of the software. This prevents individual functions from querying the MercuryiTC directly and causing unnecessary overhead.
 
-The user interface for the cryostat plots historic temperature readings going back up to 24\,h and provides access to relevant temperature control settings such as gas flow, heater power, and ramping speed while lower-level configurations such as calibration tables must be changed programatically.
+The user interface for the cryostat plots historic temperature readings going back up to 24 h and provides access to relevant temperature control settings such as gas flow, heater power, and ramping speed while lower-level configurations such as calibration tables must be changed programatically.
+
 ## Keithley controls
 As with the cryostat, CustomXepr includes a Python driver for the Keithley 2600 series and a high-level user interface which allows the user to configure, record and save voltage sweeps such as transfer and output measurements. Since there typically is no need to provide a live stream of readings from the Keithley, the data from an IV-curve is buffered locally on the instrument and only transferred to CustomXepr after completion of a measurement.
 
@@ -109,7 +113,6 @@ As with the cryostat, CustomXepr includes a Python driver for the Keithley 2600 
 - qtpy
 - lmfit
 - numpy
-- yagmail
 - pyqtgraph
 - qdarkstyle
 - jupyter_qtconsole_colorschemes
