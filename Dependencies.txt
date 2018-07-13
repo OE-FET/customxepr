@@ -4,7 +4,6 @@ pyvisa
 qtpy
 lmfit
 numpy
-yagmail
 pyqtgraph
 qdarkstyle
 jupyter_qtconsole_colorschemes
