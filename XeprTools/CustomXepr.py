@@ -1364,13 +1364,14 @@ def setup_root_logger(NOTIFY=['ss2151@cam.ac.uk', 'rc716@cam.ac.uk']):
     # =========================================================================
     if len(fh) == 0:
         homePath = os.path.expanduser('~')
-        loggingPath = '/.CustomXepr/LOG_FILES'
+        loggingPath = '.CustomXepr/LOG_FILES'
+        fullPath = os.path.join(homePath, loggingPath)
 
-        if not os.path.exists(homePath +   loggingPath):
-            os.makedirs(homePath + loggingPath)
+        if not os.path.exists(fullPath):
+            os.makedirs(fullPath)
 
-        logFile = (homePath + loggingPath + '/root_logger '
-                   + time.strftime("%Y-%m-%d_%H-%M-%S"))
+        logFile = os.path.join(fullPath, 'root_logger '
+                               + time.strftime("%Y-%m-%d_%H-%M-%S"))
         file_handler = logging.FileHandler(logFile)
         file_handler.setFormatter(f)
         file_handler.setLevel(logging.INFO)
