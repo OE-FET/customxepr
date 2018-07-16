@@ -116,3 +116,6 @@ As with the cryostat, CustomXepr includes a Python driver for the Keithley 2600 
 - pyqtgraph
 - qdarkstyle
 - jupyter_qtconsole_colorschemes
+
+## Acknowledgements
+The MercuryiTC driver is based on the driver developed by [crazyfermions](https://github.com/crazyfermions/python-mercury_driver).
