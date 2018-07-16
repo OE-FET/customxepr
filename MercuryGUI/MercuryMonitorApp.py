@@ -36,6 +36,8 @@ elif QtCore.PYQT_VERSION_STR[0] == '4':
     from matplotlib.backends.backend_qt4agg import (FigureCanvasQTAgg
                                                     as FigureCanvas)
 
+logger = logging.getLogger(__name__)
+
 
 class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
@@ -163,7 +165,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def _update_GUI_connection(self, connected):
         if connected:
             self._display_message('Connection established.')
-            logging.info('Connection to MercuryiTC established.')
+            logger.info('Connection to MercuryiTC established.')
             self._connect_slots()
             self.connectAction.setEnabled(False)
             self.disconnectAction.setEnabled(True)
@@ -176,7 +178,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
         elif not connected:
             self._display_error('Connection lost.')
-            logging.info('Connection to MercuryiTC lost.')
+            logger.info('Connection to MercuryiTC lost.')
             self._disconnect_slots()
 
             self.connectAction.setEnabled(True)

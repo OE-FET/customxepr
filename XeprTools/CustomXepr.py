@@ -10,15 +10,7 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 To Do:
 
-* Fix ETA calculation for power saturation measurements: exp['SweepData'].value
-  may return an empty string for custom MW power sweeps (likely a bug in Xepr)
-
-* Switch from proprietary NI-VISA backend to open source pyvisa-py once feature
-  feature parity is reached. (Some functions we rely on, such as viClear, are
-  not implemented yet.)
-
-* Digital helium flowmeter to monitor and control actual gas flow instead of
-  neadle valve postion
+* See GitHub issues list at https://github.com/OE-FET/CustomXepr
 
 New in v1.4.4:
 
@@ -472,7 +464,7 @@ class CustomXepr(QtCore.QObject):
         time.sleep(self.wait)
         self._tuneFreq()
         time.sleep(self.wait)
-        
+
         self.hidden['PowerAtten'].value = 50
         self._tuneBias()
 
@@ -1032,8 +1024,8 @@ class CustomXepr(QtCore.QObject):
                 # of temperature instability
                 if n_out > 60*15:
                     logger.error('Temperature could not be stabilized for ' +
-                                   '15 min. Pausing current measurement and ' +
-                                   'all pending jobs.')
+                                 '15 min. Pausing current measurement and ' +
+                                 'all pending jobs.')
                     exp.aqExpPause()
                     self.pause_event.set()
                     return
@@ -1374,7 +1366,7 @@ def setup_root_logger(NOTIFY=['ss2151@cam.ac.uk', 'rc716@cam.ac.uk']):
         homePath = os.path.expanduser('~')
         loggingPath = '/.CustomXepr/LOG_FILES'
 
-        if not os.path.exists(homePath + loggingPath):
+        if not os.path.exists(homePath +   loggingPath):
             os.makedirs(homePath + loggingPath)
 
         logFile = (homePath + loggingPath + '/root_logger '

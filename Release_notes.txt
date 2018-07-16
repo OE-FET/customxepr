@@ -30,6 +30,8 @@ Bug fixes in v1.4.4:
   0.01 K accuracy.
 * Improvements to customtune stability when starting far away from well tuned.
 * Fixed labeling of comboboxes in ChoseSensorDialog
+* Fixed a bug that would cause a new job to be abborted immediately if "Abort
+  job" was pressed previously while CustomXepr was IDLE.
 
 New in v1.4.3:
 * Aborts current ESR measurement and suspends all pending jobs if temperature

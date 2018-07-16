@@ -1,49 +1,44 @@
+"""
+Created on Tue Aug 23 11:03:57 2016
 
-# check if all require packages are installed
-from HelpFunctions import check_dependencies
-exit_code = check_dependencies('dependencies.txt')
+@author: Sam Schott  (ss2151@cam.ac.uk)
+
+(c) Sam Schott; This work is licensed under a Creative Commons
+Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
+
+To Do:
+
+* See GitHub issues list at https://github.com/OE-FET/CustomXepr
+
+New in v1.4.4:
+
+    See release notes
+
+"""
 
 # system imports
 import sys
 import os
 import logging
-from qtpy import QtCore, QtWidgets
+from qtpy import QtCore, QtWidgets, QtGui
 
-# custom imports
-from XeprTools import CustomXepr, JobStatusApp, InternalIPKernel
-from XeprTools.CustomXepr import __version__, __author__
-from MercuryGUI import MercuryFeed, MercuryMonitorApp
-from Keithley import Keithley, KeithleyGuiApp
-from HelpFunctions import applyDarkTheme
+# check if all require packages are installed
+from HelpFunctions import check_dependencies
+direct = os.path.dirname(os.path.realpath(__file__))
+filePath = os.path.join(direct, 'dependencies.txt')
+exit_code = check_dependencies(filePath)
+
 
 try:
     from IPython import get_ipython
     ipython = get_ipython()
     ipython.magic("%autoreload 0")
-
-except ImportError:
+except:
     pass
-
-try:
-    sys.path.insert(0, os.popen("Xepr --apipath").read())
-    import XeprAPI
-except ImportError:
-    logging.info('XeprAPI could not be located. Please make sure that it is ' +
-                 'installed on your system.')
 
 DARK = True
 KEITHLEY_IP = '192.168.2.121'
-MERCURY_IP = '172.20.91.43'
-
-
-BANNER = ('Welcome to CustomXepr %s. ' % __version__ +
-          'You can access connected instruments as ' +
-          '"customXepr", "mercuryFeed" and "keithley".\n\n' +
-          'Use "%run path_to_file.py" to run a python script such as a ' +
-          'measurement routine.\n'
-          'Execute "goDark()" or "goBright()" to switch the user interface ' +
-          'style. Type "exit" to gracefully exit CustomXepr.\n\n' +
-          '(c) 2016 - 2018, %s.' % __author__)
+MERCURY_IP = '172.20.91.42'
 
 
 # =============================================================================
@@ -67,11 +62,38 @@ def getQtApp(*args, **kwargs):
 
 
 # =============================================================================
+# Create splash screen
+# =============================================================================
+
+def showSplashScreen(app):
+    """ Shows a splash screen from file."""
+
+    image = QtGui.QPixmap(os.path.join(direct, 'Images/CustomXeprSplash.png'))
+    image.setDevicePixelRatio(3)
+    splash = QtWidgets.QSplashScreen(image)
+    splash.show()
+    app.processEvents()
+
+    return splash
+
+
+# =============================================================================
 # Connect to instruments: Bruker Xepr, Keithley and MercuryiTC.
 # =============================================================================
 
 def connectToInstruments(keithleyIP=KEITHLEY_IP, mercuryIP=MERCURY_IP):
     """Tries to connect to Keithley, Mercury and Xepr."""
+
+    from XeprTools import CustomXepr
+    from MercuryGUI import MercuryFeed
+    from Keithley import Keithley
+
+    try:
+        sys.path.insert(0, os.popen("Xepr --apipath").read())
+        import XeprAPI
+    except ImportError:
+        logging.info('XeprAPI could not be located. Please make sure that it' +
+                     ' is installed on your system.')
 
     keithley = Keithley(keithleyIP)
     mercuryFeed = MercuryFeed(mercuryIP)
@@ -96,6 +118,10 @@ def connectToInstruments(keithleyIP=KEITHLEY_IP, mercuryIP=MERCURY_IP):
 def startGUI(customXepr, mercuryFeed, keithley):
     """Starts GUIs for Keithley, Mercury and CustomXepr."""
 
+    from XeprTools import JobStatusApp
+    from MercuryGUI import MercuryMonitorApp
+    from Keithley import KeithleyGuiApp
+
     customXeprGUI = JobStatusApp(customXepr)
     mercuryGUI = MercuryMonitorApp(mercuryFeed)
     keithleyGUI = KeithleyGuiApp(keithley)
@@ -112,11 +138,15 @@ def startGUI(customXepr, mercuryFeed, keithley):
 # =============================================================================
 
 def goDark():
+    from HelpFunctions import applyDarkTheme
+
     applyDarkTheme.goDark()
     applyDarkTheme.applyMPLDarkTheme()
 
 
 def goBright():
+    from HelpFunctions import applyDarkTheme
+
     applyDarkTheme.goBright()
     applyDarkTheme.applyMPLBrightTheme()
 
@@ -147,10 +177,18 @@ def patch_excepthook():
 
 if __name__ == '__main__':
 
-    # Create a new Qt app or return an existing one.
+    from HelpFunctions import applyDarkTheme
+    from XeprTools.CustomXepr import __version__, __author__
+
+    # create a new Qt app or return an existing one
     app, created = getQtApp()
     if not created:
         patch_excepthook()
+
+    # create and show splash screen
+    splash = showSplashScreen(app)
+
+    applyDarkTheme.goDark()
 
     # connect to instruments
     customXepr, mercuryFeed, keithley, xepr = connectToInstruments()
@@ -158,17 +196,32 @@ if __name__ == '__main__':
     customXeprGUI, mercuryGUI, keithleyGUI = startGUI(customXepr, mercuryFeed,
                                                       keithley)
 
+    # reinforce dark style for figures
     if DARK:
-        goDark()
-        console_style = 'base16_ocean_dark'
-    else:
-        console_style = ''
+        applyDarkTheme.applyMPLDarkTheme()
 
+    # custom imports
+
+    BANNER = ('Welcome to CustomXepr %s. ' % __version__ +
+              'You can access connected instruments as ' +
+              '"customXepr", "mercuryFeed" and "keithley".\n\n' +
+              'Use "%run path_to_file.py" to run a python script such as a ' +
+              'measurement routine.\n'
+              'Execute "goDark()" or "goBright()" to switch the user ' +
+              'interface style. Type "exit" to gracefully exit ' +
+              'CustomXepr.\n\n(c) 2016 - 2018, %s.' % __author__)
 
     if created:
+        from XeprTools import InternalIPKernel
+
         # start event loop and console if run as standalone app
         kernel_window = InternalIPKernel()
         kernel_window.init_ipkernel(banner=BANNER)
+
+        if DARK:
+            console_style = 'customxeprdark'
+        else:
+            console_style = ''
 
         kernel_window.new_qt_console(style=console_style)
 
@@ -180,9 +233,13 @@ if __name__ == '__main__':
 
         kernel_window.send_to_namespace(varDict)
         app.aboutToQuit.connect(kernel_window.cleanup_consoles)
+        # remove splash screen
+        splash.finish(keithleyGUI)
+        # start event loop
         kernel_window.ipkernel.start()
 
     else:
-        # only print BANNER if started from running Jupyter console
-        # (e.g. from Spyder)
+        # print banner
         print(BANNER)
+        # remove splash screen
+        splash.finish(customXeprGUI)

@@ -8,7 +8,6 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
 
-import sys
 from qtpy import QtCore, QtWidgets
 
 

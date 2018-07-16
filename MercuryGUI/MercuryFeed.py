@@ -210,7 +210,7 @@ class DataCollectionWorker(QtCore.QObject):
                 self.connectedSignal.emit(False)
                 # stop worker thread
                 self.running = False
-                logging.warning('Connection to MercuryiTC lost.')
+                logger.warning('Connection to MercuryiTC lost.')
 
     def getReadings(self):
         # read heater data

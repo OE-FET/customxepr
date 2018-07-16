@@ -84,7 +84,6 @@ class QStatusLogHandler(logging.Handler, QtCore.QObject):
 # =========================================================================
 # Set up handlers for STATUS and INFO messages
 # =========================================================================
-root_logger = logging.getLogger()
 
 # create QInfoLogHandler to handle all INFO level events
 info_fmt = logging.Formatter(fmt='%(asctime)s %(threadName)s ' +
@@ -92,12 +91,12 @@ info_fmt = logging.Formatter(fmt='%(asctime)s %(threadName)s ' +
 info_handler = QInfoLogHandler()
 info_handler.setFormatter(info_fmt)
 info_handler.setLevel(logging.INFO)
-root_logger.addHandler(info_handler)
+logger.addHandler(info_handler)
 
 # create QStatusLogHandler to handle all STATUS level events
 status_handler = QStatusLogHandler()
 status_handler.setLevel(logging.STATUS)
-root_logger.addHandler(status_handler)
+logger.addHandler(status_handler)
 
 
 # =============================================================================
@@ -267,7 +266,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         indexes = self.resultQueueDisplay.selectedIndexes()
         if indexes == []:
             return
-        
+
         i0, i1 = indexes[0].row(), indexes[-1].row()
 
         self.popup_menu = QtWidgets.QMenu()
@@ -329,7 +328,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         Issues a warning email if no status update has come in for the time
         specified in self.t_timeout.
         """
-        if self.job_queue.qsize() > 0:
+        if self.job_queue.unfinished_tasks > 0:
             logger.warning('No status update for %s min.' % self.t_timeout +
                            ' Please check on experiment')
 
@@ -421,7 +420,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.customXepr.customtune()
 
         if self.job_queue.qsize() > 1:
-            logging.info('Tuning job added to the end of the job queue.')
+            logger.info('Tuning job added to the end of the job queue.')
 
     def on_qValue_clicked(self):
         """ Schedules a Q-Value readout if the ESR is connected."""
@@ -429,7 +428,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.customXepr.getQValueCalc()
 
         if self.job_queue.qsize() > 1:
-            logging.info('Q-Value readout added to the end of the job queue.')
+            logger.info('Q-Value readout added to the end of the job queue.')
 
     def on_clear_clicked(self):
         """ Clears all pending jobs in job_queue."""
@@ -452,10 +451,11 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
     def on_abort_clicked(self):
         """
-        Aborts current job.
+        Aborts a running job.
         """
-        self.abort_event.set()
-        self.abort_event_keithley.set()
+        if self.job_queue.unfinished_tasks > 0:
+            self.abort_event.set()
+            self.abort_event_keithley.set()
 
     def on_log_clicked(self):
         """

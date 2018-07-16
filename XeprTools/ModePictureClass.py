@@ -12,12 +12,8 @@ import numpy as np
 from lmfit import Model
 from lmfit.models import PolynomialModel
 import matplotlib.pyplot as plt
-import logging
 import time
 from qtpy import QtWidgets
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 def lorentz_peak(x, x0, w, A):
@@ -39,8 +35,8 @@ class ModePicture(object):
         """
 
         if not isinstance(modePicData, dict):
-            logger.error('"modePicData" must be a dictionary containing the +'
-                         'mode pictures for the respective zoom factors.')
+            raise TypeError('"modePicData" must be a dictionary containing ' +
+                            'mode pictures for with different zoom factors.')
 
         if modePicData == {}:
             self.load()
@@ -193,5 +189,3 @@ class ModePicture(object):
                         linestring = line
             freq = re.findall("\d+\.\d+", linestring)
             self.freq0 = float(freq[0])
-        else:
-            logger.error('Please specify a valid file path.')

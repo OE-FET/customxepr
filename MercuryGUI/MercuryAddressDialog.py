@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-from qtpy import QtWidgets, QtCore, uic
+from qtpy import QtWidgets, uic
 import os
-import sys
 
 
 class AddressDialog(QtWidgets.QDialog):
