@@ -571,8 +571,8 @@
    <widget class="QMenu" name="menu_CustomXepr">
     <property name="geometry">
      <rect>
-      <x>232</x>
-      <y>130</y>
+      <x>93</x>
+      <y>99</y>
       <width>160</width>
       <height>96</height>
      </rect>
@@ -586,7 +586,7 @@
    </widget>
    <widget class="QMenu" name="menu_Files">
     <property name="title">
-     <string>&amp;Files</string>
+     <string>&amp;File</string>
     </property>
     <addaction name="actionShow_log_files"/>
    </widget>

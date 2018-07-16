@@ -95,15 +95,14 @@ def connectToInstruments(keithleyIP=KEITHLEY_IP, mercuryIP=MERCURY_IP):
 
 def startGUI(customXepr, mercuryFeed, keithley):
     """Starts GUIs for Keithley, Mercury and CustomXepr."""
-    # create the user interfaces
+
     customXeprGUI = JobStatusApp(customXepr)
-    customXeprGUI.show()
-
-    keithleyGUI = KeithleyGuiApp(keithley)
-    keithleyGUI.show()
-
     mercuryGUI = MercuryMonitorApp(mercuryFeed)
+    keithleyGUI = KeithleyGuiApp(keithley)
+
+    customXeprGUI.show()
     mercuryGUI.show()
+    keithleyGUI.show()
 
     return customXeprGUI, mercuryGUI, keithleyGUI
 

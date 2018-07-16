@@ -55,7 +55,14 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England &amp; Wales License.</string>
     </widget>
    </item>
    <item>
-    <widget class="QTextEdit" name="docText"/>
+    <widget class="QTextEdit" name="docText">
+     <property name="acceptDrops">
+      <bool>false</bool>
+     </property>
+     <property name="textInteractionFlags">
+      <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>
