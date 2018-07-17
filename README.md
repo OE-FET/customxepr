@@ -46,15 +46,15 @@ modAmp = {5: 3, 50: 2, 100: 1, 150: 1, 200: 1, 250: 1.5, 300: 2}
 # specify folder to save data
 folder = '/path/to/folder/'
 title = 'my_sample'
-	
+
 for T in [5, 50, 100, 150, 200, 250, 300]:
 	# =================================================================
 	# Prepare temperature
 	# =================================================================
-	customXepr.setTemperature(T)        # set desired temperature 
+	customXepr.setTemperature(T)        # set desired temperature
 	customXepr.customtune()             # tune the cavity
 	customXepr.getQValueCalc(folder, T) # measure and save the Q factor
-	
+
 	# =================================================================
 	# Perform FET measurements
 	# =================================================================
@@ -62,7 +62,7 @@ for T in [5, 50, 100, 150, 200, 250, 300]:
 	transferFile = folder + title + '_' + str(T) + 'K_transfer.txt'
 	# record default transfer curve and save to file
 	customXepr.transferMeasurement(transferFile)
-	
+
 	# =================================================================
 	# Perform ESR measurements at Vg = -70V and Vg = 0V
 	# =================================================================
@@ -71,12 +71,12 @@ for T in [5, 50, 100, 150, 200, 250, 300]:
 		# perform preconfigured ESR measurement
 		customXepr.runExperiment(Exp, ModAmp=modAmp[T])
 		customXepr.biasGate(0)  # set gate voltage to zero
-        
+
     	# save ESR spectrum to file
 		esrDataFile = folder + title + '_' + str(T) + 'K_Vg_' + str(Vg)
 		customXepr.saveCurrentData(esrDataFile)
-       
-customXepr.setStandby()  # ramp down field and set MW bridge to standby	
+
+customXepr.setStandby()  # ramp down field and set MW bridge to standby
 ```
 
 In this code, all functions belonging to CustomXepr will be added to the job queue and will be carried out successively such that, for instance, ESR measurements will not start while the temperature is still being ramped.
@@ -103,8 +103,8 @@ As with the cryostat, CustomXepr includes a Python driver for the Keithley 2600 
 - Bruker Xepr software (ESR related functions will not work without Xepr)
 - fping   - command line tool for pings with millisecond timeout
 - Postfix - mail transfer agent for macOSX and Linux, required for email
-          notifications. 
-	  
+          notifications.
+
 *Python modules*:
 
 - matplotlib
@@ -119,3 +119,4 @@ As with the cryostat, CustomXepr includes a Python driver for the Keithley 2600 
 
 ## Acknowledgements
 The MercuryiTC driver is based on the driver developed by [crazyfermions](https://github.com/crazyfermions/python-mercury_driver).
+Config file modules are based the implementation from Spyder [Spyder](https://github.com/spyder-ide).
