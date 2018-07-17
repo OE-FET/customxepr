@@ -167,7 +167,6 @@ def goBright():
 def patch_excepthook():
 
     from traceback import format_exception
-
     global TIMER
 
     def new_except_hook(etype, evalue, tb):
@@ -224,13 +223,14 @@ if __name__ == '__main__':
 
     if created:
         from XeprTools import InternalIPKernel
+        from Utils import get_dark_style
 
         # start event loop and console if run as standalone app
         kernel_window = InternalIPKernel()
         kernel_window.init_ipkernel(banner=BANNER)
 
         if DARK:
-            console_style = 'customxeprdark'
+            console_style = get_dark_style()
         else:
             console_style = ''
 

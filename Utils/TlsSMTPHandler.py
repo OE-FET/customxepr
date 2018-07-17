@@ -14,6 +14,7 @@ import logging.handlers
 
 
 class TlsSMTPHandler(logging.handlers.SMTPHandler):
+    """ Logging handler which sends out emails."""
     def emit(self, record):
         """
         Emit a record.

@@ -6,4 +6,3 @@ lmfit
 numpy
 pyqtgraph
 qdarkstyle
-jupyter_qtconsole_colorschemes

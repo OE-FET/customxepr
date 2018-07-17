@@ -12,7 +12,7 @@ import subprocess
 def ping(ipAddress, ms_timeout=20):
     """
     Ping command for UNIX based systems. Millisecond timeout will only work
-    if fping is installed. Returns True is IP address is reachable within
+    if fping is installed. Returns True if IP address is reachable within
     timeout.
     """
     # check if fping is installed, otherwise use ping
