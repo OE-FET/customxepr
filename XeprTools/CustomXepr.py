@@ -269,7 +269,7 @@ class CustomXepr(QtCore.QObject):
         # =====================================================================
 
         # waiting time for Xepr to process commands
-        self.wait = 0.5
+        self.wait = 0.2
         # settling time for cryostat temperature
         self._temp_wait_time = CONF.get('CustomXepr', 'temp_wait_time')
         # temperature stability tolerance
@@ -988,7 +988,7 @@ class CustomXepr(QtCore.QObject):
         # -------------------start experiment----------------------------------
 
         if self.feed is not None and self.feed.mercury is not None:
-            measurementTemp = np.array([])
+            self.T_history = np.array([])
 
         exp.select()
         time.sleep(self.wait)
@@ -1013,9 +1013,7 @@ class CustomXepr(QtCore.QObject):
                 return
 
             NbScansDone = exp['NbScansDone'].value
-            time.sleep(self.wait)
             NbScansToDo = exp['NbScansToDo'].value
-            time.sleep(self.wait)
             logger.status('Recording scan %i of %i'
                           % (NbScansDone+1, NbScansToDo))
 
@@ -1042,20 +1040,19 @@ class CustomXepr(QtCore.QObject):
             # record temperature and warn if fluctuations exceed the tolerance
             if self.feed is not None and self.feed.mercury is not None:
                 T_curr = self.feed.readings['Temp']
-                measurementTemp = np.append(measurementTemp, T_curr)
-                T_var = abs(np.mean(measurementTemp) - T_curr)
+                self.T_history = np.append(self.T_history, T_curr)
                 # get the number of temperature stability violations
-                n_out = (abs(measurementTemp - measurementTemp[0]) >
-                         2*self.temperature_tolerance).sum()
+                self.n_out = (abs(self.T_history - self.T_history[0]) >
+                              2*self.temperature_tolerance).sum()
                 # warn once for every 120 violations
-                if np.mod(n_out, 120) == 1:
+                if np.mod(self.n_out, 120) == 1:
+                    self.n_out += 1  # prevent from warning again next second
                     logger.warning(u'Tempearature fluctuations > \xb1%sK.'
                                    % (2*self.temperature_tolerance))
-                    n_out += 1  # prevent from warning again next second
 
                 # Pause measurement and suspend all pending jobs after 15 min
                 # of temperature instability
-                if n_out > 60*15:
+                if self.n_out > 60*15:
                     logger.error('Temperature could not be stabilized for ' +
                                  '15 min. Pausing current measurement and ' +
                                  'all pending jobs.')
@@ -1067,8 +1064,8 @@ class CustomXepr(QtCore.QObject):
 
         # get temperature stability over scan if mercury was connected
         if self.feed is not None and self.feed.mercury is not None:
-            T_var = max(measurementTemp) - min(measurementTemp)
-            T_mean = np.mean(measurementTemp)
+            T_var = max(self.T_history) - min(self.T_history)
+            T_mean = np.mean(self.T_history)
             logger.info(u'Temperature stable at (%.2f\xb1%.2f)K during scans.'
                         % (T_mean, T_var/2))
 
