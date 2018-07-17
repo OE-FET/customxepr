@@ -26,7 +26,7 @@ DEFAULTS = [
             ('CustomXepr',
              {
               'notify_address': None,
-              'email_handler_level': 40,
+              'email_handler_level': 30,
               'temp_wait_time': 120,
               'temperature_tolerance': 0.1
               }),
