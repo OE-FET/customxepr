@@ -25,6 +25,8 @@ New in v1.5.0:
 * IP address settings are persistent sessions.
 * Dark and bright appearances are persistent between sessions.
 * Keithley settings can be saved as default.
+* New option in CustomXepr Manu bar to switch between dark and light
+  appearances.
 
 New in v1.4.4:
 * SweepData class for Keithley IV curves updated to support loading of data
