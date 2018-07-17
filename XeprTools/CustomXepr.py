@@ -420,6 +420,8 @@ class CustomXepr(QtCore.QObject):
             logging.warning('No email handler could be found.')
         else:
             eh[0].setLevel(level)
+        # update conf file
+        CONF.set('CustomXepr', 'email_handler_level', level)
 
 # =============================================================================
 # set up Xepr functions
