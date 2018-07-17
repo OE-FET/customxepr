@@ -28,6 +28,10 @@ New in v1.5.0:
 * New option in CustomXepr Manu bar to switch between dark and light
   appearances.
 
+Bug fixes in v1.5.0:
+* Fixed a bug that may have caused CustomXepr to realse too many temperature
+  fluctuation warnings.
+
 New in v1.4.4:
 * SweepData class for Keithley IV curves updated to support loading of data
   from a previously saved file. This is reflected in the Keithley GUI which
