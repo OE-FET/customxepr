@@ -366,13 +366,15 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         # find user home directory
         homePath = os.path.expanduser('~')
-        self.loggingPath = '/.CustomXepr/LOG_FILES'
+        self.loggingPath = os.path.join(homePath, '.CustomXepr', 'LOG_FILES')
+
         # create folder '~/.CustomXepr/LOG_FILES' if not present
-        if not os.path.exists(homePath + self.loggingPath):
-            os.makedirs(homePath + self.loggingPath)
+        if not os.path.exists(self.loggingPath):
+            os.makedirs(self.loggingPath)
         # set logging file path
-        self.logFile = (homePath + self.loggingPath + '/temperature_log '
-                        + time.strftime("%Y-%m-%d_%H-%M-%S"))
+        self.logFile = os.path.join(self.loggingPath, '/temperature_log ' +
+                                    time.strftime("%Y-%m-%d_%H-%M-%S"))
+
         t_save = 10  # time interval to save temperature data in min
         self.newFile = True  # create new log file for every new start
         self.save_timer = QtCore.QTimer()
@@ -477,15 +479,13 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         Opens directory with log files with current log file selected.
         """
-        homePath = os.path.expanduser('~')
-        path = homePath + self.loggingPath
 
         if platform.system() == 'Windows':
-            os.startfile(path)
+            os.startfile(self.loggingPath)
         elif platform.system() == 'Darwin':
-            subprocess.Popen(['open', path])
+            subprocess.Popen(['open', self.loggingPath])
         else:
-            subprocess.Popen(['xdg-open', path])
+            subprocess.Popen(['xdg-open', self.loggingPath])
 
 
 if __name__ == '__main__':

@@ -18,6 +18,14 @@ Postfix - mail transfer agent for macOSX and Linux, required for email
 
 %----------- Release notes ----------------------------------------------------
 
+New in v1.5.0:
+* Added config files in '~/.CustomXepr' for every user.
+* All CustomXepr settings (email addresses, notification level, etc) are
+  persistent between sessions.
+* IP address settings are persistent sessions.
+* Dark and bright appearances are persistent between sessions.
+* Keithley settings can be saved as default.
+
 New in v1.4.4:
 * SweepData class for Keithley IV curves updated to support loading of data
   from a previously saved file. This is reflected in the Keithley GUI which

@@ -16,7 +16,7 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 
 from qtpy import QtCore, QtWidgets
-from HelpFunctions import LedIndicator
+from Utils import LedIndicator
 
 
 class Ui_MainWindow(object):
@@ -34,11 +34,7 @@ class Ui_MainWindow(object):
         self.exitAction.setShortcut('Ctrl+Q')
         self.exitAction.setStatusTip('Exit application')
 
-        self.showLogAction = QtWidgets.QAction('Show logs', self)
-        self.showLogAction.setShortcut('Ctrl+L')
-        self.showLogAction.setStatusTip('Open temperature log folder')
-
-        self.showLogAction = QtWidgets.QAction('Show logs', self)
+        self.showLogAction = QtWidgets.QAction(' Show logs', self)
         self.showLogAction.setShortcut('Ctrl+L')
         self.showLogAction.setStatusTip('Open temperature log folder')
 

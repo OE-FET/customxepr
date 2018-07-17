@@ -37,7 +37,7 @@ for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
     # =========================================================================
     # Perform ESR measurements at Vg and background scan at 0V
     # =========================================================================
-    
+
     for volt in [0, Vg]:
         customXepr.biasGate(volt)
         customXepr.runExperiment(Exp, ModAmp=modAmp[T], PowerAtten=atten[T], SweepWidth=sweepWidth[T], NbScansToDo=nbScans[T])

@@ -19,13 +19,14 @@ New in v1.4.4:
 """
 
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'
-__date__ = '09 July 2018'
+__date__ = '17 July 2018'
 
-__version__ = 'v1.4.4'
+__version__ = 'v1.5.0'
 
 # system imports
 import sys
 import os
+import getpass
 from threading import Event
 from qtpy import QtCore
 from Queue import Queue
@@ -35,8 +36,9 @@ import numpy as np
 import logging
 
 # custom imports
-from HelpFunctions import TlsSMTPHandler
+from Utils import TlsSMTPHandler
 from ModePictureClass import ModePicture
+from Config.main import CONF
 
 try:
     sys.path.insert(0, os.popen("Xepr --apipath").read())
@@ -266,9 +268,13 @@ class CustomXepr(QtCore.QObject):
         # define certain settings for customXepr functions
         # =====================================================================
 
-        self.wait = 0.5  # waiting time for Xepr to process commands
-        self.temp_wait_time = 120  # settling time for cryostat temperature
-        self.temperature_tolerance = 0.1  # temperature stability tolerance
+        # waiting time for Xepr to process commands
+        self.wait = 0.5
+        # settling time for cryostat temperature
+        self._temp_wait_time = CONF.get('CustomXepr', 'temp_wait_time')
+        # temperature stability tolerance
+        self._temperature_tolerance = CONF.get('CustomXepr',
+                                               'temperature_tolerance')
 
 # =============================================================================
 # define basic functions for email notifictions, pausing, etc.
@@ -312,6 +318,30 @@ class CustomXepr(QtCore.QObject):
             time.sleep(seconds)
 
     @property
+    def temp_wait_time(self):
+        """Wait time until temperature is considered stable."""
+        return self._temp_wait_time
+
+    @temp_wait_time.setter
+    def temp_wait_time(self, newtime):
+        """Setter: Wait time until temperature is considered stable."""
+        self._temp_wait_time = newtime
+        # update config file
+        CONF.set('CustomXepr', 'temp_wait_time', newtime)
+
+    @property
+    def temperature_tolerance(self):
+        """Temperature fluctuation tolerance."""
+        return self._temperature_tolerance
+
+    @temperature_tolerance.setter
+    def temperature_tolerance(self, newtol):
+        """Setter: Temperature fluctuation tolerance."""
+        self._temperature_tolerance = newtol
+        # update config file
+        CONF.set('CustomXepr', 'temperature_tolerance', newtol)
+
+    @property
     def notify_address(self):
         """Address list for email notifications."""
         # get root logger
@@ -348,6 +378,9 @@ class CustomXepr(QtCore.QObject):
         logger.info('Email notifications will be sent to '
                     + email_list_str + '.')
 
+        # update conf file
+        CONF.set('CustomXepr', 'notify_address', email_list)
+
     @property
     def log_file_dir(self):
         """Directory for log files."""
@@ -357,10 +390,10 @@ class CustomXepr(QtCore.QObject):
         fh = [x for x in root_log.handlers if type(x) == logging.FileHandler]
 
         if len(fh) == 0:
-            logging.warning('No email handler could be found.')
+            logging.warning('No file handler could be found.')
         else:
             fileName = fh[0].baseFilename
-            return '/'.join(fileName.split('/')[0:-1])
+            return os.path.dirname(fileName)
 
     @property
     def email_handler_level(self):
@@ -1270,8 +1303,13 @@ class CustomXepr(QtCore.QObject):
 # =============================================================================
 
     @queued_exec(job_queue)
-    def transferMeasurement(self, path=None, VgStart=10, VgStop=-60, VgStep=1,
-                            Vd=(-5, -60), pulsed=False, tInt=0.1):
+    def transferMeasurement(self, path=None,
+                            VgStart=CONF.get('Keithley', 'VgStart'),
+                            VgStop=CONF.get('Keithley', 'VgStop'),
+                            VgStep=CONF.get('Keithley', 'VgStep'),
+                            VdList=CONF.get('Keithley', 'VdList'),
+                            pulsed=CONF.get('Keithley', 'pulsed'),
+                            tInt=CONF.get('Keithley', 'tInt')):
         """
         Performs a transfer measurement and returns a sweepData object.
         Saves the data in a .txt file if a path is specified.
@@ -1282,13 +1320,19 @@ class CustomXepr(QtCore.QObject):
                         'require a connected Keithley SMU will not work.')
             return
 
-        return self.keithley.transferMeasurement(VgStart, VgStop, VgStep, Vd,
-                                                 filepath=path, plot=False,
-                                                 pulsed=pulsed, tInt=0.1)
+        return self.keithley.transferMeasurement(VgStart, VgStop, VgStep,
+                                                 VdList, filepath=path,
+                                                 plot=False, pulsed=pulsed,
+                                                 tInt=0.1)
 
     @queued_exec(job_queue)
-    def outputMeasurement(self, path=None, VdStart=0, VdStop=-60, VdStep=1,
-                          Vg=(0, -20, -40, -60), pulsed=False, tInt=0.1):
+    def outputMeasurement(self, path=None,
+                          VdStart=CONF.get('Keithley', 'VdStart'),
+                          VdStop=CONF.get('Keithley', 'VdStop'),
+                          VdStep=CONF.get('Keithley', 'VdStep'),
+                          VgList=CONF.get('Keithley', 'VgList'),
+                          pulsed=CONF.get('Keithley', 'pulsed'),
+                          tInt=CONF.get('Keithley', 'tInt')):
         """
         Performs an output measurement and returns a sweepData object.
         Saves the data in a .txt file if a path is specified.
@@ -1299,7 +1343,7 @@ class CustomXepr(QtCore.QObject):
                         'require a connected Keithley SMU will not work.')
             return
 
-        return self.keithley.outputMeasurement(VdStart, VdStop, VdStep, Vg,
+        return self.keithley.outputMeasurement(VdStart, VdStop, VdStep, VgList,
                                                filepath=path, plot=False,
                                                pulsed=pulsed, tInt=0.1)
 
@@ -1334,7 +1378,10 @@ class CustomXepr(QtCore.QObject):
 # Set up loggers to send emails and write to log files
 # =============================================================================
 
-def setup_root_logger(NOTIFY=['ss2151@cam.ac.uk', 'rc716@cam.ac.uk']):
+def setup_root_logger(NOTIFY):
+
+    if NOTIFY is None:
+        NOTIFY = [getpass.getuser() + '@cam.ac.uk', ]
 
     # Set up email notification handler for WARNING messages and above
     root_logger = logging.getLogger()
@@ -1355,7 +1402,7 @@ def setup_root_logger(NOTIFY=['ss2151@cam.ac.uk', 'rc716@cam.ac.uk']):
         email_handler = TlsSMTPHandler('localhost', 'ss2151@cam.ac.uk',
                                        NOTIFY, 'Xepr logger')
         email_handler.setFormatter(f)
-        email_handler.setLevel(logging.WARNING)
+        email_handler.setLevel(CONF.get('CustomXepr', 'email_handler_level'))
 
         root_logger.addHandler(email_handler)
 
@@ -1364,13 +1411,12 @@ def setup_root_logger(NOTIFY=['ss2151@cam.ac.uk', 'rc716@cam.ac.uk']):
     # =========================================================================
     if len(fh) == 0:
         homePath = os.path.expanduser('~')
-        loggingPath = '.CustomXepr/LOG_FILES'
-        fullPath = os.path.join(homePath, loggingPath)
+        loggingPath = os.path.join(homePath, '.CustomXepr', 'LOG_FILES')
 
-        if not os.path.exists(fullPath):
-            os.makedirs(fullPath)
+        if not os.path.exists(loggingPath):
+            os.makedirs(loggingPath)
 
-        logFile = os.path.join(fullPath, 'root_logger '
+        logFile = os.path.join(loggingPath, 'root_logger '
                                + time.strftime("%Y-%m-%d_%H-%M-%S"))
         file_handler = logging.FileHandler(logFile)
         file_handler.setFormatter(f)
@@ -1378,4 +1424,4 @@ def setup_root_logger(NOTIFY=['ss2151@cam.ac.uk', 'rc716@cam.ac.uk']):
         root_logger.addHandler(file_handler)
 
 
-setup_root_logger()
+setup_root_logger(CONF.get('CustomXepr', 'notify_address'))

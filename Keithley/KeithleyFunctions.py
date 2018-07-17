@@ -19,7 +19,9 @@ from qtpy import QtCore, QtWidgets
 
 # custom imports
 from SweepDataClass import SweepData
-from HelpFunctions import ping
+from Utils import ping
+from Config.main import CONF
+
 
 logger = logging.getLogger(__name__)
 
@@ -42,16 +44,13 @@ class Keithley(QtWidgets.QWidget):
     busySig = QtCore.Signal()
     idleSig = QtCore.Signal()
 
-    DEFAULTS = {'VgStart': 10, 'VgStop': -60, 'VgStep': 1, 'VdList': [-5, -60],
-                'VdStart': 0, 'VdStop': -60,  'VdStep': 1,
-                'VgList': [0, -20, -40, -60], 'tInt': 0.1, 'pulsed': False,
-                'delay': -1}  # delay = -1: settling time is automatically set
+    DEFAULTS = dict(CONF.items('Keithley'))
 
 # =============================================================================
 # Set up basic communication with Keithley
 # =============================================================================
 
-    def __init__(self, address='192.168.2.121'):
+    def __init__(self, address=CONF.get('Keithley', 'KEITHLEY_IP')):
         super(self.__class__, self).__init__()
         # open Keithley Visa resource
         self.address = address
@@ -59,8 +58,8 @@ class Keithley(QtWidgets.QWidget):
         self.connect()
 
         # specify drain and gate electrodes
-        self.gate = 'smua'
-        self.drain = 'smub'
+        self.gate = self.DEFAULTS['gate']
+        self.drain = self.DEFAULTS['drain']
 
     def write(self, text):
         """
@@ -501,7 +500,7 @@ class Keithley(QtWidgets.QWidget):
     def transferMeasurement(self, VgStart=DEFAULTS['VgStart'],
                             VgStop=DEFAULTS['VgStop'],
                             VgStep=DEFAULTS['VgStep'],
-                            Vd=DEFAULTS['VdList'], filepath=None,
+                            VdList=DEFAULTS['VdList'], filepath=None,
                             plot=True, tInt=DEFAULTS['tInt'],
                             delay=DEFAULTS['delay'],
                             pulsed=DEFAULTS['pulsed']):
@@ -511,12 +510,12 @@ class Keithley(QtWidgets.QWidget):
         """
         self.busySig.emit()
         self.abort_event.clear()
-        logger.info('Recording transfer curve with Vg from %sV to %sV, Vd = %s V. ' % (VgStart, VgStop, Vd))
+        logger.info('Recording transfer curve with Vg from %sV to %sV, Vd = %s V. ' % (VgStart, VgStop, VdList))
 
         # create SweepData instance
         self.sweepData = SweepData(sweepType='transfer')
 
-        for Vdrain in Vd:
+        for Vdrain in VdList:
             if self.abort_event.is_set():
                 self.reset()
                 return self.sweepData
@@ -553,7 +552,7 @@ class Keithley(QtWidgets.QWidget):
     def outputMeasurement(self, VdStart=DEFAULTS['VdStart'],
                           VdStop=DEFAULTS['VdStop'],
                           VdStep=DEFAULTS['VdStep'],
-                          Vg=DEFAULTS['VgList'], filepath=None,
+                          VgList=DEFAULTS['VgList'], filepath=None,
                           plot=True, tInt=DEFAULTS['tInt'],
                           delay=DEFAULTS['delay'],
                           pulsed=DEFAULTS['pulsed']):
@@ -562,12 +561,12 @@ class Keithley(QtWidgets.QWidget):
         """
         self.busySig.emit()
         self.abort_event.clear()
-        logger.info('Recording output curve with Vd from %sV to %sV, Vg = %s V. ' % (VdStart, VdStop, Vg))
+        logger.info('Recording output curve with Vd from %sV to %sV, Vg = %s V. ' % (VdStart, VdStop, VgList))
 
         # create SweepData instance
         self.sweepData = SweepData(sweepType='output')
 
-        for Vgate in Vg:
+        for Vgate in VgList:
             if self.abort_event.is_set():
                 self.reset()
                 return self.sweepData

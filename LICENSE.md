@@ -32,7 +32,7 @@ agree as follows:
     "Licence Elements" means the following high-level licence attributes indicated in the title of this Licence: Attribution, Non-Commercial, Share-Alike.
     "Non-Commercial" means "not primarily intended for or directed towards commercial advantage or private monetary compensation". The exchange of the Work for other copyrighted works by means of digital file-sharing or otherwise shall not be considered to be intended for or directed towards commercial advantage or private monetary compensation, provided there is no payment of any monetary compensation in connection with the exchange of copyrighted works.
     "Original Author" means the individual (or entity) who created the Work.
-    "Work" means the python packages 'XeprTools', 'MercuryGUI', 'MercuryDriver, 'Keithley', and 'HelpFunctions' protected by copyright which are offered under the terms of this Licence.
+    "Work" means the python packages 'XeprTools', 'MercuryGUI', 'MercuryDriver, 'Keithley', and 'Utils' protected by copyright which are offered under the terms of this Licence.
     For the purpose of this Licence, when not inconsistent with the context, words in the singular number include the plural number.
 
 2. Licence Terms

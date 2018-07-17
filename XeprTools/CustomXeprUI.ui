@@ -571,16 +571,18 @@
    <widget class="QMenu" name="menu_CustomXepr">
     <property name="geometry">
      <rect>
-      <x>93</x>
-      <y>99</y>
+      <x>286</x>
+      <y>130</y>
       <width>160</width>
-      <height>96</height>
+      <height>127</height>
      </rect>
     </property>
     <property name="title">
      <string>&amp;CustomXepr</string>
     </property>
     <addaction name="action_About"/>
+    <addaction name="separator"/>
+    <addaction name="actionDark_mode"/>
     <addaction name="separator"/>
     <addaction name="action_Exit"/>
    </widget>
@@ -606,6 +608,14 @@
   <action name="actionShow_log_files">
    <property name="text">
     <string>Show log files</string>
+   </property>
+  </action>
+  <action name="actionDark_mode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string> &amp;Dark mode</string>
    </property>
   </action>
  </widget>

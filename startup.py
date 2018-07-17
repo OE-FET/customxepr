@@ -10,7 +10,7 @@ To Do:
 
 * See GitHub issues list at https://github.com/OE-FET/CustomXepr
 
-New in v1.4.4:
+New in v1.5.0:
 
     See release notes
 
@@ -22,8 +22,11 @@ import os
 import logging
 from qtpy import QtCore, QtWidgets, QtGui
 
+# custom imports
+from Config.main import CONF
+
 # check if all require packages are installed
-from HelpFunctions import check_dependencies
+from Utils import check_dependencies
 direct = os.path.dirname(os.path.realpath(__file__))
 filePath = os.path.join(direct, 'dependencies.txt')
 exit_code = check_dependencies(filePath)
@@ -36,9 +39,10 @@ try:
 except:
     pass
 
-DARK = True
-KEITHLEY_IP = '192.168.2.121'
-MERCURY_IP = '172.20.91.42'
+DARK = CONF.get('main', 'DARK')
+KEITHLEY_IP = CONF.get('Keithley', 'KEITHLEY_IP')
+MERCURY_IP = CONF.get('MercuryFeed', 'MERCURY_IP')
+MERCURY_PORT = CONF.get('MercuryFeed', 'MERCURY_PORT')
 
 
 # =============================================================================
@@ -81,7 +85,8 @@ def showSplashScreen(app):
 # Connect to instruments: Bruker Xepr, Keithley and MercuryiTC.
 # =============================================================================
 
-def connectToInstruments(keithleyIP=KEITHLEY_IP, mercuryIP=MERCURY_IP):
+def connectToInstruments(keithleyIP=KEITHLEY_IP, mercuryIP=MERCURY_IP,
+                         mercuryPort=MERCURY_PORT):
     """Tries to connect to Keithley, Mercury and Xepr."""
 
     from XeprTools import CustomXepr
@@ -96,7 +101,7 @@ def connectToInstruments(keithleyIP=KEITHLEY_IP, mercuryIP=MERCURY_IP):
                      ' is installed on your system.')
 
     keithley = Keithley(keithleyIP)
-    mercuryFeed = MercuryFeed(mercuryIP)
+    mercuryFeed = MercuryFeed(mercuryIP, mercuryPort)
 
     try:
         xepr = XeprAPI.Xepr()
@@ -138,17 +143,21 @@ def startGUI(customXepr, mercuryFeed, keithley):
 # =============================================================================
 
 def goDark():
-    from HelpFunctions import applyDarkTheme
+    from Utils import applyDarkTheme
 
     applyDarkTheme.goDark()
     applyDarkTheme.applyMPLDarkTheme()
 
+    CONF.set('main', 'DARK', True)
+
 
 def goBright():
-    from HelpFunctions import applyDarkTheme
+    from Utils import applyDarkTheme
 
     applyDarkTheme.goBright()
     applyDarkTheme.applyMPLBrightTheme()
+
+    CONF.set('main', 'DARK', False)
 
 
 # =============================================================================
@@ -177,7 +186,7 @@ def patch_excepthook():
 
 if __name__ == '__main__':
 
-    from HelpFunctions import applyDarkTheme
+    from Utils import applyDarkTheme
     from XeprTools.CustomXepr import __version__, __author__
 
     # create a new Qt app or return an existing one
@@ -188,7 +197,9 @@ if __name__ == '__main__':
     # create and show splash screen
     splash = showSplashScreen(app)
 
-    applyDarkTheme.goDark()
+    # apply dark theme
+    if DARK:
+        applyDarkTheme.goDark()
 
     # connect to instruments
     customXepr, mercuryFeed, keithley, xepr = connectToInstruments()
@@ -196,7 +207,7 @@ if __name__ == '__main__':
     customXeprGUI, mercuryGUI, keithleyGUI = startGUI(customXepr, mercuryFeed,
                                                       keithley)
 
-    # reinforce dark style for figures
+    # reinforce dark theme for figures
     if DARK:
         applyDarkTheme.applyMPLDarkTheme()
 

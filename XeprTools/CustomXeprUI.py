@@ -24,6 +24,8 @@ import re
 from Keithley import SweepData
 from ModePictureClass import ModePicture
 from AboutWindow import AboutWindow
+from Utils import applyDarkTheme
+from Config.main import CONF
 
 logger = logging.getLogger('XeprTools.CustomXepr')
 # log all messages with level STATUS and higher (no DEBUG messages)
@@ -135,6 +137,12 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.action_About.triggered.connect(self.aboutWindow.show)
         self.actionShow_log_files.triggered.connect(self.on_log_clicked)
         self.action_Exit.triggered.connect(self.exit_)
+        self.actionDark_mode.triggered.connect(self._toggle_dark_mode)
+
+        if CONF.get('main', 'DARK'):
+            self.actionDark_mode.setChecked(True)
+        else:
+            self.actionDark_mode.setChecked(False)
 
         # position in top left corner
         self.setIntialPosition()
@@ -470,6 +478,18 @@ class JobStatusApp(QtWidgets.QMainWindow):
         else:
             subprocess.Popen(['xdg-open', path])
 
+    def _toggle_dark_mode(self):
+        """ Toggles between bright and dark GUI appearance."""
+        if self.actionDark_mode.isChecked():
+            applyDarkTheme.goDark()
+            applyDarkTheme.applyMPLDarkTheme()
+
+            CONF.set('main', 'DARK', True)
+        elif not self.actionDark_mode.isChecked():
+            applyDarkTheme.goBright()
+            applyDarkTheme.applyMPLBrightTheme()
+
+            CONF.set('main', 'DARK', False)
 
 # =============================================================================
 # Callbacks and functions for CustomXepr settings adjustments

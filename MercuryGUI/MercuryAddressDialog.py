@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from qtpy import QtWidgets, uic
 import os
+from Config.main import CONF
 
 
 class AddressDialog(QtWidgets.QDialog):
@@ -25,6 +26,11 @@ class AddressDialog(QtWidgets.QDialog):
         # update connection settings in mercury feed
         self.feed.address = str(self.lineEditIP.text())
         self.feed.port = str(self.lineEditPort.text())
+
+        # update connection settings in config file
+        CONF.set('MercuryFeed', 'MERCURY_IP', str(self.lineEditIP.text()))
+        CONF.set('MercuryFeed', 'MERCURY_PORT', str(self.lineEditPort.text()))
+
         # restart feed for changes to become effective
         if mercuryConnected:
             self.feed.pause()

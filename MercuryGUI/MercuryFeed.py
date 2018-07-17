@@ -17,7 +17,8 @@ import logging
 import visa
 
 from MercuryDriver import MercuryITC
-from HelpFunctions import ping
+from Utils import ping
+from Config.main import CONF
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ class MercuryFeed(QtWidgets.QWidget):
     notifySignal = QtCore.Signal(str)
     connectedSignal = QtCore.Signal(bool)
 
-    def __init__(self, address, port='7020', refresh=1):
+    def __init__(self, address, port, refresh=1):
         super(self.__class__, self).__init__()
 
         self.refresh = refresh
@@ -171,6 +172,11 @@ class SensorDialog(QtWidgets.QDialog):
         self.comboBox_2.addItems(gas_modules_nick)
         self.comboBox_3.addItems(heat_modules_nick)
 
+        # get default modules
+        self.comboBox.setCurrentIndex(CONF.get('MercuryFeed', 'temperature_module'))
+        self.comboBox_2.setCurrentIndex(CONF.get('MercuryFeed', 'gasflow_module'))
+        self.comboBox_3.setCurrentIndex(CONF.get('MercuryFeed', 'heater_module'))
+
         self.modNumbers['temperature'] = self.temp_modules[self.comboBox.currentIndex()]
         self.modNumbers['gasflow'] = self.gas_modules[self.comboBox_2.currentIndex()]
         self.modNumbers['heater'] = self.heat_modules[self.comboBox_3.currentIndex()]
@@ -181,6 +187,12 @@ class SensorDialog(QtWidgets.QDialog):
         self.modNumbers['temperature'] = self.temp_modules[self.comboBox.currentIndex()]
         self.modNumbers['gasflow'] = self.gas_modules[self.comboBox_2.currentIndex()]
         self.modNumbers['heater'] = self.heat_modules[self.comboBox_3.currentIndex()]
+
+        # update default modules
+        CONF.set('MercuryFeed', 'temperature_module', self.comboBox.currentIndex())
+        CONF.set('MercuryFeed', 'gasflow_module', self.comboBox_2.currentIndex())
+        CONF.set('MercuryFeed', 'heater_module', self.comboBox_3.currentIndex())
+
         self.accepted.emit(self.modNumbers)
 
 
@@ -253,7 +265,8 @@ if __name__ == '__main__':
         app = QtWidgets.QApplication(sys.argv)
         created = 1
 
-    feed = MercuryFeed('172.20.91.43')
+    feed = MercuryFeed(CONF.get('MercuryFeed', 'MERCURY_IP'),
+                       CONF.get('MercuryFeed', 'MERCURY_PORT'))
 
     if created == 1:
         sys.exit(app.exec_())

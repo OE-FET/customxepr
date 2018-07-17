@@ -19,8 +19,9 @@ elif QtCore.PYQT_VERSION_STR[0] == '4':
                                                     as FigureCanvas)
 
 # custom imports
-from HelpFunctions import LedIndicator
+from Utils import LedIndicator
 from SweepDataClass import SweepData
+from Config.main import CONF
 
 
 class KeithleyGuiApp(QtWidgets.QMainWindow):
@@ -89,6 +90,8 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self.action_Exit.triggered.connect(self._on_exit_clicked)
         self.actionSave_last_sweep.triggered.connect(self._on_save_clicked)
         self.actionLoad_data_from_file.triggered.connect(self._on_load_clicked)
+        self.actionSaveDefaults.triggered.connect(self._on_save_default)
+        self.actionLoadDefaults.triggered.connect(self._on_load_default)
 
         self.actionSave_last_sweep.setEnabled(False)
 
@@ -113,6 +116,15 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
 
         self.setGeometry(xPos, yPos, 900, 500)
 
+    def _convert_to_Vd(self, string):
+        try:
+            return float(string)
+        except ValueError:
+            if string.find('trailing') > 0:
+                return 'trailing'
+            else:
+                raise ValueError('Invalid drain voltage.')
+
 # =============================================================================
 # Measurement callbacks
 # =============================================================================
@@ -126,7 +138,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         params['VgStep'] = float(self.lineEditVgStep.text())
         VdListString = self.lineEditVdList.text()
         VdStringList = VdListString.split(',')
-        params['VdList'] = [float(x) for x in VdStringList]
+        params['VdList'] = [self._convert_to_Vd(x) for x in VdStringList]
 
         params['tInt'] = float(self.lineEditInt.text())
         params['delay'] = float(self.lineEditSettling.text())
@@ -136,9 +148,6 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
             params['pulsed'] = False
         elif self.comboBoxSweepType.currentIndex() == 1:
             params['pulsed'] = True
-
-        if self.comboBoxTrailing.currentIndex() == 1:
-            params['VdList'][-1] = 'trailing'
 
         # run measurement
         self.statusBar.showMessage('    Recording transfer curve.')
@@ -276,6 +285,81 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self.actionDisconnect.setEnabled(False)
         self.statusBar.showMessage('    No Keithley connected.')
 
+    def _on_save_default(self):
+        """Saves current settings from GUI as defaults."""
+
+        # save transfer settings
+        CONF.set('Keithley', 'VgStart', float(self.lineEditVgStart.text()))
+        CONF.set('Keithley', 'VgStop', float(self.lineEditVgStop.text()))
+        CONF.set('Keithley', 'VgStep', float(self.lineEditVgStep.text()))
+
+        VdListString = self.lineEditVdList.text()
+        VdStringList = VdListString.split(',')
+        CONF.set('Keithley', 'VdList', [self._convert_to_Vd(x) for x in VdStringList])
+
+        # save output settings
+        CONF.set('Keithley', 'VdStart', float(self.lineEditVdStart.text()))
+        CONF.set('Keithley', 'VdStop', float(self.lineEditVdStop.text()))
+        CONF.set('Keithley', 'VdStep', float(self.lineEditVdStep.text()))
+
+        VgListString = self.lineEditVgList.text()
+        VgStringList = VgListString.split(',')
+        CONF.set('Keithley', 'VgList', [float(x) for x in VgStringList])
+
+        # save general settings
+        CONF.set('Keithley', 'tInt', float(self.lineEditInt.text()))
+        CONF.set('Keithley', 'delay', float(self.lineEditSettling.text()))
+
+        # get combo box status
+        if self.comboBoxSweepType.currentIndex() == 0:
+            CONF.set('Keithley', 'pulsed', False)
+        elif self.comboBoxSweepType.currentIndex() == 1:
+            CONF.set('Keithley', 'pulsed', True)
+
+        if self.keithley.gate == 'smua':
+            CONF.set('Keithley', 'gate', 'smua')
+            CONF.set('Keithley', 'drain', 'smub')
+        elif self.keithley.gate == 'smub':
+            CONF.set('Keithley', 'gate', 'smub')
+            CONF.set('Keithley', 'drain', 'smua')
+
+        # Propagate all changes to Keithley instance
+        self.keithley.DEFAULTS = dict(CONF.items('Keithley'))
+
+    def _on_load_default(self):
+        """Load default settings to interface."""
+
+        self.keithley.DEFAULTS = dict(CONF.items('Keithley'))
+
+        # transfer curve settings
+        self.lineEditVgStart.setText(str(self.keithley.DEFAULTS['VgStart']))
+        self.lineEditVgStop.setText(str(self.keithley.DEFAULTS['VgStop']))
+        self.lineEditVgStep.setText(str(self.keithley.DEFAULTS['VgStep']))
+        self.lineEditVdList.setText(str(self.keithley.DEFAULTS['VdList']).strip('[]'))
+        # output curve settings
+        self.lineEditVdStart.setText(str(self.keithley.DEFAULTS['VdStart']))
+        self.lineEditVdStop.setText(str(self.keithley.DEFAULTS['VdStop']))
+        self.lineEditVdStep.setText(str(self.keithley.DEFAULTS['VdStep']))
+        self.lineEditVgList.setText(str(self.keithley.DEFAULTS['VgList']).strip('[]'))
+
+        # other
+        self.lineEditInt.setText(str(self.keithley.DEFAULTS['tInt']))
+        self.lineEditSettling.setText(str(self.keithley.DEFAULTS['delay']))
+
+        self.keithley.gate = CONF.get('Keithley', 'gate')
+        self.keithley.drain = CONF.get('Keithley', 'drain')
+
+        # set combo box status
+        if self.keithley.DEFAULTS['pulsed'] is False:
+            self.comboBoxSweepType.setCurrentIndex(0)
+        elif self.keithley.DEFAULTS['pulsed'] is True:
+            self.comboBoxSweepType.setCurrentIndex(1)
+
+        if self.keithley.gate == 'smua':
+            self.comboBoxSweepType.setCurrentIndex(0)
+        elif self.keithley.gate == 'smub':
+            self.comboBoxSweepType.setCurrentIndex(1)
+
 # =============================================================================
 # Plotting commands
 # =============================================================================
@@ -301,13 +385,6 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self.canvas.setMinimumWidth(530)
         self.canvas.draw()
 
-        # set up plotting controls for self.canvas
-#        self.plotControlWidget = mplToolbar(self.canvas, self)
-#        self.plotControlWidget.setMaximumWidth(380)
-
-        # add to layout
-#        self.gridLayout2.addWidget(self.plotControlWidget)
-#        self.gridLayout2.setAlignment(self.plotControlWidget, QtCore.Qt.AlignHCenter)
         self.gridLayout2.addWidget(self.canvas)
 
     def plot_new_data(self):
@@ -372,6 +449,7 @@ class KeithleyAddressDialog(QtWidgets.QDialog):
     def _onAccept(self):
         # update connection settings in mercury feed
         self.keithley.address = str(self.lineEditIP.text())
+        CONF.set('Keithley', 'KEITHLEY_IP', self.keithley.address)
         # reconnect to new IP address
         self.keithley.disconnect()
         self.keithley.connect()
