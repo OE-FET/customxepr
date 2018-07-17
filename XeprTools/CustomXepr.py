@@ -1045,10 +1045,10 @@ class CustomXepr(QtCore.QObject):
                 measurementTemp = np.append(measurementTemp, T_curr)
                 T_var = abs(np.mean(measurementTemp) - T_curr)
                 # get the number of temperature stability violations
-                n_out = (measurementTemp-np.mean(measurementTemp) >
+                n_out = (abs(measurementTemp - measurementTemp[0]) >
                          2*self.temperature_tolerance).sum()
-                # warn once for every 60 violations
-                if np.mod(n_out, 60) == 1:
+                # warn once for every 120 violations
+                if np.mod(n_out, 120) == 1:
                     logger.warning(u'Tempearature fluctuations > \xb1%sK.'
                                    % (2*self.temperature_tolerance))
                     n_out += 1  # prevent from warning again next second
