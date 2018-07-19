@@ -10,6 +10,7 @@ CustomXepr configuration options
 Note: Leave this file free of Qt related imports, so that it can be used to
 quickly load a user config file
 """
+import getpass
 
 # Local import
 from Config.base import SUBFOLDER
@@ -25,7 +26,7 @@ DEFAULTS = [
               }),
             ('CustomXepr',
              {
-              'notify_address': None,
+              'notify_address': [getpass.getuser() + '@cam.ac.uk', ],
               'email_handler_level': 30,
               'temp_wait_time': 120,
               'temperature_tolerance': 0.1
@@ -69,7 +70,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '1.0.0'
+CONF_VERSION = '1.1.0'
 
 # Main configuration instance
 try:

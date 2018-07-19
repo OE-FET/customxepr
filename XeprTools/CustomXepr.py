@@ -1043,14 +1043,16 @@ class CustomXepr(QtCore.QObject):
             if self.feed is not None and self.feed.mercury is not None:
                 T_curr = self.feed.readings['Temp']
                 self.T_history = np.append(self.T_history, T_curr)
-                # get the number of temperature stability violations
-                self.n_out = (abs(self.T_history - self.T_history[0]) >
-                              2*self.temperature_tolerance).sum()
+                # if temperature unstable, increment the number of violations
+                # don't look at all historic data since temperature_tolerance
+                # may have changed during the scan
+                self.n_out += (abs(self.T_history[-1] - self.T_history[0]) >
+                               2*self.temperature_tolerance)
                 # warn once for every 120 violations
                 if np.mod(self.n_out, 120) == 1:
-                    self.n_out += 1  # prevent from warning again next second
                     logger.warning(u'Tempearature fluctuations > \xb1%sK.'
                                    % (2*self.temperature_tolerance))
+                    self.n_out += 1  # prevent from warning again next second
 
                 # Pause measurement and suspend all pending jobs after 15 min
                 # of temperature instability
@@ -1378,9 +1380,6 @@ class CustomXepr(QtCore.QObject):
 # =============================================================================
 
 def setup_root_logger(NOTIFY):
-
-    if NOTIFY is None:
-        NOTIFY = [getpass.getuser() + '@cam.ac.uk', ]
 
     # Set up email notification handler for WARNING messages and above
     root_logger = logging.getLogger()
