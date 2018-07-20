@@ -49,7 +49,7 @@ class MagicFunction(object):
         args_string = str(args).strip("()").strip(",").strip("'")
         self._parent._write('result = %s(%s)' % (self._name, args_string))
         # query for result in second call
-        return self._parent._query('result')
+        return self._parent._query('keithley.result')
 
 
 class MagicClass(object):
