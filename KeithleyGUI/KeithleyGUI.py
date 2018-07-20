@@ -89,16 +89,21 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
 
     def update_connection_status(self):
         # we lost the connection
-        if not ping(self.keithley.address):
+        if not self.keithley.connected and not ping(self.keithley.address):
             self.keithley.disconnect()
             self._update_Gui_connection()
         # we got a new connection
-        elif ping(self.keithley.address) and not self.keithley.connected:
+        elif not self.keithley.connected and ping(self.keithley.address):
             self.keithley.connect()
             self._update_Gui_connection()
         # we have the old connection
-        else:
-            pass
+        elif self.keithley.connected:
+            # check if really connected by asking for ip address
+            try:
+                self.keithley.lan.status.ipaddress
+            except:
+                self.keithley.disconnect()
+            self._update_Gui_connection()
 
 
     def setIntialPosition(self):

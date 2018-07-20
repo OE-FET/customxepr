@@ -49,7 +49,7 @@ class MagicFunction(object):
         args_string = str(args).strip("()").strip(",").strip("'")
         self._parent._write('result = %s(%s)' % (self._name, args_string))
         # query for result in second call
-        return self._parent._query('result')
+        return self._parent._query('keithley.result')
 
 
 class MagicClass(object):
@@ -190,7 +190,7 @@ class Keithley2600Base(MagicClass):
     abort_event = threading.Event()
 
     connection = None
-    connected = False
+    connected = None
     busy = False
 
     OUTPUT_OFF = 0
@@ -239,13 +239,12 @@ class Keithley2600Base(MagicClass):
         """
         Connects to Keithley and opens pyvisa API.
         """
-        return
         try:
             visaAddress = 'TCPIP0::%s::INSTR' % self.address
             self.connection = self.rm.open_resource(visaAddress)
             self.connection.read_termination = read_term
             self.connection.baud_rate = bdrate
-            self.connected = True
+            Keithley2600Base.connected = True
             self.beeper.beep(0.3, 2400)
         except OSError:
             logger.warning('NI Visa is not installed.')
@@ -253,13 +252,13 @@ class Keithley2600Base(MagicClass):
             self.connected = False
         except visa.VisaIOError:
             logger.warning('Could not find Keithley.')
-            self.connected = False
+            Keithley2600Base.connected = False
 
     def disconnect(self):
         """ Disconnect from Keithley """
         try:
             self.connection.close()
-            self.connected = False
+            Keithley2600Base.connected = False
             del self.connection
         except AttributeError:
             pass
@@ -270,16 +269,16 @@ class Keithley2600Base(MagicClass):
 
     def _write(self, value):
         """
-        Writes text to Keithley.
+        Writes text to Keithley. Input must be a string.
         """
-        self.connection.write(value)
+        self.connection.write(value.split('.', 1)[1])
 
     def _query(self, value):
         """
-        Queries and expects response from Keithley.
+        Queries and expects response from Keithley. Input must be a string.
         """
         with self._lock:
-            r = self.connection.query('print(%s)' % value)
+            r = self.connection.query('print(%s)' % value.split('.', 1)[1])
             self.connection.clear()
 
         return self.parse_response(r)
@@ -288,14 +287,14 @@ class Keithley2600Base(MagicClass):
         try:
             r = float(string)
         except ValueError:
-            pass
-
-        if string == 'nil':
-            r = None
-        elif string == 'true':
-            r = True
-        elif string == 'false':
-            r = False
+            if string == 'nil':
+                r = None
+            elif string == 'true':
+                r = True
+            elif string == 'false':
+                r = False
+            else:
+                r = string
 
         return r
 
