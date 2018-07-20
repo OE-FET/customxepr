@@ -26,7 +26,6 @@ __version__ = 'v1.5.0'
 # system imports
 import sys
 import os
-import getpass
 from threading import Event
 from qtpy import QtCore
 from Queue import Queue
@@ -52,7 +51,7 @@ except ImportError:
 
 logging.STATUS = 15
 logging.addLevelName(logging.STATUS, 'STATUS')
-logger = logging.getLogger('XeprTools.CustomXepr')
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.STATUS)
 setattr(logger, 'status', lambda message,
         *args: logger._log(logging.STATUS, message, args))
@@ -1304,36 +1303,44 @@ class CustomXepr(QtCore.QObject):
 # =============================================================================
 
     @queued_exec(job_queue)
-    def transferMeasurement(self, path=None,
+    def transferMeasurement(self, smu_gate=CONF.get('Keithley', 'gate'),
+                            smu_drain=CONF.get('Keithley', 'drain'),
                             VgStart=CONF.get('Keithley', 'VgStart'),
                             VgStop=CONF.get('Keithley', 'VgStop'),
                             VgStep=CONF.get('Keithley', 'VgStep'),
                             VdList=CONF.get('Keithley', 'VdList'),
                             pulsed=CONF.get('Keithley', 'pulsed'),
-                            tInt=CONF.get('Keithley', 'tInt')):
+                            tInt=CONF.get('Keithley', 'tInt'), filePath=None):
         """
         Performs a transfer measurement and returns a sweepData object.
         Saves the data in a .txt file if a path is specified.
         """
 
-        if not self.keithley or not self.keithley._keithley:
+        if not self.keithley or not self.keithley.connected:
             logger.info('Keithley is not connnected. Functions that ' +
                         'require a connected Keithley SMU will not work.')
             return
 
-        return self.keithley.transferMeasurement(VgStart, VgStop, VgStep,
-                                                 VdList, filepath=path,
-                                                 plot=False, pulsed=pulsed,
-                                                 tInt=0.1)
+        smu_gate = getattr(self.keithley, smu_gate)
+        smu_drain = getattr(self.keithley, smu_drain)
+
+        sweepData = self.keithley.transferMeasurement(smu_gate, smu_drain,
+                                                      VgStart, VgStop, VgStep,
+                                                      VdList, pulsed, tInt)
+        if filePath is not None:
+            sweepData.save(filePath)
+
+        return sweepData
 
     @queued_exec(job_queue)
-    def outputMeasurement(self, path=None,
+    def outputMeasurement(self, smu_gate=CONF.get('Keithley', 'gate'),
+                          smu_drain=CONF.get('Keithley', 'drain'),
                           VdStart=CONF.get('Keithley', 'VdStart'),
                           VdStop=CONF.get('Keithley', 'VdStop'),
                           VdStep=CONF.get('Keithley', 'VdStep'),
                           VgList=CONF.get('Keithley', 'VgList'),
                           pulsed=CONF.get('Keithley', 'pulsed'),
-                          tInt=CONF.get('Keithley', 'tInt')):
+                          tInt=CONF.get('Keithley', 'tInt'), filePath=None):
         """
         Performs an output measurement and returns a sweepData object.
         Saves the data in a .txt file if a path is specified.
@@ -1344,14 +1351,21 @@ class CustomXepr(QtCore.QObject):
                         'require a connected Keithley SMU will not work.')
             return
 
-        return self.keithley.outputMeasurement(VdStart, VdStop, VdStep, VgList,
-                                               filepath=path, plot=False,
-                                               pulsed=pulsed, tInt=0.1)
+        smu_gate = getattr(self.keithley, smu_gate)
+        smu_drain = getattr(self.keithley, smu_drain)
+
+        sweepData = self.keithley.outputMeasurement(smu_gate, smu_drain,
+                                                    VdStart, VdStop, VdStep,
+                                                    VgList, pulsed, tInt)
+        if filePath is not None:
+            sweepData.save(filePath)
+
+        return sweepData
 
     @queued_exec(job_queue)
-    def biasGate(self, Vg):
+    def setGateVoltage(self, Vg, smu_gate=CONF.get('Keithley', 'gate')):
         """
-        Sets the gate (SMU A) bias of the given self.keithley SMU.
+        Sets the gate bias of the given keithley, grounds other SMUs.
         """
 
         if not self.keithley or not self.keithley._keithley:
@@ -1359,10 +1373,21 @@ class CustomXepr(QtCore.QObject):
                         'require a connected Keithley SMU will not work.')
             return
 
-        self.keithley.setGateVoltage(Vg)
+        gate = getattr(self.keithley, smu_gate)
+
+        # turn off all remaining SMUs
+        other_smus = filter(lambda a: a != smu_gate, self.keithley.SMU_LIST)
+        for smu_name in other_smus:
+            smu = getattr(self.keithley, smu_name)
+            smu.source.output = self.keithley.OUTPUT_OFF
+
+        self.keithley.rampToVoltage(gate, targetVolt=Vg, delay=0.1, stepSize=1)
+
+        if Vg == 0:
+            self.keithley.reset()
 
     @queued_exec(job_queue)
-    def applyCurrent(self, smu, curr):
+    def applyDrainCurrent(self, I, smu=CONF.get('Keithley', 'drain')):
         """
         Sets a spcified current to the selected Keithley SMU.
         """
@@ -1372,7 +1397,24 @@ class CustomXepr(QtCore.QObject):
                         'require a connected Keithley SMU will not work.')
             return
 
-        self.keithley.applyCurrent(smu, curr)
+        smu = getattr(self.keithley, smu)
+
+        self.keithley.applyCurrent(smu, I)
+        self.keithley.beep(0.3, 2400)
+
+    @queued_exec(job_queue)
+    def playChord(self):
+
+        if not self.keithley or not self.keithley._keithley:
+            logger.info('Keithley is not connnected. Functions that ' +
+                        'require a connected Keithley SMU will not work.')
+            return
+
+        self.beeper.beep(0.3, 1046.5)
+        time.sleep(0.1)
+        self.beeper.beep(0.3, 1318.5)
+        time.sleep(0.1)
+        self.beeper.beep(0.3, 1568)
 
 
 # =============================================================================
