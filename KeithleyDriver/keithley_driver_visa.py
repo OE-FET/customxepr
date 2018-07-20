@@ -243,7 +243,7 @@ class Keithley2600Base(MagicClass):
             self.connection = self.rm.open_resource(visaAddress)
             self.connection.read_termination = read_term
             self.connection.baud_rate = bdrate
-            self.connected = True
+            Keithley2600Base.connected = True
             self.beeper.beep(0.3, 2400)
         except OSError:
             logger.warning('NI Visa is not installed.')
