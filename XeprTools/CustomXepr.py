@@ -1411,9 +1411,7 @@ class CustomXepr(QtCore.QObject):
             return
 
         self.beeper.beep(0.3, 1046.5)
-        time.sleep(0.1)
         self.beeper.beep(0.3, 1318.5)
-        time.sleep(0.1)
         self.beeper.beep(0.3, 1568)
 
 
