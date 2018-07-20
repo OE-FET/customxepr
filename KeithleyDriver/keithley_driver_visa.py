@@ -171,7 +171,8 @@ class Keithley2600Base(MagicClass):
         commands and arguments. Almost all remotely accessible commands can be
         used with this driver. NOT SUPPORTED ARE:
              * tspnet.excecute() # conflicts with Python's excecute command
-             * All Keithley IV sweep commands. We implement our own here.
+             * All Keithley IV sweep commands. We implement our own in the
+               Keithley2600 class.
 
     USAGE:
         >>> keithley = Keithley2600Base()
@@ -328,8 +329,7 @@ class Keithley2600(Keithley2600Base):
         >>> keithley = Keithley2600()
         >>> keithley.smua.measure.v()  # measures the smuA voltage
         >>> keithley.smua.source.levelv = -40  # applies -40V to smuA
-        >>> keithley.transferMeasurement() # records a transfer curve with
-                                             default settings
+        >>> keithley.transferMeasurement(...) # records a transfer curve
 
     """
 
