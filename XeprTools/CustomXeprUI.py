@@ -21,7 +21,7 @@ import subprocess
 import re
 
 # custom module imports
-from Keithley import SweepData
+from KeithleyDriver import SweepData
 from ModePictureClass import ModePicture
 from AboutWindow import AboutWindow
 from Utils import applyDarkTheme

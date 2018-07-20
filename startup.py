@@ -27,9 +27,9 @@ from Config.main import CONF
 from XeprTools import CustomXepr
 from MercuryGUI import MercuryFeed, MercuryMonitorApp
 from KeithleyDriver import Keithley2600
+from KeithleyGUI import KeithleyGuiApp
 from XeprTools import JobStatusApp, InternalIPKernel
 from XeprTools.CustomXepr import __version__, __author__
-from Keithley import KeithleyGuiApp
 from Utils import check_dependencies, applyDarkTheme, get_dark_style
 
 # check if all require packages are installed
