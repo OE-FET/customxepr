@@ -1410,9 +1410,9 @@ class CustomXepr(QtCore.QObject):
                         'require a connected Keithley SMU will not work.')
             return
 
-        self.beeper.beep(0.3, 1046.5)
-        self.beeper.beep(0.3, 1318.5)
-        self.beeper.beep(0.3, 1568)
+        self.keithley.beeper.beep(0.3, 1046.5)
+        self.keithley.beeper.beep(0.3, 1318.5)
+        self.keithley.beeper.beep(0.3, 1568)
 
 
 # =============================================================================
