@@ -64,7 +64,7 @@ class MagicClass(object):
 
     Attribute setters and getters are forwarded to _write and _query functions
     from the parent class. New functions are created as instances of
-    MagicFunction, new classes are created as instances MagicClass.
+    MagicFunction, new classes are created as instances of MagicClass.
 
     MagicClass is designed to mimic a Keithley TSP command group with
     functions, properties, and subordinate command groups.
@@ -161,12 +161,12 @@ class MagicClass(object):
 class Keithley2600Base(MagicClass):
     """
 
-    Keithley driver to perform base functions. It replicates the functionality
-    and syntax from the Keithley TSP functions, which have a syntax similar to
+    Keithley driver for base functions. It replicates the functionality and
+    syntax from the Keithley TSP commands, which have a syntax similar to
     python.
 
     WARNING:
-        There are currntly no checks for allowed arguments implemented in base
+        There are currntly no checks for allowed arguments in the base
         commands. See the Keithley 2600 reference manual for all available
         commands and arguments. Almost all remotely accessible commands can be
         used with this driver. NOT SUPPORTED ARE:
@@ -175,7 +175,7 @@ class Keithley2600Base(MagicClass):
                Keithley2600 class.
 
     USAGE:
-        >>> keithley = Keithley2600Base()
+        >>> keithley = Keithley2600Base('192.168.2.121')
         >>> keithley.smua.measure.v()  # measures the smuA voltage
         >>> keithley.smua.source.levelv = -40  # applies -40V to smuA
 
@@ -318,7 +318,7 @@ class Keithley2600(Keithley2600Base):
     which have a syntax similar to python.
 
     WARNING:
-        There are currntly no checks for allowed arguments implemented in base
+        There are currntly no checks for allowed arguments in the base
         commands. See the Keithley 2600 reference manual for all available
         commands and arguments. Almost all remotely accessible commands can be
         used with this driver. NOT SUPPORTED ARE:
@@ -326,7 +326,7 @@ class Keithley2600(Keithley2600Base):
              * All Keithley IV sweep commands. We implement our own here.
 
     USAGE:
-        >>> keithley = Keithley2600()
+        >>> keithley = Keithley2600('192.168.2.121')
         >>> keithley.smua.measure.v()  # measures the smuA voltage
         >>> keithley.smua.source.levelv = -40  # applies -40V to smuA
         >>> keithley.transferMeasurement(...) # records a transfer curve
