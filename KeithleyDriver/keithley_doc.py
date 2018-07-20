@@ -353,8 +353,6 @@ PROPERTIES = [
             'leveli',
             'levelr',
             'levelp',
-            'nvbuffer1',
-            'nvbuffer2',
             'sense',
             'autorangev',
             'autorangei',
@@ -1020,8 +1018,14 @@ ALL = [
  'userstring.catalog',
  'userstring.delete',
  'userstring.get',
- 'waitcomplete'
+ 'waitcomplete',
  ]
+
+PROPERTY_LISTS = [
+        'trigger.blender[1].stimulus',
+        'trigger.blender[2].stimulus',
+        ]
+
 
 properties = set(PROPERTIES)
 functions = set(FUNCTIONS)

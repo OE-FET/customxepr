@@ -271,6 +271,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
 
     def _on_exit_clicked(self):
         self.keithley.disconnect()
+        self.timer.stop()
         self.deleteLater()
 
     def _update_Gui_connection(self):

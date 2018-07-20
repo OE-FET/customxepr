@@ -17,10 +17,70 @@ import numpy as np
 import time
 
 # local import
-from KeithleyDriver.keithley_doc import CONSTANTS, FUNCTIONS, PROPERTIES
+from KeithleyDriver.keithley_doc import (CONSTANTS, FUNCTIONS, PROPERTIES,
+                                         PROPERTY_LISTS)
 from KeithleyDriver import SweepData
 
+logging.STATUS = 15
+logging.addLevelName(logging.STATUS, 'STATUS')
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.STATUS)
+setattr(logger, 'status', lambda message,
+        *args: logger._log(logging.STATUS, message, args))
+
+
+class MagicPropertyList(object):
+    """
+
+    Class which mimics a property and can be dynamically created. It fowards
+    all calls to the _query method of the parent class and returns the result
+    from _query. Calls accept aribitrary arguments, as long as _query can
+    handle them.
+
+    This class is designed to look like a  Keithley TSP script method, forward
+    function calls to the Keithley, and return the results.
+
+    """
+
+    def __init__(self, name, parent):
+        if type(name) is not str:
+            raise ValueError('First argument must be of type str.')
+        self._name = name
+        self._parent = parent
+
+    def __getitem__(self, i):
+        new_name = '%s[%s]' % (self._name, i)
+        return self._query(new_name)
+
+    def __setitem__(self, i, value):
+        new_name = '%s[%s] = %s' % (self._name, i, value)
+        return self._write(new_name)
+
+    def __iter__(self):
+        return self
+
+    def _write(self, value):
+        try:
+            self._parent._write(value)
+        except AttributeError:
+            print(value)
+            pass
+
+    def _query(self, value):
+        try:
+            return self._parent._query(value)
+        except AttributeError:
+            print('print(%s)' % value)
+            return None
+
+    def _convert_input(self, value):
+        try:
+            return self._parent._convert_input(value)
+        except AttributeError:
+            return value
+
+    def getdoc():
+        pass
 
 
 class MagicFunction(object):
@@ -109,7 +169,10 @@ class MagicClass(object):
             self.__dict__[name] = handler
 
         elif name in PROPERTIES or name in CONSTANTS:
-            handler = self._query(new_name)
+            if new_name in PROPERTY_LISTS:
+                handler = MagicPropertyList(new_name, parent=self)
+            else:
+                handler = self._query(new_name)
 
         else:
             handler = MagicClass(new_name, parent=self)
@@ -672,7 +735,6 @@ class Keithley2600(Keithley2600Base):
             logger.status('Vd = %sV.' % Vdrain)
             # conduct forward and reverse sweeps
             logger.status('Forward sweep.')
-            self.voltageSweep()
 
             VgFWD, IgFWD, VdFWD, IdFWD = self.voltageSweep(smu_gate, smu_drain,
                                                            VgStart, VgStop,
