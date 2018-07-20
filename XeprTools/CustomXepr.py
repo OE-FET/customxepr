@@ -1346,7 +1346,7 @@ class CustomXepr(QtCore.QObject):
         Saves the data in a .txt file if a path is specified.
         """
 
-        if not self.keithley or not self.keithley._keithley:
+        if not self.keithley or not self.keithley.connected:
             logger.info('Keithley is not connnected. Functions that ' +
                         'require a connected Keithley SMU will not work.')
             return
@@ -1368,7 +1368,7 @@ class CustomXepr(QtCore.QObject):
         Sets the gate bias of the given keithley, grounds other SMUs.
         """
 
-        if not self.keithley or not self.keithley._keithley:
+        if not self.keithley or not self.keithley.connected:
             logger.info('Keithley is not connnected. Functions that ' +
                         'require a connected Keithley SMU will not work.')
             return
@@ -1392,7 +1392,7 @@ class CustomXepr(QtCore.QObject):
         Sets a spcified current to the selected Keithley SMU.
         """
 
-        if not self.keithley or not self.keithley._keithley:
+        if not self.keithley or not self.keithley.connected:
             logger.info('Keithley is not connnected. Functions that ' +
                         'require a connected Keithley SMU will not work.')
             return
@@ -1405,7 +1405,7 @@ class CustomXepr(QtCore.QObject):
     @queued_exec(job_queue)
     def playChord(self):
 
-        if not self.keithley or not self.keithley._keithley:
+        if not self.keithley or not self.keithley.connected:
             logger.info('Keithley is not connnected. Functions that ' +
                         'require a connected Keithley SMU will not work.')
             return
