@@ -286,14 +286,14 @@ class Keithley2600Base(MagicClass):
         try:
             r = float(string)
         except ValueError:
-            pass
-
-        if string == 'nil':
-            r = None
-        elif string == 'true':
-            r = True
-        elif string == 'false':
-            r = False
+            if string == 'nil':
+                r = None
+            elif string == 'true':
+                r = True
+            elif string == 'false':
+                r = False
+            else:
+                r = string
 
         return r
 
