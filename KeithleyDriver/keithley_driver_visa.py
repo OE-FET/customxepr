@@ -188,6 +188,7 @@ class Keithley2600Base(MagicClass):
     _lock = threading.RLock()
     abort_event = threading.Event()
 
+    connection = None
     connected = False
     busy = False
 

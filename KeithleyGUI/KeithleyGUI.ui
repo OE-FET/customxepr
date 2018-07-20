@@ -29,6 +29,146 @@
     </property>
     <item>
      <layout class="QGridLayout" name="gridLayout">
+      <item row="15" column="3" colspan="3">
+       <widget class="QComboBox" name="comboBoxDrainSMU">
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="currentText">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="15" column="0" colspan="3">
+       <widget class="QLabel" name="label_22">
+        <property name="text">
+         <string>Drain SMU:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QLineEdit" name="lineEditVdStop">
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>-60</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="5">
+       <spacer name="horizontalSpacer_5">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="1" column="5">
+       <widget class="QLineEdit" name="lineEditVdList">
+        <property name="text">
+         <string>-5, -60</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="0" colspan="6">
+       <spacer name="verticalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Expanding</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="12" column="3" colspan="2" alignment="Qt::AlignRight">
+       <widget class="QLineEdit" name="lineEditSettling">
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>-1</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QLabel" name="label_16">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>V</string>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="5">
+       <widget class="QLabel" name="label_21">
+        <property name="text">
+         <string>sec (auto = -1)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="3" rowspan="3" colspan="2">
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="3" column="0" colspan="6">
+       <widget class="QPushButton" name="pushButtonTransfer">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Transfer measurement</string>
+        </property>
+       </widget>
+      </item>
       <item row="2" column="1">
        <widget class="QLineEdit" name="lineEditVgStep">
         <property name="minimumSize">
@@ -51,13 +191,6 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>Vg start:</string>
-        </property>
-       </widget>
-      </item>
       <item row="11" column="5">
        <widget class="QLabel" name="label_2">
         <property name="maximumSize">
@@ -68,6 +201,26 @@
         </property>
         <property name="text">
          <string>sec</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Vg start:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0" colspan="6">
+       <widget class="QPushButton" name="pushButtonOutput">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Output measurement</string>
         </property>
        </widget>
       </item>
@@ -84,26 +237,6 @@
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="14" column="0" colspan="3">
-       <widget class="QLabel" name="label_19">
-        <property name="text">
-         <string>Gate SMU:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="0" colspan="6">
-       <widget class="QPushButton" name="pushButtonOutput">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Output measurement</string>
         </property>
        </widget>
       </item>
@@ -133,6 +266,13 @@
         </property>
        </widget>
       </item>
+      <item row="14" column="0" colspan="3">
+       <widget class="QLabel" name="label_19">
+        <property name="text">
+         <string>Gate SMU:</string>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="1">
        <widget class="QLineEdit" name="lineEditVgStart">
         <property name="minimumSize">
@@ -155,16 +295,69 @@
         </property>
        </widget>
       </item>
-      <item row="10" column="0" colspan="6">
-       <widget class="QLabel" name="label_12">
-        <property name="font">
-         <font>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
+      <item row="12" column="0" colspan="3">
+       <widget class="QLabel" name="label_20">
+        <property name="text">
+         <string>Settling time:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="5">
+       <widget class="QLineEdit" name="lineEditVgList">
+        <property name="text">
+         <string>0, -20, -40, -60</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>Vg stop:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="5">
+       <spacer name="horizontalSpacer_4">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="6" column="2">
+       <widget class="QLabel" name="label_18">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
         </property>
         <property name="text">
-         <string>Settings:</string>
+         <string>V</string>
+        </property>
+       </widget>
+      </item>
+      <item row="14" column="3" colspan="3">
+       <widget class="QComboBox" name="comboBoxGateSMU">
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="currentText">
+         <string/>
         </property>
        </widget>
       </item>
@@ -190,30 +383,29 @@
         </property>
        </widget>
       </item>
-      <item row="14" column="3" colspan="3">
-       <widget class="QComboBox" name="comboBoxSMU">
-        <property name="maximumSize">
-         <size>
-          <width>150</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <item>
-         <property name="text">
-          <string>smuA</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>smuB</string>
-         </property>
-        </item>
-       </widget>
-      </item>
       <item row="8" column="5">
        <widget class="QPushButton" name="pushButtonAbort">
         <property name="text">
          <string>Abort</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLabel" name="label_14">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>V</string>
         </property>
        </widget>
       </item>
@@ -239,32 +431,6 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="2">
-       <widget class="QLabel" name="label_14">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>50</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>V</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="5">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Drain voltage steps (number or 'trailing'):</string>
-        </property>
-       </widget>
-      </item>
       <item row="13" column="3" colspan="3">
        <widget class="QComboBox" name="comboBoxSweepType">
         <property name="maximumSize">
@@ -285,6 +451,20 @@
         </item>
        </widget>
       </item>
+      <item row="0" column="5">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Drain voltage steps (voltage or 'trailing'):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="13" column="0" colspan="3">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Sweep type:</string>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="3" rowspan="3" colspan="2">
        <spacer name="horizontalSpacer">
         <property name="orientation">
@@ -297,13 +477,6 @@
          </size>
         </property>
        </spacer>
-      </item>
-      <item row="13" column="0" colspan="3">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>Sweep type:</string>
-        </property>
-       </widget>
       </item>
       <item row="11" column="0" colspan="3">
        <widget class="QLabel" name="label">
@@ -319,13 +492,6 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="0">
-       <widget class="QLabel" name="label_11">
-        <property name="text">
-         <string>Vd step:</string>
-        </property>
-       </widget>
-      </item>
       <item row="2" column="0">
        <widget class="QLabel" name="label_7">
         <property name="text">
@@ -333,10 +499,10 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="5">
-       <widget class="QLabel" name="label_10">
+      <item row="6" column="0">
+       <widget class="QLabel" name="label_11">
         <property name="text">
-         <string>Gate voltage steps:</string>
+         <string>Vd step:</string>
         </property>
        </widget>
       </item>
@@ -359,7 +525,14 @@
         </property>
        </widget>
       </item>
-      <item row="15" column="0" colspan="6">
+      <item row="4" column="5">
+       <widget class="QLabel" name="label_10">
+        <property name="text">
+         <string>Gate voltage steps:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="16" column="0" colspan="6">
        <spacer name="verticalSpacer_2">
         <property name="orientation">
          <enum>Qt::Vertical</enum>
@@ -375,61 +548,16 @@
         </property>
        </spacer>
       </item>
-      <item row="6" column="5">
-       <spacer name="horizontalSpacer_4">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_6">
-        <property name="text">
-         <string>Vg stop:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="2">
-       <widget class="QLabel" name="label_18">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>50</width>
-          <height>16777215</height>
-         </size>
+      <item row="10" column="0" colspan="6">
+       <widget class="QLabel" name="label_12">
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
         </property>
         <property name="text">
-         <string>V</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2">
-       <widget class="QLabel" name="label_17">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>50</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>V</string>
+         <string>Settings:</string>
         </property>
        </widget>
       </item>
@@ -455,35 +583,8 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="5">
-       <widget class="QLineEdit" name="lineEditVgList">
-        <property name="text">
-         <string>0, -20, -40, -60</string>
-        </property>
-       </widget>
-      </item>
-      <item row="12" column="0" colspan="3">
-       <widget class="QLabel" name="label_20">
-        <property name="text">
-         <string>Settling time (-1 = auto):</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="3" rowspan="3" colspan="2">
-       <spacer name="horizontalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="1" column="2">
-       <widget class="QLabel" name="label_16">
+      <item row="2" column="2">
+       <widget class="QLabel" name="label_17">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -500,94 +601,6 @@
          <string>V</string>
         </property>
        </widget>
-      </item>
-      <item row="12" column="5">
-       <widget class="QLabel" name="label_21">
-        <property name="text">
-         <string>sec</string>
-        </property>
-       </widget>
-      </item>
-      <item row="12" column="3" colspan="2" alignment="Qt::AlignRight">
-       <widget class="QLineEdit" name="lineEditSettling">
-        <property name="maximumSize">
-         <size>
-          <width>50</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>-1</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0" colspan="6">
-       <widget class="QPushButton" name="pushButtonTransfer">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Transfer measurement</string>
-        </property>
-       </widget>
-      </item>
-      <item row="9" column="0" colspan="6">
-       <spacer name="verticalSpacer_3">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Expanding</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="5" column="1">
-       <widget class="QLineEdit" name="lineEditVdStop">
-        <property name="maximumSize">
-         <size>
-          <width>50</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>-60</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="5">
-       <widget class="QLineEdit" name="lineEditVdList">
-        <property name="text">
-         <string>-5, -60</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="5">
-       <spacer name="horizontalSpacer_5">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
       </item>
      </layout>
     </item>
@@ -638,7 +651,7 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <addaction name="actionSave_last_sweep"/>
+    <addaction name="actionSaveSweepData"/>
     <addaction name="actionLoad_data_from_file"/>
     <addaction name="separator"/>
     <addaction name="action_Exit"/>
@@ -666,7 +679,7 @@
     <string> Exit</string>
    </property>
   </action>
-  <action name="actionSave_last_sweep">
+  <action name="actionSaveSweepData">
    <property name="text">
     <string> &amp;Save sweep data</string>
    </property>

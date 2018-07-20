@@ -224,24 +224,24 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
     def _on_smu_gate_changed(self, intSMU):
         """ Triggered when the user selects a different gate SMU. """
 
-        if intSMU == 0 and self.keithley.SMU_LIST < 3:
+        if intSMU == 0 and len(self.keithley.SMU_LIST) < 3:
             self.comboBoxDrainSMU.setCurrentIndex(1)
-        elif intSMU == 1 and self.keithley.SMU_LIST < 3:
+        elif intSMU == 1 and len(self.keithley.SMU_LIST) < 3:
             self.comboBoxDrainSMU.setCurrentIndex(0)
 
     def _on_smu_drain_changed(self, intSMU):
         """ Triggered when the user selects a different drain SMU. """
 
-        if intSMU == 0 and self.keithley.SMU_LIST < 3:
+        if intSMU == 0 and len(self.keithley.SMU_LIST) < 3:
             self.comboBoxGateSMU.setCurrentIndex(1)
-        elif intSMU == 1 and self.keithley.SMU_LIST < 3:
+        elif intSMU == 1 and len(self.keithley.SMU_LIST) < 3:
             self.comboBoxGateSMU.setCurrentIndex(0)
 
     def _on_connect_clicked(self):
         if not ping(self.keithley.address):
             msg = ('Keithley cannot be reached at %s. ' % self.keithley.address
                    + 'Please check if address is correct and Keithley is ' +
-                   'tunrned on.')
+                   'turned on.')
             QtWidgets.QMessageBox.information(None, str('error'), msg)
         else:
             self.keithley.connect()
@@ -347,7 +347,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
             CONF.set('Keithley', 'pulsed', True)
 
         CONF.set('Keithley', 'gate', self.comboBoxGateSMU.currentText())
-        CONF.set('Keithley', 'drain', self.comboBoxDrainMU.currentText())
+        CONF.set('Keithley', 'drain', self.comboBoxDrainSMU.currentText())
 
     def _on_load_default(self):
         """Load default settings to interface."""
@@ -381,15 +381,17 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         while len(cmbList) < 2:
             cmbList.append('--')
 
+        self.comboBoxGateSMU.clear()
+        self.comboBoxDrainSMU.clear()
         self.comboBoxGateSMU.addItems(cmbList)
         self.comboBoxDrainSMU.addItems(cmbList)
 
         try:
             self.comboBoxGateSMU.setCurrentIndex(cmbList.index(CONF.get('Keithley', 'gate')))
-            self.comboBoxGateSMU.setCurrentIndex(cmbList.index(CONF.get('Keithley', 'drain')))
+            self.comboBoxDrainSMU.setCurrentIndex(cmbList.index(CONF.get('Keithley', 'drain')))
         except ValueError:
             self.comboBoxGateSMU.setCurrentIndex(0)
-            self.comboBoxGateSMU.setCurrentIndex(1)
+            self.comboBoxDrainSMU.setCurrentIndex(1)
             msg = 'Could not find last used SMUs in Keithley driver.'
             QtWidgets.QMessageBox.information(None, str('error'), msg)
 
