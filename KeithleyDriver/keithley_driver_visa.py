@@ -189,7 +189,7 @@ class Keithley2600Base(MagicClass):
     abort_event = threading.Event()
 
     connection = None
-    connected = False
+    connected = None
     busy = False
 
     OUTPUT_OFF = 0
