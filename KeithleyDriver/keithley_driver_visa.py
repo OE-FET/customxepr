@@ -238,7 +238,6 @@ class Keithley2600Base(MagicClass):
         """
         Connects to Keithley and opens pyvisa API.
         """
-        return
         try:
             visaAddress = 'TCPIP0::%s::INSTR' % self.address
             self.connection = self.rm.open_resource(visaAddress)
@@ -269,16 +268,16 @@ class Keithley2600Base(MagicClass):
 
     def _write(self, value):
         """
-        Writes text to Keithley.
+        Writes text to Keithley. Input must be a string.
         """
-        self.connection.write(value)
+        self.connection.write(value.split('.', 1)[1])
 
     def _query(self, value):
         """
-        Queries and expects response from Keithley.
+        Queries and expects response from Keithley. Input must be a string.
         """
         with self._lock:
-            r = self.connection.query('print(%s)' % value)
+            r = self.connection.query('print(%s)' % value.split('.', 1)[1])
             self.connection.clear()
 
         return self.parse_response(r)
