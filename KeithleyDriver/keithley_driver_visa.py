@@ -102,6 +102,7 @@ class MagicClass(object):
     def __get_global_handler(self, name):
         # create callable sub-class for new attr
         new_name = '%s.%s' % (self._name, name)
+        new_name = new_name.strip('.')
 
         if name in FUNCTIONS:
             handler = MagicFunction(new_name, parent=self)
@@ -229,7 +230,7 @@ class Keithley2600Base(MagicClass):
         return super(Keithley2600Base, cls).__new__(cls)
 
     def __init__(self, address):
-        MagicClass.__init__(self, 'keithley', parent=self)
+        MagicClass.__init__(self, '', parent=self)
         # open Keithley Visa resource
         self.rm = visa.ResourceManager()
         self.connect()
