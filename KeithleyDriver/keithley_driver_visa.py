@@ -124,6 +124,7 @@ class MagicClass(object):
             raise ValueError('%s.%s is read-only.' % (self._name, attr))
         else:
             object.__setattr__(self, attr, value)
+            self.__dict__[attr] = value
 
     def _write(self, value):
         try:
@@ -160,26 +161,26 @@ class MagicClass(object):
 class Keithley2600Base(MagicClass):
     """
 
-    Keithley driver to perform base functions. It copies the functionality and
-    syntax from the Keithley TSP functions, which have a syntax similar to
+    Keithley driver to perform base functions. It replicates the functionality
+    and syntax from the Keithley TSP functions, which have a syntax similar to
     python.
 
     WARNING:
-        There are currntly no checks for allowed values implemented. This
-        driver will only know if an accessed attribute is a keithley property,
-        function, or constant. It will NOT check the validity of input
-        arguments. Invalid commands will typically raise a VisaIOError timeout
-        error.
+        There are currntly no checks for allowed arguments implemented in base
+        commands. See the Keithley 2600 reference manual for all available
+        commands and arguments. Almost all remotely accessible commands can be
+        used with this driver. NOT SUPPORTED ARE:
+             * tspnet.excecute() # conflicts with Python's excecute command
+             * All Keithley IV sweep commands. We implement our own here.
 
     USAGE:
-        keithley = Keithley2600()
-        keithley.beeper.beep(1, 2400)  # beeps for 1 sec @ 2400 Hz
-        keithley.smua.trigger.source.limiti = 0.1  # sets limit to 0.1 A
+        >>> keithley = Keithley2600Base()
+        >>> keithley.smua.measure.v()  # measures the smuA voltage
+        >>> keithley.smua.source.levelv = -40  # applies -40V to smuA
 
     DOCUMENTATION:
         See the Keithley 2600 reference manual for all available commands and
-        arguments. All remotely accessible commands can be used with this
-        driver.
+        arguments.
 
     """
 
@@ -311,21 +312,24 @@ class Keithley2600(Keithley2600Base):
     """
 
     Keithley driver with acccess to base functions and higher level functions
-    such as IV measurements, tranfer and output curves, etc.
+    such as IV measurements, tranfer and output curves, etc. Base command
+    replicate the functionality and syntax from the Keithley TSP functions,
+    which have a syntax similar to python.
 
     WARNING:
-        There are currntly no checks for allowed values implemented in the base
-        functions. See the Keithley 2600 reference manual for all available
-        commands and arguments. All remotely accessible commands can be used
-         with this driver.
+        There are currntly no checks for allowed arguments implemented in base
+        commands. See the Keithley 2600 reference manual for all available
+        commands and arguments. Almost all remotely accessible commands can be
+        used with this driver. NOT SUPPORTED ARE:
+             * tspnet.excecute() # conflicts with Python's excecute command
+             * All Keithley IV sweep commands. We implement our own here.
 
     USAGE:
-        keithley = Keithley2600Functions()
-        keithley.beeper.beep(1, 2400)  # beeps for 1 sec @ 2400 Hz
-        keithley.smua.trigger.source.limiti = 0.1  # sets limit to 0.1 A
-
-        keithley.transferMeasurement() # records a transfer curve with default
-                                         settings
+        >>> keithley = Keithley2600()
+        >>> keithley.smua.measure.v()  # measures the smuA voltage
+        >>> keithley.smua.source.levelv = -40  # applies -40V to smuA
+        >>> keithley.transferMeasurement() # records a transfer curve with
+                                             default settings
 
     """
 
