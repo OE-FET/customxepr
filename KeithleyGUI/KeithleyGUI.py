@@ -96,15 +96,11 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         elif not self.keithley.connected and ping(self.keithley.address):
             self.keithley.connect()
             self._update_Gui_connection()
+            self.show()
         # we have the old connection
         elif self.keithley.connected:
             # check if really connected by asking for ip address
-            try:
-                self.keithley.lan.status.ipaddress
-            except:
-                self.keithley.disconnect()
             self._update_Gui_connection()
-
 
     def setIntialPosition(self):
         screen = QtWidgets.QDesktopWidget().screenGeometry(self)
@@ -141,7 +137,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         # get current settings
         smugate = self.comboBoxGateSMU.currentText()
         params['smu_gate'] = getattr(self.keithley, smugate)
-        smudrain = self.comboBoxGateSMU.currentText()
+        smudrain = self.comboBoxDrainSMU.currentText()
         params['smu_drain'] = getattr(self.keithley, smudrain)
 
         params['VgStart'] = float(self.lineEditVgStart.text())
@@ -179,7 +175,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         # get current settings
         smugate = self.comboBoxGateSMU.currentText()
         params['smu_gate'] = getattr(self.keithley, smugate)
-        smudrain = self.comboBoxGateSMU.currentText()
+        smudrain = self.comboBoxDrainSMU.currentText()
         params['smu_drain'] = getattr(self.keithley, smudrain)
 
         params['VdStart'] = float(self.lineEditVdStart.text())
@@ -276,16 +272,17 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
 
     def _update_Gui_connection(self):
         """Check if Keithley is connected and update GUI."""
-        if self.keithley.connected:
+        if self.keithley.connected and not self.keithley.busy:
             self._gui_state_idle()
-            self.show()
             self.led.setChecked(True)
-        elif self.keithley.busy:
+
+        elif self.keithley.connected and self.keithley.busy:
             self._gui_state_busy()
-        else:
+            self.led.setChecked(True)
+
+        elif not self.keithley.connected:
             self._gui_state_disconnected()
             self.led.setChecked(False)
-
 
     def _gui_state_busy(self):
         """Set GUI to state for running measurement."""
@@ -382,7 +379,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
             self.comboBoxSweepType.setCurrentIndex(1)
 
         # Set SMU selection comboBox status
-        cmbList = list(self.keithley.SMU_LIST) # get list of all SMUs
+        cmbList = list(self.keithley.SMU_LIST)  # get list of all SMUs
         # We have to comboBoxes. If there are less SMU's, extend list.
         while len(cmbList) < 2:
             cmbList.append('--')
@@ -511,15 +508,18 @@ class MeasureThread(QtCore.QThread):
 
     def run(self):
         self.startedSig.emit()
+        print('staring')
 
         if self.params['Measurement'] == 'transfer':
             sweepData = self.keithley.transferMeasurement(self.params['smu_gate'], self.params['smu_drain'], self.params['VgStart'],
                                                           self.params['VgStop'], self.params['VgStep'], self.params['VdList'],
                                                           self.params['tInt'], self.params['delay'], self.params['pulsed'])
             self.finishedSig.emit(sweepData)
+            print('done')
 
         elif self.params['Measurement'] == 'output':
             sweepData = self.keithley.outputMeasurement(self.params['smu_gate'], self.params['smu_drain'], self.params['VdStart'],
                                                         self.params['VdStop'], self.params['VdStep'], self.params['VgList'],
                                                         self.params['tInt'], self.params['delay'], self.params['pulsed'])
             self.finishedSig.emit(sweepData)
+            print('done')

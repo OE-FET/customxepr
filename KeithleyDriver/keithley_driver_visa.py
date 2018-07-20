@@ -106,7 +106,7 @@ class MagicFunction(object):
         # Pass on to calls to self._write, store result in variable.
         # Querying results from function calls directly may result in
         # a VisaIOError timeout if the function does not return anything.
-        args_string = str(args).strip("()").strip(",").strip("'")
+        args_string = str(args).strip("(),").replace("'","")
         self._parent._write('result = %s(%s)' % (self._name, args_string))
         # query for result in second call
         return self._parent._query('result')
@@ -140,10 +140,9 @@ class MagicClass(object):
 
     """
 
+    address = ''
     _name = ''
     _parent = None
-    address = ''
-    __dict__ = {'_name': _name, 'address': address}
 
     def __init__(self, name, parent=None):
         if type(name) is not str:
@@ -153,9 +152,13 @@ class MagicClass(object):
 
     def __getattr__(self, attr):
         try:
-            # check if attr already exists
-            return self.__dict__[attr]
-        except (AttributeError, KeyError):
+            try:
+                # check if attribute already exists
+                return object.__getattr__(self, attr)
+            except AttributeError:
+                # check if key already exists
+                return self.__dict__[attr]
+        except KeyError:
             # handle if not
             return self.__get_global_handler(attr)
 
@@ -166,7 +169,7 @@ class MagicClass(object):
 
         if name in FUNCTIONS:
             handler = MagicFunction(new_name, parent=self)
-            self.__dict__[name] = handler
+            self.__dict__[new_name] = handler
 
         elif name in PROPERTIES or name in CONSTANTS:
             if new_name in PROPERTY_LISTS:
@@ -176,7 +179,7 @@ class MagicClass(object):
 
         else:
             handler = MagicClass(new_name, parent=self)
-            self.__dict__[name] = handler
+            self.__dict__[new_name] = handler
 
         return handler
 
@@ -260,6 +263,9 @@ class Keithley2600Base(MagicClass):
     OUTPUT_ON = 1
     OUTPUT_HIGH_Z = 2
 
+    OUTPUT_DCAMPS = 0
+    OUTPUT_DCVOLTS = 1
+
     MEASURE_DCAMPS = 0
     MEASURE_DCVOLTS = 1
     MEASURE_OHMS = 2
@@ -308,7 +314,10 @@ class Keithley2600Base(MagicClass):
             self.connection.read_termination = read_term
             self.connection.baud_rate = bdrate
             Keithley2600Base.connected = True
-            self.beeper.beep(0.3, 2400)
+
+            self.beeper.beep(0.3, 1046.5)
+            self.beeper.beep(0.3, 1318.5)
+            self.beeper.beep(0.3, 1568)
         except OSError:
             logger.warning('NI Visa is not installed.')
             self.connection = None
@@ -319,12 +328,18 @@ class Keithley2600Base(MagicClass):
 
     def disconnect(self):
         """ Disconnect from Keithley """
-        try:
-            self.connection.close()
-            Keithley2600Base.connected = False
-            del self.connection
-        except AttributeError:
-            pass
+        if self.connected:
+            try:
+                self.beeper.beep(0.3, 1568)
+                self.beeper.beep(0.3, 1318.5)
+                self.beeper.beep(0.3, 1046.5)
+
+                self.connection.close()
+                Keithley2600Base.connected = False
+                del self.connection
+            except AttributeError:
+                Keithley2600Base.connected = False
+                pass
 
 # =============================================================================
 # Define I/O
@@ -334,6 +349,7 @@ class Keithley2600Base(MagicClass):
         """
         Writes text to Keithley. Input must be a string.
         """
+        # print(value)
         self.connection.write(value)
 
     def _query(self, value):
@@ -342,8 +358,8 @@ class Keithley2600Base(MagicClass):
         """
         with self._lock:
             r = self.connection.query('print(%s)' % value)
-            self.connection.clear()
 
+        # print('print(%s)' % value)
         return self.parse_response(r)
 
     def parse_response(self, string):
@@ -363,8 +379,8 @@ class Keithley2600Base(MagicClass):
 
     def _convert_input(self, value):
         # wrap strings in "..."
-        if isinstance(value, str):
-            value = '"' + value + '"'
+#        if isinstance(value, str):
+#            value = '"' + value + '"'
 
         # covert bools to lower case strings
         if isinstance(value, bool):
@@ -407,6 +423,7 @@ class Keithley2600(Keithley2600Base):
         Keithley2600Base.__init__(self, address)
 
     def _check_smu(self, smu):
+        """Check if selected smu is indeed present."""
         assert smu._name.split('.')[-1] in self.SMU_LIST
 
     def _get_smu_string(self, smu):
@@ -415,6 +432,17 @@ class Keithley2600(Keithley2600Base):
 # =============================================================================
 # Define lower level control functions
 # =============================================================================
+
+    def clearBuffers(self):
+        """ Clears all SMU buffers."""
+        for smu_string in self.SMU_LIST:
+            smu = getattr(self, smu_string)
+
+            smu.nvbuffer1.clear()
+            smu.nvbuffer2.clear()
+
+            smu.nvbuffer1.clearcache()
+            smu.nvbuffer2.clearcache()
 
     def applyVoltage(self, smu, voltage):
         """
@@ -469,12 +497,13 @@ class Keithley2600(Keithley2600Base):
         self.display.smua.measure.func = self.MEASURE_DCVOLTS
         self.display.smub.measure.func = self.MEASURE_DCVOLTS
 
-        for V in np.arange(Vcurr, targetVolt, stepSize):
+        step = np.sign(targetVolt-Vcurr)*abs(stepSize)
+
+        for V in np.arange(Vcurr-step, targetVolt-step, step):
             smu.source.levelv = V
             smu.measure.v()
             time.sleep(delay)
 
-        smu.source.levelv = targetVolt
         targetVolt = smu.measure.v()
         logger.info('Gate voltage set to Vg = %s V.' % round(targetVolt))
 
@@ -485,14 +514,14 @@ class Keithley2600(Keithley2600Base):
         Reads buffer values and returns them as a list.
         Clears buffer afterwards.
         """
-        n = int(float(self.query('%s.n' % bufferName)))
+        n = int(float(self._query('%s.n' % bufferName)))
         list_out = [0.00] * n
         for i in range(0, n):
-            list_out[i] = float(self.query('%s[%d]' % (bufferName, i+1)))
+            list_out[i] = float(self._query('%s[%d]' % (bufferName, i+1)))
 
         # clears buffer
-        self.write('%s.clear()' % bufferName)
-        self.write('%s.clearcache()' % bufferName)
+        self._write('%s.clear()' % bufferName)
+        self._write('%s.clearcache()' % bufferName)
         return list_out
 
     def voltageSweep(self, smu_sweep, smu_fix, VStart, VStop, VStep, VFix,
@@ -525,7 +554,6 @@ class Keithley2600(Keithley2600Base):
 
         if self.abort_event.is_set():
             self.busy = False
-            self.clearCaches()
             return Vsweep, Isweep, Vfix, Ifix
 
         # Setup smua/smub for sweep measurement. The voltage is swept from
@@ -547,8 +575,9 @@ class Keithley2600(Keithley2600Base):
             smu_fix.trigger.source.action = self.ENABLE
 
         # CONFIGURE INTEGRATION TIME FOR EACH MEASUREMENT
-        self.setIntegrationTime(smu_sweep, tInt)
-        self.setIntegrationTime(smu_fix, tInt)
+        nplc = tInt * self.localnode.linefreq
+        smu_sweep.measure.nplc = nplc
+        smu_fix.measure.nplc = nplc
 
         # CONFIGURE SETTLING TIME FOR GATE VOLTAGE, I-LIMIT, ETC...
         smu_sweep.measure.delay = delay
@@ -584,7 +613,7 @@ class Keithley2600(Keithley2600Base):
 
         # SETUP TRIGGER ARM AND COUNTS
         # trigger count = number of data points in measurement
-        # arm count = number of times the measurement is repeater (set to 1)
+        # arm count = number of times the measurement is repeated (set to 1)
 
         smu_sweep.trigger.count = numPoints
         smu_fix.trigger.count = numPoints
@@ -679,7 +708,7 @@ class Keithley2600(Keithley2600Base):
         smu_sweep.trigger.initiate()
         smu_fix.trigger.initiate()
         # send trigger
-        self.write('*trg')
+        self._write('*trg')
 
         # CHECK STATUS BUFFER FOR MEASUREMENT TO FINISH
         # Possible return values:
@@ -697,12 +726,12 @@ class Keithley2600(Keithley2600Base):
 
         # EXTRACT DATA FROM SMU BUFFERS
 
-        Vsweep = self.readBuffer(buffer_sweep_1)
-        Isweep = self.readBuffer(buffer_sweep_2)
-        Vfix = self.readBuffer(buffer_fix_1)
-        Ifix = self.readBuffer(buffer_fix_2)
+        Vsweep = self.readBuffer(buffer_sweep_2)
+        Isweep = self.readBuffer(buffer_sweep_1)
+        Vfix = self.readBuffer(buffer_fix_2)
+        Ifix = self.readBuffer(buffer_fix_1)
 
-        self.clearCaches()
+        self.clearBuffers()
         self.busy = False
 
         return Vsweep, Isweep, Vfix, Ifix
@@ -807,3 +836,18 @@ class Keithley2600(Keithley2600Base):
 
         self.busy = False
         return self.sweepData
+
+    def playChord(self, direction='up'):
+
+        if direction is 'up':
+            self.beeper.beep(0.3, 1046.5)
+            self.beeper.beep(0.3, 1318.5)
+            self.beeper.beep(0.3, 1568)
+
+        elif direction is 'down':
+            self.beeper.beep(0.3, 1568)
+            self.beeper.beep(0.3, 1318.5)
+            self.beeper.beep(0.3, 1046.5)
+        else:
+            self.beeper.beep(0.2, 1046.5)
+            self.beeper.beep(0.1, 1046.5)

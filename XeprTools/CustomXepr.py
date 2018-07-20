@@ -1309,8 +1309,10 @@ class CustomXepr(QtCore.QObject):
                             VgStop=CONF.get('Keithley', 'VgStop'),
                             VgStep=CONF.get('Keithley', 'VgStep'),
                             VdList=CONF.get('Keithley', 'VdList'),
+                            tInt=CONF.get('Keithley', 'tInt'),
+                            delay=CONF.get('Keithley', 'delay'),
                             pulsed=CONF.get('Keithley', 'pulsed'),
-                            tInt=CONF.get('Keithley', 'tInt'), filePath=None):
+                            filePath=None):
         """
         Performs a transfer measurement and returns a sweepData object.
         Saves the data in a .txt file if a path is specified.
@@ -1326,7 +1328,8 @@ class CustomXepr(QtCore.QObject):
 
         sweepData = self.keithley.transferMeasurement(smu_gate, smu_drain,
                                                       VgStart, VgStop, VgStep,
-                                                      VdList, pulsed, tInt)
+                                                      VdList, tInt, delay,
+                                                      pulsed)
         if filePath is not None:
             sweepData.save(filePath)
 
@@ -1339,8 +1342,10 @@ class CustomXepr(QtCore.QObject):
                           VdStop=CONF.get('Keithley', 'VdStop'),
                           VdStep=CONF.get('Keithley', 'VdStep'),
                           VgList=CONF.get('Keithley', 'VgList'),
+                          tInt=CONF.get('Keithley', 'tInt'),
+                          delay=CONF.get('Keithley', 'delay'),
                           pulsed=CONF.get('Keithley', 'pulsed'),
-                          tInt=CONF.get('Keithley', 'tInt'), filePath=None):
+                          filePath=None):
         """
         Performs an output measurement and returns a sweepData object.
         Saves the data in a .txt file if a path is specified.
@@ -1356,7 +1361,8 @@ class CustomXepr(QtCore.QObject):
 
         sweepData = self.keithley.outputMeasurement(smu_gate, smu_drain,
                                                     VdStart, VdStop, VdStep,
-                                                    VgList, pulsed, tInt)
+                                                    VgList, tInt, delay,
+                                                    pulsed)
         if filePath is not None:
             sweepData.save(filePath)
 
