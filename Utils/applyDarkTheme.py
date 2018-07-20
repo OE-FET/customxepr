@@ -50,7 +50,11 @@ def goDark():
     mpl.style.use(os.path.join(direct, 'mpl_dark_style.mplstyle'))
 
     # apply dark theme to PyQt windows
-    os.environ['PYQTGRAPH_QT_LIB'] = 'PyQt5'
+    if QtCore.PYQT_VERSION_STR[0] == '5':
+         os.environ['PYQTGRAPH_QT_LIB'] = 'PyQt5'
+    elif QtCore.PYQT_VERSION_STR[0] == '4':
+         os.environ['PYQTGRAPH_QT_LIB'] = 'PyQt4'
+
     app = QtCore.QCoreApplication.instance()
     app.setStyleSheet(qdarkstyle.load_stylesheet_from_environment())
 
