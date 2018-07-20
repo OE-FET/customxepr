@@ -49,7 +49,7 @@ class MagicFunction(object):
         args_string = str(args).strip("()").strip(",").strip("'")
         self._parent._write('result = %s(%s)' % (self._name, args_string))
         # query for result in second call
-        return self._parent._query('keithley.result')
+        return self._parent._query('result')
 
 
 class MagicClass(object):
@@ -271,14 +271,14 @@ class Keithley2600Base(MagicClass):
         """
         Writes text to Keithley. Input must be a string.
         """
-        self.connection.write(value.split('.', 1)[1])
+        self.connection.write(value)
 
     def _query(self, value):
         """
         Queries and expects response from Keithley. Input must be a string.
         """
         with self._lock:
-            r = self.connection.query('print(%s)' % value.split('.', 1)[1])
+            r = self.connection.query('print(%s)' % value)
             self.connection.clear()
 
         return self.parse_response(r)
