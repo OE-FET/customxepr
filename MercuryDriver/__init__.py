@@ -1,1 +1,1 @@
-from mercury_driver_visa import MercuryITC
+from mercury_driver import MercuryITC
