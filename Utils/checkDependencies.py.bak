@@ -5,7 +5,6 @@ Created on Thu Jul 12 12:38:00 2018
 
 @author: samschott
 """
-from __future__ import print_function
 
 from pkgutil import iter_modules
 

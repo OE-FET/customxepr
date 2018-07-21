@@ -4,7 +4,6 @@ This module provides user configuration file management features for CustomXepr
 
 It's based on the ConfigParser module (present in the standard library).
 """
-from __future__ import print_function
 
 # Std imports
 import ast
@@ -276,7 +275,7 @@ class UserConfig(DefaultsConfig):
                     with codecs.open(fname, encoding='utf-8') as configfile:
                         self.readfp(configfile)
                 except IOError:
-                    print(("Failed reading file", fname))
+                    print("Failed reading file", fname)
 
         except cp.MissingSectionHeaderError:
             print("Warning: File contains no section headers.")

@@ -9,7 +9,6 @@ Created on Tue Aug 23 11:03:57 2016
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
-from __future__ import absolute_import
 
 # system imports
 import sys
@@ -25,10 +24,10 @@ import logging
 from math import ceil, floor
 
 # custom imports
-from .ModuleReadingsOverview import ReadingsOverview
-from .MercuryFeed import MercuryFeed
-from .MercuryMonitorGUI import Ui_MainWindow
-from .MercuryAddressDialog import AddressDialog
+from ModuleReadingsOverview import ReadingsOverview
+from MercuryFeed import MercuryFeed
+from MercuryMonitorGUI import Ui_MainWindow
+from MercuryAddressDialog import AddressDialog
 
 if QtCore.PYQT_VERSION_STR[0] == '5':
     from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg

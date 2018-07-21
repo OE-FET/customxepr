@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
 import os
 import pydoc
 from qtpy import QtCore, QtWidgets, uic
-from . import CustomXepr
+import CustomXepr
 
 
 class AboutWindow(QtWidgets.QWidget, QtCore.QCoreApplication):
