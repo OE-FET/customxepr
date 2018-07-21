@@ -87,15 +87,15 @@ class MercuryFeed(QtWidgets.QWidget):
         # try to ping mercury (quicker than opening a visa connection)
         if ping(self.address) is False:
             self.mercury = None
-            # start a timer to try again in 30 sec
-            QtCore.QTimer.singleShot(30000, self._connect)
+            # start a timer to try again in 20 sec
+            QtCore.QTimer.singleShot(20000, self._connect)
             return
 
         try:
             self.mercury = MercuryITC(self.address, self.port)
         except visa.VisaIOError:
-            # start a timer to try again in 30 sec
-            QtCore.QTimer.singleShot(30000, self._connect)
+            # start a timer to try again in 20 sec
+            QtCore.QTimer.singleShot(20000, self._connect)
             return
 
         self.dialog = SensorDialog(self.mercury.modules)

@@ -15,29 +15,42 @@ New in v1.5.0:
     See release notes
 
 """
-
 # system imports
 import sys
 import os
 import logging
 from qtpy import QtCore, QtWidgets, QtGui
+from traceback import format_exception
 
-# custom imports
+# local imports
 from Config.main import CONF
+from XeprTools import CustomXepr
+from MercuryGUI import MercuryFeed, MercuryMonitorApp
+from KeithleyDriver import Keithley2600
+from KeithleyGUI import KeithleyGuiApp
+from XeprTools import JobStatusApp, InternalIPKernel
+from XeprTools.CustomXepr import __version__, __author__
+from Utils import check_dependencies, applyDarkTheme, get_dark_style
 
 # check if all require packages are installed
-from Utils import check_dependencies
 direct = os.path.dirname(os.path.realpath(__file__))
 filePath = os.path.join(direct, 'dependencies.txt')
 exit_code = check_dependencies(filePath)
 
-
+# if we are running from IPython, disable autoreload
 try:
     from IPython import get_ipython
     ipython = get_ipython()
     ipython.magic("%autoreload 0")
 except:
     pass
+
+try:
+    sys.path.insert(0, os.popen("Xepr --apipath").read())
+    import XeprAPI
+except ImportError:
+    logging.info('XeprAPI could not be located. Please make sure that it' +
+                 ' is installed on your system.')
 
 DARK = CONF.get('main', 'DARK')
 KEITHLEY_IP = CONF.get('Keithley', 'KEITHLEY_IP')
@@ -89,18 +102,7 @@ def connectToInstruments(keithleyIP=KEITHLEY_IP, mercuryIP=MERCURY_IP,
                          mercuryPort=MERCURY_PORT):
     """Tries to connect to Keithley, Mercury and Xepr."""
 
-    from XeprTools import CustomXepr
-    from MercuryGUI import MercuryFeed
-    from Keithley import Keithley
-
-    try:
-        sys.path.insert(0, os.popen("Xepr --apipath").read())
-        import XeprAPI
-    except ImportError:
-        logging.info('XeprAPI could not be located. Please make sure that it' +
-                     ' is installed on your system.')
-
-    keithley = Keithley(keithleyIP)
+    keithley = Keithley2600(keithleyIP)
     mercuryFeed = MercuryFeed(mercuryIP, mercuryPort)
 
     try:
@@ -123,10 +125,6 @@ def connectToInstruments(keithleyIP=KEITHLEY_IP, mercuryIP=MERCURY_IP,
 def startGUI(customXepr, mercuryFeed, keithley):
     """Starts GUIs for Keithley, Mercury and CustomXepr."""
 
-    from XeprTools import JobStatusApp
-    from MercuryGUI import MercuryMonitorApp
-    from Keithley import KeithleyGuiApp
-
     customXeprGUI = JobStatusApp(customXepr)
     mercuryGUI = MercuryMonitorApp(mercuryFeed)
     keithleyGUI = KeithleyGuiApp(keithley)
@@ -143,8 +141,6 @@ def startGUI(customXepr, mercuryFeed, keithley):
 # =============================================================================
 
 def goDark():
-    from Utils import applyDarkTheme
-
     applyDarkTheme.goDark()
     applyDarkTheme.applyMPLDarkTheme()
 
@@ -152,8 +148,6 @@ def goDark():
 
 
 def goBright():
-    from Utils import applyDarkTheme
-
     applyDarkTheme.goBright()
     applyDarkTheme.applyMPLBrightTheme()
 
@@ -166,7 +160,6 @@ def goBright():
 
 def patch_excepthook():
 
-    from traceback import format_exception
     global TIMER
 
     def new_except_hook(etype, evalue, tb):
@@ -184,9 +177,6 @@ def patch_excepthook():
 
 
 if __name__ == '__main__':
-
-    from Utils import applyDarkTheme
-    from XeprTools.CustomXepr import __version__, __author__
 
     # create a new Qt app or return an existing one
     app, created = getQtApp()
@@ -210,8 +200,6 @@ if __name__ == '__main__':
     if DARK:
         applyDarkTheme.applyMPLDarkTheme()
 
-    # custom imports
-
     BANNER = ('Welcome to CustomXepr %s. ' % __version__ +
               'You can access connected instruments as ' +
               '"customXepr", "mercuryFeed" and "keithley".\n\n' +
@@ -222,8 +210,6 @@ if __name__ == '__main__':
               'CustomXepr.\n\n(c) 2016 - 2018, %s.' % __author__)
 
     if created:
-        from XeprTools import InternalIPKernel
-        from Utils import get_dark_style
 
         # start event loop and console if run as standalone app
         kernel_window = InternalIPKernel()

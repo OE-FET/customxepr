@@ -21,13 +21,14 @@ import subprocess
 import re
 
 # custom module imports
-from Keithley import SweepData
+from KeithleyDriver import SweepData
 from ModePictureClass import ModePicture
 from AboutWindow import AboutWindow
 from Utils import applyDarkTheme
 from Config.main import CONF
 
-logger = logging.getLogger('XeprTools.CustomXepr')
+logger = logging.getLogger(__name__)
+root_logger = logging.getLogger()
 # log all messages with level STATUS and higher (no DEBUG messages)
 logger.setLevel(logging.STATUS)
 
@@ -93,12 +94,12 @@ info_fmt = logging.Formatter(fmt='%(asctime)s %(threadName)s ' +
 info_handler = QInfoLogHandler()
 info_handler.setFormatter(info_fmt)
 info_handler.setLevel(logging.INFO)
-logger.addHandler(info_handler)
+root_logger.addHandler(info_handler)
 
 # create QStatusLogHandler to handle all STATUS level events
 status_handler = QStatusLogHandler()
 status_handler.setLevel(logging.STATUS)
-logger.addHandler(status_handler)
+root_logger.addHandler(status_handler)
 
 
 # =============================================================================
