@@ -10,12 +10,11 @@ To Do:
 
 * See GitHub issues list at https://github.com/OE-FET/CustomXepr
 
-New in v1.5.0:
+New in v2.0.0:
 
     See release notes
 
 """
-# system imports
 import sys
 import os
 import logging
@@ -62,7 +61,7 @@ MERCURY_PORT = CONF.get('MercuryFeed', 'MERCURY_PORT')
 # Set up Qt event loop and console if necessary
 # =============================================================================
 
-def getQtApp(*args, **kwargs):
+def get_qt_app(*args, **kwargs):
     """
     Create a new Qt app or return an existing one.
     """
@@ -82,7 +81,7 @@ def getQtApp(*args, **kwargs):
 # Create splash screen
 # =============================================================================
 
-def showSplashScreen(app):
+def show_splash_screen(app):
     """ Shows a splash screen from file."""
 
     image = QtGui.QPixmap(os.path.join(direct, 'Images/CustomXeprSplash.png'))
@@ -98,8 +97,8 @@ def showSplashScreen(app):
 # Connect to instruments: Bruker Xepr, Keithley and MercuryiTC.
 # =============================================================================
 
-def connectToInstruments(keithleyIP=KEITHLEY_IP, mercuryIP=MERCURY_IP,
-                         mercuryPort=MERCURY_PORT):
+def connect_to_instruments(keithleyIP=KEITHLEY_IP, mercuryIP=MERCURY_IP,
+                           mercuryPort=MERCURY_PORT):
     """Tries to connect to Keithley, Mercury and Xepr."""
 
     keithley = Keithley2600(keithleyIP)
@@ -122,7 +121,7 @@ def connectToInstruments(keithleyIP=KEITHLEY_IP, mercuryIP=MERCURY_IP,
 # Start CustomXepr and user interfaces
 # =============================================================================
 
-def startGUI(customXepr, mercuryFeed, keithley):
+def start_gui(customXepr, mercuryFeed, keithley):
     """Starts GUIs for Keithley, Mercury and CustomXepr."""
 
     customXeprGUI = JobStatusApp(customXepr)
@@ -140,15 +139,15 @@ def startGUI(customXepr, mercuryFeed, keithley):
 # Go dark! (not yet supported for standalone console)
 # =============================================================================
 
-def goDark():
-    applyDarkTheme.goDark()
+def go_dark():
+    applyDarkTheme.go_dark()
     applyDarkTheme.applyMPLDarkTheme()
 
     CONF.set('main', 'DARK', True)
 
 
-def goBright():
-    applyDarkTheme.goBright()
+def go_bright():
+    applyDarkTheme.go_bright()
     applyDarkTheme.applyMPLBrightTheme()
 
     CONF.set('main', 'DARK', False)
@@ -179,22 +178,22 @@ def patch_excepthook():
 if __name__ == '__main__':
 
     # create a new Qt app or return an existing one
-    app, created = getQtApp()
+    app, created = get_qt_app()
     if not created:
         patch_excepthook()
 
     # create and show splash screen
-    splash = showSplashScreen(app)
+    splash = show_splash_screen(app)
 
     # apply dark theme
     if DARK:
-        applyDarkTheme.goDark()
+        applyDarkTheme.go_dark()
 
     # connect to instruments
-    customXepr, mercuryFeed, keithley, xepr = connectToInstruments()
+    customXepr, mercuryFeed, keithley, xepr = connect_to_instruments()
     # start user interfaces
-    customXeprGUI, mercuryGUI, keithleyGUI = startGUI(customXepr, mercuryFeed,
-                                                      keithley)
+    customXeprGUI, mercuryGUI, keithleyGUI = start_gui(customXepr, mercuryFeed,
+                                                       keithley)
 
     # reinforce dark theme for figures
     if DARK:
@@ -205,7 +204,7 @@ if __name__ == '__main__':
               '"customXepr", "mercuryFeed" and "keithley".\n\n' +
               'Use "%run path_to_file.py" to run a python script such as a ' +
               'measurement routine.\n'
-              'Execute "goDark()" or "goBright()" to switch the user ' +
+              'Execute "go_dark()" or "go_bright()" to switch the user ' +
               'interface style. Type "exit" to gracefully exit ' +
               'CustomXepr.\n\n(c) 2016 - 2018, %s.' % __author__)
 
@@ -222,13 +221,13 @@ if __name__ == '__main__':
 
         kernel_window.new_qt_console(style=console_style)
 
-        varDict = {'customXepr': customXepr, 'xepr': xepr,
-                   'customXeprGUI': customXeprGUI,
-                   'mercuryFeed': mercuryFeed, 'mercuryGUI': mercuryGUI,
-                   'keithley': keithley, 'keithleyGUI': keithleyGUI,
-                   'goDark': goDark, 'goBright': goBright}
+        var_dict = {'customXepr': customXepr, 'xepr': xepr,
+                    'customXeprGUI': customXeprGUI,
+                    'mercuryFeed': mercuryFeed, 'mercuryGUI': mercuryGUI,
+                    'keithley': keithley, 'keithleyGUI': keithleyGUI,
+                    'go_dark': go_dark, 'go_bright': go_bright}
 
-        kernel_window.send_to_namespace(varDict)
+        kernel_window.send_to_namespace(var_dict)
         app.aboutToQuit.connect(kernel_window.cleanup_consoles)
         # remove splash screen
         splash.finish(keithleyGUI)
