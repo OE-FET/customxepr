@@ -9,7 +9,6 @@ ockpot(c) Sam Schott; This work is licensed under a Creative Commons
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
-from __future__ import absolute_import
 
 # system module imports
 from qtpy import QtCore, QtWidgets, QtGui, uic
@@ -23,8 +22,8 @@ import re
 
 # custom module imports
 from KeithleyDriver import SweepData
-from .ModePictureClass import ModePicture
-from .AboutWindow import AboutWindow
+from ModePictureClass import ModePicture
+from AboutWindow import AboutWindow
 from Utils import applyDarkTheme
 from Config.main import CONF
 
@@ -354,7 +353,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         if args[0] == self.customXepr:
             args = args[1:]
 
-        func_str = QtGui.QStandardItem(func.__name__)
+        func_str = QtGui.QStandardItem(func.func_name)
         args_str = QtGui.QStandardItem(str(args))
         kwargs_str = QtGui.QStandardItem(str(kwargs))
 

@@ -5,7 +5,6 @@ Created on Tue Feb 20 15:01:18 2018
 
 @author: SamSchott
 """
-from __future__ import print_function
 
 # system imports
 import os
