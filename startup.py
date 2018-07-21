@@ -140,14 +140,14 @@ def start_gui(customXepr, mercuryFeed, keithley):
 # =============================================================================
 
 def go_dark():
-    applyDarkTheme.go_dark()
+    applyDarkTheme.goDark()
     applyDarkTheme.applyMPLDarkTheme()
 
     CONF.set('main', 'DARK', True)
 
 
 def go_bright():
-    applyDarkTheme.go_bright()
+    applyDarkTheme.goBright()
     applyDarkTheme.applyMPLBrightTheme()
 
     CONF.set('main', 'DARK', False)
@@ -187,7 +187,7 @@ if __name__ == '__main__':
 
     # apply dark theme
     if DARK:
-        applyDarkTheme.go_dark()
+        applyDarkTheme.goBright()
 
     # connect to instruments
     customXepr, mercuryFeed, keithley, xepr = connect_to_instruments()
