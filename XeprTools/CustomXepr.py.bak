@@ -17,7 +17,6 @@ New in v1.4.4:
     See release notes
 
 """
-from __future__ import absolute_import
 
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'
 __date__ = '17 July 2018'
@@ -37,7 +36,7 @@ import logging
 
 # custom imports
 from Utils import TlsSMTPHandler
-from .ModePictureClass import ModePicture
+from ModePictureClass import ModePicture
 from Config.main import CONF
 
 try:
