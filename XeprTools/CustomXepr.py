@@ -12,7 +12,7 @@ To Do:
 
 * See GitHub issues list at https://github.com/OE-FET/CustomXepr
 
-New in v1.4.4:
+New in v2.0.0:
 
     See release notes
 
@@ -20,9 +20,9 @@ New in v1.4.4:
 from __future__ import absolute_import
 
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'
-__date__ = '17 July 2018'
+__date__ = '21 July 2018'
 
-__version__ = 'v1.5.0'
+__version__ = 'v2.0.0'
 
 # system imports
 import sys
@@ -939,9 +939,25 @@ class CustomXepr(QtCore.QObject):
     @queued_exec(job_queue)
     def runExperiment(self, exp, **kwargs):
         """
-        Runs the Xepr experiment given by "exp". Keyword arguments (kwargs)
-        allow the user to pass experiment parameters. If multiple scans are
-        performed, the frequency is tuned between scans.
+        Runs the Xepr experiment given by "exp". If multiple scans are performed, 
+        the frequency is tuned between scans.
+
+        Keyword arguments (kwargs) allow the user to pass on experiment parameters.
+        To list all functional units of an experiment, call exp.getFuList():
+
+            >>> print exp.getFuList()
+                ['specJet', 'freqCounter', 'sysConf', 'gTempCtrl',
+                 'cwBridge', 'sctCalib', 'ffLock', 'ftBridge']
+
+        Their respective parameters can be found with exp.getFuParList(funame):
+
+            >>> print exp.getFuParList("cwbridge")
+                ['AcqFineTuning', 'Power', 'PowerAt0dBMon',
+                 'PowerAtten', 'PowerAttenMon']
+
+        The avaliable parameters will depend on the experiment type and
+        spectrometer setup.
+
         """
 
         if not self.hidden:
