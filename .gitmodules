@@ -1,6 +1,0 @@
-[submodule "KeithleyDriver"]
-	path = KeithleyDriver
-	url = https://github.com/OE-FET/Keithley2600-driver
-[submodule "MercuryDriver"]
-	path = MercuryDriver
-	url = https://github.com/OE-FET/MercuryiTC-driver
