@@ -27,7 +27,7 @@ from xeprtools.customxper_ui import JobStatusApp
 from xeprtools.internal_ipkernel import InternalIPKernel
 from mercury_gui.mercury_feed import MercuryFeed
 from mercury_gui.mercury_monitor_app import MercuryMonitorApp
-from KeithleyDriver import Keithley2600
+from keithley_driver import Keithley2600
 from keithley_gui.keithley_ui import KeithleyGuiApp
 
 from utils import dark_style

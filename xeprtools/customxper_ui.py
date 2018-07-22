@@ -22,7 +22,7 @@ import re
 import pydoc
 
 # custom module imports
-from KeithleyDriver import SweepData
+from keithley_driver import SweepData
 from xeprtools import customxepr
 from xeprtools.mode_picture import ModePicture
 from utils import dark_style

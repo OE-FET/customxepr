@@ -14,7 +14,7 @@ from matplotlib.figure import Figure
 # local imports
 from utils.misc import ping
 from utils.led_indicator_widget import LedIndicator
-from KeithleyDriver import SweepData
+from keithley_driver import SweepData
 from config.main import CONF
 
 if QtCore.PYQT_VERSION_STR[0] == '5':

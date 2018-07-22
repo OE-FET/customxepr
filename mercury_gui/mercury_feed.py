@@ -16,7 +16,7 @@ import os
 import logging
 import visa
 
-from MercuryDriver import MercuryITC
+from mercury_driver import MercuryITC
 from utils.misc import ping
 from config.main import CONF
 
