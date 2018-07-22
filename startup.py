@@ -19,17 +19,19 @@ import sys
 import os
 import logging
 from qtpy import QtCore, QtWidgets, QtGui
-from traceback import format_exception
 
 # local imports
-from Config.main import CONF
-from XeprTools import CustomXepr
-from MercuryGUI import MercuryFeed, MercuryMonitorApp
+from config.main import CONF
+from xeprtools.customxepr import CustomXepr, __version__, __author__
+from xeprtools.customxper_ui import JobStatusApp
+from xeprtools.internal_ipkernel import InternalIPKernel
+from mercury_gui.mercury_feed import MercuryFeed
+from mercury_gui.mercury_monitor_app import MercuryMonitorApp
 from KeithleyDriver import Keithley2600
-from KeithleyGUI import KeithleyGuiApp
-from XeprTools import JobStatusApp, InternalIPKernel
-from XeprTools.CustomXepr import __version__, __author__
-from Utils import check_dependencies, applyDarkTheme, get_dark_style
+from keithley_gui.keithley_ui import KeithleyGuiApp
+
+from utils import dark_style
+from utils.misc import check_dependencies, patch_excepthook
 
 # check if all require packages are installed
 direct = os.path.dirname(os.path.realpath(__file__))
@@ -84,7 +86,7 @@ def get_qt_app(*args, **kwargs):
 def show_splash_screen(app):
     """ Shows a splash screen from file."""
 
-    image = QtGui.QPixmap(os.path.join(direct, 'Images/CustomXeprSplash.png'))
+    image = QtGui.QPixmap(os.path.join(direct, 'images/splash.png'))
     image.setDevicePixelRatio(3)
     splash = QtWidgets.QSplashScreen(image)
     splash.show()
@@ -140,39 +142,17 @@ def start_gui(customXepr, mercuryFeed, keithley):
 # =============================================================================
 
 def go_dark():
-    applyDarkTheme.goDark()
-    applyDarkTheme.applyMPLDarkTheme()
+    dark_style.go_dark()
+    dark_style.apply_mpl_dark_theme()
 
     CONF.set('main', 'DARK', True)
 
 
 def go_bright():
-    applyDarkTheme.goBright()
-    applyDarkTheme.applyMPLBrightTheme()
+    dark_style.go_bright()
+    dark_style.apply_mpl_bright_theme()
 
     CONF.set('main', 'DARK', False)
-
-
-# =============================================================================
-# Monkeypatch exception hook to get errors from Qt event loop in Jupyter
-# =============================================================================
-
-def patch_excepthook():
-
-    global TIMER
-
-    def new_except_hook(etype, evalue, tb):
-        QtWidgets.QMessageBox.warning(None, 'error',
-                                      ''.join(format_exception(etype,
-                                                               evalue, tb)))
-
-    def _patch_excepthook():
-        sys.excepthook = new_except_hook
-
-    TIMER = QtCore.QTimer()
-    TIMER.setSingleShot(True)
-    TIMER.timeout.connect(_patch_excepthook)
-    TIMER.start()
 
 
 if __name__ == '__main__':
@@ -187,7 +167,7 @@ if __name__ == '__main__':
 
     # apply dark theme
     if DARK:
-        applyDarkTheme.goBright()
+        dark_style.go_dark()
 
     # connect to instruments
     customXepr, mercuryFeed, keithley, xepr = connect_to_instruments()
@@ -197,7 +177,7 @@ if __name__ == '__main__':
 
     # reinforce dark theme for figures
     if DARK:
-        applyDarkTheme.applyMPLDarkTheme()
+        dark_style.apply_mpl_dark_theme()
 
     BANNER = ('Welcome to CustomXepr %s. ' % __version__ +
               'You can access connected instruments as ' +
@@ -215,7 +195,7 @@ if __name__ == '__main__':
         kernel_window.init_ipkernel(banner=BANNER)
 
         if DARK:
-            console_style = get_dark_style()
+            console_style = dark_style.get_console_dark_style()
         else:
             console_style = ''
 

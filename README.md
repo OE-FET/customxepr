@@ -61,7 +61,7 @@ for T in [5, 50, 100, 150, 200, 250, 300]:
 	# generate file name for transfer curve
 	transferFile = folder + title + '_' + str(T) + 'K_transfer.txt'
 	# record default transfer curve and save to file
-	customXepr.transferMeasurement(transferFile)
+	customXepr.transferMeasurement(filePath=transferFile)
 
 	# =================================================================
 	# Perform ESR measurements at Vg = -70V and Vg = 0V
@@ -69,7 +69,7 @@ for T in [5, 50, 100, 150, 200, 250, 300]:
 	for Vg in [0, -70]:
 	  	customXepr.biasGate(Vg)  # bias gate
 		# perform preconfigured ESR measurement
-		customXepr.runExperiment(Exp, ModAmp=modAmp[T])
+		customXepr.runXeprExperiment(Exp, ModAmp=modAmp[T])
 		customXepr.biasGate(0)  # set gate voltage to zero
 
     	# save ESR spectrum to file

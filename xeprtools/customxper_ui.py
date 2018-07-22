@@ -11,21 +11,22 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 """
 
 # system module imports
+import sys
+import os
 from qtpy import QtCore, QtWidgets, QtGui, uic
 import logging
 import logging.handlers
-import sys
-import os
 import platform
 import subprocess
 import re
+import pydoc
 
 # custom module imports
 from KeithleyDriver import SweepData
-from ModePictureClass import ModePicture
-from AboutWindow import AboutWindow
-from Utils import applyDarkTheme
-from Config.main import CONF
+from xeprtools import customxepr
+from xeprtools.mode_picture import ModePicture
+from utils import dark_style
+from config.main import CONF
 
 logger = logging.getLogger(__name__)
 root_logger = logging.getLogger()
@@ -122,7 +123,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         super(self.__class__, self).__init__()
         # load user interface layout from .ui file
         uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                'CustomXeprUI.ui'), self)
+                                'job_window.ui'), self)
         # get input arguments
         self.customXepr = customXepr
         self.job_queue = customXepr.job_queue
@@ -482,13 +483,13 @@ class JobStatusApp(QtWidgets.QMainWindow):
     def _toggle_dark_mode(self):
         """ Toggles between bright and dark GUI appearance."""
         if self.actionDark_mode.isChecked():
-            applyDarkTheme.goDark()
-            applyDarkTheme.applyMPLDarkTheme()
+            dark_style.go_dark()
+            dark_style.apply_mpl_dark_theme()
 
             CONF.set('main', 'DARK', True)
         elif not self.actionDark_mode.isChecked():
-            applyDarkTheme.goBright()
-            applyDarkTheme.applyMPLBrightTheme()
+            dark_style.go_bright()
+            dark_style.apply_mpl_bright_theme()
 
             CONF.set('main', 'DARK', False)
 
@@ -571,3 +572,23 @@ class JobStatusApp(QtWidgets.QMainWindow):
     def t_timeout(self, time_in_min):
         """ Sets the timeout limit in minutes in timeout_timer."""
         self.timeout_timer.setInterval(time_in_min * self.min2msec)
+
+
+class AboutWindow(QtWidgets.QWidget, QtCore.QCoreApplication):
+    """
+    Prints version number, copyright info and help output from CustomXepr to a
+    PyQt window.
+    """
+    def __init__(self):
+
+        super(self.__class__, self).__init__()
+        # load user interface file
+        uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                'about_window.ui'), self)
+        # get help output in plain text format
+        self.help_output = pydoc.plain(pydoc.render_doc(customxepr.CustomXepr))
+        # print help output to scroll area of window
+        self.docText.setText(self.help_output)
+        # set title string of window to CustomXepr version
+        self.title_string = customxepr.__name__ + ' ' + customxepr.__version__
+        self.titleText.setText(self.title_string)

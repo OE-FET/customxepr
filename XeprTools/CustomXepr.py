@@ -35,9 +35,9 @@ import numpy as np
 import logging
 
 # custom imports
-from Utils import TlsSMTPHandler
-from ModePictureClass import ModePicture
-from Config.main import CONF
+from utils.mail import TlsSMTPHandler
+from xeprtools.mode_picture import ModePicture
+from config.main import CONF
 
 try:
     sys.path.insert(0, os.popen("Xepr --apipath").read())
@@ -191,7 +191,7 @@ class CustomXepr(QtCore.QObject):
         customXepr.customtune()
         customXepr.getQValueFromXepr(folder=None, T=298)
         customXepr.getQValueCalc(folder=None, T=298)
-        customXepr.runExperiment(exp, **kwargs)
+        customXepr.runXeprExperiment(exp, **kwargs)
         customXepr.saveCurrentData(path, title=None, exp=None)
         customXepr.setStandby()
         customXepr.getCurrentLinewidth()
@@ -202,10 +202,10 @@ class CustomXepr(QtCore.QObject):
         customXepr.heater_target(T)
 
     Keithley methods:
-        customXepr.transferMeasurement(path=None, **kwargs)
-        customXepr.outputMeasurement(path=None,  **kwargs)
-        customXepr.biasGate(Vg)
-        customXepr.applyCurrent(smu, curr)
+        customXepr.transferMeasurement(filePath=None, **kwargs)
+        customXepr.outputMeasurement(filePath=None,  **kwargs)
+        customXepr.setGateVoltage(Vg)
+        customXepr.applyDrainCurrent(smu, curr)
 
     See output of help(CustomXepr) for full documentation.
 
@@ -936,7 +936,7 @@ class CustomXepr(QtCore.QObject):
                 file_handle.write(string)
 
     @queued_exec(job_queue)
-    def runExperiment(self, exp, **kwargs):
+    def runXeprExperiment(self, exp, **kwargs):
         """
         Runs the Xepr experiment given by "exp". Keyword arguments (kwargs)
         allow the user to pass experiment parameters. If multiple scans are

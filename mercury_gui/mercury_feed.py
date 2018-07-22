@@ -17,8 +17,8 @@ import logging
 import visa
 
 from MercuryDriver import MercuryITC
-from Utils import ping
-from Config.main import CONF
+from utils.misc import ping
+from config.main import CONF
 
 logger = logging.getLogger(__name__)
 
@@ -141,7 +141,7 @@ class SensorDialog(QtWidgets.QDialog):
     def __init__(self, mercuryModules):
         super(self.__class__, self).__init__()
         uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                'ChoseSensorDialog.ui'), self)
+                                'choose_sensor_window.ui'), self)
 
         num = len(mercuryModules)
         temp_modules_nick = []

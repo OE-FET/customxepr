@@ -31,8 +31,8 @@ for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
     transferFile = folder + title + '_' + tString + 'K_transfer.txt'
     outputFile = folder + title + '_' + tString + 'K_output.txt'
 
-    customXepr.transferMeasurement(transferFile)
-    customXepr.outputMeasurement(outputFile)
+    customXepr.transferMeasurement(filePath=transferFile)
+    customXepr.outputMeasurement(filePath=outputFile)
 
     # =========================================================================
     # Perform ESR measurements at Vg and background scan at 0V
@@ -40,7 +40,7 @@ for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
 
     for volt in [0, Vg]:
         customXepr.biasGate(volt)
-        customXepr.runExperiment(Exp, ModAmp=modAmp[T], PowerAtten=atten[T], SweepWidth=sweepWidth[T], NbScansToDo=nbScans[T])
+        customXepr.runXeprExperiment(Exp, ModAmp=modAmp[T], PowerAtten=atten[T], SweepWidth=sweepWidth[T], NbScansToDo=nbScans[T])
         customXepr.biasGate(0)
 
         esrDataFile = folder + '/' + title + '_' + str(int(T)).zfill(3) + 'K_Vg_' + str(Vg).zfill(2)

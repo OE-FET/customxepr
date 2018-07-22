@@ -13,8 +13,8 @@ quickly load a user config file
 import getpass
 
 # Local import
-from Config.base import SUBFOLDER
-from Config.user import UserConfig
+from config.base import SUBFOLDER
+from config.user import UserConfig
 
 # =============================================================================
 #  Defaults

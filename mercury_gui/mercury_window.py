@@ -16,7 +16,7 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 
 from qtpy import QtCore, QtWidgets
-from Utils import LedIndicator
+from utils.led_indicator_widget import LedIndicator
 
 
 class Ui_MainWindow(object):

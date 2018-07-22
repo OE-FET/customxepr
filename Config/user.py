@@ -17,7 +17,7 @@ from ConfigParser import ConfigParser as cp
 from distutils.version import LooseVersion
 
 # Local imports
-from Config.base import (get_conf_path, get_home_dir,
+from config.base import (get_conf_path, get_home_dir,
                          get_module_source_path)
 
 

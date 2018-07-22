@@ -12,9 +12,10 @@ from qtpy import QtGui, QtCore, QtWidgets, uic
 from matplotlib.figure import Figure
 
 # local imports
-from Utils import ping, LedIndicator
+from utils.misc import ping
+from utils.led_indicator_widget import LedIndicator
 from KeithleyDriver import SweepData
-from Config.main import CONF
+from config.main import CONF
 
 if QtCore.PYQT_VERSION_STR[0] == '5':
     from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg
@@ -31,7 +32,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         super(self.__class__, self).__init__()
         # load user interface layout from .ui file
         uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                'KeithleyGUI.ui'), self)
+                                'keithley_window.ui'), self)
         self.keithley = keithley
 
         # create figure area
@@ -477,7 +478,7 @@ class KeithleyAddressDialog(QtWidgets.QDialog):
         super(self.__class__, self).__init__()
         # load user interface layout from .ui file
         uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                'KeithleyAddressDialog.ui'), self)
+                                'keithley_address_dialog.ui'), self)
 
         self.keithley = keithley
         self.lineEditIP.setText(self.keithley.address)

@@ -24,10 +24,10 @@ import logging
 from math import ceil, floor
 
 # custom imports
-from ModuleReadingsOverview import ReadingsOverview
-from MercuryFeed import MercuryFeed
-from MercuryMonitorGUI import Ui_MainWindow
-from MercuryAddressDialog import AddressDialog
+from mercury_gui.readings_overview import ReadingsOverview
+from mercury_gui.mercury_feed import MercuryFeed
+from mercury_gui.mercury_window import Ui_MainWindow
+from mercury_gui.mercury_address_dialog import AddressDialog
 
 if QtCore.PYQT_VERSION_STR[0] == '5':
     from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg
