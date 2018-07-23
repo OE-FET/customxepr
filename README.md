@@ -8,7 +8,7 @@ A Python instrument controller and GUI for Bruker E500 ESR spectrometers, Mercur
 
 The aim of CustomXepr is twofold: First and foremost, it enables the user to automate and schedule full measurement plans which may run for weeks without user input. Second, it complements the functionality of Bruker's Xepr control software. This includes for instance powerful logging capabilities for all key events, a more accurate determination of the cavity's Q-value from its frequency response, more reliable tuning of the cavity, the ability to re-tune the cavity during long-running measurements, logging of the cryostat temperature during measurements, and many more. On the other hand, low level functionality and communication with the spectrometer remains with Xepr.
 
-![Screenshot of CustomXepr GUI](/Screenshots/Screenshot_all_dark.png)
+![Screenshot of CustomXepr GUI](/screenshots/Screenshot_all_dark.png)
 
 ## Instrument communication
 CustomXepr communicates with all instruments over ethernet connections. Communication to the Keithley and MercuryiTC is handled through NI-VISA, which means that very little in the source code needs to be changed when switching to a different interface. It is planned to switch from NI-VISA to the open source pyvisa-py backend in the mid-term.
