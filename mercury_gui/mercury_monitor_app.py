@@ -99,7 +99,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def setIntialPosition(self):
         screen = QtWidgets.QDesktopWidget().screenGeometry(self)
 
-        xPos = screen.left() + screen.width()/2
+        xPos = screen.left() + screen.width()*2/3
         yPos = screen.top()
         width = 600
         height = screen.height()*2/3

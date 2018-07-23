@@ -258,12 +258,12 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         xPos = screen.left()
         yPos = screen.top()
-        width = screen.width()/2
+        width = screen.width()*2/3
         height = screen.height()*2/3
 
         self.setGeometry(xPos, yPos, width, height)
 
-        self.splitter.setSizes([width*0.7, width*0.3])
+        self.splitter.setSizes([width*0.75, width*0.25])
 
     def openResultContextMenu(self):
         """
