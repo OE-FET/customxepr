@@ -207,10 +207,12 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         # connect GUI slots to emitted data from worker
         self.heater_volt_Signal.connect(self.h1_label.setText)
         self.heater_auto_Signal.connect(self.h2_checkbox.setChecked)
+        self.heater_auto_Signal.connect(lambda b: self.h1_edit.setEnabled(not b))
         self.heater_auto_Signal.connect(self.h1_edit.setReadOnly)
         self.heater_percent_Signal.connect(self.h1_edit.updateText)
 
         self.flow_auto_Signal.connect(self.gf2_checkbox.setChecked)
+        self.flow_auto_Signal.connect(lambda b: self.gf1_edit.setEnabled(not b))
         self.flow_auto_Signal.connect(self.gf1_edit.setReadOnly)
         self.flow_Signal.connect(self.gf1_edit.updateText)
         self.flow_min_Signal.connect(self.gf1_label.setText)
@@ -243,10 +245,12 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         # disconnect GUI slots from worker
         self.heater_volt_Signal.disconnect(self.h1_label.setText)
         self.heater_auto_Signal.disconnect(self.h2_checkbox.setChecked)
+        self.heater_auto_Signal.disconnect(lambda b: self.h1_edit.setEnabled(not b))
         self.heater_auto_Signal.disconnect(self.h1_edit.setReadOnly)
         self.heater_percent_Signal.disconnect(self.h1_edit.updateText)
 
         self.flow_auto_Signal.disconnect(self.gf2_checkbox.setChecked)
+        self.flow_auto_Signal.disconnect(lambda b: self.gf1_edit.setEnabled(not b))
         self.flow_auto_Signal.disconnect(self.gf1_edit.setReadOnly)
         self.flow_Signal.disconnect(self.gf1_edit.updateText)
         self.flow_min_Signal.disconnect(self.gf1_label.setText)
@@ -295,7 +299,6 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.flow_auto_Signal.emit(False)
         self.flow_Signal.emit(str(round(readings['FlowPercent'], 1)))
         self.flow_min_Signal.emit('Gas flow (min = %s%%):' % readings['FlowMin'])
-        self.flow_Signal.emit(str(round(readings['FlowSetpoint'], 1)))
 
         # emit temperature signals
         self.t_Signal.emit(str(round(readings['Temp'], 3)))
@@ -413,6 +416,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def change_t_setpoint(self):
         newT = float(self.t2_edit.text())
+
         if newT < 310 and newT > 3.5:
             self._display_message('T_setpoint = %s K' % newT)
             self.feed.control.t_setpoint = newT
@@ -441,10 +445,12 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.feed.control.flow_auto = 'ON'
             self._display_message('Gas flow is automatically controlled.')
             self.gf1_edit.setReadOnly(True)
+            self.gf1_edit.setEnabled(False)
         elif not checked:
             self.feed.control.flow_auto = 'OFF'
             self._display_message('Gas flow is manually controlled.')
             self.gf1_edit.setReadOnly(False)
+            self.gf1_edit.setEnabled(True)
 
     def change_heater(self):
         self.feed.control.heater = float(self.h1_edit.text())
@@ -455,10 +461,12 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.feed.control.heater_auto = 'ON'
             self._display_message('Heater is automatically controlled.')
             self.h1_edit.setReadOnly(True)
+            self.h1_edit.setEnabled(False)
         elif not checked:
             self.feed.control.heater_auto = 'OFF'
             self._display_message('Heater is manually controlled.')
             self.h1_edit.setReadOnly(False)
+            self.h1_edit.setEnabled(True)
 
     def _check_overheat(self, readings):
         if readings['Temp'] > 310:

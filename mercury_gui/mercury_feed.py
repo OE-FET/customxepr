@@ -29,6 +29,42 @@ class MercuryFeed(QtWidgets.QWidget):
     of the gasflow, heater, temperature sensor and control loop modules. This
     enables other programs to get readings from the feed and reduced direct
     communication with the mercury.
+
+    New data from the selected modules is emitted by the newReadingsSignal in
+    form of a dictionary with entries:
+
+        readings['HeaterVolt']  -- current heater voltage in V
+        readings['HeaterAuto']  -- automatic or manual control of heater
+        readings['HeaterPercent'] -- heater percentage of maximum
+
+        # read gas flow data
+        readings['FlowAuto'] -- automatic or manual control of needle valve
+        readings['FlowPercent'] -- actual needle valve opening in percent
+        readings['FlowMin'] -- needle valve minimum allowed opening
+        readings['FlowSetpoint'] -- needle valve opening setpoint in percent
+
+        # read temperature data
+        readings['Temp'] -- actual temperature in K
+        readings['TempSetpoint'] -- temperature setpoint in K
+        readings['TempRamp']  -- temperature ramping speed in K/min
+        readings['TempRampEnable']  -- ramping enabled or disabled
+
+    You can recieve the emitted readings as follows:
+
+        >>> feed = MercuryFeed('IP_addess')
+        >>> feed.newReadingsSignal.connect(my_function)
+
+    and 'my_function' will be excecuted with the emitted readings dictionary as
+    argument everytime a new signal is emitted.
+
+    MercuryFeed will also handle maintining the connection for you: it will
+    periodically try to find the MercuryiTC if not connected, and emit warnings
+    when it looses an established connection. The Mercury driver itself can be
+    accessed directly as well, for example to send new settings to the Mercury:
+
+        >>> mercury = feed.mercury
+        >>> mercury.control.t_setpoint = 290  # new setpoint of 290 K
+
     """
 
     # status signals
