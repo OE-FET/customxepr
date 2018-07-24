@@ -123,7 +123,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         super(self.__class__, self).__init__()
         # load user interface layout from .ui file
         uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                'job_window.ui'), self)
+                                'customxepr_ui.ui'), self)
         # get input arguments
         self.customXepr = customXepr
         self.job_queue = customXepr.job_queue
@@ -590,5 +590,6 @@ class AboutWindow(QtWidgets.QWidget, QtCore.QCoreApplication):
         # print help output to scroll area of window
         self.docText.setText(self.help_output)
         # set title string of window to CustomXepr version
-        self.title_string = customxepr.__name__ + ' ' + customxepr.__version__
+        self.title_string = (customxepr.CustomXepr.__name__ + ' ' +
+                             customxepr.__version__)
         self.titleText.setText(self.title_string)

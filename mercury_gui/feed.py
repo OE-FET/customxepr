@@ -177,7 +177,7 @@ class SensorDialog(QtWidgets.QDialog):
     def __init__(self, mercuryModules):
         super(self.__class__, self).__init__()
         uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                'choose_sensor_window.ui'), self)
+                                'module_dialog.ui'), self)
 
         num = len(mercuryModules)
         temp_modules_nick = []

@@ -12,7 +12,7 @@ class AddressDialog(QtWidgets.QDialog):
         super(self.__class__, self).__init__()
         # load user interface layout from .ui file
         uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                'mercury_address_window.ui'), self)
+                                'address_dialog.ui'), self)
 
         self.feed = feed
 

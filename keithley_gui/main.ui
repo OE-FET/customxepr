@@ -747,6 +747,8 @@
     <addaction name="separator"/>
     <addaction name="actionLoadDefaults"/>
     <addaction name="actionSaveDefaults"/>
+    <addaction name="separator"/>
+    <addaction name="action_Exit"/>
    </widget>
    <widget class="QMenu" name="menu_File">
     <property name="title">
@@ -755,24 +757,29 @@
     <addaction name="actionSaveSweepData"/>
     <addaction name="actionLoad_data_from_file"/>
     <addaction name="separator"/>
-    <addaction name="action_Exit"/>
    </widget>
-   <addaction name="menu_File"/>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+   </widget>
    <addaction name="menu_Keithley_2600"/>
+   <addaction name="menu_File"/>
+   <addaction name="menuEdit"/>
   </widget>
   <action name="actionSettings">
    <property name="text">
-    <string>Connection settings</string>
+    <string> Preferences...</string>
    </property>
   </action>
   <action name="actionConnect">
    <property name="text">
-    <string>Connect</string>
+    <string> Connect</string>
    </property>
   </action>
   <action name="actionDisconnect">
    <property name="text">
-    <string>Disconnect</string>
+    <string> Disconnect</string>
    </property>
   </action>
   <action name="actionExit">
@@ -782,12 +789,12 @@
   </action>
   <action name="actionSaveSweepData">
    <property name="text">
-    <string> &amp;Save sweep data</string>
+    <string>&amp;Save Sweep Data...</string>
    </property>
   </action>
   <action name="action_Exit">
    <property name="text">
-    <string> &amp;Exit</string>
+    <string> &amp;Quit Keithley 2600</string>
    </property>
   </action>
   <action name="actionTb1">
@@ -797,17 +804,17 @@
   </action>
   <action name="actionLoad_data_from_file">
    <property name="text">
-    <string> &amp;Load sweep data</string>
+    <string>&amp;Load Sweep Data...</string>
    </property>
   </action>
   <action name="actionLoadDefaults">
    <property name="text">
-    <string>Revert to default settings</string>
+    <string> Revert to Default Settings</string>
    </property>
   </action>
   <action name="actionSaveDefaults">
    <property name="text">
-    <string>Save settings as default</string>
+    <string> Save Settings as Default</string>
    </property>
   </action>
  </widget>

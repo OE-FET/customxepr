@@ -26,38 +26,39 @@ class Ui_MainWindow(object):
 
         # create menu bar
         self.menubar = self.menuBar()
-        self.fileMenu = self.menubar.addMenu('&File')
         self.mercuryMenu = self.menubar.addMenu('&MercuryiTC')
+        self.fileMenu = self.menubar.addMenu('&File')
+
+        # add Edit menu to get macOS commands for free
+        self.editMenu = self.menubar.addMenu('&Edit')
 
         # define menu bar actions
-        self.exitAction = QtWidgets.QAction(' Exit', self)
+        self.exitAction = QtWidgets.QAction(' Quit MercuryiTC Monitor', self)
         self.exitAction.setShortcut('Ctrl+Q')
-        self.exitAction.setStatusTip('Exit application')
+        self.exitAction.setStatusTip('Quit application')
 
-        self.showLogAction = QtWidgets.QAction(' Show logs', self)
+        self.showLogAction = QtWidgets.QAction('Show Logs', self)
         self.showLogAction.setShortcut('Ctrl+L')
         self.showLogAction.setStatusTip('Open temperature log folder')
 
-        self.modulesAction = QtWidgets.QAction('Select modules', self)
+        self.modulesAction = QtWidgets.QAction(' Select Modules...', self)
         self.modulesAction.setShortcut('Ctrl+M')
         self.modulesAction.setStatusTip('Select modules for MercuryiTC to control')
 
-        self.readingsAction = QtWidgets.QAction('Readings overview', self)
+        self.readingsAction = QtWidgets.QAction(' Readings Overview...', self)
         self.readingsAction.setShortcut('Ctrl+R')
         self.readingsAction.setStatusTip('Shows overview over all MercuryiTC readings')
 
-        self.connectAction = QtWidgets.QAction('Connect Mercury', self)
+        self.connectAction = QtWidgets.QAction(' Connect Mercury', self)
         self.connectAction.setStatusTip('Connect to MercuryiTC')
 
-        self.disconnectAction = QtWidgets.QAction('Disconnect Mercury', self)
+        self.disconnectAction = QtWidgets.QAction(' Disconnect Mercury', self)
         self.disconnectAction.setStatusTip('Disconnect from MercuryiTC')
 
-        self.updateAddressAction = QtWidgets.QAction('Connection settings', self)
+        self.updateAddressAction = QtWidgets.QAction(' Connection Settings...', self)
 
         # add actions to menu bars
         self.fileMenu.addAction(self.showLogAction)
-        self.fileMenu.addSeparator()
-        self.fileMenu.addAction(self.exitAction)
 
         self.mercuryMenu.addAction(self.modulesAction)
         self.mercuryMenu.addAction(self.readingsAction)
@@ -66,10 +67,12 @@ class Ui_MainWindow(object):
 
         self.mercuryMenu.addAction(self.connectAction)
         self.mercuryMenu.addAction(self.disconnectAction)
+        self.mercuryMenu.addAction(self.updateAddressAction)
 
         self.mercuryMenu.addSeparator()
 
-        self.mercuryMenu.addAction(self.updateAddressAction)
+        self.mercuryMenu.addSeparator()
+        self.mercuryMenu.addAction(self.exitAction)
 
         # create central widget
         self.centralwidget = QtWidgets.QWidget(MainWindow)

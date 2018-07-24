@@ -21,7 +21,7 @@ New in v1.4.4:
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'
 __date__ = '17 July 2018'
 
-__version__ = 'v1.5.0'
+__version__ = 'v2.0.0'
 
 # system imports
 import sys
