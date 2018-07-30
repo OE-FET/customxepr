@@ -18,7 +18,12 @@ Postfix - mail transfer agent for macOSX and Linux, required for email
 
 %----------- Release notes ----------------------------------------------------
 
-New in v2.0.0
+Bug fixes in v1.6.1:
+* Fixed a bug that would cause windows to become unresponsive when CustomXepr
+  is started from Spyder or an IPython console without a Qt5 event loop already
+  running.
+
+New in v1.6.0:
 
 * Rewrote the Keithley2600 driver from scratch. The driver now supports almost
   all 530 Keithley commands and replicates the nomenclature from Keithley's own

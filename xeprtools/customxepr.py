@@ -12,16 +12,16 @@ To Do:
 
 * See GitHub issues list at https://github.com/OE-FET/CustomXepr
 
-New in v1.4.4:
+New in v1.6.1:
 
     See release notes
 
 """
 
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'
-__date__ = '17 July 2018'
+__date__ = '30 July 2018'
 
-__version__ = 'v2.0.0'
+__version__ = 'v1.6.1'
 
 # system imports
 import sys

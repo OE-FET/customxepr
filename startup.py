@@ -19,6 +19,7 @@ import sys
 import os
 import logging
 from qtpy import QtCore, QtWidgets, QtGui
+import time
 
 # local imports
 from config.main import CONF
@@ -38,11 +39,14 @@ direct = os.path.dirname(os.path.realpath(__file__))
 filePath = os.path.join(direct, 'dependencies.txt')
 exit_code = check_dependencies(filePath)
 
-# if we are running from IPython, disable autoreload
+# if we are running from IPython:
+# disable autoreload, start integrated Qt event loop
 try:
     from IPython import get_ipython
     ipython = get_ipython()
-    ipython.magic("%autoreload 0")
+    ipython.magic('%autoreload 0')
+    ipython.magic('%gui qt')
+    app = QtWidgets.QApplication([' '])
 except:
     pass
 
@@ -67,16 +71,16 @@ def get_qt_app(*args, **kwargs):
     """
     Create a new Qt app or return an existing one.
     """
-    created = False
+    CREATED = False
     app = QtCore.QCoreApplication.instance()
 
     if not app:
         if not args:
             args = ([''],)
         app = QtWidgets.QApplication(*args, **kwargs)
-        created = True
+        CREATED = True
 
-    return app, created
+    return app, CREATED
 
 
 # =============================================================================
@@ -158,8 +162,8 @@ def go_bright():
 if __name__ == '__main__':
 
     # create a new Qt app or return an existing one
-    app, created = get_qt_app()
-    if not created:
+    app, CREATED = get_qt_app()
+    if not CREATED:
         patch_excepthook()
 
     # create and show splash screen
@@ -188,7 +192,7 @@ if __name__ == '__main__':
               'interface style. Type "exit" to gracefully exit ' +
               'CustomXepr.\n\n(c) 2016 - 2018, %s.' % __author__)
 
-    if created:
+    if CREATED:
 
         # start event loop and console if run as standalone app
         kernel_window = InternalIPKernel()
