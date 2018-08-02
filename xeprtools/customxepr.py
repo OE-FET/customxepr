@@ -923,7 +923,7 @@ class CustomXepr(QtCore.QObject):
 
     def _saveQValue2File(self, T, QValue, filePath):
 
-        time_str = time.strftime('%Y-%m-%d %H:%m')
+        time_str = time.strftime('%Y-%m-%d %H:%M')
         string = '%s\t%d\t%s\n' % (time_str, T, QValue)
 
         if os.path.exists(filePath) and os.path.getsize(filePath) > 0:

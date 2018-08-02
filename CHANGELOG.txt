@@ -22,6 +22,8 @@ Bug fixes in v1.6.1:
 * Fixed a bug that would cause windows to become unresponsive when CustomXepr
   is started from Spyder or an IPython console without a Qt5 event loop already
   running.
+* Fixed a bug that would save Q-values with a wrong time string (month instead
+  of minuite).
 
 New in v1.6.0:
 
