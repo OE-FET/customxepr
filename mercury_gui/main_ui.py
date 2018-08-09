@@ -15,7 +15,7 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 # =============================================================================
 
 
-from qtpy import QtCore, QtWidgets
+from qtpy import QtCore, QtWidgets, QtGui
 from utils.led_indicator_widget import LedIndicator
 
 
@@ -260,6 +260,7 @@ class Ui_MainWindow(object):
         # activate status bar
         self.statusBar = QtWidgets.QStatusBar()
         self.setStatusBar(self.statusBar)
+        self.statusBar.setStyleSheet('QStatusBar{background:transparent;}')
 
         # create LED indicator
         self.led = LedIndicator(self)

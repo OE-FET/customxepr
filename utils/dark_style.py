@@ -74,13 +74,13 @@ def apply_mpl_dark_theme():
 
     for canvas in canvasList:
         fig = canvas.figure
-        fig.set_facecolor([49/255.0, 54/255.0, 59/255.0, 1])
+        fig.set_facecolor([49/255.0, 54/255.0, 59/255.0, 0])
         axList = fig.get_axes()
         for ax in axList:
-            ax.set_facecolor([0.204, 0.225, 0.246, 1])
-            ax.grid(True, color=[0.3, 0.3, 0.3, 1])
-            ax.spines['top'].set_visible(False)
-            ax.spines['right'].set_visible(False)
+            ax.set_facecolor([0.2244, 0.2475, 0.2706, 1])
+            # ax.grid(True, color=[0.3, 0.3, 0.3, 1])
+            # ax.spines['top'].set_visible(False)
+            # ax.spines['right'].set_visible(False)
             set_label_color(ax, labelColor)
 
         canvas.draw()
@@ -89,6 +89,7 @@ def apply_mpl_dark_theme():
 def go_bright():
     """ Apply bright theme to all windows and future MPL figures."""
     mpl.style.use('default')
+    mpl.style.use(os.path.join(direct, 'mpl_bright_style.mplstyle'))
     app = QtCore.QCoreApplication.instance()
     app.setStyleSheet('')
 
@@ -104,7 +105,7 @@ def apply_mpl_bright_theme():
     color = QtGui.QPalette().window().color().getRgb()
     color = [x/255.0 for x in color]
 
-    labelColor = 'black'
+    labelColor = [0.2, 0.2, 0.2, 1]
 
     for canvas in canvasList:
         fig = canvas.figure
@@ -116,6 +117,9 @@ def apply_mpl_bright_theme():
             ax.spines['top'].set_visible(True)
             ax.spines['right'].set_visible(True)
             set_label_color(ax, labelColor)
+            ax.title.set_color('black')
+            ax.xaxis.label.set_color('black')
+            ax.yaxis.label.set_color('black')
 
         canvas.draw()
 

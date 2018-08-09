@@ -19,7 +19,6 @@ import sys
 import os
 import logging
 from qtpy import QtCore, QtWidgets, QtGui
-import time
 
 # local imports
 from config.main import CONF
@@ -172,6 +171,8 @@ if __name__ == '__main__':
     # apply dark theme
     if DARK:
         dark_style.go_dark()
+    else:
+        dark_style.go_bright()
 
     # connect to instruments
     customXepr, mercuryFeed, keithley, xepr = connect_to_instruments()
@@ -182,6 +183,8 @@ if __name__ == '__main__':
     # reinforce dark theme for figures
     if DARK:
         dark_style.apply_mpl_dark_theme()
+    else:
+        dark_style.apply_mpl_bright_theme()
 
     BANNER = ('Welcome to CustomXepr %s. ' % __version__ +
               'You can access connected instruments as ' +

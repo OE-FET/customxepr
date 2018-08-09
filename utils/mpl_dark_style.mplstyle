@@ -5,20 +5,20 @@ patch.edgecolor: [1, 1, 1, 0.5]
 
 text.color: [1, 1, 1, 0.5]
 
-axes.facecolor: [0.204, 0.225, 0.246, 1]
+axes.facecolor: [0.2244, 0.2475, 0.2706, 1]
 axes.edgecolor: [1, 1, 1, 0.5]
 axes.labelcolor: [1, 1, 1, 0.5]
-axes.grid: True
-axes.spines.top    : False
-axes.spines.right  : False
+
+axes.grid: False
+axes.spines.top    : True
+axes.spines.right  : True
 
 xtick.color: [1, 1, 1, 0.5]
 ytick.color: [1, 1, 1, 0.5]
+xtick.labelsize : 9
+ytick.labelsize : 9
 
 grid.color: [0.3, 0.3, 0.3, 1]
 
 figure.facecolor: [0.19215686274509805, 0.21176470588235294, 0.23137254901960785, 1]
 figure.edgecolor: [0.19215686274509805, 0.21176470588235294, 0.23137254901960785, 1]
-
-savefig.facecolor: [[0.19215686274509805, 0.21176470588235294, 0.23137254901960785, 1]
-savefig.edgecolor: [0.19215686274509805, 0.21176470588235294, 0.23137254901960785, 1]

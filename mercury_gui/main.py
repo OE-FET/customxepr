@@ -139,16 +139,24 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         # create figure and set axis labels
         self.fig = Figure(facecolor=color)
         self.fig.set_tight_layout('tight')
+        # (self.ax1, self.ax2) = self.fig.subplots(2,sharex=True)
         self.ax = self.fig.add_subplot(111)
         self.ax.set_xlabel('Time [min]', fontsize=9)
+        # self.ax1.set_ylabel('Temperature [K]')
+        # self.ax2.set_xlabel('Time')
+        # self.ax2.set_ylabel('%')
         self.ax.set_ylabel('Temperature [K]', fontsize=9)
         self.ax.tick_params(axis='both', which='major', labelsize=9)
+        #  self.ax1.tick_params(axis='y',  which='major')
+        #  self.ax2.tick_params(axis='none')
 
         self.xLim, self.yLim = [-1, 1.0/60], [0, 300]
         self.ax.axis(self.xLim + self.yLim)
+        # self.ax1.axis(self.xLim + self.yLim)
+        # self.ax2.axis(self.xLim + [-0.02, 1])
 
         # create line object for temperature graph
-        self.line1, = self.ax.plot(0, 295, '-')
+        self.line1, = self.ax.plot(0, 295, '-', linewidth=1)
 
         # create canvas, add to main window, and draw canvas
         self.canvas = FigureCanvas(self.fig)
@@ -610,7 +618,7 @@ if __name__ == '__main__':
 
     # Connect to MercuryiTC and start data feed
     if 'feed' not in locals():
-        feed = MercuryFeed('172.20.91.41')
+        feed = MercuryFeed('172.20.91.41', '7020')
 
     # create GUI
     monitor = MercuryMonitorApp(feed)
