@@ -35,16 +35,21 @@ def get_canvas_list():
     return convasList
 
 
-def set_label_color(ax, labelColor):
-    """Sets color of all labels, titles and borders of axes."""
-    ax.spines['bottom'].set_color(labelColor)
-    ax.spines['top'].set_color(labelColor)
-    ax.spines['left'].set_color(labelColor)
-    ax.spines['right'].set_color(labelColor)
-    ax.xaxis.label.set_color(labelColor)
-    ax.yaxis.label.set_color(labelColor)
-    ax.tick_params(axis='both', colors=labelColor)
-    ax.title.set_color(labelColor)
+def set_label_color(ax, color):
+    """Sets color of all labels and titles of axes."""
+    ax.xaxis.label.set_color(color)
+    ax.yaxis.label.set_color(color)
+    ax.tick_params(axis='both', colors=color)
+    ax.title.set_color(color)
+
+
+def set_line_color(ax, color):
+    """Sets color of all lines and ticks of axes."""
+    ax.spines['bottom'].set_color(color)
+    ax.spines['top'].set_color(color)
+    ax.spines['left'].set_color(color)
+    ax.spines['right'].set_color(color)
+    ax.tick_params(axis='both', color=color)
 
 
 def go_dark():
@@ -70,18 +75,19 @@ def apply_mpl_dark_theme():
 
     canvasList = get_canvas_list()
 
-    labelColor = [1, 1, 1, 0.5]
+    figureFaceColor = [49/255.0, 54/255.0, 59/255.0, 0]
+    axesFaceColor = [0.2244, 0.2475, 0.2706, 1]
+    lineColor = [0.5, 0.5, 0.5, 1]
+    labelColor = 'white'
 
     for canvas in canvasList:
         fig = canvas.figure
-        fig.set_facecolor([49/255.0, 54/255.0, 59/255.0, 0])
+        fig.set_facecolor(figureFaceColor)
         axList = fig.get_axes()
         for ax in axList:
-            ax.set_facecolor([0.2244, 0.2475, 0.2706, 1])
-            # ax.grid(True, color=[0.3, 0.3, 0.3, 1])
-            # ax.spines['top'].set_visible(False)
-            # ax.spines['right'].set_visible(False)
+            ax.set_facecolor(axesFaceColor)
             set_label_color(ax, labelColor)
+            set_line_color(ax, lineColor)
 
         canvas.draw()
 
@@ -103,23 +109,20 @@ def apply_mpl_bright_theme():
     canvasList = get_canvas_list()
 
     color = QtGui.QPalette().window().color().getRgb()
-    color = [x/255.0 for x in color]
-
-    labelColor = [0.2, 0.2, 0.2, 1]
+    figureFaceColor = [x/255.0 for x in color]
+    axesFaceColor = 'white'
+    lineColor = [0.5, 0.5, 0.5, 1]
+    labelColor = 'black'
 
     for canvas in canvasList:
         fig = canvas.figure
-        fig.set_facecolor(color)
+        fig.set_facecolor(figureFaceColor)
         axList = fig.get_axes()
         for ax in axList:
-            ax.set_facecolor('white')
+            ax.set_facecolor(axesFaceColor)
             ax.grid(False)
-            ax.spines['top'].set_visible(True)
-            ax.spines['right'].set_visible(True)
             set_label_color(ax, labelColor)
-            ax.title.set_color('black')
-            ax.xaxis.label.set_color('black')
-            ax.yaxis.label.set_color('black')
+            set_line_color(ax, lineColor)
 
         canvas.draw()
 

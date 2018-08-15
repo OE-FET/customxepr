@@ -420,7 +420,9 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self.ax.set_title('Sweep data', fontsize=10)
         self.ax.set_xlabel('Voltage [V]', fontsize=9)
         self.ax.set_ylabel('Current [A]', fontsize=9)
-        self.ax.tick_params(axis='both', which='major', labelsize=9)
+        self.ax.tick_params(axis='both', which='major', direction='in',
+                            colors='black', color=[0.5, 0.5, 0.5, 1],
+                            labelsize=9)
 
         self.canvas = FigureCanvas(self.fig)
 
