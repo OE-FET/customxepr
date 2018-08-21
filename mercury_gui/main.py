@@ -28,6 +28,7 @@ from math import ceil, floor
 from mercury_gui.feed import MercuryFeed
 from mercury_gui.main_ui import Ui_MainWindow
 from mercury_gui.address_dialog import AddressDialog
+from utils.dark_style import BRIGHT_STYLE_PATH
 
 if QtCore.PYQT_VERSION_STR[0] == '5':
     from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg
@@ -134,8 +135,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         """Sets up figure for temperature plot."""
 
         direct = os.path.dirname(os.path.realpath('utils'))
-        mpl.style.use(os.path.join(direct, 'utils',
-                                   'mpl_bright_style.mplstyle'))
+        mpl.style.use(BRIGHT_STYLE_PATH)
 
         # get figure frame to match window color
         color = QtGui.QPalette().window().color().getRgb()
@@ -162,21 +162,28 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ax2.axis(self.xLim + [-1.1, 1.1])
 
         # create line object for temperature graph
-        self.lc1 = [0, 0.8, 0.6, 1]
-        self.lc2 = [100/255.0, 171/255.0, 246/255.0]
-        self.lc3 = [221/255.0, 61/255.0, 53/255.0]
+        self.lc0 = [0, 0.8, 0.6, 1]
+        self.lc1 = [100/255.0, 171/255.0, 246/255.0]
+        self.lc2 = [221/255.0, 61/255.0, 53/255.0]
 
-        self.fc2 = [100/255.0, 171/255.0, 246/255.0, 0.2]
-        self.fc3 = [221/255.0, 61/255.0, 53/255.0, 0.2]
+        self.fc1 = [100/255.0, 171/255.0, 246/255.0, 0.2]
+        self.fc2 = [221/255.0, 61/255.0, 53/255.0, 0.2]
 
-        self.line_t, = self.ax1.plot(0, 295, '-', linewidth=1.1, color=self.lc1)
-        self.line_gf, = self.ax2.plot(0, 0, '-', linewidth=0.8, color=self.lc2)
-        self.line_htr, = self.ax2.plot(0, 0, '-', linewidth=0.8, color=self.lc3)
-        self.line_base, = self.ax2.plot(0, 0, '-', linewidth=0.8, color=self.lc3)
+        self.line_t, = self.ax1.plot(0, 295, '-', linewidth=1.1, color=self.lc0)
+        self.line_gf, = self.ax2.plot(0, 0, '-', linewidth=0.8, color=self.lc1)
+        self.line_htr, = self.ax2.plot(0, 0, '-', linewidth=0.8, color=self.lc2)
+        self.line_base, = self.ax2.plot(0, 0, '-', linewidth=0.8, color=self.lc2)
         self.line_base.set_data([-1440, 0], [0, 0])
 
-        self.fill1 = self.ax2.fill_between([0, ], [0, ], facecolor=self.fc2)
-        self.fill2 = self.ax2.fill_between([0, ], [0, ], facecolor=self.fc3)
+        self.fill1 = self.ax2.fill_between([0, ], [0, ], facecolor=self.fc1)
+        self.fill2 = self.ax2.fill_between([0, ], [0, ], facecolor=self.fc2)
+
+        # adapt text edit colors to graoh colors
+        self.gf1_edit.setStyleSheet('color:rgb(%s,%s,%s)' % tuple([i * 255 for i in self.lc1]))
+        self.h1_edit.setStyleSheet('color:rgb(%s,%s,%s)' % tuple([i * 255 for i in self.lc2]))
+
+        self.gf1_unit.setStyleSheet('color:rgb(%s,%s,%s)' % tuple([i * 255 for i in self.lc1]))
+        self.h1_unit.setStyleSheet('color:rgb(%s,%s,%s)' % tuple([i * 255 for i in self.lc2]))
 
         # create canvas, add to main window, and draw canvas
         self.canvas = FigureCanvas(self.fig)
@@ -390,10 +397,10 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
             self.fill1 = self.ax2.fill_between(self.CurrentXData,
                                                self.CurrentYDataG,
-                                               facecolor=self.fc2)
+                                               facecolor=self.fc1)
             self.fill2 = self.ax2.fill_between(self.CurrentXData,
                                                self.CurrentYDataH,
-                                               facecolor=self.fc3)
+                                               facecolor=self.fc2)
 
             self.ax1.draw_artist(self.line_t)
             self.ax2.draw_artist(self.line_gf)
@@ -413,10 +420,10 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.ax2.collections.remove(self.fill2)
             self.fill1 = self.ax2.fill_between(self.CurrentXData,
                                                self.CurrentYDataG, 0,
-                                               facecolor=self.fc2)
+                                               facecolor=self.fc1)
             self.fill2 = self.ax2.fill_between(self.CurrentXData,
                                                self.CurrentYDataH, 0,
-                                               facecolor=self.fc3)
+                                               facecolor=self.fc2)
 
             self.ax1.axis(xLimNew + yLimNew)
             self.canvas.draw()

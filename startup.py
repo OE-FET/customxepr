@@ -140,24 +140,6 @@ def start_gui(customXepr, mercuryFeed, keithley):
     return customXeprGUI, mercuryGUI, keithleyGUI
 
 
-# =============================================================================
-# Go dark! (not yet supported for standalone console)
-# =============================================================================
-
-def go_dark():
-    dark_style.go_dark()
-    dark_style.apply_mpl_dark_theme()
-
-    CONF.set('main', 'DARK', True)
-
-
-def go_bright():
-    dark_style.go_bright()
-    dark_style.apply_mpl_bright_theme()
-
-    CONF.set('main', 'DARK', False)
-
-
 if __name__ == '__main__':
 
     # create a new Qt app or return an existing one
@@ -191,8 +173,7 @@ if __name__ == '__main__':
               '"customXepr", "mercuryFeed" and "keithley".\n\n' +
               'Use "%run path_to_file.py" to run a python script such as a ' +
               'measurement routine.\n'
-              'Execute "go_dark()" or "go_bright()" to switch the user ' +
-              'interface style. Type "exit" to gracefully exit ' +
+              'Type "exit" to gracefully exit ' +
               'CustomXepr.\n\n(c) 2016 - 2018, %s.' % __author__)
 
     if CREATED:
@@ -211,8 +192,7 @@ if __name__ == '__main__':
         var_dict = {'customXepr': customXepr, 'xepr': xepr,
                     'customXeprGUI': customXeprGUI,
                     'mercuryFeed': mercuryFeed, 'mercuryGUI': mercuryGUI,
-                    'keithley': keithley, 'keithleyGUI': keithleyGUI,
-                    'go_dark': go_dark, 'go_bright': go_bright}
+                    'keithley': keithley, 'keithleyGUI': keithleyGUI}
 
         kernel_window.send_to_namespace(var_dict)
         app.aboutToQuit.connect(kernel_window.cleanup_consoles)

@@ -17,6 +17,9 @@ elif QtCore.PYQT_VERSION_STR[0] == '4':
 
 direct = os.path.dirname(os.path.realpath(__file__))
 
+BRIGHT_STYLE_PATH = os.path.join(direct, 'mpl_bright_style.mplstyle')
+DARK_STYLE_PATH = os.path.join(direct, 'mpl_dark_style.mplstyle')
+
 
 def get_canvas_list():
     """
@@ -55,7 +58,7 @@ def set_line_color(ax, color):
 def go_dark():
     """ Apply dark theme to all windows and future MPL figures."""
     # apply dark theme to all future figures
-    mpl.style.use(os.path.join(direct, 'mpl_dark_style.mplstyle'))
+    mpl.style.use(BRIGHT_STYLE_PATH)
 
     # apply dark theme to PyQt windows
     if QtCore.PYQT_VERSION_STR[0] == '5':
@@ -95,7 +98,7 @@ def apply_mpl_dark_theme():
 def go_bright():
     """ Apply bright theme to all windows and future MPL figures."""
     mpl.style.use('default')
-    mpl.style.use(os.path.join(direct, 'mpl_bright_style.mplstyle'))
+    mpl.style.use(BRIGHT_STYLE_PATH)
     app = QtCore.QCoreApplication.instance()
     app.setStyleSheet('')
 
