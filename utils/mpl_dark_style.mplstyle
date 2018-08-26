@@ -1,7 +1,5 @@
 # Set black background default line colors to white.
 
-interactive  : False
-
 xtick.color: [1, 1, 1, 1]
 xtick.direction: in
 xtick.labelsize : 9
