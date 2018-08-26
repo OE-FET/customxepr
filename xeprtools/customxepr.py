@@ -222,6 +222,8 @@ class CustomXepr(QtCore.QObject):
 
     def __init__(self, Xepr=None, mercury_feed=None, keithley=None):
 
+        super(CustomXepr, self).__init__()
+
         # =====================================================================
         # check if conections to Xepr, MercuryiTC and Keithley are present
         # =====================================================================

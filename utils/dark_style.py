@@ -58,7 +58,7 @@ def set_line_color(ax, color):
 def go_dark():
     """ Apply dark theme to all windows and future MPL figures."""
     # apply dark theme to all future figures
-    mpl.style.use(BRIGHT_STYLE_PATH)
+    mpl.style.use(DARK_STYLE_PATH)
 
     # apply dark theme to PyQt windows
     if QtCore.PYQT_VERSION_STR[0] == '5':

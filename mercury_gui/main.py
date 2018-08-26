@@ -135,7 +135,6 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def _setup_figure(self):
         """Sets up figure for temperature plot."""
 
-        direct = os.path.dirname(os.path.realpath('utils'))
         mpl.style.use(BRIGHT_STYLE_PATH)
 
         # get figure frame to match window color
@@ -358,10 +357,10 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.yDataH = self.yDataH[-86400:]
 
         # convert yData to minutes and set current time to t = 0
-        xDataZero = lmap(operator.sub, self.xData,
-                         [max(self.xData)] * len(self.xData))
-        self.xDataZero = lmap(operator.div, xDataZero,
-                              [60.0] * len(xDataZero))
+        xDataZeroSec = lmap(operator.sub, self.xData,
+                            [max(self.xData)] * len(self.xData))
+        self.xDataZero = lmap(operator.div, xDataZeroSec,
+                              [60.0] * len(xDataZeroSec))
 
         self._update_plot()
 
