@@ -28,7 +28,7 @@ import sys
 import os
 from threading import Event
 from qtpy import QtCore
-from Queue import Queue
+from queue import Queue
 from decorator import decorator
 import time
 import numpy as np

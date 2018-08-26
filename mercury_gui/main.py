@@ -23,6 +23,7 @@ import operator
 import numpy as np
 import logging
 from math import ceil, floor
+from future.utils import lmap
 
 # custom imports
 from mercury_gui.feed import MercuryFeed
@@ -357,10 +358,10 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.yDataH = self.yDataH[-86400:]
 
         # convert yData to minutes and set current time to t = 0
-        xDataZero = list(map(operator.sub, self.xData,
-                             [max(self.xData)] * len(self.xData)))
-        self.xDataZero = list(map(operator.div, xDataZero,
-                                  [60.0] * len(xDataZero)))
+        xDataZero = lmap(operator.sub, self.xData,
+                         [max(self.xData)] * len(self.xData))
+        self.xDataZero = lmap(operator.div, xDataZero,
+                              [60.0] * len(xDataZero))
 
         self._update_plot()
 
