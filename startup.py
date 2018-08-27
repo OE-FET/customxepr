@@ -144,8 +144,6 @@ if __name__ == '__main__':
 
     # create a new Qt app or return an existing one
     app, CREATED = get_qt_app()
-    if not CREATED:
-        patch_excepthook()
 
     # create and show splash screen
     splash = show_splash_screen(app)
@@ -206,3 +204,5 @@ if __name__ == '__main__':
         print(BANNER)
         # remove splash screen
         splash.finish(customXeprGUI)
+        # patch exception hook to display errors from Qt event loop
+        patch_excepthook()

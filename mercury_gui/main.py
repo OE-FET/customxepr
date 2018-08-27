@@ -365,20 +365,32 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self._update_plot()
 
     def _update_plot(self):
+        t0 = time.time()
         # get number of entries that are within the slider value
-        numberDP = sum(abs(x) < self.horizontalSlider.value()
-                       for x in self.xDataZero) + 5
+        idx0 = np.searchsorted(self.xDataZero, -self.horizontalSlider.value())
+        idx0 += 5
+
+        print('Get number of data points: %s sec' % str(time.time()-t0))
+        t0 = time.time()
 
         # select data to be plotted
-        self.CurrentXData = self.xDataZero[-numberDP:]
-        self.CurrentYDataT = self.yDataT[-numberDP:]
-        self.CurrentYDataG = self.yDataG[-numberDP:]
-        self.CurrentYDataH = self.yDataH[-numberDP:]
+        self.CurrentXData = self.xDataZero[idx0:]
+        self.CurrentYDataT = self.yDataT[idx0:]
+        self.CurrentYDataG = self.yDataG[idx0:]
+        self.CurrentYDataH = self.yDataH[idx0:]
+
+        print('Truncate data: %s sec' % str(time.time()-t0))
+        t0 = time.time()
 
         # update axis limits
         if not self.CurrentXData == []:
-            xLimNew = [max(-self.horizontalSlider.value(), self.CurrentXData[0]), 1.0/60]
-            yLimNew = [floor(min(self.CurrentYDataT)), ceil(max(self.CurrentYDataT)) + 0.1]
+            xLimNew = [max(-self.horizontalSlider.value(),
+                           self.CurrentXData[0]), 1.0/60]
+            yLimNew = [floor(min(self.CurrentYDataT)),
+                       ceil(max(self.CurrentYDataT)) + 0.1]
+
+        print('Get new axis limits: %s sec' % str(time.time()-t0))
+        t0 = time.time()
 
         # redraw only the lines if possible
         # redraw the whole plot if limits have changed
@@ -388,12 +400,14 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.line_htr.remove()
             self.line_base.remove()
 
-            self.ax2.collections.remove(self.fill1)
-            self.ax2.collections.remove(self.fill2)
+            self.ax2.collections = []
 
-            self.line_t, = self.ax1.plot(self.CurrentXData, self.CurrentYDataT, '-')
-            self.line_gf, = self.ax1.plot(self.CurrentXData, self.CurrentYDataG, '-')
-            self.line_htr, = self.ax1.plot(self.CurrentXData, self.CurrentYDataH, '-')
+            self.line_t, = self.ax1.plot(self.CurrentXData,
+                                         self.CurrentYDataT, '-')
+            self.line_gf, = self.ax1.plot(self.CurrentXData,
+                                          self.CurrentYDataG, '-')
+            self.line_htr, = self.ax1.plot(self.CurrentXData,
+                                           self.CurrentYDataH, '-')
 
             self.fill1 = self.ax2.fill_between(self.CurrentXData,
                                                self.CurrentYDataG,
@@ -416,8 +430,10 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.line_gf.set_data(self.CurrentXData, self.CurrentYDataG)
             self.line_htr.set_data(self.CurrentXData, self.CurrentYDataH)
 
-            self.ax2.collections.remove(self.fill1)
-            self.ax2.collections.remove(self.fill2)
+            print('Update lines: %s sec' % str(time.time()-t0))
+            t0 = time.time()
+
+            self.ax2.collections = []
             self.fill1 = self.ax2.fill_between(self.CurrentXData,
                                                self.CurrentYDataG, 0,
                                                facecolor=self.fc1)
@@ -425,8 +441,14 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
                                                self.CurrentYDataH, 0,
                                                facecolor=self.fc2)
 
+            print('Update fills: %s sec' % str(time.time()-t0))
+            t0 = time.time()
+
             self.ax1.axis(xLimNew + yLimNew)
             self.canvas.draw()
+
+            print('Draw: %s sec' % str(time.time()-t0))
+            t0 = time.time()
 
         # update label
         self.timeLabel.setText('Show last %s min'
