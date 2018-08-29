@@ -17,14 +17,8 @@ from utils.led_indicator_widget import LedIndicator
 from keithley_driver import SweepData
 from config.main import CONF
 
-if QtCore.PYQT_VERSION_STR[0] == '5':
-    from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg
-                                                    as FigureCanvas)
-
-elif QtCore.PYQT_VERSION_STR[0] == '4':
-    from matplotlib.backends.backend_qt4agg import (FigureCanvasQTAgg
-                                                    as FigureCanvas)
-
+from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg
+                                                as FigureCanvas)
 
 class KeithleyGuiApp(QtWidgets.QMainWindow):
     """ Provides a GUI for transfer and output sweeps on the Keithley 2600."""
@@ -420,7 +414,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self.ax.set_title('Sweep data', fontsize=10)
         self.ax.set_xlabel('Voltage [V]', fontsize=9)
         self.ax.set_ylabel('Current [A]', fontsize=9)
-        self.ax.tick_params(axis='both', which='major', direction='in',
+        self.ax.tick_params(axis='both', which='major', direction='out',
                             colors='black', color=[0.5, 0.5, 0.5, 1],
                             labelsize=9)
 

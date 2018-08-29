@@ -15,7 +15,7 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 # =============================================================================
 
 
-from qtpy import QtCore, QtWidgets, QtGui
+from qtpy import QtCore, QtWidgets
 from utils.led_indicator_widget import LedIndicator
 
 

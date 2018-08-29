@@ -1,7 +1,7 @@
 # Set black background default line colors to white.
 
 xtick.color: [0, 0, 0, 1]
-xtick.direction: in
+xtick.direction: out
 xtick.labelsize : 9
 xtick.major.width: 0.5
 
@@ -18,7 +18,6 @@ axes.labelcolor: [0, 0, 0, 1]
 axes.linewidth : 0.5
 
 lines.color: [0, 0, 0, 1]
-patch.edgecolor: [0, 0, 0, 1]
 
 axes.titlesize : 10
 axes.labelsize : 9
