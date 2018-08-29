@@ -153,7 +153,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ax2.spines['top'].set_alpha(0.4)
 
         self.ax1.xaxis.set_visible(False)
-        self.ax2.xaxis.set_visible(False)
+        self.ax2.xaxis.set_visible(True)
         self.ax2.yaxis.set_visible(False)
 
         self.x_padding = 0.007
@@ -400,6 +400,8 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
             yLimNew = [floor(self.CurrentYDataT.min())-2.2,
                        ceil(self.CurrentYDataT.max())+3.2]
+        else:
+            xLimNew, yLimNew = self.xLim, self.yLim
 
         # print('Get new axis limits: %s sec' % str(time.time()-t0))
         # t0 = time.time()
