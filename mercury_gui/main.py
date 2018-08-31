@@ -470,7 +470,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         if not os.path.exists(self.loggingPath):
             os.makedirs(self.loggingPath)
         # set logging file path
-        self.logFile = os.path.join(self.loggingPath, '/temperature_log ' +
+        self.logFile = os.path.join(self.loggingPath, 'temperature_log ' +
                                     time.strftime("%Y-%m-%d_%H-%M-%S"))
 
         t_save = 10  # time interval to save temperature data in min
@@ -504,7 +504,8 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def log_temperature_data(self):
         # save temperature data to log file
-        self.save_temperature_data(self.logFile)
+        if self.feed.mercury is not None:
+            self.save_temperature_data(self.logFile)
 
 # =================== CALLBACKS FOR SETTING CHANGES ===========================
 
