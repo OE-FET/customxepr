@@ -1,8 +1,13 @@
+IPython
+PyQt5
+email
+lmfit
 matplotlib
+numpy
 decorator
 pyvisa
+qdarkstyle
 qtpy
+scipy
 lmfit
 numpy
-pyqtgraph
-qdarkstyle
