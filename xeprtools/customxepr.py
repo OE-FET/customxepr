@@ -908,8 +908,8 @@ class CustomXepr(QtCore.QObject):
         if QValue > 3000:
             logger.info('Q = %i.' % QValue)
         elif QValue <= 3000:
-            logger.warning('Q = %i is very small. Please check-up on' +
-                           'experiment.' % QValue)
+            logger.warning('Q = %i is very small. Please check-up ' % QValue +
+                           'on experiment.')
 
         if folder is not None:
             filePath = folder + '/QValues.txt'
