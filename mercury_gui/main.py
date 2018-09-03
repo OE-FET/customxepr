@@ -157,7 +157,8 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ax2.yaxis.set_visible(False)
 
         self.x_padding = 0.007
-        self.xLim, self.yLim = [-1 - self.x_padding, 0 + self.x_padding], [0, 300]
+        self.xLim = [-1 - self.x_padding, 0 + self.x_padding]
+        self.yLim = [0, 300]
         self.ax1.axis(self.xLim + self.yLim)
         self.ax2.axis(self.xLim + [-1.01, 1.01])
 
@@ -370,9 +371,6 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def _update_plot(self):
 
-        # t0 = time.time()
-        # t0start = time.time()
-
         # select data to be plotted
         x_slice = self.xDataZeroMin > -self.horizontalSlider.value()
         self.CurrentXData = self.xDataZeroMin[x_slice]
@@ -388,9 +386,6 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.CurrentYDataG = self.CurrentYDataG[::step_size]
         self.CurrentYDataH = self.CurrentYDataH[::step_size]
 
-        # print('Truncate data: %s sec' % str(time.time()-t0))
-        # t0 = time.time()
-
         # update axis limits
         if not self.CurrentXData.size == 0:
             xLim0 = max(-self.horizontalSlider.value(), self.CurrentXData[0])
@@ -402,9 +397,6 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
                        ceil(self.CurrentYDataT.max())+3.2]
         else:
             xLimNew, yLimNew = self.xLim, self.yLim
-
-        # print('Get new axis limits: %s sec' % str(time.time()-t0))
-        # t0 = time.time()
 
         self.line_t.set_data(self.CurrentXData, self.CurrentYDataT)
 
@@ -419,9 +411,6 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
                                            self.CurrentYDataH, 0,
                                            facecolor=self.fc2,
                                            edgecolor=self.lc2)
-
-        # print('Update fills: %s sec' % str(time.time()-t0))
-        # t0 = time.time()
 
         if xLimNew + yLimNew == self.xLim + self.yLim:
 
@@ -441,18 +430,12 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.ax1.axis(xLimNew + yLimNew)
             self.canvas.draw()
 
-        # print('Draw: %s sec' % str(time.time()-t0))
-        # t0 = time.time()
-
         # update label
-        self.timeLabel.setText('Display last %s min'
-                               % self.horizontalSlider.value())
+        self.timeLabel.setText('Show last %s min' % self.horizontalSlider.value())
 
         # cash axis limits
         self.xLim = xLimNew
         self.yLim = yLimNew
-
-        # print('Total: %s sec, %s fps' % (str(time.time()-t0start), 1/(time.time()-t0start)))
 
 # =================== LOGGING DATA ============================================
 
@@ -494,10 +477,8 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         title = '# temperature trace, saved on '+time.strftime('%d/%m/%Y')+'\n'
         header = '\t'.join(['Time (sec)', 'Temperature (K)'])
 
-        xData = np.array(self.xData)
-        yData = np.array(self.yDataT)
-        data_matrix = np.concatenate((xData[:, np.newaxis],
-                                      yData[:, np.newaxis]), axis=1)
+        data_matrix = np.concatenate((self.xData[:, np.newaxis],
+                                      self.yData[:, np.newaxis]), axis=1)
 
         np.savetxt(filePath, data_matrix, fmt='%.9E', delimiter='\t',
                    newline='\n', header=header, comments=title)

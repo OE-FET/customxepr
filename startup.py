@@ -70,16 +70,16 @@ def get_qt_app(*args, **kwargs):
     """
     Create a new Qt app or return an existing one.
     """
-    CREATED = False
+    created = False
     app = QtCore.QCoreApplication.instance()
 
     if not app:
         if not args:
             args = ([''],)
         app = QtWidgets.QApplication(*args, **kwargs)
-        CREATED = True
+        created = True
 
-    return app, CREATED
+    return app, created
 
 
 # =============================================================================
@@ -102,12 +102,12 @@ def show_splash_screen(app):
 # Connect to instruments: Bruker Xepr, Keithley and MercuryiTC.
 # =============================================================================
 
-def connect_to_instruments(keithleyIP=KEITHLEY_IP, mercuryIP=MERCURY_IP,
-                           mercuryPort=MERCURY_PORT):
+def connect_to_instruments(keithley_ip=KEITHLEY_IP, mercury_ip=MERCURY_IP,
+                           mercury_port=MERCURY_PORT):
     """Tries to connect to Keithley, Mercury and Xepr."""
 
-    keithley = Keithley2600(keithleyIP)
-    mercuryFeed = MercuryFeed(mercuryIP, mercuryPort)
+    keithley = Keithley2600(keithley_ip)
+    mercuryFeed = MercuryFeed(mercury_ip, mercury_port)
 
     try:
         xepr = XeprAPI.Xepr()
@@ -146,7 +146,7 @@ if __name__ == '__main__':
     app, CREATED = get_qt_app()
 
     # create and show splash screen
-    splash = show_splash_screen(app)
+    splash_screen = show_splash_screen(app)
 
     # apply dark theme
     if DARK:
@@ -195,7 +195,7 @@ if __name__ == '__main__':
         kernel_window.send_to_namespace(var_dict)
         app.aboutToQuit.connect(kernel_window.cleanup_consoles)
         # remove splash screen
-        splash.finish(keithleyGUI)
+        splash_screen.finish(keithleyGUI)
         # start event loop
         kernel_window.ipkernel.start()
 
@@ -203,6 +203,6 @@ if __name__ == '__main__':
         # print banner
         print(BANNER)
         # remove splash screen
-        splash.finish(customXeprGUI)
+        splash_screen.finish(customXeprGUI)
         # patch exception hook to display errors from Qt event loop
         patch_excepthook()
