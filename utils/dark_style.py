@@ -32,7 +32,7 @@ def get_canvas_list():
     convasList = []
 
     for w in widgetList:
-        for attr_name, attr_value in w.__dict__.iteritems():
+        for attr_name, attr_value in w.__dict__.items():
             if type(attr_value) == FigureCanvas:
                 convasList.append(attr_value)
     return convasList

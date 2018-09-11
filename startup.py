@@ -26,17 +26,16 @@ from xeprtools.customxepr import CustomXepr, __version__, __author__
 from xeprtools.customxper_ui import JobStatusApp
 from mercury_gui.feed import MercuryFeed
 from mercury_gui.main import MercuryMonitorApp
-from keithley_driver import Keithley2600
+from keithley_driver.keithley_driver import Keithley2600
 from keithley_gui.main import KeithleyGuiApp
 
 from utils import dark_style
-from utils.misc import check_dependencies, patch_excepthook
+from utils.misc import patch_excepthook
 from utils.internal_ipkernel import InternalIPKernel
 
 # check if all require packages are installed
 direct = os.path.dirname(os.path.realpath(__file__))
 filePath = os.path.join(direct, 'dependencies.txt')
-exit_code = check_dependencies(filePath)
 
 # if we are running from IPython:
 # disable autoreload, start integrated Qt event loop

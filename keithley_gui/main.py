@@ -14,7 +14,7 @@ from matplotlib.figure import Figure
 # local imports
 from utils.misc import ping
 from utils.led_indicator_widget import LedIndicator
-from keithley_driver import SweepData
+from keithley_driver.sweep_data_class import SweepData
 from config.main import CONF
 
 from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg
