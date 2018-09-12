@@ -1,11 +1,5 @@
-# -*- coding: utf-8 -*-
-#
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
-
 """
-spyder.py3compat
+utils.py3compat
 ----------------
 
 Transitional module providing compatibility functions intended to help
@@ -25,9 +19,9 @@ import sys
 PY2 = sys.version[0] == '2'
 PY3 = sys.version[0] == '3'
 
-#==============================================================================
+# =============================================================================
 # Data types
-#==============================================================================
+# =============================================================================
 if PY2:
     # Python 2
     TEXT_TYPES = (str, unicode)
@@ -39,9 +33,9 @@ else:
 NUMERIC_TYPES = tuple(list(INT_TYPES) + [float, complex])
 
 
-#==============================================================================
+# =============================================================================
 # Renamed/Reorganized modules
-#==============================================================================
+# =============================================================================
 if PY2:
     # Python 2
     import __builtin__ as builtins
@@ -80,9 +74,9 @@ else:
     import queue as Queue
 
 
-#==============================================================================
+# =============================================================================
 # Strings
-#==============================================================================
+# =============================================================================
 def is_type_text_string(obj):
     """Return True if `obj` is type text string, False if it is anything else,
     like an instance of a class that extends the basestring class."""
@@ -92,6 +86,7 @@ def is_type_text_string(obj):
     else:
         # Python 3
         return type(obj) in [str, bytes]
+
 
 def is_text_string(obj):
     """Return True if `obj` is a text string, False if it is anything else,
@@ -103,6 +98,7 @@ def is_text_string(obj):
         # Python 3
         return isinstance(obj, str)
 
+
 def is_binary_string(obj):
     """Return True if `obj` is a binary string, False if it is anything else"""
     if PY2:
@@ -112,10 +108,12 @@ def is_binary_string(obj):
         # Python 3
         return isinstance(obj, bytes)
 
+
 def is_string(obj):
     """Return True if `obj` is a text or binary Python string object,
     False if it is anything else, like a QString (Python 2, PyQt API #1)"""
     return is_text_string(obj) or is_binary_string(obj)
+
 
 def is_unicode(obj):
     """Return True if `obj` is unicode"""
@@ -125,6 +123,7 @@ def is_unicode(obj):
     else:
         # Python 3
         return isinstance(obj, str)
+
 
 def to_text_string(obj, encoding=None):
     """Convert `obj` to (unicode) text string"""
@@ -144,6 +143,7 @@ def to_text_string(obj, encoding=None):
         else:
             return str(obj, encoding)
 
+
 def to_binary_string(obj, encoding=None):
     """Convert `obj` to binary string (bytes in Python 3, str in Python 2)"""
     if PY2:
@@ -157,9 +157,9 @@ def to_binary_string(obj, encoding=None):
         return bytes(obj, 'utf-8' if encoding is None else encoding)
 
 
-#==============================================================================
+# =============================================================================
 # Function attributes
-#==============================================================================
+# =============================================================================
 def get_func_code(func):
     """Return function code object"""
     if PY2:
@@ -169,6 +169,7 @@ def get_func_code(func):
         # Python 3
         return func.__code__
 
+
 def get_func_name(func):
     """Return function name"""
     if PY2:
@@ -177,6 +178,7 @@ def get_func_name(func):
     else:
         # Python 3
         return func.__name__
+
 
 def get_func_defaults(func):
     """Return function default argument values"""
@@ -188,9 +190,9 @@ def get_func_defaults(func):
         return func.__defaults__
 
 
-#==============================================================================
+# =============================================================================
 # Special method attributes
-#==============================================================================
+# =============================================================================
 def get_meth_func(obj):
     """Return method function object"""
     if PY2:
@@ -200,6 +202,7 @@ def get_meth_func(obj):
         # Python 3
         return obj.__func__
 
+
 def get_meth_class_inst(obj):
     """Return method class instance"""
     if PY2:
@@ -208,6 +211,7 @@ def get_meth_class_inst(obj):
     else:
         # Python 3
         return obj.__self__
+
 
 def get_meth_class(obj):
     """Return method class"""
@@ -219,9 +223,9 @@ def get_meth_class(obj):
         return obj.__self__.__class__
 
 
-#==============================================================================
+# =============================================================================
 # Misc.
-#==============================================================================
+# =============================================================================
 if PY2:
     # Python 2
     input = raw_input
@@ -234,14 +238,18 @@ else:
     # Python 3
     input = input
     getcwd = os.getcwd
+
     def cmp(a, b):
         return (a > b) - (a < b)
+
     str_lower = str.lower
     from itertools import zip_longest
+
 
 def qbytearray_to_str(qba):
     """Convert QByteArray object to str in a way compatible with Python 2/3"""
     return str(bytes(qba.toHex().data()).decode())
+
 
 # =============================================================================
 # Dict funcs

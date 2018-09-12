@@ -72,12 +72,11 @@ class MercuryFeed(QtWidgets.QWidget):
     notifySignal = QtCore.Signal(str)
     connectedSignal = QtCore.Signal(bool)
 
-    def __init__(self, address, port, refresh=1):
+    def __init__(self, address, refresh=1):
         super(self.__class__, self).__init__()
 
         self.refresh = refresh
         self.address = address
-        self.port = port
         self.mercury = None
         self.thread = None
 
@@ -128,7 +127,7 @@ class MercuryFeed(QtWidgets.QWidget):
             return
 
         try:
-            self.mercury = MercuryITC(self.address, self.port)
+            self.mercury = MercuryITC(self.address)
         except visa.VisaIOError:
             # start a timer to try again in 20 sec
             QtCore.QTimer.singleShot(20000, self._connect)

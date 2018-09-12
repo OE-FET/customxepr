@@ -105,8 +105,11 @@ def connect_to_instruments(keithley_ip=KEITHLEY_IP, mercury_ip=MERCURY_IP,
                            mercury_port=MERCURY_PORT):
     """Tries to connect to Keithley, Mercury and Xepr."""
 
-    keithley = Keithley2600(keithley_ip)
-    mercuryFeed = MercuryFeed(mercury_ip, mercury_port)
+    keithley_address = 'TCPIP0::%s::INSTR' % keithley_ip
+    mercury_address = 'TCPIP0::%s::%s::SOCKET' % (mercury_ip, mercury_port)
+
+    keithley = Keithley2600(keithley_address)
+    mercuryFeed = MercuryFeed(mercury_address)
 
     try:
         xepr = XeprAPI.Xepr()
