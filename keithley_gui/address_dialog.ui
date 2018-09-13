@@ -17,16 +17,16 @@
    <item>
     <layout class="QGridLayout" name="gridLayout">
      <item row="0" column="1">
-      <widget class="QLineEdit" name="lineEditIP">
+      <widget class="QLineEdit" name="lineEditAddress">
        <property name="text">
-        <string>192.168.2.121</string>
+        <string/>
        </property>
       </widget>
      </item>
      <item row="0" column="0" alignment="Qt::AlignRight">
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>IP address:</string>
+        <string>Address:</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from __future__ import division, unicode_literals, absolute_import
 import os
 import qdarkstyle
 import pygments
@@ -78,7 +78,7 @@ def apply_mpl_dark_theme():
 
     canvasList = get_canvas_list()
 
-    figureFaceColor = [49/255.0, 54/255.0, 59/255.0, 0]
+    figureFaceColor = [49/255, 54/255, 59/255, 0]
     axesFaceColor = [0.2244, 0.2475, 0.2706, 1]
     lineColor = [0.5, 0.5, 0.5, 1]
     labelColor = 'white'
@@ -112,7 +112,7 @@ def apply_mpl_bright_theme():
     canvasList = get_canvas_list()
 
     color = QtGui.QPalette().window().color().getRgb()
-    figureFaceColor = [x/255.0 for x in color]
+    figureFaceColor = [x/255 for x in color]
     axesFaceColor = 'white'
     lineColor = [0.5, 0.5, 0.5, 1]
     labelColor = 'black'

@@ -11,6 +11,8 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 """
 
 # system imports
+from __future__ import (division, print_function, unicode_literals,
+                        absolute_import)
 import sys
 import os
 import platform
@@ -78,6 +80,8 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
                               % self.feed.address)
         if self.feed.mercury is not None:
             self._update_GUI_connection(connected=True)
+        else:
+            self._update_GUI_connection(connected=False)
 
         # start (stop) updates of GUI when mercury is connected (disconnected)
         # adjust clickable buttons upon connect / disconnect
@@ -134,7 +138,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # get figure frame to match window color
         color = QtGui.QPalette().window().color().getRgb()
-        color = [x/255.0 for x in color]
+        color = [x/255 for x in color]
 
         # create figure and set axis labels
         self.fig = Figure(facecolor=color)
@@ -164,11 +168,11 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # create line object for temperature graph
         self.lc0 = [0, 0.8, 0.6]  # self.lc0 = [0, 0.64, 0.48]
-        self.lc1 = [100/255.0, 171/255.0, 246/255.0]
-        self.lc2 = [221/255.0, 61/255.0, 53/255.0]
+        self.lc1 = [100/255, 171/255, 246/255]
+        self.lc2 = [221/255, 61/255, 53/255]
 
-        self.fc1 = [100/255.0, 171/255.0, 246/255.0, 0.2]
-        self.fc2 = [221/255.0, 61/255.0, 53/255.0, 0.2]
+        self.fc1 = [100/255, 171/255, 246/255, 0.2]
+        self.fc2 = [221/255, 61/255, 53/255, 0.2]
 
         self.line_t, = self.ax1.plot(0, 295, '-', linewidth=1.1,
                                      color=self.lc0)
@@ -355,8 +359,8 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         # append data for plotting
         self.xData = np.append(self.xData, time.time())
         self.yDataT = np.append(self.yDataT, readings['Temp'])
-        self.yDataG = np.append(self.yDataG, -1*readings['FlowPercent']/100.0)
-        self.yDataH = np.append(self.yDataH, readings['HeaterPercent']/100.0)
+        self.yDataG = np.append(self.yDataG, -1*readings['FlowPercent']/100)
+        self.yDataH = np.append(self.yDataH, readings['HeaterPercent']/100)
 
         # prevent data vector from exceeding 86400 entries
         self.xData = self.xData[-86400:]
@@ -365,7 +369,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.yDataH = self.yDataH[-86400:]
 
         # convert xData to minutes and set current time to t = 0
-        self.xDataZeroMin = (self.xData - max(self.xData)) / 60.0
+        self.xDataZeroMin = (self.xData - max(self.xData))/60
 
         self._update_plot()
 
@@ -379,7 +383,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.CurrentYDataH = self.yDataH[x_slice]
 
         # slice to reduce number of points to self.dpts
-        step_size = max([self.CurrentXData.shape[0] / self.dpts, 1])
+        step_size = max([self.CurrentXData.shape[0]/self.dpts, 1])
         step_size = int(step_size)
         self.CurrentXData = self.CurrentXData[::step_size]
         self.CurrentYDataT = self.CurrentYDataT[::step_size]

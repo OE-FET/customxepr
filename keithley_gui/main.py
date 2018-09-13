@@ -7,18 +7,20 @@ Created on Tue Feb 20 15:01:18 2018
 """
 
 # system imports
+from __future__ import (division, print_function, unicode_literals,
+                        absolute_import)
 import os
 from qtpy import QtGui, QtCore, QtWidgets, uic
 from matplotlib.figure import Figure
 
 # local imports
-from utils.misc import ping
 from utils.led_indicator_widget import LedIndicator
 from keithley_driver.sweep_data_class import SweepData
 from config.main import CONF
 
 from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg
                                                 as FigureCanvas)
+
 
 class KeithleyGuiApp(QtWidgets.QMainWindow):
     """ Provides a GUI for transfer and output sweeps on the Keithley 2600."""
@@ -83,21 +85,12 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         # and busy, act accordingly
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.update_connection_status)
-        self.timer.start(20000)  # Call every 20 seconds
+        self.timer.start(10000)  # Call every 10 seconds
 
     def update_connection_status(self):
-        # we lost the connection
-        if not self.keithley.connected and not ping(self.keithley.address):
+        # disconncet if keithley does not respond, test by querying model
+        if not self.keithley.busy and self.keithley.localnode.model:
             self.keithley.disconnect()
-            self._update_Gui_connection()
-        # we got a new connection
-        elif not self.keithley.connected and ping(self.keithley.address):
-            self.keithley.connect()
-            self._update_Gui_connection()
-            self.show()
-        # we have the old connection
-        elif self.keithley.connected:
-            # check if really connected by asking for ip address
             self._update_Gui_connection()
 
     def setIntialPosition(self):
@@ -237,14 +230,13 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
             self.comboBoxGateSMU.setCurrentIndex(0)
 
     def _on_connect_clicked(self):
-        if not ping(self.keithley.address):
-            msg = ('Keithley cannot be reached at %s. ' % self.keithley.address
+        self.keithley.connect()
+        self._update_Gui_connection()
+        if not self.keithley.connected:
+            msg = ('Keithley cannot be reached at %s. ' % self.keithley.visa_address
                    + 'Please check if address is correct and Keithley is ' +
                    'turned on.')
             QtWidgets.QMessageBox.information(None, str('error'), msg)
-        else:
-            self.keithley.connect()
-            self._update_Gui_connection()
 
     def _on_disconnect_clicked(self):
         self.keithley.disconnect()
@@ -404,7 +396,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
 
         # get figure frame to match window color
         color = QtGui.QPalette().window().color().getRgb()
-        color = [x/255.0 for x in color]
+        color = [x/255 for x in color]
 
         # set up figure itself
         self.fig = Figure(facecolor=color)
@@ -480,14 +472,14 @@ class KeithleyAddressDialog(QtWidgets.QDialog):
                                 'address_dialog.ui'), self)
 
         self.keithley = keithley
-        self.lineEditIP.setText(self.keithley.address)
+        self.lineEditAddress.setText(self.keithley.visa_address)
 
         self.buttonBox.accepted.connect(self._onAccept)
 
     def _onAccept(self):
         # update connection settings in mercury feed
-        self.keithley.address = str(self.lineEditIP.text())
-        CONF.set('Keithley', 'KEITHLEY_IP', self.keithley.address)
+        self.keithley.visa_address = self.lineEditAddress.text()
+        CONF.set('Keithley', 'KEITHLEY_ADDRESS', self.keithley.visa_address)
         # reconnect to new IP address
         self.keithley.disconnect()
         self.keithley.connect()

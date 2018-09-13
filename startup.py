@@ -56,9 +56,8 @@ except ImportError:
                  ' is installed on your system.')
 
 DARK = CONF.get('main', 'DARK')
-KEITHLEY_IP = CONF.get('Keithley', 'KEITHLEY_IP')
-MERCURY_IP = CONF.get('MercuryFeed', 'MERCURY_IP')
-MERCURY_PORT = CONF.get('MercuryFeed', 'MERCURY_PORT')
+KEITHLEY_ADDRESS = CONF.get('Keithley', 'KEITHLEY_ADDRESS')
+MERCURY_ADDRESS = CONF.get('MercuryFeed', 'MERCURY_ADDRESS')
 
 
 # =============================================================================
@@ -101,12 +100,9 @@ def show_splash_screen(app):
 # Connect to instruments: Bruker Xepr, Keithley and MercuryiTC.
 # =============================================================================
 
-def connect_to_instruments(keithley_ip=KEITHLEY_IP, mercury_ip=MERCURY_IP,
-                           mercury_port=MERCURY_PORT):
+def connect_to_instruments(keithley_address=KEITHLEY_ADDRESS,
+                           mercury_address=MERCURY_ADDRESS):
     """Tries to connect to Keithley, Mercury and Xepr."""
-
-    keithley_address = 'TCPIP0::%s::INSTR' % keithley_ip
-    mercury_address = 'TCPIP0::%s::%s::SOCKET' % (mercury_ip, mercury_port)
 
     keithley = Keithley2600(keithley_address)
     mercuryFeed = MercuryFeed(mercury_address)

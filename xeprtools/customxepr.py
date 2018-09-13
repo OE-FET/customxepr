@@ -18,6 +18,8 @@ New in v2.0.0:
 
 """
 
+from __future__ import division, unicode_literals, absolute_import
+
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'
 __date__ = '30 July 2018'
 
@@ -189,8 +191,8 @@ class CustomXepr(QtCore.QObject):
         customXepr.tune()
         customXepr.finetune()
         customXepr.customtune()
-        customXepr.getQValueFromXepr(folder=None, T=298)
-        customXepr.getQValueCalc(folder=None, T=298)
+        customXepr.getQValueFromXepr(direct=None, T=298)
+        customXepr.getQValueCalc(direct=None, T=298)
         customXepr.runXeprExperiment(exp, **kwargs)
         customXepr.saveCurrentData(path, title=None, exp=None)
         customXepr.setStandby()
@@ -202,8 +204,8 @@ class CustomXepr(QtCore.QObject):
         customXepr.heater_target(T)
 
     Keithley methods:
-        customXepr.transferMeasurement(filePath=None, **kwargs)
-        customXepr.outputMeasurement(filePath=None,  **kwargs)
+        customXepr.transferMeasurement(path=None, **kwargs)
+        customXepr.outputMeasurement(path=None,  **kwargs)
         customXepr.setGateVoltage(Vg)
         customXepr.applyDrainCurrent(smu, curr)
 
@@ -611,7 +613,7 @@ class CustomXepr(QtCore.QObject):
             # close to a diode current of 200, minimum step size of 0.3
             step_size = max(abs(diff), 30) * 0.01
             # scale step size for MW power: smaller steps at higher power
-            step = step_size * (self.hidden['PowerAtten'].value**2.0)/400.0
+            step = step_size * (self.hidden['PowerAtten'].value**2)/400
             # set value to 0.1 if step is smaller
             # (usually only happens below 10dB)
             step = max(step, 0.1)
@@ -768,7 +770,7 @@ class CustomXepr(QtCore.QObject):
         time.sleep(self.wait)
 
     @queued_exec(job_queue)
-    def getQValueFromXepr(self, folder=None, T=298):
+    def getQValueFromXepr(self, direct=None, T=298):
         """
         Reads out the resonator Q-value, averaged over 20 sec, and saves it
         in the specified file.
@@ -822,9 +824,9 @@ class CustomXepr(QtCore.QObject):
         time.sleep(self.wait)
         Qmean = QValues.mean()
 
-        if folder is not None:
-            filePath = folder + '/QValues.txt'
-            self._saveQValue2File(T, Qmean, filePath)
+        if direct is not None:
+            path = os.path.join(direct, 'QValues.txt')
+            self._saveQValue2File(T, Qmean, path)
 
         logger.info('Q = %i.' % Qmean)
 
@@ -833,7 +835,7 @@ class CustomXepr(QtCore.QObject):
         return Qmean
 
     @queued_exec(job_queue)
-    def getQValueCalc(self, folder=None, T=None):
+    def getQValueCalc(self, direct=None, T=None):
         """
         Calculates Q-Value from tuning picture.
         """
@@ -913,28 +915,32 @@ class CustomXepr(QtCore.QObject):
             logger.warning('Q = %i is very small. Please check-up ' % QValue +
                            'on experiment.')
 
-        if folder is not None:
-            filePath = os.path.join(folder, 'QValues.txt')
-            self._saveQValue2File(T, QValue, filePath)
-            filePath = os.path.join(folder, 'ModePicture' +
-                                    str(int(T)).zfill(3) + 'K.txt')
-            self.modePictureObj.save(filePath)
+        if direct is None:
+            pass
+        elif os.path.isdir(direct):
+            path = os.path.join(direct, 'QValues.txt')
+            self._saveQValue2File(T, QValue, path)
+            path = os.path.join(direct, 'ModePicture' +
+                                str(int(T)).zfill(3) + 'K.txt')
+            self.modePictureObj.save(path)
+        else:
+            raise RuntimeError('No such directory "%s"' % direct)
 
         self.wait = self._wait_old
 
         return self.modePictureObj
 
-    def _saveQValue2File(self, T, QValue, filePath):
+    def _saveQValue2File(self, T, QValue, path):
 
         time_str = time.strftime('%Y-%m-%d %H:%M')
         string = '%s\t%d\t%s\n' % (time_str, T, QValue)
 
-        if os.path.exists(filePath) and os.path.getsize(filePath) > 0:
-            with open(filePath, 'a') as file_handle:
+        if os.path.isfile(path):
+            with open(path, 'a') as file_handle:
                 file_handle.write(string)
         else:
             header = 'Time stamp\tTemperature [K]\tQValue\n'
-            with open(filePath, 'a') as file_handle:
+            with open(path, 'a') as file_handle:
                 file_handle.write(header)
                 file_handle.write(string)
 
@@ -1107,7 +1113,7 @@ class CustomXepr(QtCore.QObject):
 
         # title = fileName if no title given
         if title is None:
-            title = path.split('/')[-1]
+            title = os.path.split(path)[1]
 
         # save data
         self.XeprCmds.ddPath(path)
@@ -1315,7 +1321,7 @@ class CustomXepr(QtCore.QObject):
                             tInt=CONF.get('Keithley', 'tInt'),
                             delay=CONF.get('Keithley', 'delay'),
                             pulsed=CONF.get('Keithley', 'pulsed'),
-                            filePath=None):
+                            path=None):
         """
         Performs a transfer measurement and returns a sweepData object.
         Saves the data in a .txt file if a path is specified.
@@ -1333,8 +1339,8 @@ class CustomXepr(QtCore.QObject):
                                                       VgStart, VgStop, VgStep,
                                                       VdList, tInt, delay,
                                                       pulsed)
-        if filePath is not None:
-            sweepData.save(filePath)
+        if path is not None:
+            sweepData.save(path)
 
         return sweepData
 
@@ -1348,7 +1354,7 @@ class CustomXepr(QtCore.QObject):
                           tInt=CONF.get('Keithley', 'tInt'),
                           delay=CONF.get('Keithley', 'delay'),
                           pulsed=CONF.get('Keithley', 'pulsed'),
-                          filePath=None):
+                          path=None):
         """
         Performs an output measurement and returns a sweepData object.
         Saves the data in a .txt file if a path is specified.
@@ -1366,8 +1372,8 @@ class CustomXepr(QtCore.QObject):
                                                     VdStart, VdStop, VdStep,
                                                     VgList, tInt, delay,
                                                     pulsed)
-        if filePath is not None:
-            sweepData.save(filePath)
+        if path is not None:
+            sweepData.save(path)
 
         return sweepData
 

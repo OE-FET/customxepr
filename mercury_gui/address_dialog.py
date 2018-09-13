@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import division, unicode_literals, absolute_import
 from qtpy import QtWidgets, uic
 import os
 from config.main import CONF
@@ -15,21 +16,16 @@ class AddressDialog(QtWidgets.QDialog):
                                 'address_dialog.ui'), self)
 
         self.feed = feed
-
-        self.lineEditIP.setText(self.feed.address)
-        self.lineEditPort.setText(self.feed.port)
-
+        self.lineEditAddress.setText(self.feed.address)
         self.buttonBox.accepted.connect(self._onAccept)
 
     def _onAccept(self):
         mercuryConnected = (self.feed.mercury is not None)
         # update connection settings in mercury feed
-        self.feed.address = str(self.lineEditIP.text())
-        self.feed.port = str(self.lineEditPort.text())
+        self.feed.address = self.lineEditAddress.text()
 
         # update connection settings in config file
-        CONF.set('MercuryFeed', 'MERCURY_IP', str(self.lineEditIP.text()))
-        CONF.set('MercuryFeed', 'MERCURY_PORT', str(self.lineEditPort.text()))
+        CONF.set('MercuryFeed', 'MERCURY_ADDRESS', self.lineEditAddress.text())
 
         # restart feed for changes to become effective
         if mercuryConnected:

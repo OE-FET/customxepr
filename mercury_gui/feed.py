@@ -9,7 +9,7 @@ Created on Tue Aug 23 11:03:57 2016
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
-
+from __future__ import unicode_literals, absolute_import
 from qtpy import QtCore, QtWidgets, uic
 import sys
 import os
@@ -17,7 +17,6 @@ import logging
 import visa
 
 from mercury_driver.mercury_driver import MercuryITC
-from utils.misc import ping
 from config.main import CONF
 
 logger = logging.getLogger(__name__)
@@ -94,13 +93,16 @@ class MercuryFeed(QtWidgets.QWidget):
         self.mercury.disconnect()
 
     def resume(self):
-        # resconnect mercury
-        self.mercury.connect()
-        self.connectedSignal.emit(True)
+        # reconnect mercury
+        if self.mercury:
+            self.mercury.connect()
+            self.connectedSignal.emit(True)
 
-        # restart thread
-        self.worker.running = True
-        self.thread.start()
+            # restart thread
+            self.worker.running = True
+            self.thread.start()
+        else:
+            self._connect()
 
     def exit_(self):
         if self.thread is not None:
@@ -119,18 +121,9 @@ class MercuryFeed(QtWidgets.QWidget):
         Tries to connect to MercuryiTC at the given IP address. If successful,
         a thread is started to periodically update readings.
         """
-        # try to ping mercury (quicker than opening a visa connection)
-        if ping(self.address) is False:
-            self.mercury = None
-            # start a timer to try again in 20 sec
-            QtCore.QTimer.singleShot(20000, self._connect)
-            return
-
         try:
             self.mercury = MercuryITC(self.address)
         except visa.VisaIOError:
-            # start a timer to try again in 20 sec
-            QtCore.QTimer.singleShot(20000, self._connect)
             return
 
         self.dialog = SensorDialog(self.mercury.modules)
