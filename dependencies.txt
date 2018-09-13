@@ -1,13 +1,11 @@
 IPython
 PyQt5
+decorator
 email
 lmfit
 matplotlib
 numpy
-decorator
 pyvisa
 qdarkstyle
 qtpy
 scipy
-lmfit
-numpy
