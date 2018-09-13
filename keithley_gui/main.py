@@ -426,7 +426,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         if self.sweepData.sweepType == 'transfer':
 
             for i in range(0, self.sweepData.nStep):
-                nPoints = len(self.sweepData.Vg)/self.sweepData.nStep
+                nPoints = int(len(self.sweepData.Vg)/self.sweepData.nStep)
                 select = slice(i*nPoints, (i+1)*nPoints)
 
                 self.ax.semilogy(self.sweepData.Vg[select], abs(self.sweepData.Id[select]), '-',
@@ -445,7 +445,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         if self.sweepData.sweepType == 'output':
 
             for i in range(0, self.sweepData.nStep):
-                nPoints = len(self.sweepData.Vg)/self.sweepData.nStep
+                nPoints = int(len(self.sweepData.Vg)/self.sweepData.nStep)
                 select = slice(i*nPoints, (i+1)*nPoints)
 
                 self.ax.plot(self.sweepData.Vd[select], abs(self.sweepData.Id[select]), '-',
