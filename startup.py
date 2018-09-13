@@ -10,7 +10,7 @@ To Do:
 
 * See GitHub issues list at https://github.com/OE-FET/CustomXepr
 
-New in v2.0.0:
+New in v2.0.1:
 
     See release notes
 

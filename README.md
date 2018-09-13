@@ -93,29 +93,28 @@ As with the cryostat, CustomXepr includes a Python driver for the Keithley 2600 
 *Required*:
 
 - Linux or macOSX
-- Python 2.7
+- Python 2.7 or 3.x
 - NI-VISA
-- PyQT4 or PyQt5 (PyQt 5 preferred)
 - Python dependencies
 
 *Optional*:
 
 - Bruker Xepr software (ESR related functions will not work without Xepr)
-- fping   - command line tool for pings with millisecond timeout
 - Postfix - mail transfer agent for macOSX and Linux, required for email
           notifications.
 
 *Python modules*:
-
-- matplotlib
+- PyQT4 or PyQt5 (PyQt 5 preferred)
+- IPython
 - decorator
-- pyvisa
-- qtpy
+- email
 - lmfit
+- matplotlib
 - numpy
-- pyqtgraph
+- pyvisa
 - qdarkstyle
-- jupyter_qtconsole_colorschemes
+- qtpy
+- scipy
 
 ## Acknowledgements
 The MercuryiTC driver is based on the driver developed by [crazyfermions](https://github.com/crazyfermions/python-mercury_driver).
