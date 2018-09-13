@@ -80,8 +80,6 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
                               % self.feed.address)
         if self.feed.mercury is not None:
             self._update_GUI_connection(connected=True)
-        else:
-            self._update_GUI_connection(connected=False)
 
         # start (stop) updates of GUI when mercury is connected (disconnected)
         # adjust clickable buttons upon connect / disconnect
@@ -126,7 +124,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.updateAddressAction.triggered.connect(self.addressDialog.show)
 
         # initially disable menu bar items, will be enabled later individually
-        self.connectAction.setEnabled(False)
+        self.connectAction.setEnabled(True)
         self.disconnectAction.setEnabled(False)
         self.modulesAction.setEnabled(False)
         self.readingsAction.setEnabled(False)
