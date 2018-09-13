@@ -1,5 +1,5 @@
 # system imports
-from __future__ import unicode_literals, absolute_import
+from __future__ import absolute_import
 from IPython.lib.kernel import connect_qtconsole
 from ipykernel.kernelapp import IPKernelApp
 

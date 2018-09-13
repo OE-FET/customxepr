@@ -4,7 +4,7 @@ A Pygments style based on the based on Base16 Ocean Dark color scheme.
 .. Pygments: http://pygments.org/
 .. Base16: https://github.com/chriskempson/base16
 """
-from __future__ import unicode_literals, absolute_import
+from __future__ import absolute_import
 from pygments.style import Style
 from pygments.token import (Token, Comment, Name, Keyword, Generic, Number,
                             Operator, String)

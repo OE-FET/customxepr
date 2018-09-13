@@ -11,7 +11,7 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 """
 
 # system module imports
-from __future__ import division, unicode_literals, absolute_import
+from __future__ import division, absolute_import
 import sys
 import os
 from qtpy import QtCore, QtWidgets, QtGui, uic

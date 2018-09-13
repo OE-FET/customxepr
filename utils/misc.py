@@ -5,7 +5,7 @@ Created on Sun Jul 22 13:11:20 2018
 
 @author: Sam Schott
 """
-from __future__ import division, unicode_literals, absolute_import
+from __future__ import division, absolute_import
 import os
 import sys
 from qtpy import QtCore, QtWidgets

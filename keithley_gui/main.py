@@ -7,8 +7,7 @@ Created on Tue Feb 20 15:01:18 2018
 """
 
 # system imports
-from __future__ import (division, print_function, unicode_literals,
-                        absolute_import)
+from __future__ import division, print_function, absolute_import
 import os
 from qtpy import QtGui, QtCore, QtWidgets, uic
 from matplotlib.figure import Figure

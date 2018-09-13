@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import division, unicode_literals, absolute_import
+from __future__ import division, absolute_import
 import os
 import qdarkstyle
 import pygments

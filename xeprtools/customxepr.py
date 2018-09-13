@@ -18,7 +18,7 @@ New in v2.0.1:
 
 """
 
-from __future__ import division, unicode_literals, absolute_import
+from __future__ import division, absolute_import
 
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'
 __date__ = '13 September 2018'

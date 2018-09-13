@@ -5,7 +5,7 @@ Created on Sun Jun  4 14:03:29 2017
 
 @author: SamSchott
 """
-from __future__ import division, unicode_literals, absolute_import
+from __future__ import division, absolute_import
 import math
 import re
 import numpy as np

@@ -9,7 +9,7 @@ Created on Tue Aug 23 11:03:57 2016
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
-from __future__ import unicode_literals, absolute_import
+from __future__ import division, absolute_import
 from qtpy import QtCore, QtWidgets, uic
 import sys
 import os
