@@ -503,18 +503,15 @@ class MeasureThread(QtCore.QThread):
 
     def run(self):
         self.startedSig.emit()
-        print('staring')
 
         if self.params['Measurement'] == 'transfer':
             sweepData = self.keithley.transferMeasurement(self.params['smu_gate'], self.params['smu_drain'], self.params['VgStart'],
                                                           self.params['VgStop'], self.params['VgStep'], self.params['VdList'],
                                                           self.params['tInt'], self.params['delay'], self.params['pulsed'])
             self.finishedSig.emit(sweepData)
-            print('done')
 
         elif self.params['Measurement'] == 'output':
             sweepData = self.keithley.outputMeasurement(self.params['smu_gate'], self.params['smu_drain'], self.params['VdStart'],
                                                         self.params['VdStop'], self.params['VdStep'], self.params['VgList'],
                                                         self.params['tInt'], self.params['delay'], self.params['pulsed'])
             self.finishedSig.emit(sweepData)
-            print('done')
