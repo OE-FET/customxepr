@@ -92,7 +92,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         if self.keithley.connected and not self.keithley.busy:
             try:
                 self.keithley.localnode.model
-            except InvalidSession, OSError:
+            except (InvalidSession, OSError):
                 self.keithley.disconnect()
                 self._update_Gui_connection()
 
