@@ -9,6 +9,7 @@ Created on Tue Feb 20 15:01:18 2018
 # system imports
 from __future__ import division, print_function, absolute_import
 import os
+from visa import InvalidSession
 from qtpy import QtGui, QtCore, QtWidgets, uic
 from matplotlib.figure import Figure
 
@@ -88,9 +89,12 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
 
     def update_connection_status(self):
         # disconncet if keithley does not respond, test by querying model
-        if not self.keithley.busy and self.keithley.localnode.model:
-            self.keithley.disconnect()
-            self._update_Gui_connection()
+        if self.keithley.connected and not self.keithley.busy:
+            try:
+                self.keithley.localnode.model
+            except InvalidSession, OSError:
+                self.keithley.disconnect()
+                self._update_Gui_connection()
 
     def setIntialPosition(self):
         screen = QtWidgets.QDesktopWidget().screenGeometry(self)
