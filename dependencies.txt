@@ -6,6 +6,7 @@ lmfit
 matplotlib
 numpy
 pyvisa
+pyvisa-py
 qdarkstyle
 qtpy
 scipy

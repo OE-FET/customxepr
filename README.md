@@ -94,7 +94,6 @@ As with the cryostat, CustomXepr includes a Python driver for the Keithley 2600 
 
 - Linux or macOSX
 - Python 2.7 or 3.x
-- NI-VISA
 - Python dependencies
 
 *Optional*:
