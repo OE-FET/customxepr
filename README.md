@@ -111,6 +111,7 @@ As with the cryostat, CustomXepr includes a Python driver for the Keithley 2600 
 - matplotlib
 - numpy
 - pyvisa
+- pyvisa-py
 - qdarkstyle
 - qtpy
 - scipy
