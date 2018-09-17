@@ -30,7 +30,6 @@ import sys
 import os
 from threading import Event
 from qtpy import QtCore
-from queue import Queue
 from decorator import decorator
 import time
 import numpy as np
@@ -38,6 +37,7 @@ import logging
 
 # custom imports
 from utils.mail import TlsSMTPHandler
+from utils.py3compat import Queue
 from xeprtools.mode_picture import ModePicture
 from config.main import CONF
 

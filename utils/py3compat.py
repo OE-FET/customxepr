@@ -56,7 +56,7 @@ if PY2:
     from UserDict import DictMixin as MutableMapping
     import thread as _thread
     import repr as reprlib
-    import Queue
+    from Queue import Queue
 else:
     # Python 3
     import builtins
@@ -71,7 +71,7 @@ else:
     from collections import MutableMapping
     import _thread
     import reprlib
-    import queue as Queue
+    from queue import Queue
 
 
 # =============================================================================

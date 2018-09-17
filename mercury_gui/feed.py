@@ -123,7 +123,8 @@ class MercuryFeed(QtWidgets.QWidget):
         """
         try:
             self.mercury = MercuryITC(self.address)
-        except visa.VisaIOError:
+        except:
+            # TODO: catch specific error once implemented in pyvisa-py
             return
 
         self.dialog = SensorDialog(self.mercury.modules)
