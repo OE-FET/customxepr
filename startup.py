@@ -19,6 +19,7 @@ import sys
 import os
 import logging
 from qtpy import QtCore, QtWidgets, QtGui
+from Keithley2600 import Keithley2600
 
 # local imports
 from config.main import CONF
@@ -26,7 +27,6 @@ from xeprtools.customxepr import CustomXepr, __version__, __author__
 from xeprtools.customxper_ui import JobStatusApp
 from mercury_gui.feed import MercuryFeed
 from mercury_gui.main import MercuryMonitorApp
-from keithley_driver.keithley_driver import Keithley2600
 from keithley_gui.main import KeithleyGuiApp
 
 from utils import dark_style
@@ -83,8 +83,8 @@ def get_qt_app(*args, **kwargs):
 
 def show_splash_screen(app):
     """ Shows a splash screen from file."""
-
-    image = QtGui.QPixmap(os.path.join(direct, 'images/splash.png'))
+    direct = os.path.dirname(os.path.realpath(__file__))
+    image = QtGui.QPixmap(os.path.join(direct, 'images', 'splash.png'))
     image.setDevicePixelRatio(3)
     splash = QtWidgets.QSplashScreen(image)
     splash.show()

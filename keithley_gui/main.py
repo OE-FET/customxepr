@@ -12,10 +12,10 @@ import os
 from visa import InvalidSession
 from qtpy import QtGui, QtCore, QtWidgets, uic
 from matplotlib.figure import Figure
+from Keithley2600 import SweepData
 
 # local imports
 from utils.led_indicator_widget import LedIndicator
-from keithley_driver.sweep_data_class import SweepData
 from config.main import CONF
 
 from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg

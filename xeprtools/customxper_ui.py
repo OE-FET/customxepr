@@ -21,9 +21,9 @@ import platform
 import subprocess
 import re
 import pydoc
+from Keithley2600 import SweepData
 
 # custom module imports
-from keithley_driver.sweep_data_class import SweepData
 from xeprtools import customxepr
 from xeprtools.mode_picture import ModePicture
 from utils import dark_style
@@ -295,16 +295,13 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         if action == 0:
             return
-
         elif action == deleteAction:
             for i in range(i1, i0-1, -1):
                 with self.result_queue.mutex:
                     del self.result_queue.queue[i]
                 self.resultQueueModel.removeRow(i)
-
         elif action == saveAction:
             self.result_queue.queue[i0].save()
-
         elif action == plotAction:
             self.result_queue.queue[i0].plot()
 
