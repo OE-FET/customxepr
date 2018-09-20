@@ -33,9 +33,6 @@ from utils import dark_style
 from utils.misc import patch_excepthook
 from utils.internal_ipkernel import InternalIPKernel
 
-# check if all require packages are installed
-direct = os.path.dirname(os.path.realpath(__file__))
-filePath = os.path.join(direct, 'dependencies.txt')
 
 # if we are running from IPython:
 # disable autoreload, start integrated Qt event loop

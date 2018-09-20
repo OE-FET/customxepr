@@ -14,7 +14,6 @@ from qtpy import QtCore, QtWidgets, uic
 import sys
 import os
 import logging
-import visa
 
 from mercury_driver.mercury_driver import MercuryITC
 from config.main import CONF
