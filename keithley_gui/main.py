@@ -250,11 +250,24 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self.addressDialog.show()
 
     def _on_save_clicked(self):
-        self.sweepData.save()
+        """Show GUI to save current SweepData as text file."""
+        prompt = 'Save as file'
+        filename = 'untitled.txt'
+        formats = 'Text file (*.txt)'
+        filepath = QtWidgets.QFileDialog.getSaveFileName(self, prompt,
+                                                         filename, formats)
+        if len(filepath[0]) < 4:
+            return
+        self.sweepData.save(filepath[0])
 
     def _on_load_clicked(self):
+        """Show GUI to load SweepData from file."""
+        prompt = 'Load file'
+        filepath = QtWidgets.QFileDialog.getOpenFileName(self, prompt)
+        if len(filepath[0]) < 4:
+            return
         self.sweepData = SweepData()
-        self.sweepData.load()
+        self.sweepData.load(filepath[0])
         self.plot_new_data()
         self.actionSaveSweepData.setEnabled(True)
 

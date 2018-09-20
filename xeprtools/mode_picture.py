@@ -159,8 +159,11 @@ class ModePicture(object):
 
         # save to file
         if filepath is None:
-            text = 'Please select file to save mode picture:'
-            filepath = QtWidgets.QFileDialog.getSaveFileName(caption=text)
+            prompt = 'Save as file'
+            filename = 'untitled.txt'
+            formats = 'Text file (*.txt)'
+            filepath = QtWidgets.QFileDialog.getSaveFileName(self, prompt,
+                                                             filename, formats)
             filepath = filepath[0]
 
         if len(filepath) > 4:
@@ -172,8 +175,8 @@ class ModePicture(object):
     def load(self, filepath=None):
 
         if filepath is None:
-            text = 'Please select file with mode picture data:'
-            filepath = QtWidgets.QFileDialog.getOpenFileName(caption=text)
+            prompt = 'Select file'
+            filepath = QtWidgets.QFileDialog.getOpenFileName(self, prompt)
             filepath = filepath[0]
 
         if len(filepath) > 4:

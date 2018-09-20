@@ -301,7 +301,15 @@ class JobStatusApp(QtWidgets.QMainWindow):
                     del self.result_queue.queue[i]
                 self.resultQueueModel.removeRow(i)
         elif action == saveAction:
-            self.result_queue.queue[i0].save()
+            prompt = 'Save as file'
+            filename = 'untitled.txt'
+            formats = 'Text file (*.txt)'
+            filepath = QtWidgets.QFileDialog.getSaveFileName(self, prompt,
+                                                             filename, formats)
+            if len(filepath[0]) < 4:
+                return
+            self.result_queue.queue[i0].save(filepath[0])
+
         elif action == plotAction:
             self.result_queue.queue[i0].plot()
 

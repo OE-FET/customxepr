@@ -14,8 +14,8 @@ from qtpy import QtCore, QtWidgets, uic
 import sys
 import os
 import logging
+from MercuryiTC import MercuryITC
 
-from mercury_driver.mercury_driver import MercuryITC
 from config.main import CONF
 
 logger = logging.getLogger(__name__)
