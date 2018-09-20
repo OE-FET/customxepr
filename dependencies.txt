@@ -2,8 +2,10 @@ IPython
 PyQt5
 decorator
 email
+Keithley2600
 lmfit
 matplotlib
+MercuryiTC
 numpy
 pyvisa
 pyvisa-py
