@@ -20,7 +20,7 @@ New in v2.0.1:
         - major speedups in plotting framerate by relying on numpy for updating
           the data, redrawing only changed elements of plot widget
         - allow real-time panning and zooming of plots
-    * Python 3.6 compatability.
+    * Introduced Python 3.6 compatability.
 
 """
 import sys
