@@ -141,7 +141,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.fig = Figure(facecolor=color)
         d = {'height_ratios': [5, 1]}
         (self.ax1, self.ax2) = self.fig.subplots(2, sharex=True, gridspec_kw=d)
-        self.fig.subplots_adjust(hspace=0, bottom=0.05, top=0.97, left=0.07,
+        self.fig.subplots_adjust(hspace=0, bottom=0.07, top=0.97, left=0.07,
                                  right=0.93)
 
         self.ax1.tick_params(axis='both', which='major', direction='out',

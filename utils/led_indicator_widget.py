@@ -2,14 +2,15 @@ from __future__ import division, absolute_import
 from qtpy import QtGui, QtCore, QtWidgets
 
 
-class LedIndicator(QtWidgets.QAbstractButton):
+class LedIndicator(QtWidgets.QWidget):
     scaledSize = 1000.0
 
     def __init__(self, parent=None):
         QtWidgets.QAbstractButton.__init__(self, parent)
 
         self.setMinimumSize(12, 12)
-        self.setCheckable(True)
+        # self.setCheckable(True)
+        self._checked = False
 
         # Green
         self.on_color_1 = QtGui.QColor(0, 255, 0)
@@ -20,6 +21,16 @@ class LedIndicator(QtWidgets.QAbstractButton):
 
     def resizeEvent(self, QResizeEvent):
         self.update()
+        
+    def isChecked(self):
+        return self._checked
+    
+    def setChecked(self, b):
+        if isinstance(b, bool):
+            self._checked = b
+            self.repaint()
+        else:
+            raise RuntimeError("Argument must be of type 'bool'.")
 
     def paintEvent(self, QPaintEvent):
         realSize = min(self.width(), self.height())
