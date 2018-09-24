@@ -28,10 +28,11 @@ import os
 import logging
 from qtpy import QtCore, QtWidgets, QtGui
 from Keithley2600 import Keithley2600
+from MercuryiTC import MercuryITC
 
 # local imports
 from config.main import CONF
-from xeprtools.customxepr import CustomXepr, __version__, __author__
+from xeprtools.customxepr import CustomXepr, __version__, __author__, __year__
 from xeprtools.customxper_ui import JobStatusApp
 from mercury_gui.feed import MercuryFeed
 from mercury_gui.main import MercuryMonitorApp
@@ -110,7 +111,8 @@ def connect_to_instruments(keithley_address=KEITHLEY_ADDRESS,
     """Tries to connect to Keithley, Mercury and Xepr."""
 
     keithley = Keithley2600(keithley_address)
-    mercuryFeed = MercuryFeed(mercury_address)
+    mercury = MercuryITC(mercury_address)
+    mercuryFeed = MercuryFeed(mercury)
 
     try:
         xepr = XeprAPI.Xepr()
@@ -122,7 +124,7 @@ def connect_to_instruments(keithley_address=KEITHLEY_ADDRESS,
 
     customXepr = CustomXepr(xepr, mercuryFeed, keithley)
 
-    return customXepr, mercuryFeed, keithley, xepr
+    return customXepr, xepr, keithley, mercury, mercuryFeed
 
 
 # =============================================================================
@@ -140,7 +142,7 @@ def start_gui(customXepr, mercuryFeed, keithley):
     mercuryGUI.show()
     keithleyGUI.show()
 
-    return customXeprGUI, mercuryGUI, keithleyGUI
+    return customXeprGUI, keithleyGUI, mercuryGUI
 
 
 if __name__ == '__main__':
@@ -158,9 +160,9 @@ if __name__ == '__main__':
         dark_style.go_bright()
 
     # connect to instruments
-    customXepr, mercuryFeed, keithley, xepr = connect_to_instruments()
+    customXepr, xepr, keithley, mercury, mercuryFeed = connect_to_instruments()
     # start user interfaces
-    customXeprGUI, mercuryGUI, keithleyGUI = start_gui(customXepr, mercuryFeed,
+    customXeprGUI, keithleyGUI, mercuryGUI = start_gui(customXepr, mercuryFeed,
                                                        keithley)
 
     # reinforce dark theme for figures
@@ -170,12 +172,12 @@ if __name__ == '__main__':
         dark_style.apply_mpl_bright_theme()
 
     BANNER = ('Welcome to CustomXepr %s. ' % __version__ +
-              'You can access connected instruments as ' +
-              '"customXepr", "mercuryFeed" and "keithley".\n\n' +
-              'Use "%run path_to_file.py" to run a python script such as a ' +
+              'You can access connected instruments through "customXepr" ' +
+              'or directly as "xepr", "keithley" and "mercury".\n\n' +
+              'Use "%run path/to/file.py" to run a python script such as a ' +
               'measurement routine.\n'
               'Type "exit" to gracefully exit ' +
-              'CustomXepr.\n\n(c) 2016 - 2018, %s.' % __author__)
+              'CustomXepr.\n\n(c) 2016 - %s, %s.' % (__year__, __author__))
 
     if CREATED:
 

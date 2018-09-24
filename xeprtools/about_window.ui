@@ -32,7 +32,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="copyRightText">
+    <widget class="QLabel" name="labelCopyRight">
      <property name="text">
       <string>(c) 2018, Sam Schott; This work is licensed under a Creative Commons
 Attribution-NonCommercial-NoDerivs 2.0 UK: England &amp; Wales License.</string>

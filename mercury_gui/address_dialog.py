@@ -20,7 +20,6 @@ class AddressDialog(QtWidgets.QDialog):
         self.buttonBox.accepted.connect(self._onAccept)
 
     def _onAccept(self):
-        mercuryConnected = (self.feed.mercury is not None)
         # update connection settings in mercury feed
         self.feed.address = self.lineEditAddress.text()
 
@@ -28,6 +27,6 @@ class AddressDialog(QtWidgets.QDialog):
         CONF.set('MercuryFeed', 'MERCURY_ADDRESS', self.lineEditAddress.text())
 
         # restart feed for changes to become effective
-        if mercuryConnected:
-            self.feed.pause()
-            self.feed.resume()
+        if self.feed.mercury.connected:
+            self.feed.stop()
+            self.feed.start()

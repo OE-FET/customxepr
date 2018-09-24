@@ -12,11 +12,6 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 from __future__ import division, absolute_import
 
-__author__ = 'Sam Schott <ss2151@cam.ac.uk>'
-__date__ = '13 September 2018'
-
-__version__ = 'v2.0.1'
-
 # system imports
 import sys
 import os
@@ -26,6 +21,10 @@ from decorator import decorator
 import time
 import numpy as np
 import logging
+
+__author__ = 'Sam Schott <ss2151@cam.ac.uk>'
+__year__ = str(time.localtime().tm_year)
+__version__ = 'v2.0.1'
 
 # custom imports
 from utils.mail import TlsSMTPHandler

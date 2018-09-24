@@ -2,14 +2,14 @@ from __future__ import division, absolute_import
 from qtpy import QtGui, QtCore, QtWidgets
 
 
-class LedIndicator(QtWidgets.QWidget):
+class LedIndicator(QtWidgets.QAbstractButton):
     scaledSize = 1000.0
 
     def __init__(self, parent=None):
         QtWidgets.QAbstractButton.__init__(self, parent)
 
         self.setMinimumSize(12, 12)
-        # self.setCheckable(True)
+        self.setCheckable(True)
         self._checked = False
 
         # Green
@@ -21,16 +21,6 @@ class LedIndicator(QtWidgets.QWidget):
 
     def resizeEvent(self, QResizeEvent):
         self.update()
-        
-    def isChecked(self):
-        return self._checked
-    
-    def setChecked(self, b):
-        if isinstance(b, bool):
-            self._checked = b
-            self.repaint()
-        else:
-            raise RuntimeError("Argument must be of type 'bool'.")
 
     def paintEvent(self, QPaintEvent):
         realSize = min(self.width(), self.height())
@@ -40,8 +30,8 @@ class LedIndicator(QtWidgets.QWidget):
         pen.setWidth(1)
 
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        painter.translate(self.width() / 2, self.height() / 2)
-        painter.scale(realSize / self.scaledSize, realSize / self.scaledSize)
+        painter.translate(self.width()/2, self.height()/2)
+        painter.scale(realSize/self.scaledSize, realSize/self.scaledSize)
 
         gradient = QtGui.QRadialGradient(QtCore.QPointF(-500, -500), 1500,
                                          QtCore.QPointF(-500, -500))
@@ -73,35 +63,3 @@ class LedIndicator(QtWidgets.QWidget):
 
         painter.setBrush(gradient)
         painter.drawEllipse(QtCore.QPointF(0, 0), 400, 400)
-
-    @QtCore.Property(QtGui.QColor)
-    def onColor1(self):
-        return self.on_color_1
-
-    @onColor1.setter
-    def onColor1(self, color):
-        self.on_color_1 = color
-
-    @QtCore.Property(QtGui.QColor)
-    def onColor2(self):
-        return self.on_color_2
-
-    @onColor2.setter
-    def onColor2(self, color):
-        self.on_color_2 = color
-
-    @QtCore.Property(QtGui.QColor)
-    def offColor1(self):
-        return self.off_color_1
-
-    @offColor1.setter
-    def offColor1(self, color):
-        self.off_color_1 = color
-
-    @QtCore.Property(QtGui.QColor)
-    def offColor2(self):
-        return self.off_color_2
-
-    @offColor2.setter
-    def offColor2(self, color):
-        self.off_color_2 = color

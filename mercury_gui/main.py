@@ -77,7 +77,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         # Check if mercury is connected, connect slots
         self._display_message('Looking for Mercury at %s...'
                               % self.feed.address)
-        if self.feed.mercury is not None:
+        if self.feed.mercury.connected:
             self._update_GUI_connection(connected=True)
 
         # start (stop) updates of GUI when mercury is connected (disconnected)
@@ -118,8 +118,8 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.showLogAction.triggered.connect(self._on_log_clicked)
         self.exitAction.triggered.connect(self.exit_)
         self.readingsAction.triggered.connect(self._on_readings_clicked)
-        self.connectAction.triggered.connect(self.feed.resume)
-        self.disconnectAction.triggered.connect(self.feed.pause)
+        self.connectAction.triggered.connect(self.feed.start)
+        self.disconnectAction.triggered.connect(self.feed.stop)
         self.updateAddressAction.triggered.connect(self.addressDialog.show)
 
         # initially disable menu bar items, will be enabled later individually
@@ -226,6 +226,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         elif not connected:
             self._display_error('Connection lost.')
             logger.info('Connection to MercuryiTC lost.')
+
             self._disconnect_slots()
 
             self.connectAction.setEnabled(True)
@@ -486,7 +487,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def log_temperature_data(self):
         # save temperature data to log file
-        if self.feed.mercury is not None:
+        if self.feed.mercury.connected:
             self.save_temperature_data(self.logFile)
 
 # =================== CALLBACKS FOR SETTING CHANGES ===========================

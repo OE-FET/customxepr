@@ -14,6 +14,7 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 from __future__ import division, absolute_import
 import sys
 import os
+import time
 from qtpy import QtCore, QtWidgets, QtGui, uic
 import logging
 import logging.handlers
@@ -125,6 +126,8 @@ class JobStatusApp(QtWidgets.QMainWindow):
         # load user interface layout from .ui file
         uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                 'customxepr_ui.ui'), self)
+        self.labelCopyRight.setText('(c) %s Sam Schott' % customxepr.__year__)
+
         # get input arguments
         self.customXepr = customXepr
         self.job_queue = customXepr.job_queue
@@ -591,6 +594,11 @@ class AboutWindow(QtWidgets.QWidget, QtCore.QCoreApplication):
         # load user interface file
         uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                 'about_window.ui'), self)
+        # set copyright text
+        text = """(c) %s, Sam Schott; This work is licensed under a Creative Commons
+        Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License. """ % customxepr.__year__
+
+        self.labelCopyRight.setText(text)
         # get help output in plain text format
         self.help_output = pydoc.plain(pydoc.render_doc(customxepr.CustomXepr))
         # print help output to scroll area of window
