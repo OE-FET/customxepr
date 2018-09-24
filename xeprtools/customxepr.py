@@ -8,14 +8,6 @@ Created on Tue Aug 23 11:03:57 2016
 (c) Sam Schott; This work is licensed under a Creative Commons
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
-To Do:
-
-* See GitHub issues list at https://github.com/OE-FET/CustomXepr
-
-New in v2.0.1:
-
-    See release notes
-
 """
 
 from __future__ import division, absolute_import

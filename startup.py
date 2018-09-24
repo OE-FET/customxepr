@@ -12,7 +12,15 @@ To Do:
 
 New in v2.0.1:
 
-    See release notes
+    * Moved driver backends from NI-VISA to pyvisa-py. It is no longer 
+      necessary to install NI-VISA from National Instruments on your system.
+    * Moved drivers to external packages. Install with pip before first use.
+    * Improved data plotting in Mercury user interface:
+        - heater output and gasflow are plotted alongside the temperature
+        - major speedups in plotting framerate by relying on numpy for updating
+          the data, redrawing only changed elements of plot widget
+        - allow real-time panning and zooming of plots
+    * Python 3.6 compatability.
 
 """
 import sys
