@@ -12,7 +12,7 @@ To Do:
 
 New in v2.0.1:
 
-    * Moved driver backends from NI-VISA to pyvisa-py. It is no longer 
+    * Moved driver backends from NI-VISA to pyvisa-py. It is no longer
       necessary to install NI-VISA from National Instruments on your system.
     * Moved drivers to external packages. Install with pip before first use.
     * Improved data plotting in Mercury user interface:

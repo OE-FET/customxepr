@@ -100,7 +100,7 @@ def go_bright():
     mpl.style.use('default')
     mpl.style.use(BRIGHT_STYLE_PATH)
     app = QtCore.QCoreApplication.instance()
-    app.setStyleSheet('')
+    app.setStyleSheet('QStatusBar::item { border: 0px solid black };')
 
 
 def apply_mpl_bright_theme():
