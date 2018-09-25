@@ -74,13 +74,13 @@ class MercuryFeed(QtWidgets.QWidget):
 
         self.refresh = refresh
         self.mercury = mercury
-        self.address = mercury.address
+        self.visa_address = mercury.visa_address
         self.thread = None
         self.worker = None
 
         if self.mercury.connected:
-            self.connectedSignal.emit(True)
             self.start_worker()
+            self.connectedSignal.emit(True)
 
     # BASE FUNCTIONALITY CODE
 
@@ -101,10 +101,9 @@ class MercuryFeed(QtWidgets.QWidget):
         if not self.mercury.connected:
             return
 
-        self.connectedSignal.emit(True)
-
         # start / resume worker
         self.start_worker()
+        self.connectedSignal.emit(True)
 
     def exit_(self):
         if self.worker:

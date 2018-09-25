@@ -76,7 +76,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Check if mercury is connected, connect slots
         self._display_message('Looking for Mercury at %s...'
-                              % self.feed.address)
+                              % self.feed.visa_address)
         if self.feed.mercury.connected:
             self._update_GUI_connection(connected=True)
 
@@ -293,12 +293,12 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         # disconnect GUI slots from worker
         self.heater_volt_Signal.disconnect(self.h1_label.setText)
         self.heater_auto_Signal.disconnect(self.h2_checkbox.setChecked)
-        self.heater_auto_Signal.disconnect(lambda b: self.h1_edit.setEnabled(not b))
+        # self.heater_auto_Signal.disconnect(lambda b: self.h1_edit.setEnabled(not b))
         self.heater_auto_Signal.disconnect(self.h1_edit.setReadOnly)
         self.heater_percent_Signal.disconnect(self.h1_edit.updateText)
 
         self.flow_auto_Signal.disconnect(self.gf2_checkbox.setChecked)
-        self.flow_auto_Signal.disconnect(lambda b: self.gf1_edit.setEnabled(not b))
+        # self.flow_auto_Signal.disconnect(lambda b: self.gf1_edit.setEnabled(not b))
         self.flow_auto_Signal.disconnect(self.gf1_edit.setReadOnly)
         self.flow_Signal.disconnect(self.gf1_edit.updateText)
         self.flow_min_Signal.disconnect(self.gf1_label.setText)
@@ -392,7 +392,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         if not self.CurrentXData.size == 0:
             xLim0 = max(-self.horizontalSlider.value(), self.CurrentXData[0])
             xLim1 = 0
-            x_pad = self.x_padding * abs(xLim0-xLim1)  # add 2% padding
+            x_pad = max(self.x_padding * abs(xLim0-xLim1), 1/10000)  # add 2% padding
             xLimNew = [xLim0 - x_pad, xLim1 + x_pad]
 
             yLimNew = [floor(self.CurrentYDataT.min())-2.2,
@@ -430,6 +430,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.canvas.update()
         else:
             self.ax1.axis(xLimNew + yLimNew)
+            self.ax2.axis(xLimNew + [-1.01, 1.01])
             self.canvas.draw()
 
         # update label

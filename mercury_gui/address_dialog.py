@@ -16,12 +16,12 @@ class AddressDialog(QtWidgets.QDialog):
                                 'address_dialog.ui'), self)
 
         self.feed = feed
-        self.lineEditAddress.setText(self.feed.address)
+        self.lineEditAddress.setText(self.feed.visa_address)
         self.buttonBox.accepted.connect(self._onAccept)
 
     def _onAccept(self):
         # update connection settings in mercury feed
-        self.feed.address = self.lineEditAddress.text()
+        self.feed.visa_address = self.lineEditAddress.text()
 
         # update connection settings in config file
         CONF.set('MercuryFeed', 'MERCURY_ADDRESS', self.lineEditAddress.text())
