@@ -204,7 +204,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self.sweepData = sweepData
         self.plot_new_data()
         if not self.keithley.abort_event.is_set():
-            self.sweepData.save()
+            self._on_save_clicked()
 
     def _on_abort_clicked(self):
         """
