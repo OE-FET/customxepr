@@ -481,7 +481,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         header = '\t'.join(['Time (sec)', 'Temperature (K)'])
 
         data_matrix = np.concatenate((self.xData[:, np.newaxis],
-                                      self.yData[:, np.newaxis]), axis=1)
+                                      self.yDataT[:, np.newaxis]), axis=1)
 
         np.savetxt(filePath, data_matrix, fmt='%.9E', delimiter='\t',
                    newline='\n', header=header, comments=title)
