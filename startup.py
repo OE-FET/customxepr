@@ -10,33 +10,38 @@ To Do:
 
 * See GitHub issues list at https://github.com/OE-FET/CustomXepr
 
-New in v2.0.0:
+New in v2.0.1:
 
-    See release notes
+    * Moved driver backends from NI-VISA to pyvisa-py. It is no longer
+      necessary to install NI-VISA from National Instruments on your system.
+    * Moved drivers to external packages. Install with pip before first use.
+    * Improved data plotting in Mercury user interface:
+        - heater output and gasflow are plotted alongside the temperature
+        - major speedups in plotting framerate by relying on numpy for updating
+          the data, redrawing only changed elements of plot widget
+        - allow real-time panning and zooming of plots
+    * Introduced Python 3.6 compatability.
 
 """
 import sys
 import os
 import logging
 from qtpy import QtCore, QtWidgets, QtGui
+from Keithley2600 import Keithley2600
+from MercuryiTC import MercuryITC
 
 # local imports
 from config.main import CONF
-from xeprtools.customxepr import CustomXepr, __version__, __author__
+from xeprtools.customxepr import CustomXepr, __version__, __author__, __year__
 from xeprtools.customxper_ui import JobStatusApp
 from mercury_gui.feed import MercuryFeed
 from mercury_gui.main import MercuryMonitorApp
-from keithley_driver import Keithley2600
 from keithley_gui.main import KeithleyGuiApp
 
 from utils import dark_style
-from utils.misc import check_dependencies, patch_excepthook
+from utils.misc import patch_excepthook
 from utils.internal_ipkernel import InternalIPKernel
 
-# check if all require packages are installed
-direct = os.path.dirname(os.path.realpath(__file__))
-filePath = os.path.join(direct, 'dependencies.txt')
-exit_code = check_dependencies(filePath)
 
 # if we are running from IPython:
 # disable autoreload, start integrated Qt event loop
@@ -57,9 +62,8 @@ except ImportError:
                  ' is installed on your system.')
 
 DARK = CONF.get('main', 'DARK')
-KEITHLEY_IP = CONF.get('Keithley', 'KEITHLEY_IP')
-MERCURY_IP = CONF.get('MercuryFeed', 'MERCURY_IP')
-MERCURY_PORT = CONF.get('MercuryFeed', 'MERCURY_PORT')
+KEITHLEY_ADDRESS = CONF.get('Keithley', 'KEITHLEY_ADDRESS')
+MERCURY_ADDRESS = CONF.get('MercuryFeed', 'MERCURY_ADDRESS')
 
 
 # =============================================================================
@@ -70,16 +74,16 @@ def get_qt_app(*args, **kwargs):
     """
     Create a new Qt app or return an existing one.
     """
-    CREATED = False
+    created = False
     app = QtCore.QCoreApplication.instance()
 
     if not app:
         if not args:
             args = ([''],)
         app = QtWidgets.QApplication(*args, **kwargs)
-        CREATED = True
+        created = True
 
-    return app, CREATED
+    return app, created
 
 
 # =============================================================================
@@ -88,8 +92,8 @@ def get_qt_app(*args, **kwargs):
 
 def show_splash_screen(app):
     """ Shows a splash screen from file."""
-
-    image = QtGui.QPixmap(os.path.join(direct, 'images/splash.png'))
+    direct = os.path.dirname(os.path.realpath(__file__))
+    image = QtGui.QPixmap(os.path.join(direct, 'images', 'splash.png'))
     image.setDevicePixelRatio(3)
     splash = QtWidgets.QSplashScreen(image)
     splash.show()
@@ -102,12 +106,13 @@ def show_splash_screen(app):
 # Connect to instruments: Bruker Xepr, Keithley and MercuryiTC.
 # =============================================================================
 
-def connect_to_instruments(keithleyIP=KEITHLEY_IP, mercuryIP=MERCURY_IP,
-                           mercuryPort=MERCURY_PORT):
+def connect_to_instruments(keithley_address=KEITHLEY_ADDRESS,
+                           mercury_address=MERCURY_ADDRESS):
     """Tries to connect to Keithley, Mercury and Xepr."""
 
-    keithley = Keithley2600(keithleyIP)
-    mercuryFeed = MercuryFeed(mercuryIP, mercuryPort)
+    keithley = Keithley2600(keithley_address)
+    mercury = MercuryITC(mercury_address)
+    mercuryFeed = MercuryFeed(mercury)
 
     try:
         xepr = XeprAPI.Xepr()
@@ -119,7 +124,7 @@ def connect_to_instruments(keithleyIP=KEITHLEY_IP, mercuryIP=MERCURY_IP,
 
     customXepr = CustomXepr(xepr, mercuryFeed, keithley)
 
-    return customXepr, mercuryFeed, keithley, xepr
+    return customXepr, xepr, keithley, mercury, mercuryFeed
 
 
 # =============================================================================
@@ -137,36 +142,16 @@ def start_gui(customXepr, mercuryFeed, keithley):
     mercuryGUI.show()
     keithleyGUI.show()
 
-    return customXeprGUI, mercuryGUI, keithleyGUI
-
-
-# =============================================================================
-# Go dark! (not yet supported for standalone console)
-# =============================================================================
-
-def go_dark():
-    dark_style.go_dark()
-    dark_style.apply_mpl_dark_theme()
-
-    CONF.set('main', 'DARK', True)
-
-
-def go_bright():
-    dark_style.go_bright()
-    dark_style.apply_mpl_bright_theme()
-
-    CONF.set('main', 'DARK', False)
+    return customXeprGUI, keithleyGUI, mercuryGUI
 
 
 if __name__ == '__main__':
 
     # create a new Qt app or return an existing one
     app, CREATED = get_qt_app()
-    if not CREATED:
-        patch_excepthook()
 
     # create and show splash screen
-    splash = show_splash_screen(app)
+    splash_screen = show_splash_screen(app)
 
     # apply dark theme
     if DARK:
@@ -175,9 +160,9 @@ if __name__ == '__main__':
         dark_style.go_bright()
 
     # connect to instruments
-    customXepr, mercuryFeed, keithley, xepr = connect_to_instruments()
+    customXepr, xepr, keithley, mercury, mercuryFeed = connect_to_instruments()
     # start user interfaces
-    customXeprGUI, mercuryGUI, keithleyGUI = start_gui(customXepr, mercuryFeed,
+    customXeprGUI, keithleyGUI, mercuryGUI = start_gui(customXepr, mercuryFeed,
                                                        keithley)
 
     # reinforce dark theme for figures
@@ -187,13 +172,12 @@ if __name__ == '__main__':
         dark_style.apply_mpl_bright_theme()
 
     BANNER = ('Welcome to CustomXepr %s. ' % __version__ +
-              'You can access connected instruments as ' +
-              '"customXepr", "mercuryFeed" and "keithley".\n\n' +
-              'Use "%run path_to_file.py" to run a python script such as a ' +
+              'You can access connected instruments through "customXepr" ' +
+              'or directly as "xepr", "keithley" and "mercury".\n\n' +
+              'Use "%run path/to/file.py" to run a python script such as a ' +
               'measurement routine.\n'
-              'Execute "go_dark()" or "go_bright()" to switch the user ' +
-              'interface style. Type "exit" to gracefully exit ' +
-              'CustomXepr.\n\n(c) 2016 - 2018, %s.' % __author__)
+              'Type "exit" to gracefully exit ' +
+              'CustomXepr.\n\n(c) 2016 - %s, %s.' % (__year__, __author__))
 
     if CREATED:
 
@@ -211,13 +195,12 @@ if __name__ == '__main__':
         var_dict = {'customXepr': customXepr, 'xepr': xepr,
                     'customXeprGUI': customXeprGUI,
                     'mercuryFeed': mercuryFeed, 'mercuryGUI': mercuryGUI,
-                    'keithley': keithley, 'keithleyGUI': keithleyGUI,
-                    'go_dark': go_dark, 'go_bright': go_bright}
+                    'keithley': keithley, 'keithleyGUI': keithleyGUI}
 
         kernel_window.send_to_namespace(var_dict)
         app.aboutToQuit.connect(kernel_window.cleanup_consoles)
         # remove splash screen
-        splash.finish(keithleyGUI)
+        splash_screen.finish(keithleyGUI)
         # start event loop
         kernel_window.ipkernel.start()
 
@@ -225,4 +208,6 @@ if __name__ == '__main__':
         # print banner
         print(BANNER)
         # remove splash screen
-        splash.finish(customXeprGUI)
+        splash_screen.finish(customXeprGUI)
+        # patch exception hook to display errors from Qt event loop
+        patch_excepthook()

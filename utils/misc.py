@@ -5,27 +5,13 @@ Created on Sun Jul 22 13:11:20 2018
 
 @author: Sam Schott
 """
+from __future__ import division, absolute_import
 import os
 import sys
-from pkgutil import iter_modules
 from qtpy import QtCore, QtWidgets
 from traceback import format_exception
 
 import subprocess
-
-
-def check_dependencies(filePath):
-    exit_code = 0
-    modules = set(x[1] for x in iter_modules())
-    with open(filePath, 'rb') as f:
-        for line in f:
-            requirement = line.rstrip()
-            if requirement not in modules:
-                print('Error: Could not find module ' + requirement + '. ' +
-                      'Please install to run CustomXepr.')
-                exit_code += 1
-
-    return exit_code
 
 
 def new_except_hook(etype, evalue, tb):

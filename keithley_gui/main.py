@@ -7,23 +7,19 @@ Created on Tue Feb 20 15:01:18 2018
 """
 
 # system imports
+from __future__ import division, print_function, absolute_import
 import os
+from visa import InvalidSession
 from qtpy import QtGui, QtCore, QtWidgets, uic
 from matplotlib.figure import Figure
+from Keithley2600 import SweepData
 
 # local imports
-from utils.misc import ping
 from utils.led_indicator_widget import LedIndicator
-from keithley_driver import SweepData
 from config.main import CONF
 
-if QtCore.PYQT_VERSION_STR[0] == '5':
-    from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg
-                                                    as FigureCanvas)
-
-elif QtCore.PYQT_VERSION_STR[0] == '4':
-    from matplotlib.backends.backend_qt4agg import (FigureCanvasQTAgg
-                                                    as FigureCanvas)
+from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg
+                                                as FigureCanvas)
 
 
 class KeithleyGuiApp(QtWidgets.QMainWindow):
@@ -89,22 +85,16 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         # and busy, act accordingly
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.update_connection_status)
-        self.timer.start(20000)  # Call every 20 seconds
+        self.timer.start(10000)  # Call every 10 seconds
 
     def update_connection_status(self):
-        # we lost the connection
-        if not self.keithley.connected and not ping(self.keithley.address):
-            self.keithley.disconnect()
-            self._update_Gui_connection()
-        # we got a new connection
-        elif not self.keithley.connected and ping(self.keithley.address):
-            self.keithley.connect()
-            self._update_Gui_connection()
-            self.show()
-        # we have the old connection
-        elif self.keithley.connected:
-            # check if really connected by asking for ip address
-            self._update_Gui_connection()
+        # disconncet if keithley does not respond, test by querying model
+        if self.keithley.connected and not self.keithley.busy:
+            try:
+                self.keithley.localnode.model
+            except (InvalidSession, OSError):
+                self.keithley.disconnect()
+                self._update_Gui_connection()
 
     def setIntialPosition(self):
         screen = QtWidgets.QDesktopWidget().screenGeometry(self)
@@ -214,7 +204,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self.sweepData = sweepData
         self.plot_new_data()
         if not self.keithley.abort_event.is_set():
-            self.sweepData.save()
+            self._on_save_clicked()
 
     def _on_abort_clicked(self):
         """
@@ -243,14 +233,13 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
             self.comboBoxGateSMU.setCurrentIndex(0)
 
     def _on_connect_clicked(self):
-        if not ping(self.keithley.address):
-            msg = ('Keithley cannot be reached at %s. ' % self.keithley.address
+        self.keithley.connect()
+        self._update_Gui_connection()
+        if not self.keithley.connected:
+            msg = ('Keithley cannot be reached at %s. ' % self.keithley.visa_address
                    + 'Please check if address is correct and Keithley is ' +
                    'turned on.')
             QtWidgets.QMessageBox.information(None, str('error'), msg)
-        else:
-            self.keithley.connect()
-            self._update_Gui_connection()
 
     def _on_disconnect_clicked(self):
         self.keithley.disconnect()
@@ -261,11 +250,24 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self.addressDialog.show()
 
     def _on_save_clicked(self):
-        self.sweepData.save()
+        """Show GUI to save current SweepData as text file."""
+        prompt = 'Save as file'
+        filename = 'untitled.txt'
+        formats = 'Text file (*.txt)'
+        filepath = QtWidgets.QFileDialog.getSaveFileName(self, prompt,
+                                                         filename, formats)
+        if len(filepath[0]) < 4:
+            return
+        self.sweepData.save(filepath[0])
 
     def _on_load_clicked(self):
+        """Show GUI to load SweepData from file."""
+        prompt = 'Load file'
+        filepath = QtWidgets.QFileDialog.getOpenFileName(self, prompt)
+        if len(filepath[0]) < 4:
+            return
         self.sweepData = SweepData()
-        self.sweepData.load()
+        self.sweepData.load(filepath[0])
         self.plot_new_data()
         self.actionSaveSweepData.setEnabled(True)
 
@@ -410,7 +412,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
 
         # get figure frame to match window color
         color = QtGui.QPalette().window().color().getRgb()
-        color = [x/255.0 for x in color]
+        color = [x/255 for x in color]
 
         # set up figure itself
         self.fig = Figure(facecolor=color)
@@ -420,7 +422,9 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self.ax.set_title('Sweep data', fontsize=10)
         self.ax.set_xlabel('Voltage [V]', fontsize=9)
         self.ax.set_ylabel('Current [A]', fontsize=9)
-        self.ax.tick_params(axis='both', which='major', labelsize=9)
+        self.ax.tick_params(axis='both', which='major', direction='out',
+                            colors='black', color=[0.5, 0.5, 0.5, 1],
+                            labelsize=9)
 
         self.canvas = FigureCanvas(self.fig)
 
@@ -438,7 +442,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         if self.sweepData.sweepType == 'transfer':
 
             for i in range(0, self.sweepData.nStep):
-                nPoints = len(self.sweepData.Vg)/self.sweepData.nStep
+                nPoints = int(len(self.sweepData.Vg)/self.sweepData.nStep)
                 select = slice(i*nPoints, (i+1)*nPoints)
 
                 self.ax.semilogy(self.sweepData.Vg[select], abs(self.sweepData.Id[select]), '-',
@@ -457,7 +461,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         if self.sweepData.sweepType == 'output':
 
             for i in range(0, self.sweepData.nStep):
-                nPoints = len(self.sweepData.Vg)/self.sweepData.nStep
+                nPoints = int(len(self.sweepData.Vg)/self.sweepData.nStep)
                 select = slice(i*nPoints, (i+1)*nPoints)
 
                 self.ax.plot(self.sweepData.Vd[select], abs(self.sweepData.Id[select]), '-',
@@ -484,14 +488,14 @@ class KeithleyAddressDialog(QtWidgets.QDialog):
                                 'address_dialog.ui'), self)
 
         self.keithley = keithley
-        self.lineEditIP.setText(self.keithley.address)
+        self.lineEditAddress.setText(self.keithley.visa_address)
 
         self.buttonBox.accepted.connect(self._onAccept)
 
     def _onAccept(self):
         # update connection settings in mercury feed
-        self.keithley.address = str(self.lineEditIP.text())
-        CONF.set('Keithley', 'KEITHLEY_IP', self.keithley.address)
+        self.keithley.visa_address = self.lineEditAddress.text()
+        CONF.set('Keithley', 'KEITHLEY_ADDRESS', self.keithley.visa_address)
         # reconnect to new IP address
         self.keithley.disconnect()
         self.keithley.connect()
@@ -512,18 +516,15 @@ class MeasureThread(QtCore.QThread):
 
     def run(self):
         self.startedSig.emit()
-        print('staring')
 
         if self.params['Measurement'] == 'transfer':
             sweepData = self.keithley.transferMeasurement(self.params['smu_gate'], self.params['smu_drain'], self.params['VgStart'],
                                                           self.params['VgStop'], self.params['VgStep'], self.params['VdList'],
                                                           self.params['tInt'], self.params['delay'], self.params['pulsed'])
             self.finishedSig.emit(sweepData)
-            print('done')
 
         elif self.params['Measurement'] == 'output':
             sweepData = self.keithley.outputMeasurement(self.params['smu_gate'], self.params['smu_drain'], self.params['VdStart'],
                                                         self.params['VdStop'], self.params['VdStep'], self.params['VgList'],
                                                         self.params['tInt'], self.params['delay'], self.params['pulsed'])
             self.finishedSig.emit(sweepData)
-            print('done')

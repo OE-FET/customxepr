@@ -11,8 +11,10 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 """
 
 # system module imports
+from __future__ import division, absolute_import
 import sys
 import os
+import time
 from qtpy import QtCore, QtWidgets, QtGui, uic
 import logging
 import logging.handlers
@@ -20,9 +22,9 @@ import platform
 import subprocess
 import re
 import pydoc
+from Keithley2600 import SweepData
 
 # custom module imports
-from keithley_driver import SweepData
 from xeprtools import customxepr
 from xeprtools.mode_picture import ModePicture
 from utils import dark_style
@@ -124,6 +126,8 @@ class JobStatusApp(QtWidgets.QMainWindow):
         # load user interface layout from .ui file
         uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                 'customxepr_ui.ui'), self)
+        self.labelCopyRight.setText('(c) %s Sam Schott' % customxepr.__year__)
+
         # get input arguments
         self.customXepr = customXepr
         self.job_queue = customXepr.job_queue
@@ -294,15 +298,20 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         if action == 0:
             return
-
         elif action == deleteAction:
             for i in range(i1, i0-1, -1):
                 with self.result_queue.mutex:
                     del self.result_queue.queue[i]
                 self.resultQueueModel.removeRow(i)
-
         elif action == saveAction:
-            self.result_queue.queue[i0].save()
+            prompt = 'Save as file'
+            filename = 'untitled.txt'
+            formats = 'Text file (*.txt)'
+            filepath = QtWidgets.QFileDialog.getSaveFileName(self, prompt,
+                                                             filename, formats)
+            if len(filepath[0]) < 4:
+                return
+            self.result_queue.queue[i0].save(filepath[0])
 
         elif action == plotAction:
             self.result_queue.queue[i0].plot()
@@ -585,6 +594,11 @@ class AboutWindow(QtWidgets.QWidget, QtCore.QCoreApplication):
         # load user interface file
         uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                 'about_window.ui'), self)
+        # set copyright text
+        text = """(c) %s, Sam Schott; This work is licensed under a Creative Commons
+        Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License. """ % customxepr.__year__
+
+        self.labelCopyRight.setText(text)
         # get help output in plain text format
         self.help_output = pydoc.plain(pydoc.render_doc(customxepr.CustomXepr))
         # print help output to scroll area of window

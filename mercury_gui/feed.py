@@ -9,15 +9,12 @@ Created on Tue Aug 23 11:03:57 2016
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
-
+from __future__ import division, absolute_import
 from qtpy import QtCore, QtWidgets, uic
 import sys
 import os
 import logging
-import visa
 
-from mercury_driver import MercuryITC
-from utils.misc import ping
 from config.main import CONF
 
 logger = logging.getLogger(__name__)
@@ -51,7 +48,7 @@ class MercuryFeed(QtWidgets.QWidget):
 
     You can recieve the emitted readings as follows:
 
-        >>> feed = MercuryFeed('IP_addess')
+        >>> feed = MercuryFeed('VISA_addess')
         >>> feed.newReadingsSignal.connect(my_function)
 
     and 'my_function' will be excecuted with the emitted readings dictionary as
@@ -72,83 +69,76 @@ class MercuryFeed(QtWidgets.QWidget):
     notifySignal = QtCore.Signal(str)
     connectedSignal = QtCore.Signal(bool)
 
-    def __init__(self, address, port, refresh=1):
+    def __init__(self, mercury, refresh=1):
         super(self.__class__, self).__init__()
 
         self.refresh = refresh
-        self.address = address
-        self.port = port
-        self.mercury = None
+        self.mercury = mercury
+        self.visa_address = mercury.visa_address
         self.thread = None
+        self.worker = None
 
-        self._connect()
+        if self.mercury.connected:
+            self.start_worker()
+            self.connectedSignal.emit(True)
 
     # BASE FUNCTIONALITY CODE
 
-    def pause(self):
+    def stop(self):
         # stop worker thread
-        self.worker.running = False
-        self.thread.terminate()
+        if self.worker:
+            self.worker.running = False
+            self.thread.terminate()
 
         # disconnect mercury
         self.connectedSignal.emit(False)
         self.mercury.disconnect()
 
-    def resume(self):
-        # resconnect mercury
-        self.mercury.connect()
+    def start(self):
+        # connect to mercury
+        if not self.mercury.connected:
+            self.mercury.connect()
+        if not self.mercury.connected:
+            return
+
+        # start / resume worker
+        self.start_worker()
         self.connectedSignal.emit(True)
 
-        # restart thread
-        self.worker.running = True
-        self.thread.start()
-
     def exit_(self):
-        if self.thread is not None:
+        if self.worker:
             self.worker.running = False
             self.thread.quit()
             self.thread.wait()
-        if self.mercury is not None:
-            self.mercury.disconnect()
+
+        self.mercury.disconnect()
         self.connectedSignal.emit(False)
         self.deleteLater()
 
 # CODE TO INTERACT WITH MERCURYITC
 
-    def _connect(self):
+    def start_worker(self):
         """
-        Tries to connect to MercuryiTC at the given IP address. If successful,
-        a thread is started to periodically update readings.
+        Start a thread to periodically update readings.
         """
-        # try to ping mercury (quicker than opening a visa connection)
-        if ping(self.address) is False:
-            self.mercury = None
-            # start a timer to try again in 20 sec
-            QtCore.QTimer.singleShot(20000, self._connect)
-            return
+        if self.worker and self.thread:
+            self.worker.running = True
+            self.thread.start()
+        else:
+            self.dialog = SensorDialog(self.mercury.modules)
+            self.dialog.accepted.connect(self.updateModules)
 
-        try:
-            self.mercury = MercuryITC(self.address, self.port)
-        except visa.VisaIOError:
-            # start a timer to try again in 20 sec
-            QtCore.QTimer.singleShot(20000, self._connect)
-            return
-
-        self.dialog = SensorDialog(self.mercury.modules)
-        self.dialog.accepted.connect(self.updateModules)
-
-        # start data collection thread
-        self.thread = QtCore.QThread()
-        self.worker = DataCollectionWorker(self.refresh, self.mercury.modules,
-                                           self.dialog.modNumbers)
-        self.worker.moveToThread(self.thread)
-        self.worker.readingsSignal.connect(self._getData)
-        self.worker.connectedSignal.connect(self.connectedSignal.emit)
-        self.thread.started.connect(self.worker.run)
-        self.updateModules(self.dialog.modNumbers)
-        self.thread.start()
-
-        self.connectedSignal.emit(True)
+            # start data collection thread
+            self.thread = QtCore.QThread()
+            self.worker = DataCollectionWorker(self.refresh,
+                                               self.mercury.modules,
+                                               self.dialog.modNumbers)
+            self.worker.moveToThread(self.thread)
+            self.worker.readingsSignal.connect(self._getData)
+            self.worker.connectedSignal.connect(self.connectedSignal.emit)
+            self.thread.started.connect(self.worker.run)
+            self.updateModules(self.dialog.modNumbers)
+            self.thread.start()
 
     def updateModules(self, modNumbers):
         """

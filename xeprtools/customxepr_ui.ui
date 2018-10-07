@@ -202,7 +202,7 @@
          </widget>
         </item>
         <item row="7" column="0" colspan="3">
-         <spacer name="verticalSpacer">
+         <spacer name="verticalSpacer_1">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
@@ -218,7 +218,7 @@
          </spacer>
         </item>
         <item row="14" column="0">
-         <widget class="QLabel" name="label_6">
+         <widget class="QLabel" name="labelT_settling">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -253,7 +253,7 @@
          </spacer>
         </item>
         <item row="12" column="0" colspan="3">
-         <widget class="QLabel" name="label_3">
+         <widget class="QLabel" name="labelTempControl">
           <property name="font">
            <font>
             <weight>75</weight>
@@ -266,7 +266,7 @@
          </widget>
         </item>
         <item row="13" column="0">
-         <widget class="QLabel" name="label_5">
+         <widget class="QLabel" name="labelT_tolerance">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -298,14 +298,14 @@
          </widget>
         </item>
         <item row="13" column="2" alignment="Qt::AlignLeft">
-         <widget class="QLabel" name="label_11">
+         <widget class="QLabel" name="labelT_toleranceUnit">
           <property name="text">
            <string>K</string>
           </property>
          </widget>
         </item>
         <item row="1" column="0" colspan="3">
-         <widget class="QLabel" name="label">
+         <widget class="QLabel" name="labelEmailSettings">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -443,7 +443,7 @@
          </spacer>
         </item>
         <item row="21" column="0" colspan="3">
-         <widget class="QLabel" name="label_8">
+         <widget class="QLabel" name="labelOther">
           <property name="font">
            <font>
             <weight>75</weight>
@@ -456,7 +456,7 @@
          </widget>
         </item>
         <item row="16" column="0" colspan="3">
-         <widget class="QLabel" name="label_7">
+         <widget class="QLabel" name="labelJobQControl">
           <property name="font">
            <font>
             <weight>75</weight>
@@ -469,7 +469,7 @@
          </widget>
         </item>
         <item row="14" column="2" alignment="Qt::AlignLeft">
-         <widget class="QLabel" name="label_12">
+         <widget class="QLabel" name="labelT_settlingUnit">
           <property name="text">
            <string>sec</string>
           </property>
@@ -508,7 +508,7 @@
          </widget>
         </item>
         <item row="24" column="0" colspan="3" alignment="Qt::AlignRight">
-         <widget class="QLabel" name="label_9">
+         <widget class="QLabel" name="labelCopyRight">
           <property name="text">
            <string>(c) 2018 Sam Schott</string>
           </property>
@@ -528,7 +528,7 @@
          </widget>
         </item>
         <item row="8" column="0" colspan="3">
-         <widget class="QLabel" name="label_10">
+         <widget class="QLabel" name="labelCustomXeprControl">
           <property name="font">
            <font>
             <weight>75</weight>

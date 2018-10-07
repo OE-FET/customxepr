@@ -5,7 +5,7 @@ Created on Sun Jun  4 14:03:29 2017
 
 @author: SamSchott
 """
-
+from __future__ import division, absolute_import
 import math
 import re
 import numpy as np
@@ -21,7 +21,7 @@ def lorentz_peak(x, x0, w, A):
     Lorentzian with area A and fwhm w centered around x0.
     """
 
-    numerator = 2.0/math.pi * w
+    numerator = 2/math.pi * w
     denominator = 4*(x - x0)**2 + w**2
     return A * numerator / denominator
 
@@ -82,7 +82,7 @@ class ModePicture(object):
         baseline = np.mean([bs1, bs2])
         # find peak area
         peakHeight = baseline - np.min(yData)
-        peakIndex = (yData < peakHeight/2.0 + np.min(yData))
+        peakIndex = (yData < peakHeight/2 + np.min(yData))
         fwhm = max(np.max(xData[peakIndex]) - np.min(xData[peakIndex]), 1)
         peakArea = peakHeight * fwhm * math.pi / 2
 
@@ -159,8 +159,11 @@ class ModePicture(object):
 
         # save to file
         if filepath is None:
-            text = 'Please select file to save mode picture:'
-            filepath = QtWidgets.QFileDialog.getSaveFileName(caption=text)
+            prompt = 'Save as file'
+            filename = 'untitled.txt'
+            formats = 'Text file (*.txt)'
+            filepath = QtWidgets.QFileDialog.getSaveFileName(self, prompt,
+                                                             filename, formats)
             filepath = filepath[0]
 
         if len(filepath) > 4:
@@ -172,8 +175,8 @@ class ModePicture(object):
     def load(self, filepath=None):
 
         if filepath is None:
-            text = 'Please select file with mode picture data:'
-            filepath = QtWidgets.QFileDialog.getOpenFileName(caption=text)
+            prompt = 'Select file'
+            filepath = QtWidgets.QFileDialog.getOpenFileName(self, prompt)
             filepath = filepath[0]
 
         if len(filepath) > 4:

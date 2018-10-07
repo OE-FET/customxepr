@@ -13,18 +13,13 @@ import re
 import shutil
 import time
 import codecs
-from ConfigParser import ConfigParser as cp
+from utils.py3compat import configparser as cp
+from spyder.py3compat import PY2, is_text_string, to_text_string
 from distutils.version import LooseVersion
 
 # Local imports
 from config.base import (get_conf_path, get_home_dir,
                          get_module_source_path)
-
-
-def is_text_string(obj):
-    """Return True if `obj` is a text string, False if it is anything else,
-    like binary data (Python 3) or QString (Python 2, PyQt API #1)"""
-    return isinstance(obj, basestring)
 
 
 def is_stable_version(version):
@@ -98,19 +93,42 @@ class NoDefault:
 # Defaults class
 # =============================================================================
 
-class DefaultsConfig(cp):
+class DefaultsConfig(cp.ConfigParser):
     """
     Class used to save defaults to a file and as base class for
     UserConfig
     """
     def __init__(self, name, subfolder):
-        cp.__init__(self)
+        if PY2:
+            cp.ConfigParser.__init__(self)
+        else:
+            cp.ConfigParser.__init__(self, interpolation=None)
 
         self.name = name
         self.subfolder = subfolder
 
         self.optionxform = str
 
+    def _write(self, fp):
+        """
+        Private write method for Python 2
+        The one from configparser fails for non-ascii Windows accounts
+        """
+        if self._defaults:
+            fp.write("[%s]\n" % cp.DEFAULTSECT)
+            for (key, value) in self._defaults.items():
+                fp.write("%s = %s\n" % (key, str(value).replace('\n', '\n\t')))
+            fp.write("\n")
+        for section in self._sections:
+            fp.write("[%s]\n" % section)
+            for (key, value) in self._sections[section].items():
+                if key == "__name__":
+                    continue
+                if (value is not None) or (self._optcre == self.OPTCRE):
+                    value = to_text_string(value)
+                    key = " = ".join((key, value.replace('\n', '\n\t')))
+                fp.write("%s\n" % (key))
+            fp.write("\n")
     def _set(self, section, option, value, verbose):
         """
         Private set method
@@ -121,7 +139,7 @@ class DefaultsConfig(cp):
             value = repr(value)
         if verbose:
             print('%s[ %s ] = %s' % (section, option, value))
-        cp.set(self, section, option, value)
+        cp.ConfigParser.set(self, section, option, value)
 
     def _save(self):
         """
@@ -132,8 +150,14 @@ class DefaultsConfig(cp):
         fname = self.filename()
 
         def _write_file(fname):
-            with codecs.open(fname, 'w', encoding='utf-8') as configfile:
-                self.write(configfile)
+            if PY2:
+                # Python 2
+                with codecs.open(fname, 'w', encoding='utf-8') as configfile:
+                    self._write(configfile)
+            else:
+                # Python 3
+                with open(fname, 'w', encoding='utf-8') as configfile:
+                    self.write(configfile)
 
         try:  # the "easy" way
             _write_file(fname)
@@ -282,7 +306,7 @@ class UserConfig(DefaultsConfig):
 
     def _load_old_defaults(self, old_version):
         """Read old defaults"""
-        old_defaults = cp()
+        old_defaults = cp.ConfigParser()
         if check_version(old_version, '3.0.0', '<='):
             path = get_module_source_path('spyder')
         else:
@@ -403,7 +427,7 @@ class UserConfig(DefaultsConfig):
                 self.set(section, option, default)
                 return default
 
-        value = cp.get(self, section, option, raw=self.raw)
+        value = cp.ConfigParser.get(self, section, option, raw=self.raw)
         # Use type of default_value to parse value correctly
         default_value = self.get_default(section, option)
         if isinstance(default_value, bool):
@@ -413,17 +437,18 @@ class UserConfig(DefaultsConfig):
         elif isinstance(default_value, int):
             value = int(value)
         elif is_text_string(default_value):
-            try:
-                value = value.decode('utf-8')
+            if PY2:
                 try:
-                    # Some str config values expect to be eval after decoding
-                    new_value = ast.literal_eval(value)
-                    if is_text_string(new_value):
-                        value = new_value
-                except (SyntaxError, ValueError):
+                    value = value.decode('utf-8')
+                    try:
+                        # Some str config values expect to be eval after decoding
+                        new_value = ast.literal_eval(value)
+                        if is_text_string(new_value):
+                            value = new_value
+                    except (SyntaxError, ValueError):
+                        pass
+                except (UnicodeEncodeError, UnicodeDecodeError):
                     pass
-            except (UnicodeEncodeError, UnicodeDecodeError):
-                pass
         else:
             try:
                 # lists, tuples, ...
@@ -470,9 +495,9 @@ class UserConfig(DefaultsConfig):
             self._save()
 
     def remove_section(self, section):
-        cp.remove_section(self, section)
+        cp.ConfigParser.remove_section(self, section)
         self._save()
 
     def remove_option(self, section, option):
-        cp.remove_option(self, section, option)
+        cp.ConfigParser.remove_option(self, section, option)
         self._save()

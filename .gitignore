@@ -140,3 +140,6 @@ Temporary Items
 # measurement scripts
 ESR measurement scripts/*
 !ESR measurement scripts/FI_ESR_template.py
+.idea/workspace.xml
+*.xml
+*.iml
