@@ -906,7 +906,7 @@ class CustomXepr(QtCore.QObject):
             logger.warning('Q = %i is very small. Please check-up ' % QValue +
                            'on experiment.')
 
-        if direct is None:
+            if direct is None:
             pass
         elif os.path.isdir(direct):
             path = os.path.join(direct, 'QValues.txt')
@@ -916,7 +916,7 @@ class CustomXepr(QtCore.QObject):
             self.modePictureObj.save(path)
         else:
             raise RuntimeError('No such directory "%s"' % direct)
-
+            
         self.wait = self._wait_old
 
         return self.modePictureObj
