@@ -772,7 +772,7 @@ class CustomXepr(QtCore.QObject):
                         'require a connected ESR will not work.')
             return
 
-        self._wait_old = self.wait
+        wait_old = self.wait
         self.wait = 1
 
         logger.info('Reading Q-value.')
@@ -821,7 +821,7 @@ class CustomXepr(QtCore.QObject):
 
         logger.info('Q = %i.' % Qmean)
 
-        self.wait = self._wait_old
+        self.wait = wait_old
 
         return Qmean
 
