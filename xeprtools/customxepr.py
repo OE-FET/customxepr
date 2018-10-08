@@ -906,7 +906,7 @@ class CustomXepr(QtCore.QObject):
             logger.warning('Q = %i is very small. Please check-up ' % QValue +
                            'on experiment.')
 
-            if direct is None:
+        if direct is None:
             pass
         elif os.path.isdir(direct):
             path = os.path.join(direct, 'QValues.txt')
