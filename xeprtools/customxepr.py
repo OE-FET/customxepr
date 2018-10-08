@@ -843,7 +843,7 @@ class CustomXepr(QtCore.QObject):
             except AttributeError:
                 T = 298
 
-        self._wait_old = self.wait
+        wait_old = self.wait
         self.wait = 1
 
         logger.info('Reading Q-value.')
@@ -916,8 +916,8 @@ class CustomXepr(QtCore.QObject):
             self.modePictureObj.save(path)
         else:
             raise RuntimeError('No such directory "%s"' % direct)
-            
-        self.wait = self._wait_old
+
+        self.wait = wait_old
 
         return self.modePictureObj
 
