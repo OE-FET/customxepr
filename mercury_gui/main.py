@@ -161,7 +161,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.xLim = [-1 - self.x_padding, 0 + self.x_padding]
         self.yLim = [0, 300]
         self.ax1.axis(self.xLim + self.yLim)
-        self.ax2.axis(self.xLim + [-1.01, 1.01])
+        self.ax2.axis(self.xLim + [-1.08, 1.08])
 
         # create line object for temperature graph
         self.lc0 = [0, 0.8, 0.6]  # self.lc0 = [0, 0.64, 0.48]
@@ -374,7 +374,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def _update_plot(self):
 
         # select data to be plotted
-        x_slice = self.xDataZeroMin > -self.horizontalSlider.value()
+        x_slice = self.xDataZeroMin >= -self.horizontalSlider.value()
         self.CurrentXData = self.xDataZeroMin[x_slice]
         self.CurrentYDataT = self.yDataT[x_slice]
         self.CurrentYDataG = self.yDataG[x_slice]
@@ -388,11 +388,15 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.CurrentYDataG = self.CurrentYDataG[::step_size]
         self.CurrentYDataH = self.CurrentYDataH[::step_size]
 
+        # set smallest displayed datapoint to slider value
+        if self.xDataZeroMin[0] <= -self.horizontalSlider.value():
+            self.CurrentXData[0] = -self.horizontalSlider.value()
+
         # update axis limits
         if not self.CurrentXData.size == 0:
             xLim0 = max(-self.horizontalSlider.value(), self.CurrentXData[0])
             xLim1 = 0
-            x_pad = max(self.x_padding * abs(xLim0-xLim1), 1/10000)  # add 2% padding
+            x_pad = max(self.x_padding * abs(xLim0-xLim1), 1/10000)  # add 0.7% padding
             xLimNew = [xLim0 - x_pad, xLim1 + x_pad]
 
             yLimNew = [floor(self.CurrentYDataT.min())-2.2,
@@ -430,7 +434,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.canvas.update()
         else:
             self.ax1.axis(xLimNew + yLimNew)
-            self.ax2.axis(xLimNew + [-1.01, 1.01])
+            self.ax2.axis(xLimNew + [-1.08, 1.08])
             self.canvas.draw()
 
         # update label
@@ -629,8 +633,9 @@ class ReadingsOverview(QtWidgets.QDialog):
                      'TYPES', 'clear_cache']
             readings = [x for x in attr if not (x.startswith('_') or x in EXEPT)]
             self.comboBox[i].addItems(readings)
-            self._get_reading(module_index=i)
-            self.comboBox[i].currentIndexChanged.connect(lambda x: self._get_reading(i))
+            self._get_reading(i)
+            callback = lambda: self._get_reading(None)
+            self.comboBox[i].currentIndexChanged.connect(callback)
 
         # add tab widget to main grid
         self.masterGrid.addWidget(self.tabWidget, 0, 0, 1, 1)
@@ -646,7 +651,8 @@ class ReadingsOverview(QtWidgets.QDialog):
 
     def _get_reading(self, i):
 
-        print(i)
+        if i is None:
+            i = int(self.sender().objectName()[-1])
 
         self.getreading = ('self.mercury.modules[%s].%s'
                            % (i, self.comboBox[i].currentText()))

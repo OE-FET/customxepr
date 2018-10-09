@@ -48,4 +48,4 @@ class TlsSMTPHandler(logging.handlers.SMTPHandler):
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
-            self.handleError(record)
+            pass
