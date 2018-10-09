@@ -1314,7 +1314,7 @@ class CustomXepr(QtCore.QObject):
                             pulsed=CONF.get('Keithley', 'pulsed'),
                             path=None):
         """
-        Performs a transfer measurement and returns a sweepData object.
+        Performs a transfer measurement and returns a data instance.
         Saves the data in a .txt file if a path is specified.
         """
 
@@ -1326,14 +1326,13 @@ class CustomXepr(QtCore.QObject):
         smu_gate = getattr(self.keithley, smu_gate)
         smu_drain = getattr(self.keithley, smu_drain)
 
-        sweepData = self.keithley.transferMeasurement(smu_gate, smu_drain,
-                                                      VgStart, VgStop, VgStep,
-                                                      VdList, tInt, delay,
-                                                      pulsed)
+        sd = self.keithley.transferMeasurement(smu_gate, smu_drain, VgStart,
+                                               VgStop, VgStep, VdList, tInt,
+                                               delay, pulsed)
         if path is not None:
-            sweepData.save(path)
+            sd.save(path)
 
-        return sweepData
+        return sd
 
     @queued_exec(job_queue)
     def outputMeasurement(self, smu_gate=CONF.get('Keithley', 'gate'),
@@ -1347,7 +1346,7 @@ class CustomXepr(QtCore.QObject):
                           pulsed=CONF.get('Keithley', 'pulsed'),
                           path=None):
         """
-        Performs an output measurement and returns a sweepData object.
+        Performs an output measurement and returns a data instance.
         Saves the data in a .txt file if a path is specified.
         """
 
@@ -1359,14 +1358,13 @@ class CustomXepr(QtCore.QObject):
         smu_gate = getattr(self.keithley, smu_gate)
         smu_drain = getattr(self.keithley, smu_drain)
 
-        sweepData = self.keithley.outputMeasurement(smu_gate, smu_drain,
-                                                    VdStart, VdStop, VdStep,
-                                                    VgList, tInt, delay,
-                                                    pulsed)
+        sd = self.keithley.outputMeasurement(smu_gate, smu_drain, VdStart,
+                                             VdStop, VdStep, VgList, tInt,
+                                             delay, pulsed)
         if path is not None:
-            sweepData.save(path)
+            sd.save(path)
 
-        return sweepData
+        return sd
 
     @queued_exec(job_queue)
     def setGateVoltage(self, Vg, smu_gate=CONF.get('Keithley', 'gate')):

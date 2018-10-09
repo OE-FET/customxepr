@@ -647,7 +647,7 @@ class ReadingsOverview(QtWidgets.QDialog):
     def _get_Reading(self, select_index=None, module_index=None):
 
         i = module_index
-        if i is None:
+        if not i:
             self.activeBox = self.focusWidget()
             boxName = str(self.activeBox.objectName())
             i = int(boxName[-1])

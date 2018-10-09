@@ -12,7 +12,7 @@ import os
 from visa import InvalidSession
 from qtpy import QtGui, QtCore, QtWidgets, uic
 from matplotlib.figure import Figure
-from Keithley2600 import SweepData
+from Keithley2600 import TransistorSweepData
 
 # local imports
 from utils.led_indicator_widget import LedIndicator
@@ -250,7 +250,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self.addressDialog.show()
 
     def _on_save_clicked(self):
-        """Show GUI to save current SweepData as text file."""
+        """Show GUI to save current sweep data as text file."""
         prompt = 'Save as file'
         filename = 'untitled.txt'
         formats = 'Text file (*.txt)'
@@ -261,12 +261,12 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self.sweepData.save(filepath[0])
 
     def _on_load_clicked(self):
-        """Show GUI to load SweepData from file."""
+        """Show GUI to load sweep data from file."""
         prompt = 'Load file'
         filepath = QtWidgets.QFileDialog.getOpenFileName(self, prompt)
         if len(filepath[0]) < 4:
             return
-        self.sweepData = SweepData()
+        self.sweepData = TransistorSweepData()
         self.sweepData.load(filepath[0])
         self.plot_new_data()
         self.actionSaveSweepData.setEnabled(True)
@@ -440,15 +440,11 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self.ax.clear()  # clear current plot
 
         if self.sweepData.sweepType == 'transfer':
-
-            for i in range(0, self.sweepData.nStep):
-                nPoints = int(len(self.sweepData.Vg)/self.sweepData.nStep)
-                select = slice(i*nPoints, (i+1)*nPoints)
-
-                self.ax.semilogy(self.sweepData.Vg[select], abs(self.sweepData.Id[select]), '-',
-                                 label='Drain current, Vd = %s' % self.sweepData.vStep[i])
-                self.ax.semilogy(self.sweepData.Vg[select], abs(self.sweepData.Ig[select]), '--',
-                                 label='Gate current, Vd = %s' % self.sweepData.vStep[i])
+            for v in self.sweepData.step_list():
+                self.ax.semilogy(self.sweepData.vSweep[v], abs(self.sweepData.iDrain[v]),
+                                 '-', label='Drain current, Vd = %s' % v)
+                self.ax.semilogy(self.sweepData.vSweep[v], abs(self.sweepData.iGate[v]),
+                                 '--', label='Gate current, Vd = %s' % v)
                 self.ax.legend(loc=3)
 
             self.ax.autoscale(axis='x', tight=True)
@@ -459,15 +455,11 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
             self.canvas.draw()
 
         if self.sweepData.sweepType == 'output':
-
-            for i in range(0, self.sweepData.nStep):
-                nPoints = int(len(self.sweepData.Vg)/self.sweepData.nStep)
-                select = slice(i*nPoints, (i+1)*nPoints)
-
-                self.ax.plot(self.sweepData.Vd[select], abs(self.sweepData.Id[select]), '-',
-                             label='Drain current, Vg = %s' % self.sweepData.vStep[i])
-                self.ax.plot(self.sweepData.Vd[select], abs(self.sweepData.Ig[select]), '--',
-                             label='Gate current, Vg = %s' % self.sweepData.vStep[i])
+            for v in self.sweepData.step_list():
+                self.ax.plot(self.sweepData.vSweep[v], abs(self.sweepData.iDrain[v]),
+                             '-', label='Drain current, Vg = %s' % v)
+                self.ax.plot(self.sweepData.vSweep[v], abs(self.sweepData.iGate[v]),
+                             '--', label='Gate current, Vg = %s' % v)
                 self.ax.legend()
 
             self.ax.autoscale(axis='x', tight=True)

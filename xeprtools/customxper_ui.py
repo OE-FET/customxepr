@@ -14,7 +14,6 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 from __future__ import division, absolute_import
 import sys
 import os
-import time
 from qtpy import QtCore, QtWidgets, QtGui, uic
 import logging
 import logging.handlers
@@ -22,11 +21,9 @@ import platform
 import subprocess
 import re
 import pydoc
-from Keithley2600 import SweepData
 
 # custom module imports
 from xeprtools import customxepr
-from xeprtools.mode_picture import ModePicture
 from utils import dark_style
 from config.main import CONF
 
@@ -272,10 +269,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
     def openResultContextMenu(self):
         """
         Context menu for items in resultQueueDisplay. Gives the options to
-        delete the item, to plot it or to save it, depending on type.
+        delete the item, to plot it or to save it, depending on the implemented
+        methods.
         """
-        PLOT_RESULT = ['SweepData', 'ModePicture']
-        SAVE_RESULT = ['SweepData', 'ModePicture']
 
         indexes = self.resultQueueDisplay.selectedIndexes()
         if indexes == []:
@@ -289,9 +285,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
         plotAction = None
         saveAction = None
 
-        if self.resultQueueModel.data(indexes[0]) in PLOT_RESULT and i0 == i1:
+        if 'plot' in dir(self.result_queue.queue[i0]) and i0 == i1:
             plotAction = self.popup_menu.addAction('Plot data')
-        if self.resultQueueModel.data(indexes[0]) in SAVE_RESULT and i0 == i1:
+        if 'save' in dir(self.result_queue.queue[i0]) and i0 == i1:
             saveAction = self.popup_menu.addAction('Save data')
 
         action = self.popup_menu.exec_(QtGui.QCursor.pos())
@@ -377,7 +373,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
     def addResult(self, index=-1):
         """
-        Adds new result to resultQueueDisplay
+        Adds new result to resultQueueDisplay, tries to plot the result.
         """
         result = self.result_queue.queue[index]
 
@@ -386,10 +382,10 @@ class JobStatusApp(QtWidgets.QMainWindow):
         except TypeError:
             result_size = '--'
 
-        if type(result) == SweepData:
+        try:
             result.plot()
-        elif type(result) == ModePicture:
-            result.plot()
+        except AttributeError:
+            pass
 
         rslt_type = QtGui.QStandardItem(type(result).__name__)
         rslt_size = QtGui.QStandardItem(str(result_size))
