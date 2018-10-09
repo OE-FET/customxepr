@@ -629,8 +629,8 @@ class ReadingsOverview(QtWidgets.QDialog):
                      'TYPES', 'clear_cache']
             readings = [x for x in attr if not (x.startswith('_') or x in EXEPT)]
             self.comboBox[i].addItems(readings)
-            self._get_Reading(module_index=i)
-            self.comboBox[i].currentIndexChanged.connect(self._get_Reading)
+            self._get_reading(module_index=i)
+            self.comboBox[i].currentIndexChanged.connect(lambda x: self._get_reading(i))
 
         # add tab widget to main grid
         self.masterGrid.addWidget(self.tabWidget, 0, 0, 1, 1)
@@ -641,16 +641,12 @@ class ReadingsOverview(QtWidgets.QDialog):
 
         # get readings and alarms
         for i in range(0, self.ntabs):
-            self._get_Reading(module_index=i)
-            self._get_Alarms(module_index=i)
+            self._get_reading(i)
+            self._get_alarms(i)
 
-    def _get_Reading(self, select_index=None, module_index=None):
+    def _get_reading(self, i):
 
-        i = module_index
-        if not i:
-            self.activeBox = self.focusWidget()
-            boxName = str(self.activeBox.objectName())
-            i = int(boxName[-1])
+        print(i)
 
         self.getreading = ('self.mercury.modules[%s].%s'
                            % (i, self.comboBox[i].currentText()))
@@ -660,10 +656,9 @@ class ReadingsOverview(QtWidgets.QDialog):
         reading = str(reading)
         self.lineEdit[i].setText(reading)
 
-    def _get_Alarms(self, module_index):
+    def _get_alarms(self, i):
 
         # get alarms for all modules
-        i = module_index
         address = self.mercury.modules[i].address.split(':')
         short_address = address[1]
         if self.mercury.modules[i].nick == 'LOOP':
