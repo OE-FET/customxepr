@@ -603,7 +603,8 @@ class ReadingsOverview(QtWidgets.QDialog):
         self.lineEdit = [None]*self.ntabs
         self.label = [None]*self.ntabs
 
-        # create a tab for each module
+        # create a tab with combobox and text box for each module
+        # the tab number i corresonds to the mercury module number
         for i in range(0, self.ntabs):
             self.tab[i] = QtWidgets.QWidget()
             self.tab[i].setObjectName('tab_%s' % str(i))
@@ -626,7 +627,7 @@ class ReadingsOverview(QtWidgets.QDialog):
 
             self.tabWidget.addTab(self.tab[i], self.mercury.modules[i].nick)
 
-        # fill combobox with information
+        # fill combobox with information, set callbacks for updates
         for i in range(0, self.ntabs):
             attr = dir(self.mercury.modules[i])
             EXEPT = ['read', 'write', 'query', 'CAL_INT', 'EXCT_TYPES',
@@ -634,7 +635,11 @@ class ReadingsOverview(QtWidgets.QDialog):
             readings = [x for x in attr if not (x.startswith('_') or x in EXEPT)]
             self.comboBox[i].addItems(readings)
             self._get_reading(i)
-            callback = lambda: self._get_reading(None)
+
+            def callback(x, i=i):
+                """Callback to get readings from selection in combobox_i."""
+                self._get_reading(i)
+
             self.comboBox[i].currentIndexChanged.connect(callback)
 
         # add tab widget to main grid
@@ -650,9 +655,7 @@ class ReadingsOverview(QtWidgets.QDialog):
             self._get_alarms(i)
 
     def _get_reading(self, i):
-
-        if i is None:
-            i = int(self.sender().objectName()[-1])
+        """ Gets readings of selected variable in combobox_i."""
 
         self.getreading = ('self.mercury.modules[%s].%s'
                            % (i, self.comboBox[i].currentText()))
