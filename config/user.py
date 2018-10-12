@@ -14,7 +14,7 @@ import shutil
 import time
 import codecs
 from utils.py3compat import configparser as cp
-from spyder.py3compat import PY2, is_text_string, to_text_string
+from utils.py3compat import PY2, is_text_string, to_text_string
 from distutils.version import LooseVersion
 
 # Local imports
@@ -129,6 +129,7 @@ class DefaultsConfig(cp.ConfigParser):
                     key = " = ".join((key, value.replace('\n', '\n\t')))
                 fp.write("%s\n" % (key))
             fp.write("\n")
+
     def _set(self, section, option, value, verbose):
         """
         Private set method

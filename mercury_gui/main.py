@@ -209,6 +209,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         # set update_plot to be executed every time the slider position changes
         self.horizontalSlider.valueChanged.connect(self._update_plot)
 
+    @QtCore.pyqtSlot(bool)
     def _update_GUI_connection(self, connected):
         if connected:
             self._display_message('Connection established.')
@@ -323,6 +324,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def _display_error(self, text):
         self.statusBar.showMessage('    %s' % text)
 
+    @QtCore.pyqtSlot(object)
     def fetch_readings(self, readings):
         """
         Parses readings for the MercuryMonitorApp and emits resulting
@@ -353,6 +355,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         elif readings['TempRampEnable'] == 'OFF':
             self.t_ramp_enable_Signal.emit(False)
 
+    @QtCore.pyqtSlot(object)
     def _update_plot_data(self, readings):
         # append data for plotting
         self.xData = np.append(self.xData, time.time())
@@ -371,6 +374,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self._update_plot()
 
+    @QtCore.pyqtSlot()
     def _update_plot(self):
 
         # select data to be plotted
@@ -497,6 +501,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
 # =================== CALLBACKS FOR SETTING CHANGES ===========================
 
+    @QtCore.pyqtSlot()
     def change_t_setpoint(self):
         newT = float(self.t2_edit.text())
 
@@ -507,10 +512,12 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self._display_error('Error: Only temperature setpoints between ' +
                                 '3.5 K and 300 K allowed.')
 
+    @QtCore.pyqtSlot()
     def change_ramp(self):
         self.feed.control.ramp = float(self.r1_edit.text())
         self._display_message('Ramp = ' + self.r1_edit.text() + ' K/min')
 
+    @QtCore.pyqtSlot()
     def change_ramp_auto(self, checked):
         if checked:
             self.feed.control.ramp_enable = 'ON'
@@ -519,10 +526,12 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.feed.control.ramp_enable = 'OFF'
             self._display_message('Ramp is turned OFF')
 
+    @QtCore.pyqtSlot()
     def change_flow(self):
         self.feed.control.flow = float(self.gf1_edit.text())
         self._display_message('Gas flow  = ' + self.gf1_edit.text() + '%')
 
+    @QtCore.pyqtSlot(bool)
     def change_flow_auto(self, checked):
         if checked:
             self.feed.control.flow_auto = 'ON'
@@ -535,10 +544,12 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.gf1_edit.setReadOnly(False)
             self.gf1_edit.setEnabled(True)
 
+    @QtCore.pyqtSlot()
     def change_heater(self):
         self.feed.control.heater = float(self.h1_edit.text())
         self._display_message('Heater power  = ' + self.h1_edit.text() + '%')
 
+    @QtCore.pyqtSlot(bool)
     def change_heater_auto(self, checked):
         if checked:
             self.feed.control.heater_auto = 'ON'
@@ -551,6 +562,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.h1_edit.setReadOnly(False)
             self.h1_edit.setEnabled(True)
 
+    @QtCore.pyqtSlot(object)
     def _check_overheat(self, readings):
         if readings['Temp'] > 310:
             self._display_error('Over temperature!')
@@ -559,6 +571,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
 # ========================== CALLBACKS FOR MENU BAR ===========================
 
+    @QtCore.pyqtSlot()
     def _on_readings_clicked(self):
         # create readings overview window if not present
         if self.readingsWindow is None:
@@ -566,6 +579,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         # show it
         self.readingsWindow.show()
 
+    @QtCore.pyqtSlot()
     def _on_log_clicked(self):
         """
         Opens directory with log files with current log file selected.

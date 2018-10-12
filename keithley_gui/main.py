@@ -56,7 +56,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         ## load default settings into GUI
         self._on_load_default()
 
-        # connect to call-backs
+        # connect to callbacks
         self.pushButtonTransfer.clicked.connect(self._on_transfer_clicked)
         self.pushButtonOutput.clicked.connect(self._on_output_clicked)
         self.pushButtonAbort.clicked.connect(self._on_abort_clicked)
@@ -76,7 +76,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self.actionSaveSweepData.setEnabled(False)
 
         # update when keithley is connected
-        self._update_Gui_connection()
+        self._update_gui_connection()
 
         # create address dialog
         self.addressDialog = KeithleyAddressDialog(self.keithley)
@@ -84,25 +84,18 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         # connection update timer: check periodically if keithley is connected
         # and busy, act accordingly
         self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.update_connection_status)
+        self.timer.timeout.connect(self._check_connection)
         self.timer.start(10000)  # Call every 10 seconds
 
-    def update_connection_status(self):
+    @QtCore.pyqtSlot()
+    def _check_connection(self):
         # disconncet if keithley does not respond, test by querying model
         if self.keithley.connected and not self.keithley.busy:
             try:
                 self.keithley.localnode.model
             except (InvalidSession, OSError):
                 self.keithley.disconnect()
-                self._update_Gui_connection()
-
-    def setIntialPosition(self):
-        screen = QtWidgets.QDesktopWidget().screenGeometry(self)
-
-        xPos = screen.left() + screen.width()/4
-        yPos = screen.top() + screen.height()/3
-
-        self.setGeometry(xPos, yPos, 900, 500)
+                self._update_gui_connection()
 
     def _convert_to_Vd(self, string):
         try:
@@ -118,29 +111,39 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
             msg = ('Keithley is currently used by antoher program. ' +
                    'Please try again later.')
             QtWidgets.QMessageBox.information(None, str('error'), msg)
+
 # =============================================================================
 # Measurement callbacks
 # =============================================================================
 
+    @QtCore.pyqtSlot()
     def _on_transfer_clicked(self):
         """ Start a transfer measurement with current settings."""
         self._check_if_busy()
 
-        params = {'Measurement': 'transfer'}
-        # get current settings
-        # get current settings
-        smugate = self.comboBoxGateSMU.currentText()
-        params['smu_gate'] = getattr(self.keithley, smugate)
-        smudrain = self.comboBoxDrainSMU.currentText()
-        params['smu_drain'] = getattr(self.keithley, smudrain)
+        if self.sender() == self.pushButtonTransfer:
+            self.statusBar.showMessage('    Recording transfer curve.')
+            # get sweep settings
+            params = {'Measurement': 'transfer'}
+            params['VgStart'] = float(self.lineEditVgStart.text())
+            params['VgStop'] = float(self.lineEditVgStop.text())
+            params['VgStep'] = float(self.lineEditVgStep.text())
+            VdListString = self.lineEditVdList.text()
+            VdStringList = VdListString.split(',')
+            params['VdList'] = [self._convert_to_Vd(x) for x in VdStringList]
 
-        params['VgStart'] = float(self.lineEditVgStart.text())
-        params['VgStop'] = float(self.lineEditVgStop.text())
-        params['VgStep'] = float(self.lineEditVgStep.text())
-        VdListString = self.lineEditVdList.text()
-        VdStringList = VdListString.split(',')
-        params['VdList'] = [self._convert_to_Vd(x) for x in VdStringList]
+        elif self.sender() == self.pushButtonOutput:
+            self.statusBar.showMessage('    Recording output curve.')
+            # get sweep settings
+            params = {'Measurement': 'output'}
+            params['VdStart'] = float(self.lineEditVdStart.text())
+            params['VdStop'] = float(self.lineEditVdStop.text())
+            params['VdStep'] = float(self.lineEditVdStep.text())
+            VgListString = self.lineEditVgList.text()
+            VgStringList = VgListString.split(',')
+            params['VgList'] = [float(x) for x in VgStringList]
 
+        # get aquisition settings
         params['tInt'] = float(self.lineEditInt.text())
         params['delay'] = float(self.lineEditSettling.text())
 
@@ -150,52 +153,15 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         elif self.comboBoxSweepType.currentIndex() == 1:
             params['pulsed'] = True
 
-        # run measurement
-        self.statusBar.showMessage('    Recording transfer curve.')
-
+        # create measurement thread with params dictionary
         self.measureThread = MeasureThread(self.keithley, params)
         self.measureThread.finishedSig.connect(self._on_measure_done)
 
-        # reflect idle and busy states in GUI
-        self._gui_state_busy()
-
-        self.measureThread.start()
-
-    def _on_output_clicked(self):
-        """ Start an output measurement with current settings."""
-        self._check_if_busy()
-
-        params = {'Measurement': 'output'}
-        # get current settings
-        smugate = self.comboBoxGateSMU.currentText()
-        params['smu_gate'] = getattr(self.keithley, smugate)
-        smudrain = self.comboBoxDrainSMU.currentText()
-        params['smu_drain'] = getattr(self.keithley, smudrain)
-
-        params['VdStart'] = float(self.lineEditVdStart.text())
-        params['VdStop'] = float(self.lineEditVdStop.text())
-        params['VdStep'] = float(self.lineEditVdStep.text())
-        VgListString = self.lineEditVgList.text()
-        VgStringList = VgListString.split(',')
-        params['VgList'] = [float(x) for x in VgStringList]
-
-        params['tInt'] = float(self.lineEditInt.text())
-        params['delay'] = float(self.lineEditSettling.text())
-
-        # get combo box status
-        if self.comboBoxSweepType.currentIndex() == 0:
-            params['pulsed'] = False
-        elif self.comboBoxSweepType.currentIndex() == 1:
-            params['pulsed'] = True
-
         # run measurement
-        self.statusBar.showMessage('    Recording output curve.')
-        self.measureThread = MeasureThread(self.keithley, params)
-        self.measureThread.finishedSig.connect(self._on_measure_done)
-
         self._gui_state_busy()
         self.measureThread.start()
 
+    @QtCore.pyqtSlot(object)
     def _on_measure_done(self, sweepData):
         self.statusBar.showMessage('    Ready.')
         self._gui_state_idle()
@@ -206,6 +172,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         if not self.keithley.abort_event.is_set():
             self._on_save_clicked()
 
+    @QtCore.pyqtSlot()
     def _on_abort_clicked(self):
         """
         Aborts current measurement.
@@ -216,6 +183,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
 # Interface callbacks
 # =============================================================================
 
+    @QtCore.pyqtSlot(int)
     def _on_smu_gate_changed(self, intSMU):
         """ Triggered when the user selects a different gate SMU. """
 
@@ -224,6 +192,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         elif intSMU == 1 and len(self.keithley.SMU_LIST) < 3:
             self.comboBoxDrainSMU.setCurrentIndex(0)
 
+    @QtCore.pyqtSlot(int)
     def _on_smu_drain_changed(self, intSMU):
         """ Triggered when the user selects a different drain SMU. """
 
@@ -232,23 +201,27 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         elif intSMU == 1 and len(self.keithley.SMU_LIST) < 3:
             self.comboBoxGateSMU.setCurrentIndex(0)
 
+    @QtCore.pyqtSlot()
     def _on_connect_clicked(self):
         self.keithley.connect()
-        self._update_Gui_connection()
+        self._update_gui_connection()
         if not self.keithley.connected:
             msg = ('Keithley cannot be reached at %s. ' % self.keithley.visa_address
                    + 'Please check if address is correct and Keithley is ' +
                    'turned on.')
             QtWidgets.QMessageBox.information(None, str('error'), msg)
 
+    @QtCore.pyqtSlot()
     def _on_disconnect_clicked(self):
         self.keithley.disconnect()
-        self._update_Gui_connection()
+        self._update_gui_connection()
         self.statusBar.showMessage('    No Keithley connected.')
 
+    @QtCore.pyqtSlot()
     def _on_settings_clicked(self):
         self.addressDialog.show()
 
+    @QtCore.pyqtSlot()
     def _on_save_clicked(self):
         """Show GUI to save current sweep data as text file."""
         prompt = 'Save as file'
@@ -260,6 +233,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
             return
         self.sweepData.save(filepath[0])
 
+    @QtCore.pyqtSlot()
     def _on_load_clicked(self):
         """Show GUI to load sweep data from file."""
         prompt = 'Load file'
@@ -271,12 +245,99 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self.plot_new_data()
         self.actionSaveSweepData.setEnabled(True)
 
+    @QtCore.pyqtSlot()
+    def _on_save_default(self):
+        """Saves current settings from GUI as defaults."""
+
+        # save transfer settings
+        CONF.set('Keithley', 'VgStart', float(self.lineEditVgStart.text()))
+        CONF.set('Keithley', 'VgStop', float(self.lineEditVgStop.text()))
+        CONF.set('Keithley', 'VgStep', float(self.lineEditVgStep.text()))
+
+        VdListString = self.lineEditVdList.text()
+        VdStringList = VdListString.split(',')
+        CONF.set('Keithley', 'VdList', [self._convert_to_Vd(x) for x in VdStringList])
+
+        # save output settings
+        CONF.set('Keithley', 'VdStart', float(self.lineEditVdStart.text()))
+        CONF.set('Keithley', 'VdStop', float(self.lineEditVdStop.text()))
+        CONF.set('Keithley', 'VdStep', float(self.lineEditVdStep.text()))
+
+        VgListString = self.lineEditVgList.text()
+        VgStringList = VgListString.split(',')
+        CONF.set('Keithley', 'VgList', [float(x) for x in VgStringList])
+
+        # save general settings
+        CONF.set('Keithley', 'tInt', float(self.lineEditInt.text()))
+        CONF.set('Keithley', 'delay', float(self.lineEditSettling.text()))
+
+        # get combo box status
+        if self.comboBoxSweepType.currentIndex() == 0:
+            CONF.set('Keithley', 'pulsed', False)
+        elif self.comboBoxSweepType.currentIndex() == 1:
+            CONF.set('Keithley', 'pulsed', True)
+
+        CONF.set('Keithley', 'gate', self.comboBoxGateSMU.currentText())
+        CONF.set('Keithley', 'drain', self.comboBoxDrainSMU.currentText())
+
+    @QtCore.pyqtSlot()
+    def _on_load_default(self):
+        """Load default settings to interface."""
+
+        ## set text box contents
+        # transfer curve settings
+        self.lineEditVgStart.setText(str(CONF.get('Keithley', 'VgStart')))
+        self.lineEditVgStop.setText(str(CONF.get('Keithley', 'VgStop')))
+        self.lineEditVgStep.setText(str(CONF.get('Keithley', 'VgStep')))
+        self.lineEditVdList.setText(str(CONF.get('Keithley', 'VdList')).strip('[]'))
+        # output curve settings
+        self.lineEditVdStart.setText(str(CONF.get('Keithley', 'VdStart')))
+        self.lineEditVdStop.setText(str(CONF.get('Keithley', 'VdStop')))
+        self.lineEditVdStep.setText(str(CONF.get('Keithley', 'VdStep')))
+        self.lineEditVgList.setText(str(CONF.get('Keithley', 'VgList')).strip('[]'))
+
+        # other
+        self.lineEditInt.setText(str(CONF.get('Keithley', 'tInt')))
+        self.lineEditSettling.setText(str(CONF.get('Keithley', 'delay')))
+
+        # set PULSED comboBox status
+        pulsed = CONF.get('Keithley', 'pulsed')
+        if pulsed is False:
+            self.comboBoxSweepType.setCurrentIndex(0)
+        elif pulsed is True:
+            self.comboBoxSweepType.setCurrentIndex(1)
+
+        # Set SMU selection comboBox status
+        cmbList = list(self.keithley.SMU_LIST)  # get list of all SMUs
+        # We have to comboBoxes. If there are less SMU's, extend list.
+        while len(cmbList) < 2:
+            cmbList.append('--')
+
+        self.comboBoxGateSMU.clear()
+        self.comboBoxDrainSMU.clear()
+        self.comboBoxGateSMU.addItems(cmbList)
+        self.comboBoxDrainSMU.addItems(cmbList)
+
+        try:
+            self.comboBoxGateSMU.setCurrentIndex(cmbList.index(CONF.get('Keithley', 'gate')))
+            self.comboBoxDrainSMU.setCurrentIndex(cmbList.index(CONF.get('Keithley', 'drain')))
+        except ValueError:
+            self.comboBoxGateSMU.setCurrentIndex(0)
+            self.comboBoxDrainSMU.setCurrentIndex(1)
+            msg = 'Could not find last used SMUs in Keithley driver.'
+            QtWidgets.QMessageBox.information(None, str('error'), msg)
+
+    @QtCore.pyqtSlot()
     def _on_exit_clicked(self):
         self.keithley.disconnect()
         self.timer.stop()
         self.deleteLater()
 
-    def _update_Gui_connection(self):
+# =============================================================================
+# Interface states
+# =============================================================================
+
+    def _update_gui_connection(self):
         """Check if Keithley is connected and update GUI."""
         if self.keithley.connected and not self.keithley.busy:
             self._gui_state_idle()
@@ -323,86 +384,6 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self.actionConnect.setEnabled(True)
         self.actionDisconnect.setEnabled(False)
         self.statusBar.showMessage('    No Keithley connected.')
-
-    def _on_save_default(self):
-        """Saves current settings from GUI as defaults."""
-
-        # save transfer settings
-        CONF.set('Keithley', 'VgStart', float(self.lineEditVgStart.text()))
-        CONF.set('Keithley', 'VgStop', float(self.lineEditVgStop.text()))
-        CONF.set('Keithley', 'VgStep', float(self.lineEditVgStep.text()))
-
-        VdListString = self.lineEditVdList.text()
-        VdStringList = VdListString.split(',')
-        CONF.set('Keithley', 'VdList', [self._convert_to_Vd(x) for x in VdStringList])
-
-        # save output settings
-        CONF.set('Keithley', 'VdStart', float(self.lineEditVdStart.text()))
-        CONF.set('Keithley', 'VdStop', float(self.lineEditVdStop.text()))
-        CONF.set('Keithley', 'VdStep', float(self.lineEditVdStep.text()))
-
-        VgListString = self.lineEditVgList.text()
-        VgStringList = VgListString.split(',')
-        CONF.set('Keithley', 'VgList', [float(x) for x in VgStringList])
-
-        # save general settings
-        CONF.set('Keithley', 'tInt', float(self.lineEditInt.text()))
-        CONF.set('Keithley', 'delay', float(self.lineEditSettling.text()))
-
-        # get combo box status
-        if self.comboBoxSweepType.currentIndex() == 0:
-            CONF.set('Keithley', 'pulsed', False)
-        elif self.comboBoxSweepType.currentIndex() == 1:
-            CONF.set('Keithley', 'pulsed', True)
-
-        CONF.set('Keithley', 'gate', self.comboBoxGateSMU.currentText())
-        CONF.set('Keithley', 'drain', self.comboBoxDrainSMU.currentText())
-
-    def _on_load_default(self):
-        """Load default settings to interface."""
-
-        ## set text box contents
-        # transfer curve settings
-        self.lineEditVgStart.setText(str(CONF.get('Keithley', 'VgStart')))
-        self.lineEditVgStop.setText(str(CONF.get('Keithley', 'VgStop')))
-        self.lineEditVgStep.setText(str(CONF.get('Keithley', 'VgStep')))
-        self.lineEditVdList.setText(str(CONF.get('Keithley', 'VdList')).strip('[]'))
-        # output curve settings
-        self.lineEditVdStart.setText(str(CONF.get('Keithley', 'VdStart')))
-        self.lineEditVdStop.setText(str(CONF.get('Keithley', 'VdStop')))
-        self.lineEditVdStep.setText(str(CONF.get('Keithley', 'VdStep')))
-        self.lineEditVgList.setText(str(CONF.get('Keithley', 'VgList')).strip('[]'))
-
-        # other
-        self.lineEditInt.setText(str(CONF.get('Keithley', 'tInt')))
-        self.lineEditSettling.setText(str(CONF.get('Keithley', 'delay')))
-
-        # set PULSED comboBox status
-        pulsed = CONF.get('Keithley', 'pulsed')
-        if pulsed is False:
-            self.comboBoxSweepType.setCurrentIndex(0)
-        elif pulsed is True:
-            self.comboBoxSweepType.setCurrentIndex(1)
-
-        # Set SMU selection comboBox status
-        cmbList = list(self.keithley.SMU_LIST)  # get list of all SMUs
-        # We have to comboBoxes. If there are less SMU's, extend list.
-        while len(cmbList) < 2:
-            cmbList.append('--')
-
-        self.comboBoxGateSMU.clear()
-        self.comboBoxDrainSMU.clear()
-        self.comboBoxGateSMU.addItems(cmbList)
-        self.comboBoxDrainSMU.addItems(cmbList)
-
-        try:
-            self.comboBoxGateSMU.setCurrentIndex(cmbList.index(CONF.get('Keithley', 'gate')))
-            self.comboBoxDrainSMU.setCurrentIndex(cmbList.index(CONF.get('Keithley', 'drain')))
-        except ValueError:
-            self.comboBoxGateSMU.setCurrentIndex(0)
-            self.comboBoxDrainSMU.setCurrentIndex(1)
-            msg = 'Could not find last used SMUs in Keithley driver.'
-            QtWidgets.QMessageBox.information(None, str('error'), msg)
 
 # =============================================================================
 # Plotting commands
