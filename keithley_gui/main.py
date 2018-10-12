@@ -57,8 +57,8 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self._on_load_default()
 
         # connect to callbacks
-        self.pushButtonTransfer.clicked.connect(self._on_transfer_clicked)
-        self.pushButtonOutput.clicked.connect(self._on_output_clicked)
+        self.pushButtonTransfer.clicked.connect(self._on_sweep_clicked)
+        self.pushButtonOutput.clicked.connect(self._on_sweep_clicked)
         self.pushButtonAbort.clicked.connect(self._on_abort_clicked)
 
         self.comboBoxGateSMU.currentIndexChanged.connect(self._on_smu_gate_changed)
@@ -117,7 +117,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
 # =============================================================================
 
     @QtCore.Slot()
-    def _on_transfer_clicked(self):
+    def _on_sweep_clicked(self):
         """ Start a transfer measurement with current settings."""
         self._check_if_busy()
 
