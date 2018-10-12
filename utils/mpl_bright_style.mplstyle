@@ -1,4 +1,4 @@
-# Set black background default line colors to white.
+# Set white background default line colors to black.
 
 xtick.color: [0, 0, 0, 1]
 xtick.direction: out

@@ -72,8 +72,7 @@ def go_dark():
 
 def apply_mpl_dark_theme():
     """
-    Changes appearance of existing matplotlib figures to match qdarkstyle.
-    Input argument is a list of canvases.
+    Changes appearance of existing matplotlib figures to match dark theme.
     """
 
     canvasList = get_canvas_list()
@@ -105,8 +104,7 @@ def go_bright():
 
 def apply_mpl_bright_theme():
     """
-    Changes appearance of matplotlib current figures to match bright style.
-    Input argument is a list of figures.
+    Changes appearance of existing matplotlib figures to match bright theme.
     """
 
     canvasList = get_canvas_list()
