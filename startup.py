@@ -38,7 +38,7 @@ from mercury_gui.feed import MercuryFeed
 from mercury_gui.main import MercuryMonitorApp
 from keithley_gui.main import KeithleyGuiApp
 
-from utils import dark_style
+from utils import styles
 from utils.misc import patch_excepthook
 from utils.internal_ipkernel import InternalIPKernel
 
@@ -155,9 +155,9 @@ if __name__ == '__main__':
 
     # apply dark theme
     if DARK:
-        dark_style.go_dark()
+        styles.go_dark()
     else:
-        dark_style.go_bright()
+        styles.go_bright()
 
     # connect to instruments
     customXepr, xepr, keithley, mercury, mercuryFeed = connect_to_instruments()
@@ -167,9 +167,9 @@ if __name__ == '__main__':
 
     # reinforce dark theme for figures
     if DARK:
-        dark_style.apply_mpl_dark_theme()
+        styles.apply_mpl_dark_theme()
     else:
-        dark_style.apply_mpl_bright_theme()
+        styles.apply_mpl_bright_theme()
 
     BANNER = ('Welcome to CustomXepr %s. ' % __version__ +
               'You can access connected instruments through "customXepr" ' +
@@ -186,7 +186,7 @@ if __name__ == '__main__':
         kernel_window.init_ipkernel(banner=BANNER)
 
         if DARK:
-            console_style = dark_style.get_console_dark_style()
+            console_style = styles.get_console_dark_style()
         else:
             console_style = ''
 

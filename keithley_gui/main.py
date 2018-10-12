@@ -87,7 +87,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self.timer.timeout.connect(self._check_connection)
         self.timer.start(10000)  # Call every 10 seconds
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def _check_connection(self):
         # disconncet if keithley does not respond, test by querying model
         if self.keithley.connected and not self.keithley.busy:
@@ -116,7 +116,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
 # Measurement callbacks
 # =============================================================================
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def _on_transfer_clicked(self):
         """ Start a transfer measurement with current settings."""
         self._check_if_busy()
@@ -161,7 +161,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self._gui_state_busy()
         self.measureThread.start()
 
-    @QtCore.pyqtSlot(object)
+    @QtCore.Slot(object)
     def _on_measure_done(self, sweepData):
         self.statusBar.showMessage('    Ready.')
         self._gui_state_idle()
@@ -172,7 +172,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         if not self.keithley.abort_event.is_set():
             self._on_save_clicked()
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def _on_abort_clicked(self):
         """
         Aborts current measurement.
@@ -183,7 +183,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
 # Interface callbacks
 # =============================================================================
 
-    @QtCore.pyqtSlot(int)
+    @QtCore.Slot(int)
     def _on_smu_gate_changed(self, intSMU):
         """ Triggered when the user selects a different gate SMU. """
 
@@ -192,7 +192,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         elif intSMU == 1 and len(self.keithley.SMU_LIST) < 3:
             self.comboBoxDrainSMU.setCurrentIndex(0)
 
-    @QtCore.pyqtSlot(int)
+    @QtCore.Slot(int)
     def _on_smu_drain_changed(self, intSMU):
         """ Triggered when the user selects a different drain SMU. """
 
@@ -201,7 +201,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         elif intSMU == 1 and len(self.keithley.SMU_LIST) < 3:
             self.comboBoxGateSMU.setCurrentIndex(0)
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def _on_connect_clicked(self):
         self.keithley.connect()
         self._update_gui_connection()
@@ -211,17 +211,17 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
                    'turned on.')
             QtWidgets.QMessageBox.information(None, str('error'), msg)
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def _on_disconnect_clicked(self):
         self.keithley.disconnect()
         self._update_gui_connection()
         self.statusBar.showMessage('    No Keithley connected.')
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def _on_settings_clicked(self):
         self.addressDialog.show()
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def _on_save_clicked(self):
         """Show GUI to save current sweep data as text file."""
         prompt = 'Save as file'
@@ -233,7 +233,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
             return
         self.sweepData.save(filepath[0])
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def _on_load_clicked(self):
         """Show GUI to load sweep data from file."""
         prompt = 'Load file'
@@ -245,7 +245,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self.plot_new_data()
         self.actionSaveSweepData.setEnabled(True)
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def _on_save_default(self):
         """Saves current settings from GUI as defaults."""
 
@@ -280,7 +280,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         CONF.set('Keithley', 'gate', self.comboBoxGateSMU.currentText())
         CONF.set('Keithley', 'drain', self.comboBoxDrainSMU.currentText())
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def _on_load_default(self):
         """Load default settings to interface."""
 
@@ -327,7 +327,7 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
             msg = 'Could not find last used SMUs in Keithley driver.'
             QtWidgets.QMessageBox.information(None, str('error'), msg)
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def _on_exit_clicked(self):
         self.keithley.disconnect()
         self.timer.stop()

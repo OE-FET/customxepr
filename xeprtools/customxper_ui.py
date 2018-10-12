@@ -24,7 +24,7 @@ import pydoc
 
 # custom module imports
 from xeprtools import customxepr
-from utils import dark_style
+from utils import styles
 from config.main import CONF
 
 logger = logging.getLogger(__name__)
@@ -488,13 +488,13 @@ class JobStatusApp(QtWidgets.QMainWindow):
     def _toggle_dark_mode(self):
         """ Toggles between bright and dark GUI appearance."""
         if self.actionDark_mode.isChecked():
-            dark_style.go_dark()
-            dark_style.apply_mpl_dark_theme()
+            styles.go_dark()
+            styles.apply_mpl_dark_theme()
 
             CONF.set('main', 'DARK', True)
         elif not self.actionDark_mode.isChecked():
-            dark_style.go_bright()
-            dark_style.apply_mpl_bright_theme()
+            styles.go_bright()
+            styles.apply_mpl_bright_theme()
 
             CONF.set('main', 'DARK', False)
 
