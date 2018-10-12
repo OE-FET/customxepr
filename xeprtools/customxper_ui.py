@@ -25,6 +25,7 @@ import pydoc
 # custom module imports
 from xeprtools import customxepr
 from utils import styles
+from utils.py3compat import PY2
 from config.main import CONF
 
 logger = logging.getLogger(__name__)
@@ -359,7 +360,10 @@ class JobStatusApp(QtWidgets.QMainWindow):
         if args[0] == self.customXepr:
             args = args[1:]
 
-        func_str = QtGui.QStandardItem(func.func_name)
+        if PY2:
+            func_str = QtGui.QStandardItem(func.func_name)
+        else:
+            func_str = QtGui.QStandardItem(func.__name__)
         args_str = QtGui.QStandardItem(str(args))
         kwargs_str = QtGui.QStandardItem(str(kwargs))
 
