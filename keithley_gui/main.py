@@ -43,8 +43,9 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self.statusBar.addPermanentWidget(self.led)
         self.led.setChecked(False)
 
-        # change color of status bar
-        self.statusBar.setStyleSheet('QStatusBar{background:transparent;}')
+        # change style of status bar
+        self.statusBar.setStyleSheet('QStatusBar{background:transparent}; ' +
+                                     'QStatusBar::item {border: 0px solid black };')
 
         # set validators for lineEdit fields
         self.lineEditVgStart.setValidator(QtGui.QDoubleValidator())

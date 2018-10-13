@@ -242,7 +242,8 @@ class Ui_MainWindow(object):
         # activate status bar
         self.statusBar = QtWidgets.QStatusBar()
         self.setStatusBar(self.statusBar)
-        self.statusBar.setStyleSheet('QStatusBar{background:transparent;}')
+        self.statusBar.setStyleSheet('QStatusBar{background:transparent}; ' +
+                                     'QStatusBar::item {border: 0px solid black };')
 
         # create LED indicator
         self.led = LedIndicator(self)
