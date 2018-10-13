@@ -13,13 +13,16 @@ from visa import InvalidSession
 from qtpy import QtGui, QtCore, QtWidgets, uic
 from matplotlib.figure import Figure
 from Keithley2600 import TransistorSweepData
+import matplotlib as mpl
+from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg
+                                                as FigureCanvas)
 
 # local imports
 from utils.led_indicator_widget import LedIndicator
 from config.main import CONF
 
-from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg
-                                                as FigureCanvas)
+direct = os.path.dirname(os.path.realpath(__file__))
+STYLE_PATH = os.path.join(direct, 'figure_style.mplstyle')
 
 
 class KeithleyGuiApp(QtWidgets.QMainWindow):
@@ -391,20 +394,25 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
 
     def _set_up_fig(self):
 
-        # get figure frame to match window color
+        # get figure frame to match window color, may differ between operating
+        # systems, installs, etc.
         color = QtGui.QPalette().window().color().getRgb()
         color = [x/255 for x in color]
 
         # set up figure itself
-        self.fig = Figure(facecolor=color)
-        self.fig.set_tight_layout('tight')
-        self.ax = self.fig.add_subplot(111)
+        with mpl.style.context(['default', STYLE_PATH]):
+            self.fig = Figure(facecolor=color)
+            self.fig.set_tight_layout('tight')
+            self.ax = self.fig.add_subplot(111)
 
         self.ax.set_title('Sweep data', fontsize=10)
         self.ax.set_xlabel('Voltage [V]', fontsize=9)
         self.ax.set_ylabel('Current [A]', fontsize=9)
+
+        # This needs to be done programatically: it is impossible to specify
+        # different labelcolors and tickcolors in a .mplstyle file
         self.ax.tick_params(axis='both', which='major', direction='out',
-                            colors='black', color=[0.5, 0.5, 0.5, 1],
+                            labelcolor='black', color=[0.5, 0.5, 0.5, 1],
                             labelsize=9)
 
         self.canvas = FigureCanvas(self.fig)

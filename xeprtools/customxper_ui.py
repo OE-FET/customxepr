@@ -24,9 +24,7 @@ import pydoc
 
 # custom module imports
 from xeprtools import customxepr
-from utils import styles
 from utils.py3compat import PY2
-from config.main import CONF
 
 logger = logging.getLogger(__name__)
 root_logger = logging.getLogger()
@@ -141,12 +139,6 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.action_About.triggered.connect(self.aboutWindow.show)
         self.actionShow_log_files.triggered.connect(self.on_log_clicked)
         self.action_Exit.triggered.connect(self.exit_)
-        self.actionDark_mode.triggered.connect(self._toggle_dark_mode)
-
-        if CONF.get('main', 'DARK'):
-            self.actionDark_mode.setChecked(True)
-        else:
-            self.actionDark_mode.setChecked(False)
 
         # position in top left corner
         self.setIntialPosition()
@@ -488,19 +480,6 @@ class JobStatusApp(QtWidgets.QMainWindow):
             subprocess.Popen(['open', path])
         else:
             subprocess.Popen(['xdg-open', path])
-
-    def _toggle_dark_mode(self):
-        """ Toggles between bright and dark GUI appearance."""
-        if self.actionDark_mode.isChecked():
-            styles.go_dark()
-            styles.apply_mpl_dark_theme()
-
-            CONF.set('main', 'DARK', True)
-        elif not self.actionDark_mode.isChecked():
-            styles.go_bright()
-            styles.apply_mpl_bright_theme()
-
-            CONF.set('main', 'DARK', False)
 
 # =============================================================================
 # Callbacks and functions for CustomXepr settings adjustments

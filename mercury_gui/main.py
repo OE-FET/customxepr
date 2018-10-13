@@ -23,18 +23,18 @@ from matplotlib.figure import Figure
 import numpy as np
 import logging
 from math import ceil, floor
-
-# custom imports
-from mercury_gui.feed import MercuryFeed
-from mercury_gui.main_ui import Ui_MainWindow
-from mercury_gui.address_dialog import AddressDialog
-from utils.styles import BRIGHT_STYLE_PATH
-
 from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg
                                                 as FigureCanvas,
                                                 NavigationToolbar2QT as
                                                 NavigationToolbar)
 
+# custom imports
+from mercury_gui.feed import MercuryFeed
+from mercury_gui.main_ui import Ui_MainWindow
+from mercury_gui.address_dialog import AddressDialog
+
+direct = os.path.dirname(os.path.realpath(__file__))
+STYLE_PATH = os.path.join(direct, 'figure_style.mplstyle')
 logger = logging.getLogger(__name__)
 
 
@@ -131,24 +131,25 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def _setup_figure(self):
         """Sets up figure for temperature plot."""
 
-        mpl.style.use(BRIGHT_STYLE_PATH)
-
         # get figure frame to match window color
         color = QtGui.QPalette().window().color().getRgb()
         color = [x/255 for x in color]
 
         # create figure and set axis labels
-        self.fig = Figure(facecolor=color)
-        d = {'height_ratios': [5, 1]}
-        (self.ax1, self.ax2) = self.fig.subplots(2, sharex=True, gridspec_kw=d)
-        self.fig.subplots_adjust(hspace=0, bottom=0.07, top=0.97, left=0.07,
-                                 right=0.93)
+        with mpl.style.context(['default', STYLE_PATH]):
+            self.fig = Figure(facecolor=color)
+
+            d = {'height_ratios': [5, 1]}
+            (self.ax1, self.ax2) = self.fig.subplots(2, sharex=True,
+                                                     gridspec_kw=d)
+            self.fig.subplots_adjust(hspace=0, bottom=0.07, top=0.97,
+                                     left=0.07, right=0.93)
 
         self.ax1.tick_params(axis='both', which='major', direction='out',
-                             colors='black', color=[0.5, 0.5, 0.5, 1],
+                             labelcolor='black', color=[0.5, 0.5, 0.5, 1],
                              labelsize=9)
         self.ax2.tick_params(axis='both', which='major', direction='out',
-                             colors='black', color=[0.5, 0.5, 0.5, 1],
+                             labelcolor='black', color=[0.5, 0.5, 0.5, 1],
                              labelsize=9)
 
         self.ax2.spines['top'].set_alpha(0.4)
