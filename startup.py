@@ -10,7 +10,19 @@ To Do:
 
 * See GitHub issues list at https://github.com/OE-FET/CustomXepr
 
-New in v2.0.1:
+New in v2.1.0:
+    * Rewrite of the keithley SweepData class, now named TransistorSweepData:
+        - TransistorSweepData stores currents and voltages as dictionaries of
+          numpy arrays now.
+        - If not provided as input, the source current is automatically
+          calculated as sum of drain and gate currents.
+        - Backwards compatability with old file format maintained.
+    * Removed dark theme: code is easier to maintain.
+    * Moved all GUI and figure formating from utils to specific GUI modules.
+    * Preparations to split off mercury_gui and keithley_gui as separate
+      packages.
+
+New in v2.0.0:
 
     * Moved driver backends from NI-VISA to pyvisa-py. It is no longer
       necessary to install NI-VISA from National Instruments on your system.
@@ -20,7 +32,7 @@ New in v2.0.1:
         - major speedups in plotting framerate by relying on numpy for updating
           the data, redrawing only changed elements of plot widget
         - allow real-time panning and zooming of plots
-    * Introduced Python 3.6 compatability.
+    * Started working on Python 3.6 compatability.
 
 """
 import sys
@@ -38,7 +50,6 @@ from mercury_gui.feed import MercuryFeed
 from mercury_gui.main import MercuryMonitorApp
 from keithley_gui.main import KeithleyGuiApp
 
-from utils import dark_style
 from utils.misc import patch_excepthook
 from utils.internal_ipkernel import InternalIPKernel
 
@@ -61,7 +72,6 @@ except ImportError:
     logging.info('XeprAPI could not be located. Please make sure that it' +
                  ' is installed on your system.')
 
-DARK = CONF.get('main', 'DARK')
 KEITHLEY_ADDRESS = CONF.get('Keithley', 'KEITHLEY_ADDRESS')
 MERCURY_ADDRESS = CONF.get('MercuryFeed', 'MERCURY_ADDRESS')
 
@@ -153,23 +163,11 @@ if __name__ == '__main__':
     # create and show splash screen
     splash_screen = show_splash_screen(app)
 
-    # apply dark theme
-    if DARK:
-        dark_style.go_dark()
-    else:
-        dark_style.go_bright()
-
     # connect to instruments
     customXepr, xepr, keithley, mercury, mercuryFeed = connect_to_instruments()
     # start user interfaces
     customXeprGUI, keithleyGUI, mercuryGUI = start_gui(customXepr, mercuryFeed,
                                                        keithley)
-
-    # reinforce dark theme for figures
-    if DARK:
-        dark_style.apply_mpl_dark_theme()
-    else:
-        dark_style.apply_mpl_bright_theme()
 
     BANNER = ('Welcome to CustomXepr %s. ' % __version__ +
               'You can access connected instruments through "customXepr" ' +
@@ -184,13 +182,7 @@ if __name__ == '__main__':
         # start event loop and console if run as standalone app
         kernel_window = InternalIPKernel()
         kernel_window.init_ipkernel(banner=BANNER)
-
-        if DARK:
-            console_style = dark_style.get_console_dark_style()
-        else:
-            console_style = ''
-
-        kernel_window.new_qt_console(style=console_style)
+        kernel_window.new_qt_console()
 
         var_dict = {'customXepr': customXepr, 'xepr': xepr,
                     'customXeprGUI': customXeprGUI,

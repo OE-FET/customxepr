@@ -176,7 +176,7 @@ class ModePicture(object):
 
         if filepath is None:
             prompt = 'Select file'
-            filepath = QtWidgets.QFileDialog.getOpenFileName(self, prompt)
+            filepath = QtWidgets.QFileDialog.getOpenFileName(None, prompt)
             filepath = filepath[0]
 
         if len(filepath) > 4:

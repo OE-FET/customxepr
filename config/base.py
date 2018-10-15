@@ -116,6 +116,7 @@ def get_module_source_path(modname, basename=None):
 # =============================================================================
 # Reset config files
 # =============================================================================
+
 SAVED_CONFIG_FILES = ('CustomXepr')
 
 

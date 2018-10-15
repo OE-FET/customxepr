@@ -23,18 +23,18 @@ from matplotlib.figure import Figure
 import numpy as np
 import logging
 from math import ceil, floor
-
-# custom imports
-from mercury_gui.feed import MercuryFeed
-from mercury_gui.main_ui import Ui_MainWindow
-from mercury_gui.address_dialog import AddressDialog
-from utils.dark_style import BRIGHT_STYLE_PATH
-
 from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg
                                                 as FigureCanvas,
                                                 NavigationToolbar2QT as
                                                 NavigationToolbar)
 
+# custom imports
+from mercury_gui.feed import MercuryFeed
+from mercury_gui.main_ui import Ui_MainWindow
+from mercury_gui.address_dialog import AddressDialog
+
+direct = os.path.dirname(os.path.realpath(__file__))
+STYLE_PATH = os.path.join(direct, 'figure_style.mplstyle')
 logger = logging.getLogger(__name__)
 
 
@@ -131,24 +131,25 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def _setup_figure(self):
         """Sets up figure for temperature plot."""
 
-        mpl.style.use(BRIGHT_STYLE_PATH)
-
         # get figure frame to match window color
         color = QtGui.QPalette().window().color().getRgb()
         color = [x/255 for x in color]
 
         # create figure and set axis labels
-        self.fig = Figure(facecolor=color)
-        d = {'height_ratios': [5, 1]}
-        (self.ax1, self.ax2) = self.fig.subplots(2, sharex=True, gridspec_kw=d)
-        self.fig.subplots_adjust(hspace=0, bottom=0.07, top=0.97, left=0.07,
-                                 right=0.93)
+        with mpl.style.context(['default', STYLE_PATH]):
+            self.fig = Figure(facecolor=color)
+
+            d = {'height_ratios': [5, 1]}
+            (self.ax1, self.ax2) = self.fig.subplots(2, sharex=True,
+                                                     gridspec_kw=d)
+            self.fig.subplots_adjust(hspace=0, bottom=0.07, top=0.97,
+                                     left=0.07, right=0.93)
 
         self.ax1.tick_params(axis='both', which='major', direction='out',
-                             colors='black', color=[0.5, 0.5, 0.5, 1],
+                             labelcolor='black', color=[0.5, 0.5, 0.5, 1],
                              labelsize=9)
         self.ax2.tick_params(axis='both', which='major', direction='out',
-                             colors='black', color=[0.5, 0.5, 0.5, 1],
+                             labelcolor='black', color=[0.5, 0.5, 0.5, 1],
                              labelsize=9)
 
         self.ax2.spines['top'].set_alpha(0.4)
@@ -209,6 +210,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         # set update_plot to be executed every time the slider position changes
         self.horizontalSlider.valueChanged.connect(self._update_plot)
 
+    @QtCore.Slot(bool)
     def _update_GUI_connection(self, connected):
         if connected:
             self._display_message('Connection established.')
@@ -323,6 +325,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def _display_error(self, text):
         self.statusBar.showMessage('    %s' % text)
 
+    @QtCore.Slot(object)
     def fetch_readings(self, readings):
         """
         Parses readings for the MercuryMonitorApp and emits resulting
@@ -353,6 +356,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         elif readings['TempRampEnable'] == 'OFF':
             self.t_ramp_enable_Signal.emit(False)
 
+    @QtCore.Slot(object)
     def _update_plot_data(self, readings):
         # append data for plotting
         self.xData = np.append(self.xData, time.time())
@@ -371,6 +375,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self._update_plot()
 
+    @QtCore.Slot()
     def _update_plot(self):
 
         # select data to be plotted
@@ -497,6 +502,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
 # =================== CALLBACKS FOR SETTING CHANGES ===========================
 
+    @QtCore.Slot()
     def change_t_setpoint(self):
         newT = float(self.t2_edit.text())
 
@@ -507,10 +513,12 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self._display_error('Error: Only temperature setpoints between ' +
                                 '3.5 K and 300 K allowed.')
 
+    @QtCore.Slot()
     def change_ramp(self):
         self.feed.control.ramp = float(self.r1_edit.text())
         self._display_message('Ramp = ' + self.r1_edit.text() + ' K/min')
 
+    @QtCore.Slot()
     def change_ramp_auto(self, checked):
         if checked:
             self.feed.control.ramp_enable = 'ON'
@@ -519,10 +527,12 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.feed.control.ramp_enable = 'OFF'
             self._display_message('Ramp is turned OFF')
 
+    @QtCore.Slot()
     def change_flow(self):
         self.feed.control.flow = float(self.gf1_edit.text())
         self._display_message('Gas flow  = ' + self.gf1_edit.text() + '%')
 
+    @QtCore.Slot(bool)
     def change_flow_auto(self, checked):
         if checked:
             self.feed.control.flow_auto = 'ON'
@@ -535,10 +545,12 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.gf1_edit.setReadOnly(False)
             self.gf1_edit.setEnabled(True)
 
+    @QtCore.Slot()
     def change_heater(self):
         self.feed.control.heater = float(self.h1_edit.text())
         self._display_message('Heater power  = ' + self.h1_edit.text() + '%')
 
+    @QtCore.Slot(bool)
     def change_heater_auto(self, checked):
         if checked:
             self.feed.control.heater_auto = 'ON'
@@ -551,6 +563,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.h1_edit.setReadOnly(False)
             self.h1_edit.setEnabled(True)
 
+    @QtCore.Slot(object)
     def _check_overheat(self, readings):
         if readings['Temp'] > 310:
             self._display_error('Over temperature!')
@@ -559,6 +572,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
 # ========================== CALLBACKS FOR MENU BAR ===========================
 
+    @QtCore.Slot()
     def _on_readings_clicked(self):
         # create readings overview window if not present
         if self.readingsWindow is None:
@@ -566,6 +580,7 @@ class MercuryMonitorApp(QtWidgets.QMainWindow, Ui_MainWindow):
         # show it
         self.readingsWindow.show()
 
+    @QtCore.Slot()
     def _on_log_clicked(self):
         """
         Opens directory with log files with current log file selected.
