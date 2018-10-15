@@ -148,10 +148,14 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
             params['VgList'] = [float(x) for x in VgStringList]
 
         # get aquisition settings
-        params['tInt'] = float(self.lineEditInt.text())
-        params['delay'] = float(self.lineEditSettling.text())
+        params['tInt'] = float(self.lineEditInt.text())  # integration time
+        params['delay'] = float(self.lineEditSettling.text())  # stabilization
 
-        # get combo box status
+        smugate = self.comboBoxGateSMU.currentText()  # gate SMU
+        params['smu_gate'] = getattr(self.keithley, smugate)
+        smudrain = self.comboBoxDrainSMU.currentText()
+        params['smu_drain'] = getattr(self.keithley, smudrain)  # drain SMU
+
         if self.comboBoxSweepType.currentIndex() == 0:
             params['pulsed'] = False
         elif self.comboBoxSweepType.currentIndex() == 1:
