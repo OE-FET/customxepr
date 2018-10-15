@@ -17,9 +17,10 @@ New in v2.1.0:
         - If not provided as input, the source current is automatically
           calculated as sum of drain and gate currents.
         - Backwards compatability with old file format maintained.
+    * Simplified keithley_gui code.
     * Removed dark theme: code is easier to maintain.
     * Moved all GUI and figure formating from utils to specific GUI modules.
-    * Preparations to split off mercury_gui and keithley_gui as separate
+    * First preparations to split off mercury_gui and keithley_gui as separate
       packages.
 
 New in v2.0.0:
