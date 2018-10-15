@@ -1,5 +1,5 @@
 """
-CustomXepr base configuration management
+Base configuration management
 
 This file only deals with non-GUI configuration features
 (in other words, we won't import any PyQt object here, avoiding any
@@ -10,15 +10,11 @@ from __future__ import division, absolute_import
 import os.path as osp
 import os
 import shutil
-import sys
 
 
 # =============================================================================
 # Configuration paths
 # =============================================================================
-
-SUBFOLDER = '.CustomXepr'
-
 
 def get_home_dir():
     """
@@ -48,14 +44,14 @@ def get_home_dir():
 
         if not path:
             raise RuntimeError('Please set the environment variable HOME to '
-                               'your user/home directory path so Spyder can '
-                               'start properly.')
+                               'your user/home directory path so CustomXepr '
+                               'can start properly.')
 
 
-def get_conf_path(filename=None):
+def get_conf_path(subfolder=None, filename=None):
     """Return absolute path to the config file with the specified filename."""
     # Define conf_dir
-    conf_dir = osp.join(get_home_dir(), SUBFOLDER)
+    conf_dir = osp.join(get_home_dir(), subfolder)
 
     # Create conf_dir
     if not osp.isdir(conf_dir):
@@ -66,65 +62,15 @@ def get_conf_path(filename=None):
         return osp.join(conf_dir, filename)
 
 
-def get_module_path(modname):
-    """Return module *modname* base path"""
-    return osp.abspath(osp.dirname(sys.modules[modname].__file__))
-
-
-def get_module_data_path(modname, relpath=None, attr_name='DATAPATH'):
-    """Return module *modname* data path
-    Note: relpath is ignored if module has an attribute named *attr_name*
-
-    Handles py2exe/cx_Freeze distributions"""
-    datapath = getattr(sys.modules[modname], attr_name, '')
-    if datapath:
-        return datapath
-    else:
-        datapath = get_module_path(modname)
-        parentdir = osp.join(datapath, osp.pardir)
-        if osp.isfile(parentdir):
-            # Parent directory is not a directory but the 'library.zip' file:
-            # this is either a py2exe or a cx_Freeze distribution
-            datapath = osp.abspath(osp.join(osp.join(parentdir, osp.pardir),
-                                            modname))
-        if relpath is not None:
-            datapath = osp.abspath(osp.join(datapath, relpath))
-        return datapath
-
-
-def get_module_source_path(modname, basename=None):
-    """Return module *modname* source path
-    If *basename* is specified, return *modname.basename* path where
-    *modname* is a package containing the module *basename*
-
-    *basename* is a filename (not a module name), so it must include the
-    file extension: .py or .pyw
-
-    Handles py2exe/cx_Freeze distributions"""
-    srcpath = get_module_path(modname)
-    parentdir = osp.join(srcpath, osp.pardir)
-    if osp.isfile(parentdir):
-        # Parent directory is not a directory but the 'library.zip' file:
-        # this is either a py2exe or a cx_Freeze distribution
-        srcpath = osp.abspath(osp.join(osp.join(parentdir, osp.pardir),
-                                       modname))
-    if basename is not None:
-        srcpath = osp.abspath(osp.join(srcpath, basename))
-    return srcpath
-
-
 # =============================================================================
 # Reset config files
 # =============================================================================
 
-SAVED_CONFIG_FILES = ('CustomXepr')
-
-
-def reset_config_files():
+def reset_config_files(subfolder, saved_config_files):
     """Remove all config files"""
     print("*** Reset CustomXepr settings to defaults ***")
-    for fname in SAVED_CONFIG_FILES:
-        cfg_fname = get_conf_path(fname)
+    for fname in saved_config_files:
+        cfg_fname = get_conf_path(subfolder, fname)
         if osp.isfile(cfg_fname) or osp.islink(cfg_fname):
             os.remove(cfg_fname)
         elif osp.isdir(cfg_fname):
