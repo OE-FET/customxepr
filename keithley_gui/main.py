@@ -169,13 +169,12 @@ class KeithleyGuiApp(QtWidgets.QMainWindow):
         self._gui_state_busy()
         self.measureThread.start()
 
-    @QtCore.Slot(object)
-    def _on_measure_done(self, sweepData):
+    def _on_measure_done(self, sd):
         self.statusBar.showMessage('    Ready.')
         self._gui_state_idle()
         self.actionSaveSweepData.setEnabled(True)
 
-        self.sweepData = sweepData
+        self.sweepData = sd
         self.plot_new_data()
         if not self.keithley.abort_event.is_set():
             self._on_save_clicked()
@@ -507,10 +506,8 @@ class MeasureThread(QtCore.QThread):
             sweepData = self.keithley.transferMeasurement(self.params['smu_gate'], self.params['smu_drain'], self.params['VgStart'],
                                                           self.params['VgStop'], self.params['VgStep'], self.params['VdList'],
                                                           self.params['tInt'], self.params['delay'], self.params['pulsed'])
-            self.finishedSig.emit(sweepData)
-
         elif self.params['Measurement'] == 'output':
             sweepData = self.keithley.outputMeasurement(self.params['smu_gate'], self.params['smu_drain'], self.params['VdStart'],
                                                         self.params['VdStop'], self.params['VdStep'], self.params['VgList'],
                                                         self.params['tInt'], self.params['delay'], self.params['pulsed'])
-            self.finishedSig.emit(sweepData)
+        self.finishedSig.emit(sweepData)
