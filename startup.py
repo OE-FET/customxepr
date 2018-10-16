@@ -40,8 +40,8 @@ import sys
 import os
 import logging
 from qtpy import QtCore, QtWidgets, QtGui
-from Keithley2600 import Keithley2600
-from MercuryiTC import MercuryITC
+from keithley2600 import Keithley2600
+from mercuryitc import MercuryITC
 
 # local imports
 from config.main import CONF

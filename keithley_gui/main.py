@@ -12,7 +12,7 @@ import os
 from visa import InvalidSession
 from qtpy import QtGui, QtCore, QtWidgets, uic
 from matplotlib.figure import Figure
-from Keithley2600 import TransistorSweepData
+from keithley2600 import TransistorSweepData
 import matplotlib as mpl
 from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg
                                                 as FigureCanvas)
