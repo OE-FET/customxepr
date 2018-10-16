@@ -42,14 +42,14 @@ import logging
 from qtpy import QtCore, QtWidgets, QtGui
 from keithley2600 import Keithley2600
 from mercuryitc import MercuryITC
+from mercurygui import MercuryFeed, MercuryMonitorApp
+from keithleygui import KeithleyGuiApp
+from mercurygui import CONF as M_CONF
+from keithleygui import CONF as K_CONF
 
 # local imports
-from config.main import CONF
 from xeprtools.customxepr import CustomXepr, __version__, __author__, __year__
 from xeprtools.customxper_ui import JobStatusApp
-from mercury_gui.feed import MercuryFeed
-from mercury_gui.main import MercuryMonitorApp
-from keithley_gui.main import KeithleyGuiApp
 
 from utils.misc import patch_excepthook
 from utils.internal_ipkernel import InternalIPKernel
@@ -73,8 +73,8 @@ except ImportError:
     logging.info('XeprAPI could not be located. Please make sure that it' +
                  ' is installed on your system.')
 
-KEITHLEY_ADDRESS = CONF.get('Keithley', 'KEITHLEY_ADDRESS')
-MERCURY_ADDRESS = CONF.get('MercuryFeed', 'MERCURY_ADDRESS')
+KEITHLEY_ADDRESS = K_CONF.get('Keithley', 'KEITHLEY_ADDRESS')
+MERCURY_ADDRESS = M_CONF.get('MercuryFeed', 'MERCURY_ADDRESS')
 
 
 # =============================================================================

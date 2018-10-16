@@ -119,4 +119,4 @@ As with the cryostat, CustomXepr includes a high-level user interface for Keithl
 - scipy
 
 ## Acknowledgements
-Config file modules are based on the implementation from [Spyder](https://github.com/spyder-ide).
+Config modules are based on the implementation from [Spyder](https://github.com/spyder-ide).
