@@ -107,14 +107,15 @@ As with the cryostat, CustomXepr includes a high-level user interface for Keithl
 - IPython
 - decorator
 - email
-- Keithley2600
+- keithley2600
+- keithleygui
 - lmfit
 - matplotlib
-- MercuryiTC
+- mercurygui
+- mercuryitc
 - numpy
 - pyvisa
 - pyvisa-py
-- qdarkstyle
 - qtpy
 - scipy
 
