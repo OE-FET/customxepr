@@ -21,6 +21,7 @@ from decorator import decorator
 import time
 import numpy as np
 import logging
+from queue import Queue
 
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'
 __year__ = str(time.localtime().tm_year)
@@ -28,7 +29,6 @@ __version__ = 'v2.0.1'
 
 # custom imports
 from utils.mail import TlsSMTPHandler
-from utils.py3compat import Queue
 from xeprtools.mode_picture import ModePicture
 from config.main import CONF
 from keithleygui import CONF as K_CONF
@@ -1222,7 +1222,7 @@ class CustomXepr(QtCore.QObject):
         # counter for elapsed seconds since temperature has been stable
         stable_counter = 0
         # counter for setting gasflow to manual
-#        gasflow_man_counter = 0
+        gasflow_man_counter = 0
         # starting time
         t0 = time.time()
 
@@ -1237,13 +1237,13 @@ class CustomXepr(QtCore.QObject):
 
             # set gasflow to minimum for temperatures above 247K, this improves
             # the PID control and speeds up stabilization
-#            if gasflow_man_counter == 0:
-#                if self.feed.readings['Temp'] > 247 and self.T_target > 247:
-#                    self.feed.control.flow_auto = 'OFF'
-#                    self.feed.control.flow = self.feed.readings['FlowMin']
-#                else:
-#                    self.feed.control.flow_auto = 'ON'
-#                gasflow_man_counter += 1
+            if gasflow_man_counter == 0:
+                if self.feed.readings['Temp'] > 247 and self.T_target > 247:
+                    self.feed.control.flow_auto = 'OFF'
+                    self.feed.control.flow = self.feed.readings['FlowMin']
+                else:
+                    self.feed.control.flow_auto = 'ON'
+                gasflow_man_counter += 1
 
             # check temperature deviation
             self.T_diff = abs(self.T_target - self.feed.readings['Temp'])
@@ -1263,7 +1263,7 @@ class CustomXepr(QtCore.QObject):
                 logger.warning('Temperature is taking too long to stablize.')
 
         message = 'Mercury iTC: Temperature is stable at %sK.' % self.T_target
-        logger.warning(message)
+        logger.info(message)
 
     def heater_target(self, T):
         """
