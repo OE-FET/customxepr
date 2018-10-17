@@ -20,6 +20,7 @@ for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
     # Prepare temperature
     # =========================================================================
     customXepr.setTemperature(T)
+    customXepr.sendEmail('Temperature stable at %sK.' % T)
     customXepr.customtune()
     customXepr.customtune()
     customXepr.getQValueCalc(directory, T)
@@ -78,3 +79,5 @@ for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
 
             esrDataFile = directory + title + '_' + str(int(T)).zfill(3) + 'K_Vg_' + str(Vg).zfill(2)
             customXepr.saveCurrentData(esrDataFile)
+
+    customXepr.sendEmail('Meaurements at %sK completed.' % T)
