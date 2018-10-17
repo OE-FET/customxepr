@@ -1005,6 +1005,9 @@ class CustomXepr(QtCore.QObject):
         exp.aqExpPause()
         time.sleep(self.wait)
 
+        # count number of temperature stability violations
+        self.n_out = 0  # start with self.n_out = 0
+
         while (exp.isRunning or exp.isPaused):
 
             # check for abort event

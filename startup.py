@@ -51,8 +51,8 @@ from utils.internal_ipkernel import InternalIPKernel
 try:
     from IPython import get_ipython
     ipython = get_ipython()
-    ipython.magic('%autoreload 0')
     ipython.magic('%gui qt')
+    ipython.magic('%autoreload 0')
     app = QtWidgets.QApplication([' '])
 except:
     pass
