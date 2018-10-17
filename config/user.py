@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-This module provides user configuration file management features for CustomXepr
+This module provides user configuration file management features.
 
 It's based on the ConfigParser module (present in the standard library).
 """
@@ -14,12 +14,11 @@ import shutil
 import time
 import codecs
 from utils.py3compat import configparser as cp
-from utils.py3compat import PY2, is_text_string, to_text_string
+from utils.py3compat import PY2, is_text_string
 from distutils.version import LooseVersion
 
 # Local imports
-from config.base import (get_conf_path, get_home_dir,
-                         get_module_source_path)
+from config.base import get_conf_path, get_home_dir
 
 
 def is_stable_version(version):
@@ -109,27 +108,6 @@ class DefaultsConfig(cp.ConfigParser):
 
         self.optionxform = str
 
-    def _write(self, fp):
-        """
-        Private write method for Python 2
-        The one from configparser fails for non-ascii Windows accounts
-        """
-        if self._defaults:
-            fp.write("[%s]\n" % cp.DEFAULTSECT)
-            for (key, value) in self._defaults.items():
-                fp.write("%s = %s\n" % (key, str(value).replace('\n', '\n\t')))
-            fp.write("\n")
-        for section in self._sections:
-            fp.write("[%s]\n" % section)
-            for (key, value) in self._sections[section].items():
-                if key == "__name__":
-                    continue
-                if (value is not None) or (self._optcre == self.OPTCRE):
-                    value = to_text_string(value)
-                    key = " = ".join((key, value.replace('\n', '\n\t')))
-                fp.write("%s\n" % (key))
-            fp.write("\n")
-
     def _set(self, section, option, value, verbose):
         """
         Private set method
@@ -154,7 +132,7 @@ class DefaultsConfig(cp.ConfigParser):
             if PY2:
                 # Python 2
                 with codecs.open(fname, 'w', encoding='utf-8') as configfile:
-                    self._write(configfile)
+                    self.write(configfile)
             else:
                 # Python 3
                 with open(fname, 'w', encoding='utf-8') as configfile:
@@ -174,34 +152,15 @@ class DefaultsConfig(cp.ConfigParser):
                 raise(e)
 
     def filename(self):
-        """Defines the name of the configuration file to use."""
-        # Needs to be done this way to be used by the project config.
-        # To fix on a later PR
-        self._filename = getattr(self, '_filename', None)
-        self._root_path = getattr(self, '_root_path', None)
-
-        if self._filename is None and self._root_path is None:
-            return self._filename_global()
-        else:
-            return self._filename_projects()
-
-    def _filename_projects(self):
-        """Create a .ini filename located in the current project directory.
-        This .ini files stores the specific project preferences for each
-        project created with spyder.
-        """
-        return osp.join(self._root_path, self._filename)
-
-    def _filename_global(self):
         """Create a .ini filename located in user home directory.
-        This .ini files stores the global spyder preferences.
+        This .ini files stores the global package preferences.
         """
         if self.subfolder is None:
             config_file = osp.join(get_home_dir(), '.%s.ini' % self.name)
             return config_file
         else:
-            folder = get_conf_path()
-            # Save defaults in a "defaults" dir of .spyder2 to not pollute it
+            folder = get_conf_path(self.subfolder)
+            # Save defaults in a "defaults" dir of subfolder to not pollute it
             if 'defaults' in self.name:
                 folder = osp.join(folder, 'defaults')
                 if not osp.isdir(folder):
@@ -308,10 +267,7 @@ class UserConfig(DefaultsConfig):
     def _load_old_defaults(self, old_version):
         """Read old defaults"""
         old_defaults = cp.ConfigParser()
-        if check_version(old_version, '3.0.0', '<='):
-            path = get_module_source_path('spyder')
-        else:
-            path = osp.dirname(self.filename())
+        path = osp.dirname(self.filename())
         path = osp.join(path, 'defaults')
         old_defaults.read(osp.join(path, 'defaults-'+old_version+'.ini'))
         return old_defaults
@@ -442,7 +398,8 @@ class UserConfig(DefaultsConfig):
                 try:
                     value = value.decode('utf-8')
                     try:
-                        # Some str config values expect to be eval after decoding
+                        # Some str config values expect to be eval after
+                        # decoding
                         new_value = ast.literal_eval(value)
                         if is_text_string(new_value):
                             value = new_value

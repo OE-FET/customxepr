@@ -21,6 +21,7 @@ from decorator import decorator
 import time
 import numpy as np
 import logging
+from queue import Queue
 
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'
 __year__ = str(time.localtime().tm_year)
@@ -28,9 +29,9 @@ __version__ = 'v2.0.1'
 
 # custom imports
 from utils.mail import TlsSMTPHandler
-from utils.py3compat import Queue
 from xeprtools.mode_picture import ModePicture
 from config.main import CONF
+from keithleygui import CONF as K_CONF
 
 try:
     sys.path.insert(0, os.popen("Xepr --apipath").read())
@@ -1262,7 +1263,7 @@ class CustomXepr(QtCore.QObject):
                 logger.warning('Temperature is taking too long to stablize.')
 
         message = 'Mercury iTC: Temperature is stable at %sK.' % self.T_target
-        logger.warning(message)
+        logger.info(message)
 
     def heater_target(self, T):
         """
@@ -1303,15 +1304,15 @@ class CustomXepr(QtCore.QObject):
 # =============================================================================
 
     @queued_exec(job_queue)
-    def transferMeasurement(self, smu_gate=CONF.get('Keithley', 'gate'),
-                            smu_drain=CONF.get('Keithley', 'drain'),
-                            VgStart=CONF.get('Keithley', 'VgStart'),
-                            VgStop=CONF.get('Keithley', 'VgStop'),
-                            VgStep=CONF.get('Keithley', 'VgStep'),
-                            VdList=CONF.get('Keithley', 'VdList'),
-                            tInt=CONF.get('Keithley', 'tInt'),
-                            delay=CONF.get('Keithley', 'delay'),
-                            pulsed=CONF.get('Keithley', 'pulsed'),
+    def transferMeasurement(self, smu_gate=K_CONF.get('Sweep', 'gate'),
+                            smu_drain=K_CONF.get('Sweep', 'drain'),
+                            VgStart=K_CONF.get('Sweep', 'VgStart'),
+                            VgStop=K_CONF.get('Sweep', 'VgStop'),
+                            VgStep=K_CONF.get('Sweep', 'VgStep'),
+                            VdList=K_CONF.get('Sweep', 'VdList'),
+                            tInt=K_CONF.get('Sweep', 'tInt'),
+                            delay=K_CONF.get('Sweep', 'delay'),
+                            pulsed=K_CONF.get('Sweep', 'pulsed'),
                             path=None):
         """
         Performs a transfer measurement and returns a data instance.
@@ -1335,15 +1336,15 @@ class CustomXepr(QtCore.QObject):
         return sd
 
     @queued_exec(job_queue)
-    def outputMeasurement(self, smu_gate=CONF.get('Keithley', 'gate'),
-                          smu_drain=CONF.get('Keithley', 'drain'),
-                          VdStart=CONF.get('Keithley', 'VdStart'),
-                          VdStop=CONF.get('Keithley', 'VdStop'),
-                          VdStep=CONF.get('Keithley', 'VdStep'),
-                          VgList=CONF.get('Keithley', 'VgList'),
-                          tInt=CONF.get('Keithley', 'tInt'),
-                          delay=CONF.get('Keithley', 'delay'),
-                          pulsed=CONF.get('Keithley', 'pulsed'),
+    def outputMeasurement(self, smu_gate=K_CONF.get('Sweep', 'gate'),
+                          smu_drain=K_CONF.get('Sweep', 'drain'),
+                          VdStart=K_CONF.get('Sweep', 'VdStart'),
+                          VdStop=K_CONF.get('Sweep', 'VdStop'),
+                          VdStep=K_CONF.get('Sweep', 'VdStep'),
+                          VgList=K_CONF.get('Sweep', 'VgList'),
+                          tInt=K_CONF.get('Sweep', 'tInt'),
+                          delay=K_CONF.get('Sweep', 'delay'),
+                          pulsed=K_CONF.get('Sweep', 'pulsed'),
                           path=None):
         """
         Performs an output measurement and returns a data instance.
@@ -1367,7 +1368,7 @@ class CustomXepr(QtCore.QObject):
         return sd
 
     @queued_exec(job_queue)
-    def setGateVoltage(self, Vg, smu_gate=CONF.get('Keithley', 'gate')):
+    def setGateVoltage(self, Vg, smu_gate=K_CONF.get('Sweep', 'gate')):
         """
         Sets the gate bias of the given keithley, grounds other SMUs.
         """
@@ -1391,7 +1392,7 @@ class CustomXepr(QtCore.QObject):
             self.keithley.reset()
 
     @queued_exec(job_queue)
-    def applyDrainCurrent(self, I, smu=CONF.get('Keithley', 'drain')):
+    def applyDrainCurrent(self, I, smu=K_CONF.get('Sweep', 'drain')):
         """
         Sets a spcified current to the selected Keithley SMU.
         """

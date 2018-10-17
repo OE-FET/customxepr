@@ -26,10 +26,8 @@ import pydoc
 from xeprtools import customxepr
 from utils.py3compat import PY2
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('xeprtools.customxepr')
 root_logger = logging.getLogger()
-# log all messages with level STATUS and higher (no DEBUG messages)
-logger.setLevel(logging.STATUS)
 
 
 def linux_notify(**kwargs):

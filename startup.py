@@ -11,16 +11,8 @@ To Do:
 * See GitHub issues list at https://github.com/OE-FET/CustomXepr
 
 New in v2.1.0:
-    * Rewrite of the keithley SweepData class, now named TransistorSweepData:
-        - TransistorSweepData stores currents and voltages as dictionaries of
-          numpy arrays now.
-        - If not provided as input, the source current is automatically
-          calculated as sum of drain and gate currents.
-        - Backwards compatability with old file format maintained.
     * Removed dark theme: code is easier to maintain.
-    * Moved all GUI and figure formating from utils to specific GUI modules.
-    * Preparations to split off mercury_gui and keithley_gui as separate
-      packages.
+    * Split off mercury_gui and keithley_gui as separate packages.
 
 New in v2.0.0:
 
@@ -39,16 +31,16 @@ import sys
 import os
 import logging
 from qtpy import QtCore, QtWidgets, QtGui
-from Keithley2600 import Keithley2600
-from MercuryiTC import MercuryITC
+from keithley2600 import Keithley2600
+from mercuryitc import MercuryITC
+from mercurygui import MercuryFeed, MercuryMonitorApp
+from keithleygui import KeithleyGuiApp
+from mercurygui import CONF as M_CONF
+from keithleygui import CONF as K_CONF
 
 # local imports
-from config.main import CONF
 from xeprtools.customxepr import CustomXepr, __version__, __author__, __year__
 from xeprtools.customxper_ui import JobStatusApp
-from mercury_gui.feed import MercuryFeed
-from mercury_gui.main import MercuryMonitorApp
-from keithley_gui.main import KeithleyGuiApp
 
 from utils.misc import patch_excepthook
 from utils.internal_ipkernel import InternalIPKernel
@@ -72,8 +64,8 @@ except ImportError:
     logging.info('XeprAPI could not be located. Please make sure that it' +
                  ' is installed on your system.')
 
-KEITHLEY_ADDRESS = CONF.get('Keithley', 'KEITHLEY_ADDRESS')
-MERCURY_ADDRESS = CONF.get('MercuryFeed', 'MERCURY_ADDRESS')
+KEITHLEY_ADDRESS = K_CONF.get('Connection', 'KEITHLEY_ADDRESS')
+MERCURY_ADDRESS = M_CONF.get('Connection', 'MERCURY_ADDRESS')
 
 
 # =============================================================================
