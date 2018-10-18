@@ -13,6 +13,7 @@ To Do:
 New in v2.1.0:
     * Removed dark theme: code is easier to maintain.
     * Split off mercury_gui and keithley_gui as separate packages.
+    * Warnings when invalid file paths are handed to Xepr.
 
 New in v2.0.0:
 

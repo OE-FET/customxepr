@@ -1094,21 +1094,40 @@ class CustomXepr(QtCore.QObject):
         Saves the data from given experiment in Xepr to the specified path. If
         exp = None the currently displayed dataset is saved.
 
+        Xepr only allows paths shorter than 20 characters and
+
         """
 
         if not self.hidden:
             logger.info('Bruker ESR is not connected. Functions that ' +
                         'require a connected ESR will not work.')
             return
+        directory, filename = os.path.split(path)
+
+        # check if path is valid
+        if not os.path.isdir(directory):
+            logger.error('The directory "%s" does not exist.' % directory)
+            self.pause_event.set()
+            return
+
+        # check if path is valid
+        if len(path) > 110:
+            logger.error('Invalid path. Full path must be shorter than 110 ' +
+                         'characters.')
+            self.pause_event.set()
+            return
+
+        if path.fing(' ') > 0:
+            raise IOError('Invalid path. Path cannot contain spaces.')
 
         # switch viewpoint to experiment if given
         if exp is not None:
             expTitle = exp.aqGetExpName()
             self.XeprCmds.aqExpSelect(1, expTitle)
 
-        # title = fileName if no title given
+        # title = filename if no title given
         if title is None:
-            title = os.path.split(path)[1]
+            title = filename
 
         # save data
         self.XeprCmds.ddPath(path)
