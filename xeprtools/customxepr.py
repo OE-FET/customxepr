@@ -1117,9 +1117,6 @@ class CustomXepr(QtCore.QObject):
             self.pause_event.set()
             return
 
-        if path.fing(' ') > 0:
-            raise IOError('Invalid path. Path cannot contain spaces.')
-
         # switch viewpoint to experiment if given
         if exp is not None:
             expTitle = exp.aqGetExpName()
