@@ -178,7 +178,7 @@ if __name__ == '__main__':
         kernel_window.new_qt_console()
 
         var_dict = {'customXepr': customXepr, 'xepr': xepr,
-                    'customXeprGUI': customXeprGUI,
+                    'customXeprGUI': customXeprGUI, 'mercury': mercury,
                     'mercuryFeed': mercuryFeed, 'mercuryGUI': mercuryGUI,
                     'keithley': keithley, 'keithleyGUI': keithleyGUI}
 

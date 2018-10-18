@@ -12,7 +12,7 @@ multiplierVg = {0: 2.5, -10: 2.5, -20: 2.5, -30: 2, -40: 2, -50: 1.5, -60: 1, -7
 Vg = -70
 
 directory = '/home/ss2151/Dropbox/ESR_data_upload/my_sample/'
-title = 'my_sample'
+filename = 'my_sample'
 
 for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
 
@@ -29,8 +29,8 @@ for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
     # Perform FET measurements
     # =========================================================================
     tString = str(int(T)).zfill(3)
-    transferFile = directory + title + '_' + tString + 'K_transfer.txt'
-    outputFile = directory + title + '_' + tString + 'K_output.txt'
+    transferFile = directory + filename + '_' + tString + 'K_transfer.txt'
+    outputFile = directory + filename + '_' + tString + 'K_output.txt'
 
     customXepr.transferMeasurement(path=transferFile)
     customXepr.outputMeasurement(path=outputFile)
@@ -44,7 +44,7 @@ for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
         customXepr.runXeprExperiment(Exp, ModAmp=modAmp[T], PowerAtten=atten[T], SweepWidth=sweepWidth[T], NbScansToDo=nbScans[T])
         customXepr.biasGate(0)
 
-        esrDataFile = directory + '/' + title + '_' + str(int(T)).zfill(3) + 'K_Vg_' + str(Vg).zfill(2)
+        esrDataFile = directory + '/' + filename + '_' + str(int(T)).zfill(3) + 'K_Vg_' + str(Vg).zfill(2)
         customXepr.saveCurrentData(esrDataFile)
 
     # =========================================================================
@@ -58,7 +58,7 @@ for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
         customXepr.runExperiment(Pwrst, ModAmp=modAmp[T], PowerAtten=atten[T], SweepWidth=sweepWidth[T])
         customXepr.biasGate(0)
 
-        esrDataFile = directory + title + '_PowerSat_' + tString + 'K_Vg_' + str(Vg).zfill(2)
+        esrDataFile = directory + filename + '_PowerSat_' + tString + 'K_Vg_' + str(Vg).zfill(2)
         customXepr.saveCurrentData(esrDataFile)
 
     # =========================================================================
@@ -77,7 +77,7 @@ for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
             customXepr.runExperiment(Exp, ModAmp=modAmp[T], PowerAtten=atten[T], SweepWidth=sweepWidth[T], NbScansToDo=nscans)
             customXepr.biasGate(0)
 
-            esrDataFile = directory + title + '_' + str(int(T)).zfill(3) + 'K_Vg_' + str(Vg).zfill(2)
+            esrDataFile = directory + filename + '_' + str(int(T)).zfill(3) + 'K_Vg_' + str(Vg).zfill(2)
             customXepr.saveCurrentData(esrDataFile)
 
     customXepr.sendEmail('Meaurements at %sK completed.' % T)
