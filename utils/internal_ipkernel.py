@@ -27,7 +27,8 @@ class InternalIPKernel(object):
         self.namespace = self.ipkernel.shell.user_ns
 
     def send_to_namespace(self, dictionary, evt=None):
-        """Pushed variables from dictionary to kernel name space. Replaces
+        """
+        Pushes variables from dictionary to kernel name space. Replaces
         variables if they already exists.
         """
         self.namespace.update(dictionary)
