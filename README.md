@@ -86,8 +86,12 @@ CustomXepr includes a higher-level worker thread which regularly queries the Mer
 
 The user interface for the cryostat plots historic temperature readings going back up to 24 h and provides access to relevant temperature control settings such as gas flow, heater power, and ramping speed while lower-level configurations such as calibration tables must be changed programatically through the provided Jupuyter console.
 
+The user interface and driver have been split off as separate packages at [https://github.com/OE-FET/mercuryitc](https://github.com/OE-FET/mercuryitc) and [https://github.com/OE-FET/mercurygui](https://github.com/OE-FET/mercurygui).
+
 ## Keithley controls
 As with the cryostat, CustomXepr includes a high-level user interface for Keithley 2600 series instruments which allows the user to configure, record and save voltage sweeps such as transfer and output measurements. Since there typically is no need to provide a live stream of readings from the Keithley, the data from an IV-curve is buffered locally on the instrument and only transferred to CustomXepr after completion of a measurement.
+
+The user interface and driver have been split off as separate packages at [https://github.com/OE-FET/keithley2600](https://github.com/OE-FET/keithley2600) and [https://github.com/OE-FET/keithleygui](https://github.com/OE-FET/keithleygui).
 
 ## System requirements
 *Required*:
@@ -99,8 +103,7 @@ As with the cryostat, CustomXepr includes a high-level user interface for Keithl
 *Optional*:
 
 - Bruker Xepr software (ESR related functions will not work without Xepr)
-- Postfix - mail transfer agent for macOSX and Linux, required for email
-          notifications.
+- Postfix - mail transfer agent for macOS and Linux, currently required for email notifications.
 
 *Python modules*:
 - PyQT4 or PyQt5 (PyQt 5 preferred)
