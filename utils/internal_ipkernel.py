@@ -4,7 +4,7 @@ from IPython.lib.kernel import connect_qtconsole
 from ipykernel.kernelapp import IPKernelApp
 
 
-def mpl_kernel(gui, banner):
+def create_ip_kernel(gui, banner):
     """Launch and return an IPython kernel with matplotlib support for the
     desired gui
     """
@@ -19,7 +19,7 @@ class InternalIPKernel(object):
 
     def init_ipkernel(self, backend='qt', banner=''):
         # Start IPython kernel with GUI event loop and mpl support
-        self.ipkernel = mpl_kernel(backend, banner)
+        self.ipkernel = create_ip_kernel(backend, banner)
         # To create and track active qt consoles
         self.consoles = []
 
