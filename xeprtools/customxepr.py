@@ -954,38 +954,44 @@ class CustomXepr(QtCore.QObject):
             exp[key].value = kwargs[key]
 
         # -------------- estimate running time --------------------------------
-        sweepTime = exp['SweepTime'].value
-        time.sleep(self.wait)
-        nScans = exp['NbScansToDo'].value
-        time.sleep(self.wait)
 
         try:
-            # get number of second axis steps
-            self.exp = exp
-            self.sweepData = exp['SweepData'].value
+            sweepTime = exp['SweepTime'].value
             time.sleep(self.wait)
-            self.sweepData = exp['SweepData'].value
+            nScans = exp['NbScansToDo'].value
             time.sleep(self.wait)
-            ypts = len(self.sweepData.split())
 
-            # get NbPoints if SweepData is empty string
-            if ypts == 0:
-                ypts = exp['NbPoints'].value
+            # get number of second axis steps if present
+            try:
+                self.sweepData = exp['SweepData'].value
                 time.sleep(self.wait)
-            # get settling time between steps in seconds
-            delay = exp['Delay'].value / 1000
+                self.sweepData = exp['SweepData'].value
+                time.sleep(self.wait)
+                ypts = len(self.sweepData.split())
+
+                # get NbPoints if SweepData is empty string
+                if ypts == 0:
+                    ypts = exp['NbPoints'].value
+                    time.sleep(self.wait)
+                # get settling time between steps in seconds
+                delay = exp['Delay'].value / 1000
+
+            except ParameterError:
+                ypts = 1
+                delay = 0
+            experiment_sec = sweepTime*nScans*ypts + delay
+
+            ETA = time.time() + experiment_sec
+            ETA_string = time.strftime('%H:%M', time.localtime(ETA))
+            message = ('Measurement "%s" running. ' % exp.aqGetExpName() +
+                       'Estimated time: %s min, ETA: %s.' %(int(experiment_sec/60), ETA_string))
+
         # catch exception in case of 1D experiment
         except ParameterError:
-            ypts = 1
-            delay = 0
+            message = ('Measurement "%s" running. ' % exp.aqGetExpName())
 
-        experiment_sec = sweepTime*nScans*ypts + delay
 
-        ETA = time.time() + experiment_sec
-        ETA_string = time.strftime('%H:%M', time.localtime(ETA))
-        message = 'Measurement "%s" running. Estimated time: %s min, ETA: %s.'
-        logger.info(message % (exp.aqGetExpName(), int(experiment_sec/60),
-                               ETA_string))
+        logger.info(message)
 
         # -------------------start experiment----------------------------------
 
