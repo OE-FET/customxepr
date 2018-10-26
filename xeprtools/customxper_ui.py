@@ -331,6 +331,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         self.deleteLater()
 
+    def closeEvent(self):
+        self.exit_()
+
     def timeout_warning(self):
         """
         Issues a warning email if no status update has come in for the time
