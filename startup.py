@@ -185,7 +185,7 @@ if __name__ == '__main__':
         kernel_window.send_to_namespace(var_dict)
         app.aboutToQuit.connect(customXeprGUI.exit_)
         app.aboutToQuit.connect(mercuryGUI.exit_)
-        app.aboutToQuit.connect(keithley.exit_)
+        app.aboutToQuit.connect(keithleyGUI.exit_)
         app.aboutToQuit.connect(kernel_window.cleanup_consoles)
         # remove splash screen
         splash_screen.finish(keithleyGUI)
