@@ -129,6 +129,7 @@ def connect_to_instruments(keithley_address=KEITHLEY_ADDRESS,
 
     return customXepr, xepr, keithley, mercury, mercuryFeed
 
+
 # =============================================================================
 # Start CustomXepr and user interfaces
 # =============================================================================
@@ -182,7 +183,9 @@ if __name__ == '__main__':
                     'keithley': keithley, 'keithleyGUI': keithleyGUI}
 
         kernel_window.send_to_namespace(var_dict)
-        app.aboutToQuit.connect(disconnect_instruments)
+        app.aboutToQuit.connect(customXeprGUI.exit_)
+        app.aboutToQuit.connect(mercuryGUI.exit_)
+        app.aboutToQuit.connect(keithley.exit_)
         app.aboutToQuit.connect(kernel_window.cleanup_consoles)
         # remove splash screen
         splash_screen.finish(keithleyGUI)

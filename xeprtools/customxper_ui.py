@@ -331,7 +331,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         self.deleteLater()
 
-    def closeEvent(self):
+    def closeEvent(self, event):
         self.exit_()
 
     def timeout_warning(self):
