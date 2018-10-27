@@ -25,7 +25,7 @@ from queue import Queue
 
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'
 __year__ = str(time.localtime().tm_year)
-__version__ = 'v2.0.1'
+__version__ = 'v2.1.1'
 
 # custom imports
 from utils.mail import TlsSMTPHandler

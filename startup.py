@@ -10,6 +10,15 @@ To Do:
 
 * See GitHub issues list at https://github.com/OE-FET/CustomXepr
 
+New in v2.1.1:
+    * Included revamped keithleygui with IV sweep functionality.
+    * Proper disconnection from instruments when closing windows or shutting
+      down the console with "exit" command.
+    * Fixed a bug that would prevent Xepr experiments to run if the measurement
+      time cannot be estimated. Applies for instance to rapid scan and time
+      domain measurements where proper ETA estimates have not yet been
+      implemented.
+
 New in v2.1.0:
     * Removed dark theme: code is easier to maintain.
     * Split off mercury_gui and keithley_gui as separate packages.
@@ -170,6 +179,10 @@ if __name__ == '__main__':
               'Type "exit" to gracefully exit ' +
               'CustomXepr.\n\n(c) 2016 - %s, %s.' % (__year__, __author__))
 
+    app.aboutToQuit.connect(customXeprGUI.exit_)
+    app.aboutToQuit.connect(mercuryGUI.exit_)
+    app.aboutToQuit.connect(keithleyGUI.exit_)
+
     if CREATED:
 
         # start event loop and console if run as standalone app
@@ -183,9 +196,6 @@ if __name__ == '__main__':
                     'keithley': keithley, 'keithleyGUI': keithleyGUI}
 
         kernel_window.send_to_namespace(var_dict)
-        app.aboutToQuit.connect(customXeprGUI.exit_)
-        app.aboutToQuit.connect(mercuryGUI.exit_)
-        app.aboutToQuit.connect(keithleyGUI.exit_)
         app.aboutToQuit.connect(kernel_window.cleanup_consoles)
         # remove splash screen
         splash_screen.finish(keithleyGUI)
