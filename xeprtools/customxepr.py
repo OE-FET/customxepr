@@ -241,7 +241,7 @@ class CustomXepr(QtCore.QObject):
             logger.info('No MercuryiTC instance supplied. Functions that' +
                         ' require a connected cryostat will not work.')
 
-        if not self.keithley or not self.keithley._keithley:
+        if not self.keithley:
             logger.info('No Keithley instance supplied. Functions that ' +
                         'require a connected Keithley SMU will not work.')
 
