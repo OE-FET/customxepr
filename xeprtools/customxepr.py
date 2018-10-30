@@ -1117,7 +1117,7 @@ class CustomXepr(QtCore.QObject):
             return
 
         # check if path is valid
-        if len(path) > 110:
+        if len(path) > 128:
             logger.error('Invalid path. Full path must be shorter than 110 ' +
                          'characters.')
             self.pause_event.set()
