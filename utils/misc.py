@@ -19,10 +19,7 @@ def new_except_hook(etype, evalue, tb):
     Custom exception hook which displays exceptions from threads in
     a QMessageBox.
     """
-    QtWidgets.QMessageBox.information(None,
-                                      str('error'),
-                                      ''.join(format_exception(etype, evalue,
-                                                               tb)))
+    QtWidgets.QMessageBox.information(None, str('error'), ''.join(format_exception(etype, evalue, tb)))
 
 
 def _patch_excepthook():
