@@ -74,8 +74,8 @@ except ImportError:
     logging.info('XeprAPI could not be located. Please make sure that it' +
                  ' is installed on your system.')
 
-KEITHLEY_ADDRESS = K_CONF.get('Connection', 'KEITHLEY_ADDRESS')
-MERCURY_ADDRESS = M_CONF.get('Connection', 'MERCURY_ADDRESS')
+KEITHLEY_ADDRESS = K_CONF.get('Connection', 'VISA_ADDRESS')
+MERCURY_ADDRESS = M_CONF.get('Connection', 'VISA_ADDRESS')
 
 
 # =============================================================================
