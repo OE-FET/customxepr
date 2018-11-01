@@ -55,7 +55,7 @@ for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
         customXepr.customtune()
 
         customXepr.biasGate(Vg)
-        customXepr.runExperiment(Pwrst, ModAmp=modAmp[T], PowerAtten=atten[T], SweepWidth=sweepWidth[T])
+        customXepr.runXeprExperiment(Pwrst, ModAmp=modAmp[T], PowerAtten=atten[T], SweepWidth=sweepWidth[T])
         customXepr.biasGate(0)
 
         esrDataFile = directory + filename + '_PowerSat_' + tString + 'K_Vg_' + str(Vg).zfill(2)
@@ -74,7 +74,7 @@ for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
             nscans = int(round(multiplierVg[Vg] * nbScans[T]))
 
             customXepr.biasGate(Vg)
-            customXepr.runExperiment(Exp, ModAmp=modAmp[T], PowerAtten=atten[T], SweepWidth=sweepWidth[T], NbScansToDo=nscans)
+            customXepr.runXeprExperiment(Exp, ModAmp=modAmp[T], PowerAtten=atten[T], SweepWidth=sweepWidth[T], NbScansToDo=nscans)
             customXepr.biasGate(0)
 
             esrDataFile = directory + filename + '_' + str(int(T)).zfill(3) + 'K_Vg_' + str(Vg).zfill(2)
