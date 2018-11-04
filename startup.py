@@ -179,10 +179,6 @@ if __name__ == '__main__':
               'Type "exit" to gracefully exit ' +
               'CustomXepr.\n\n(c) 2016 - %s, %s.' % (__year__, __author__))
 
-    app.aboutToQuit.connect(customXeprGUI.exit_)
-    app.aboutToQuit.connect(mercuryGUI.exit_)
-    app.aboutToQuit.connect(keithleyGUI.exit_)
-
     if CREATED:
 
         # start event loop and console if run as standalone app
