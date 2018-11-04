@@ -28,7 +28,7 @@ __year__ = str(time.localtime().tm_year)
 __version__ = 'v2.1.1'
 
 # custom imports
-from utils.mail import TlsSMTPHandler
+from utils.mail import TlsSMTPHandler, EmailSender
 from xeprtools.mode_picture import ModePicture
 from config.main import CONF
 from keithleygui import CONF as K_CONF
@@ -218,6 +218,8 @@ class CustomXepr(QtCore.QObject):
 
         super(CustomXepr, self).__init__()
 
+        self.emailSender = EmailSender('ss2151@cam.ac.uk', 'localhost')
+
         # =====================================================================
         # check if conections to Xepr, MercuryiTC and Keithley are present
         # =====================================================================
@@ -225,6 +227,7 @@ class CustomXepr(QtCore.QObject):
         self.Xepr = Xepr
         self.feed = mercury_feed
         self.keithley = keithley
+
         # hidden Xepr experiemnt, running when EPR is connected:
         self.hidden = None
 
@@ -281,11 +284,11 @@ class CustomXepr(QtCore.QObject):
             self.job_queue.get()
 
     @queued_exec(job_queue)
-    def sendEmail(self, text):
+    def sendEmail(self, body):
         """
         Sends a text to the default email address.
         """
-        logger.warning(text)
+        self.emailSender.sendmail(self.notify_address, 'CustomXepr Notification', body)
 
     @queued_exec(job_queue)
     def pause(self, seconds):

@@ -16,8 +16,7 @@ import subprocess
 
 def new_except_hook(etype, evalue, tb):
     """
-    Custom exception hook which displays exceptions from threads in
-    a QMessageBox.
+    Custom exception hook which displays exceptions from threads in a QMessageBox.
     """
     QtWidgets.QMessageBox.information(None, str('error'), ''.join(format_exception(etype, evalue, tb)))
 
@@ -39,9 +38,8 @@ def patch_excepthook():
 
 def ping(ipAddress, ms_timeout=20):
     """
-    Ping command for UNIX based systems. Millisecond timeout will only work
-    if fping is installed. Returns True if IP address is reachable within
-    timeout.
+    Ping command for UNIX based systems. Millisecond timeout will only work if fping is installed.
+    Returns True if IP address is reachable within timeout.
     """
     # check if fping is installed, otherwise use ping
     if os.system('which fping 2>&1 >/dev/null') == 0:
