@@ -582,10 +582,10 @@ class AboutWindow(QtWidgets.QWidget, QtCore.QCoreApplication):
         Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License. """ % customxepr.__year__
 
         self.labelCopyRight.setText(text)
-        # get help output in plain text format
-        self.help_output = pydoc.plain(pydoc.render_doc(customxepr.CustomXepr))
+        # get help output in html format
+        self.help_output = pydoc.html.docclass(customxepr.CustomXepr).replace('\n', '')
         # print help output to scroll area of window
-        self.docText.setText(self.help_output)
+        self.docText.setHtml(self.help_output)
         # set title string of window to CustomXepr version
         self.title_string = (customxepr.CustomXepr.__name__ + ' ' +
                              customxepr.__version__)

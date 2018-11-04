@@ -51,6 +51,11 @@ setattr(logger, 'status', lambda message,
         *args: logger._log(logging.STATUS, message, args))
 
 
+def cmp(a, b):
+    """ Definition of Python 2 cmp function."""
+    return ((a > b) - (a < b))
+
+
 # =============================================================================
 # define queued excecution decorator which dumps a method call into a queue
 # =============================================================================
@@ -147,8 +152,10 @@ class SignalQueue(QtCore.QObject, Queue):
 
 class CustomXepr(QtCore.QObject):
     """
-    Custom Xepr routines such as tuning and setting the temperature, applying
-    voltages and recording IV characteristics with an attached keithley SMU.
+    Custom Xepr defines routines such as tuning and setting the temperature,
+    applying voltages and recording IV characteristics with attached Keithley
+    SMUs.
+
     All CustomXepr methods are executed in a worker thread in the order of
     their calls. To execute an external function in this thread, add it to the
     job queue:
@@ -188,7 +195,6 @@ class CustomXepr(QtCore.QObject):
         customXepr.runXeprExperiment(exp, **kwargs)
         customXepr.saveCurrentData(path, title=None, exp=None)
         customXepr.setStandby()
-        customXepr.getCurrentLinewidth()
 
     MercuryiTC methods:
         customXepr.setTemperature(T_target)
@@ -987,12 +993,11 @@ class CustomXepr(QtCore.QObject):
             ETA = time.time() + experiment_sec
             ETA_string = time.strftime('%H:%M', time.localtime(ETA))
             message = ('Measurement "%s" running. ' % exp.aqGetExpName() +
-                       'Estimated time: %s min, ETA: %s.' %(int(experiment_sec/60), ETA_string))
+                       'Estimated time: %s min, ETA: %s.' % (int(experiment_sec/60), ETA_string))
 
         # catch exception in case of 1D experiment
         except ParameterError:
             message = ('Measurement "%s" running. ' % exp.aqGetExpName())
-
 
         logger.info(message)
 
@@ -1101,9 +1106,9 @@ class CustomXepr(QtCore.QObject):
     def saveCurrentData(self, path, title=None, exp=None):
         """
         Saves the data from given experiment in Xepr to the specified path. If
-        exp = None the currently displayed dataset is saved.
+        exp == None the currently displayed dataset is saved.
 
-        Xepr only allows paths shorter than 20 characters and
+        Xepr only allows file paths shorter than 128 characters.
 
         """
 
@@ -1173,33 +1178,6 @@ class CustomXepr(QtCore.QObject):
         time.sleep(self.wait)
 
         logger.info('EPR set to standby.')
-
-    @queued_exec(job_queue)
-    def getCurrentLinewidth(self):
-        """
-        Gets the peak-to-peak line width of the dataset currently displayed in
-        Xepr.
-        """
-
-        if not self.hidden:
-            logger.info('Bruker ESR is not connected. Functions that ' +
-                        'require a connected ESR will not work.')
-            return
-
-        # get current dataset
-        dset = self.Xepr.XeprDataset()
-        time.sleep(self.wait)
-        # determine peak to peak line width
-        xData = dset.X
-        yData = dset.O
-
-        x2 = float(xData[yData == min(yData)])
-        x1 = float(xData[yData == max(yData)])
-
-        self.currentLineWidth = round(x2 - x1, 3)
-        self.currentCenterRes = round(x1 + (x2 - x1)/2, 3)
-
-        return self.currentLineWidth, self.currentCenterRes
 
 # =============================================================================
 # set up cryostat functions
@@ -1434,18 +1412,6 @@ class CustomXepr(QtCore.QObject):
 
         self.keithley.applyCurrent(smu, I)
         self.keithley.beep(0.3, 2400)
-
-    @queued_exec(job_queue)
-    def playChord(self):
-
-        if not self.keithley or not self.keithley.connected:
-            logger.info('Keithley is not connnected. Functions that ' +
-                        'require a connected Keithley SMU will not work.')
-            return
-
-        self.keithley.beeper.beep(0.3, 1046.5)
-        self.keithley.beeper.beep(0.3, 1318.5)
-        self.keithley.beeper.beep(0.3, 1568)
 
 
 # =============================================================================
