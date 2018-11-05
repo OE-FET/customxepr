@@ -40,7 +40,7 @@ New in v2.0.0:
 import sys
 import os
 import logging
-from qtpy import QtCore, QtWidgets, QtGui
+from qtpy import QtCore, QtWidgets, QtGui, QtWebEngineWidgets
 from keithley2600 import Keithley2600
 from mercuryitc import MercuryITC
 from mercurygui import MercuryFeed, MercuryMonitorApp
@@ -75,7 +75,9 @@ except ImportError:
                  ' is installed on your system.')
 
 KEITHLEY_ADDRESS = K_CONF.get('Connection', 'VISA_ADDRESS')
+KEITHLEY_VISA_LIB = K_CONF.get('Connection', 'VISA_LIBRARY')
 MERCURY_ADDRESS = M_CONF.get('Connection', 'VISA_ADDRESS')
+MERCURY_VISA_LIB = K_CONF.get('Connection', 'VISA_LIBRARY')
 
 
 # =============================================================================
@@ -118,12 +120,11 @@ def show_splash_screen(app):
 # Connect to instruments: Bruker Xepr, Keithley and MercuryiTC.
 # =============================================================================
 
-def connect_to_instruments(keithley_address=KEITHLEY_ADDRESS,
-                           mercury_address=MERCURY_ADDRESS):
+def connect_to_instruments():
     """Tries to connect to Keithley, Mercury and Xepr."""
 
-    keithley = Keithley2600(keithley_address)
-    mercury = MercuryITC(mercury_address)
+    keithley = Keithley2600(KEITHLEY_ADDRESS, KEITHLEY_VISA_LIB)
+    mercury = MercuryITC(MERCURY_ADDRESS, MERCURY_VISA_LIB)
     mercuryFeed = MercuryFeed(mercury)
 
     try:

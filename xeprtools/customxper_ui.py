@@ -583,10 +583,9 @@ class AboutWindow(QtWidgets.QWidget, QtCore.QCoreApplication):
 
         self.labelCopyRight.setText(text)
         # get help output in html format
-        self.help_output = pydoc.html.docclass(customxepr.CustomXepr,
-                                               name='CustomXepr Documentation')
+        self.help_output = pydoc.plain(pydoc.render_doc(customxepr.CustomXepr))
         # print help output to scroll area of window
-        self.docText.setHtml(self.help_output.replace('\n', ''))
+        self.textBrowser.setText(self.help_output)
         # set title string of window to CustomXepr version
         self.title_string = (customxepr.CustomXepr.__name__ + ' ' +
                              customxepr.__version__)
