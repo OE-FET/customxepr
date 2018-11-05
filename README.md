@@ -93,23 +93,16 @@ As with the cryostat, CustomXepr includes a high-level user interface for Keithl
 
 The Keithley 2600 user interface and driver have been split off as separate packages at [https://github.com/OE-FET/keithley2600](https://github.com/OE-FET/keithley2600) and [https://github.com/OE-FET/keithleygui](https://github.com/OE-FET/keithleygui).
 
-## System requirements
+## Requirements
 *Required*:
 
-- Linux or macOS
+- Linux or macOS (may run on Windows with some limited functionality)
 - Python 2.7 or 3.x
-- Python dependencies
 
-*Optional*:
-
-- Bruker Xepr software (ESR related functions will not work without Xepr)
-- Postfix - mail transfer agent for macOS and Linux, currently required for email notifications.
-
-*Python modules*:
-- PyQT4 or PyQt5 (PyQt 5 preferred)
+*Required python modules:*
+- PyQt5 or PySide2 (PyQt 5 preferred)
 - IPython
 - decorator
-- email
 - keithley2600
 - keithleygui
 - lmfit
@@ -121,6 +114,17 @@ The Keithley 2600 user interface and driver have been split off as separate pack
 - pyvisa-py
 - qtpy
 - scipy
+
+*Recommended*:
+
+- Bruker Xepr software and XeprAPI (EPR related functions will not work otherwise)
+- Postfix - mail transfer agent for macOS and Linux, currently required for email notifications.
+- NI-VISA
+
+*Recommended python modules*:
+- email
+- pyusb
+- pyserial
 
 ## Acknowledgements
 Config modules are based on the implementation from [Spyder](https://github.com/spyder-ide).
