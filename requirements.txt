@@ -1,10 +1,10 @@
 IPython
 PyQt5
 decorator
-keithley2600
+keithleygui
 lmfit
 matplotlib
-mercuryitc
+mercurygui
 numpy
 pyvisa
 pyvisa-py
