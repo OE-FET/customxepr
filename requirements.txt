@@ -1,7 +1,6 @@
 IPython
 PyQt5
 decorator
-email
 keithley2600
 lmfit
 matplotlib
@@ -9,6 +8,5 @@ mercuryitc
 numpy
 pyvisa
 pyvisa-py
-qdarkstyle
 qtpy
 scipy
