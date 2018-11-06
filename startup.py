@@ -40,7 +40,7 @@ New in v2.0.0:
 import sys
 import os
 import logging
-from qtpy import QtCore, QtWidgets, QtGui, QtWebEngineWidgets
+from qtpy import QtCore, QtWidgets, QtGui
 from keithley2600 import Keithley2600
 from mercuryitc import MercuryITC
 from mercurygui import MercuryFeed, MercuryMonitorApp

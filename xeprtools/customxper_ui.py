@@ -21,6 +21,7 @@ import platform
 import subprocess
 import re
 import pydoc
+import inspect
 
 # custom module imports
 from xeprtools import customxepr
@@ -557,13 +558,43 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
     @property
     def t_timeout(self):
-        """ Gets the timeout limit in minutes from timeout_timer."""
+        """Gets the timeout limit in minutes from timeout_timer."""
         return self.timeout_timer.interval()/self.min2msec
 
     @t_timeout.setter
     def t_timeout(self, time_in_min):
         """ Sets the timeout limit in minutes in timeout_timer."""
         self.timeout_timer.setInterval(time_in_min * self.min2msec)
+
+
+# =============================================================================
+# About Window
+# =============================================================================
+
+def classify_class_attrs(object):
+    'Patch classify_class_attrs from pydoc to irgnore inhertied attributes.'
+    results = []
+    for (name, kind, cls, value) in inspect.classify_class_attrs(object):
+        if inspect.isdatadescriptor(value):
+            kind = 'data descriptor'
+        if cls is object:  # only append attributes defined in object
+            results.append((name, kind, cls, value))
+    return results
+
+
+pydoc.classify_class_attrs = classify_class_attrs
+
+
+class CustomHtmlDoc(pydoc.TextDoc):
+    """Subclass of TextDoc which overrides string styling to basic HTML styling."""
+    def bold(self, text):
+        """Format a string in bold html instead of unicode."""
+        return '<span style="font-weight:bold">%s</span>' % text
+
+    def docclass(self, object, name=None, mod=None, *ignored):
+        text = super(CustomHtmlDoc, self).docclass(object, name, mod, *ignored)
+        wrap_style = '<body style="white-space: pre-wrap;"> %s </body>'
+        return wrap_style % text
 
 
 class AboutWindow(QtWidgets.QWidget, QtCore.QCoreApplication):
@@ -583,7 +614,8 @@ class AboutWindow(QtWidgets.QWidget, QtCore.QCoreApplication):
 
         self.labelCopyRight.setText(text)
         # get help output in html format
-        self.help_output = pydoc.plain(pydoc.render_doc(customxepr.CustomXepr))
+        textdoc = CustomHtmlDoc()
+        self.help_output = textdoc.docclass(customxepr.CustomXepr)
         # print help output to scroll area of window
         self.textBrowser.setText(self.help_output)
         # set title string of window to CustomXepr version

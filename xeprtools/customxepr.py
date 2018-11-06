@@ -366,7 +366,7 @@ class CustomXepr(QtCore.QObject):
 
     @notify_address.setter
     def notify_address(self, email_list):
-        """ Setter: address list for email notifications."""
+        """Setter: Address list for email notifications."""
         # get root logger
         root_logger = logging.getLogger()
         # find all email handlers (there should be only one)
@@ -401,7 +401,7 @@ class CustomXepr(QtCore.QObject):
 
     @property
     def email_handler_level(self):
-        """ Setter: logging level for email notifications."""
+        """Logging level for email notifications."""
         # get root logger
         root_logger = logging.getLogger()
         # find all email handlers (there should be only one)
@@ -414,7 +414,7 @@ class CustomXepr(QtCore.QObject):
 
     @email_handler_level.setter
     def email_handler_level(self, level=logging.WARNING):
-        """Logging level for email notifications."""
+        """Setter: Logging level for email notifications."""
         # get root logger
         root_logger = logging.getLogger()
         # find all email handlers (there should be only one)
