@@ -100,7 +100,7 @@ The Keithley 2600 user interface and driver have been split off as separate pack
 - Python 2.7 or 3.x
 
 *Required python modules:*
-- PyQt5 or PySide2 (PyQt 5 preferred)
+- PyQt5
 - IPython
 - decorator
 - keithley2600
@@ -123,8 +123,8 @@ The Keithley 2600 user interface and driver have been split off as separate pack
 
 *Recommended python modules*:
 - email
-- pyusb
-- pyserial
+- pyusb (for pyvisa-py backend)
+- pyserial (for pyvisa-py backend)
 
 ## Acknowledgements
 Config modules are based on the implementation from [Spyder](https://github.com/spyder-ide).
