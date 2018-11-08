@@ -45,15 +45,14 @@ from keithley2600 import Keithley2600
 from mercuryitc import MercuryITC
 from mercurygui import MercuryFeed, MercuryMonitorApp
 from keithleygui import KeithleyGuiApp
-from mercurygui import CONF as M_CONF
-from keithleygui import CONF as K_CONF
+from mercurygui import CONF as mCONF
+from keithleygui import CONF as kCONF
 
 # local imports
 from xeprtools.customxepr import CustomXepr, __version__, __author__, __year__
 from xeprtools.customxper_ui import JobStatusApp
 
 from utils.misc import patch_excepthook
-from utils.internal_ipkernel import InternalIPKernel
 
 
 # if we are running from IPython:
@@ -74,10 +73,10 @@ except ImportError:
     logging.info('XeprAPI could not be located. Please make sure that it' +
                  ' is installed on your system.')
 
-KEITHLEY_ADDRESS = K_CONF.get('Connection', 'VISA_ADDRESS')
-KEITHLEY_VISA_LIB = K_CONF.get('Connection', 'VISA_LIBRARY')
-MERCURY_ADDRESS = M_CONF.get('Connection', 'VISA_ADDRESS')
-MERCURY_VISA_LIB = K_CONF.get('Connection', 'VISA_LIBRARY')
+KEITHLEY_ADDRESS = kCONF.get('Connection', 'VISA_ADDRESS')
+KEITHLEY_VISA_LIB = kCONF.get('Connection', 'VISA_LIBRARY')
+MERCURY_ADDRESS = mCONF.get('Connection', 'VISA_ADDRESS')
+MERCURY_VISA_LIB = mCONF.get('Connection', 'VISA_LIBRARY')
 
 
 # =============================================================================
@@ -181,6 +180,8 @@ if __name__ == '__main__':
               'CustomXepr.\n\n(c) 2016 - %s, %s.' % (__year__, __author__))
 
     if CREATED:
+
+        from utils.internal_ipkernel import InternalIPKernel
 
         # start event loop and console if run as standalone app
         kernel_window = InternalIPKernel()
