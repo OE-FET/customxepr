@@ -184,6 +184,8 @@ class CustomXepr(QtCore.QObject):
         customXepr.notify_address = 'ss2151@cam.ac.uk'
         customXepr.log_file_dir = '~/.CustomXepr/LOG_FILES'
         customXepr.email_handler_level = logging.WARNING
+        customXepr.temp_wait_time = 120  # in sec
+        customXepr.temperature_tolerance = 0.1  # in Kelvin
 
     ESR methods:
         customXepr.connectToESR()
