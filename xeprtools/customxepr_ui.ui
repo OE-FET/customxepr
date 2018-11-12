@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1073</width>
-    <height>652</height>
+       <height>676</height>
    </rect>
   </property>
   <property name="palette">
@@ -50,6 +50,9 @@
   <property name="windowTitle">
    <string>CustomXepr</string>
   </property>
+     <property name="unifiedTitleAndToolBarOnMac">
+         <bool>true</bool>
+     </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <property name="leftMargin">
@@ -120,43 +123,6 @@
         </item>
         <item row="1" column="0" colspan="2">
          <widget class="QTreeView" name="messageLogDisplay">
-          <property name="palette">
-           <palette>
-            <active>
-             <colorrole role="AlternateBase">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>243</red>
-                <green>244</green>
-                <blue>241</blue>
-               </color>
-              </brush>
-             </colorrole>
-            </active>
-            <inactive>
-             <colorrole role="AlternateBase">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>243</red>
-                <green>244</green>
-                <blue>241</blue>
-               </color>
-              </brush>
-             </colorrole>
-            </inactive>
-            <disabled>
-             <colorrole role="AlternateBase">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>243</red>
-                <green>244</green>
-                <blue>241</blue>
-               </color>
-              </brush>
-             </colorrole>
-            </disabled>
-           </palette>
-          </property>
           <property name="alternatingRowColors">
            <bool>true</bool>
           </property>
@@ -164,43 +130,6 @@
         </item>
         <item row="3" column="0" colspan="2">
          <widget class="QTreeView" name="jobQueueDisplay">
-          <property name="palette">
-           <palette>
-            <active>
-             <colorrole role="AlternateBase">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>241</red>
-                <green>243</green>
-                <blue>243</blue>
-               </color>
-              </brush>
-             </colorrole>
-            </active>
-            <inactive>
-             <colorrole role="AlternateBase">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>241</red>
-                <green>243</green>
-                <blue>243</blue>
-               </color>
-              </brush>
-             </colorrole>
-            </inactive>
-            <disabled>
-             <colorrole role="AlternateBase">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>241</red>
-                <green>243</green>
-                <blue>243</blue>
-               </color>
-              </brush>
-             </colorrole>
-            </disabled>
-           </palette>
-          </property>
           <property name="contextMenuPolicy">
            <enum>Qt::ActionsContextMenu</enum>
           </property>
@@ -227,46 +156,6 @@
         </item>
         <item row="5" column="0" colspan="2">
          <widget class="QTreeView" name="resultQueueDisplay">
-          <property name="palette">
-           <palette>
-            <active>
-             <colorrole role="AlternateBase">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>241</red>
-                <green>243</green>
-                <blue>243</blue>
-               </color>
-              </brush>
-             </colorrole>
-            </active>
-            <inactive>
-             <colorrole role="AlternateBase">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>241</red>
-                <green>243</green>
-                <blue>243</blue>
-               </color>
-              </brush>
-             </colorrole>
-            </inactive>
-            <disabled>
-             <colorrole role="AlternateBase">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>241</red>
-                <green>243</green>
-                <blue>243</blue>
-               </color>
-              </brush>
-             </colorrole>
-            </disabled>
-           </palette>
-          </property>
-          <property name="contextMenuPolicy">
-           <enum>Qt::ActionsContextMenu</enum>
-          </property>
           <property name="alternatingRowColors">
            <bool>true</bool>
           </property>
@@ -719,7 +608,7 @@
    <widget class="QMenu" name="menu_CustomXepr">
     <property name="geometry">
      <rect>
-      <x>286</x>
+         <x>266</x>
       <y>131</y>
       <width>172</width>
       <height>108</height>
@@ -767,14 +656,6 @@
   <action name="actionShow_log_files">
    <property name="text">
     <string>Show log files</string>
-   </property>
-  </action>
-  <action name="actionDark_mode">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>&amp;Dark mode</string>
    </property>
   </action>
  </widget>

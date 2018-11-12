@@ -12,16 +12,18 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 from __future__ import division, absolute_import
 
+import logging
+import os
 # system imports
 import sys
-import os
-from threading import Event
-from qtpy import QtCore
-from decorator import decorator
 import time
-import numpy as np
-import logging
+# noinspection PyCompatibility
 from queue import Queue
+from threading import Event
+
+import numpy as np
+from decorator import decorator
+from qtpy import QtCore
 
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'
 __year__ = str(time.localtime().tm_year)
@@ -37,6 +39,7 @@ try:
     sys.path.insert(0, os.popen("Xepr --apipath").read())
     from XeprAPI import ParameterError, ExperimentError
 except ImportError:
+    ParameterError = ExperimentError = RuntimeError
     logging.info('XeprAPI could not be located. Please make sure that ' +
                  'is installed on your system.')
 
@@ -45,15 +48,15 @@ except ImportError:
 
 logging.STATUS = 15
 logging.addLevelName(logging.STATUS, 'STATUS')
+# noinspection PyProtectedMember
+logging.Logger.status = lambda message, *args: logger._log(logging.STATUS, message, args)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.STATUS)
-setattr(logger, 'status', lambda message,
-        *args: logger._log(logging.STATUS, message, args))
 
 
 def cmp(a, b):
     """ Definition of Python 2 cmp function."""
-    return ((a > b) - (a < b))
+    return (a > b) - (a < b)
 
 
 # =============================================================================
@@ -84,7 +87,7 @@ class Excecutioner(QtCore.QObject):
     Args:
         job_q: Queue with jobs to be performed.
         result_q:  Queue with results from completed jobs.
-        pause: Event that causes the worker to pause between jobs if set.
+        pause_event: Event that causes the worker to pause between jobs if set.
     """
 
     def __init__(self, job_q, result_q, pause_event):
@@ -150,6 +153,7 @@ class SignalQueue(QtCore.QObject, Queue):
 # define CustomXepr class
 # =============================================================================
 
+# noinspection PyUnresolvedReferences
 class CustomXepr(QtCore.QObject):
     """
     Custom Xepr defines routines such as tuning and setting the temperature,
@@ -161,53 +165,53 @@ class CustomXepr(QtCore.QObject):
     job queue:
 
     >>> job = (func, args, kwargs)
-    >>> customXepr.job_queue.put(job)
+    >>> customxepr.job_queue.put(job)
 
     All results are added to the result queue and can be retrieved with:
 
-    >>> result = customXepr.result_queue.get()
+    >>> result = customxepr.result_queue.get()
 
     To pause or resume the worker between jobs, do
 
-    >>> customXepr.pause_event.set()
+    >>> customxepr.pause_event.set()
 
     or
 
-    >>> customXepr.pause_event.clear()
+    >>> customxepr.pause_event.clear()
 
     CustomXepr functions:
-        customXepr.clear_all_jobs()
-        customXepr.sendEmail(text)
-        customXepr.pause(seconds)
+        customxepr.clear_all_jobs()
+        customxepr.sendEmail(text)
+        customxepr.pause(seconds)
 
     CustomXepr properties:
-        customXepr.notify_address = 'ss2151@cam.ac.uk'
-        customXepr.log_file_dir = '~/.CustomXepr/LOG_FILES'
-        customXepr.email_handler_level = logging.WARNING
-        customXepr.temp_wait_time = 120  # in sec
-        customXepr.temperature_tolerance = 0.1  # in Kelvin
+        customxepr.notify_address = 'ss2151@cam.ac.uk'
+        customxepr.log_file_dir = '~/.CustomXepr/LOG_FILES'
+        customxepr.email_handler_level = logging.WARNING
+        customxepr.temp_wait_time = 120  # in sec
+        customxepr.temperature_tolerance = 0.1  # in Kelvin
 
     ESR methods:
-        customXepr.connectToESR()
-        customXepr.tune()
-        customXepr.finetune()
-        customXepr.customtune()
-        customXepr.getQValueFromXepr(direct=None, T=298)
-        customXepr.getQValueCalc(direct=None, T=298)
-        customXepr.runXeprExperiment(exp, **kwargs)
-        customXepr.saveCurrentData(path, title=None, exp=None)
-        customXepr.setStandby()
+        customxepr.connectToESR()
+        customxepr.tune()
+        customxepr.finetune()
+        customxepr.customtune()
+        customxepr.getQValueFromXepr(direct=None, T=298)
+        customxepr.getQValueCalc(direct=None, T=298)
+        customxepr.runXeprExperiment(exp, **kwargs)
+        customxepr.saveCurrentData(path, title=None, exp=None)
+        customxepr.setStandby()
 
     MercuryiTC methods:
-        customXepr.setTemperature(T_target)
-        customXepr.setTempRamp(ramp)
-        customXepr.heater_target(T)
+        customxepr.setTemperature(taget_temperature)
+        customxepr.setTempRamp(ramp)
+        customxepr.heater_target(temperature)
 
     Keithley methods:
-        customXepr.transferMeasurement(path=None, **kwargs)
-        customXepr.outputMeasurement(path=None,  **kwargs)
-        customXepr.setGateVoltage(Vg)
-        customXepr.applyDrainCurrent(smu, curr)
+        customxepr.transferMeasurement(path=None, **kwargs)
+        customxepr.outputMeasurement(path=None,  **kwargs)
+        customxepr.setGateVoltage(Vg)
+        customxepr.applyDrainCurrent(smu, curr)
 
     See output of help(CustomXepr) for full documentation.
 
@@ -220,7 +224,7 @@ class CustomXepr(QtCore.QObject):
     """
 
 # =============================================================================
-# set up basic customXepr functionality
+    # set up basic customxepr functionality
 # =============================================================================
 
     job_queue = SignalQueue()
@@ -242,8 +246,10 @@ class CustomXepr(QtCore.QObject):
         self.feed = mercury_feed
         self.keithley = keithley
 
-        # hidden Xepr experiemnt, running when EPR is connected:
+        # hidden Xepr experiemnt, created when EPR is connected:
         self.hidden = None
+        # target temperature, set during first use
+        self._temperature_target = None
 
         if not self.Xepr:
             logger.info('No Xepr instance supplied. Functions that ' +
@@ -277,7 +283,7 @@ class CustomXepr(QtCore.QObject):
         logger.status('IDLE')
 
         # =====================================================================
-        # define certain settings for customXepr functions
+        # define certain settings for customxepr functions
         # =====================================================================
 
         # waiting time for Xepr to process commands
@@ -310,10 +316,10 @@ class CustomXepr(QtCore.QObject):
         Pauses for the specified amount of seconds. This pause function checks
         for an abort signal every minute to prevent permanent blocking.
         """
-        ETA = time.time() + seconds
-        ETA_string = time.strftime('%H:%M', time.localtime(ETA))
+        eta = time.time() + seconds
+        eta_string = time.strftime('%H:%M', time.localtime(eta))
         message = 'Waiting for %s seconds, ETA: %s.'
-        logger.info(message % (int(seconds), ETA_string))
+        logger.info(message % (int(seconds), eta_string))
 
         # breack up into 1 sec sleep intervals, give option to abort
         if seconds > 1:
@@ -404,8 +410,8 @@ class CustomXepr(QtCore.QObject):
         if len(fh) == 0:
             logging.warning('No file handler could be found.')
         else:
-            fileName = fh[0].baseFilename
-            return os.path.dirname(fileName)
+            file_name = fh[0].baseFilename
+            return os.path.dirname(file_name)
 
     @property
     def email_handler_level(self):
@@ -784,7 +790,7 @@ class CustomXepr(QtCore.QObject):
         time.sleep(self.wait)
 
     @queued_exec(job_queue)
-    def getQValueFromXepr(self, direct=None, T=298):
+    def getQValueFromXepr(self, direct=None, temperature=298):
         """Gets Q-Value determined by Xepr
 
         Reads out the resonator Q-value, averaged over 20 sec, and saves it
@@ -793,7 +799,7 @@ class CustomXepr(QtCore.QObject):
         Args:
             direct (str): Directory where Q-Value reading is saved with
                 corresponding temperature and time-stamp.
-            T (float): Temperature in Kelvin during Q-Value measurement.
+            temperature (float): Temperature in Kelvin during Q-Value measurement.
 
         Returns:
             Measured Q-Value.
@@ -820,12 +826,12 @@ class CustomXepr(QtCore.QObject):
         self.hidden['ModeZoom'].value = 2
         time.sleep(self.wait)
 
-        QValues = np.array([])
+        q_values = np.array([])
 
         time.sleep(1)
 
         for iteration in range(0, 40):
-            QValues = np.append(QValues, self.hidden['QValue'].value)
+            q_values = np.append(q_values, self.hidden['QValue'].value)
             time.sleep(1)
 
         self.hidden['PowerAtten'].value = 32
@@ -845,20 +851,20 @@ class CustomXepr(QtCore.QObject):
 
         self.hidden['PowerAtten'].value = att
         time.sleep(self.wait)
-        Qmean = QValues.mean()
+        q_mean = q_values.mean()
 
         if direct is not None:
             path = os.path.join(direct, 'QValues.txt')
-            self._saveQValue2File(T, Qmean, path)
+            self._saveQValue2File(temperature, q_mean, path)
 
-        logger.info('Q = %i.' % Qmean)
+        logger.info('Q = %i.' % q_mean)
 
         self.wait = wait_old
 
-        return Qmean
+        return q_mean
 
     @queued_exec(job_queue)
-    def getQValueCalc(self, direct=None, T=None):
+    def getQValueCalc(self, direct=None, temperature=None):
         """Calculates Q-Value from cavity mode pictures
 
         Calculated Q-Value by fitting the cavity mode picture to a Lorentzian
@@ -867,8 +873,8 @@ class CustomXepr(QtCore.QObject):
         Args:
             direct (str): Directory where Q-Value reading is saved with
                 corresponding temperature and time-stamp.
-            T (float): Temperature in Kelvin during Q-Value measurement. Tries
-                to get temperature reading from MercuryiTC if not given.
+            temperature (float): Temperature in Kelvin during Q-Value measurement.
+                 Tries to get temperature reading from MercuryiTC if not given.
 
         Returns:
             ModePicture instance.
@@ -879,12 +885,12 @@ class CustomXepr(QtCore.QObject):
                         'require a connected ESR will not work.')
             return
 
-        # get temperature from MercuryiTC if connected, else use T = 298K
-        if not T:
+        # get temperature from MercuryiTC if connected, else use temperature = 298K
+        if not temperature:
             try:
-                T = self.feed.readings['Temp']
+                temperature = self.feed.readings['Temp']
             except AttributeError:
-                T = 298
+                temperature = 298
 
         wait_old = self.wait
         self.wait = 1
@@ -906,24 +912,24 @@ class CustomXepr(QtCore.QObject):
         time.sleep(2)
 
         # collect mode pictures for different zoom levels
-        self.modePicData = {}
+        mode_pic_data = {}
 
         for modeZoom in [1, 2, 4, 8]:
-            yData = np.array([])
+            y_data = np.array([])
 
             self.hidden['ModeZoom'].value = modeZoom
             time.sleep(2)
 
-            nPoints = int(self.hidden['DataRange'][1])
+            n_points = int(self.hidden['DataRange'][1])
             time.sleep(self.wait)
 
-            for i in range(0, nPoints):
-                yData = np.append(yData, self.hidden['Data'][i])
+            for i in range(0, n_points):
+                y_data = np.append(y_data, self.hidden['Data'][i])
 
-            self.modePicData[modeZoom] = yData
+            mode_pic_data[modeZoom] = y_data
 
-        self.modePictureObj = ModePicture(self.modePicData, freq)
-        QValue = self.modePictureObj.QValue
+        mode_pic_obj = ModePicture(mode_pic_data, freq)
+        q_value = mode_pic_obj.QValue
 
         self.hidden['PowerAtten'].value = 30
         time.sleep(self.wait)
@@ -943,31 +949,31 @@ class CustomXepr(QtCore.QObject):
         self.hidden['PowerAtten'].value = att
         time.sleep(self.wait)
 
-        if QValue > 3000:
-            logger.info('Q = %i.' % QValue)
-        elif QValue <= 3000:
-            logger.warning('Q = %i is very small. Please check-up ' % QValue +
+        if q_value > 3000:
+            logger.info('Q = %i.' % q_value)
+        elif q_value <= 3000:
+            logger.warning('Q = %i is very small. Please check-up ' % q_value +
                            'on experiment.')
 
         if direct is None:
             pass
         elif os.path.isdir(direct):
             path = os.path.join(direct, 'QValues.txt')
-            self._saveQValue2File(T, QValue, path)
+            self._saveQValue2File(temperature, q_value, path)
             path = os.path.join(direct, 'ModePicture' +
-                                str(int(T)).zfill(3) + 'K.txt')
-            self.modePictureObj.save(path)
+                                str(int(temperature)).zfill(3) + 'K.txt')
+            mode_pic_obj.save(path)
         else:
             raise RuntimeError('No such directory "%s"' % direct)
 
         self.wait = wait_old
 
-        return self.modePictureObj
+        return mode_pic_obj
 
-    def _saveQValue2File(self, T, QValue, path):
+    def _saveQValue2File(self, temperature, q_value, path):
 
         time_str = time.strftime('%Y-%m-%d %H:%M')
-        string = '%s\t%d\t%s\n' % (time_str, T, QValue)
+        string = '%s\t%d\t%s\n' % (time_str, temperature, q_value)
 
         if os.path.isfile(path):
             with open(path, 'a') as file_handle:
@@ -1010,18 +1016,16 @@ class CustomXepr(QtCore.QObject):
         # -------------- estimate running time --------------------------------
 
         try:
-            sweepTime = exp['SweepTime'].value
+            sweep_time = exp['SweepTime'].value
             time.sleep(self.wait)
-            nScans = exp['NbScansToDo'].value
+            n_scans = exp['NbScansToDo'].value
             time.sleep(self.wait)
 
             # get number of second axis steps if present
             try:
-                self.sweepData = exp['SweepData'].value
+                sweep_data = exp['SweepData'].value
                 time.sleep(self.wait)
-                self.sweepData = exp['SweepData'].value
-                time.sleep(self.wait)
-                ypts = len(self.sweepData.split())
+                ypts = len(sweep_data.split())
 
                 # get NbPoints if SweepData is empty string
                 if ypts == 0:
@@ -1033,12 +1037,12 @@ class CustomXepr(QtCore.QObject):
             except ParameterError:
                 ypts = 1
                 delay = 0
-            experiment_sec = sweepTime*nScans*ypts + delay
+            experiment_sec = sweep_time * n_scans * ypts + delay
 
-            ETA = time.time() + experiment_sec
-            ETA_string = time.strftime('%H:%M', time.localtime(ETA))
+            eta = time.time() + experiment_sec
+            eta_string = time.strftime('%H:%M', time.localtime(eta))
             message = ('Measurement "%s" running. ' % exp.aqGetExpName() +
-                       'Estimated time: %s min, ETA: %s.' % (int(experiment_sec/60), ETA_string))
+                       'Estimated time: %s min, ETA: %s.' % (int(experiment_sec / 60), eta_string))
 
         # catch exception in case of 1D experiment
         except ParameterError:
@@ -1049,7 +1053,9 @@ class CustomXepr(QtCore.QObject):
         # -------------------start experiment----------------------------------
 
         if self.feed is not None and self.feed.mercury is not None:
-            self.T_history = np.array([])
+            temperature_history = np.array([])
+        else:
+            temperature_history = None
 
         exp.select()
         time.sleep(self.wait)
@@ -1065,9 +1071,9 @@ class CustomXepr(QtCore.QObject):
         time.sleep(self.wait)
 
         # count the number of temperature stability violations
-        self.n_out = 0  # start at self.n_out = 0
+        n_out = 0  # start at n_out = 0
 
-        while (exp.isRunning or exp.isPaused):
+        while exp.isRunning or exp.isPaused:
 
             # check for abort event
             if self.abort_event.is_set():
@@ -1076,13 +1082,13 @@ class CustomXepr(QtCore.QObject):
                 logger.info('Aborted by user.')
                 return
 
-            NbScansDone = exp['NbScansDone'].value
-            NbScansToDo = exp['NbScansToDo'].value
+            nb_scans_done = exp['NbScansDone'].value
+            nb_scans_to_do = exp['NbScansToDo'].value
             logger.status('Recording scan %i of %i'
-                          % (NbScansDone+1, NbScansToDo))
+                          % (nb_scans_done + 1, nb_scans_to_do))
 
             # tune frequency when a new slice scan starts
-            if (exp.isPaused and not NbScansDone == NbScansToDo):
+            if exp.isPaused and not nb_scans_done == nb_scans_to_do:
                 logger.status('Checking tuned.')
 
                 self._tuneFreq(tolerance=3)
@@ -1102,23 +1108,23 @@ class CustomXepr(QtCore.QObject):
                 time.sleep(self.wait)
 
             # record temperature and warn if fluctuations exceed the tolerance
-            if self.feed is not None and self.feed.mercury is not None:
-                T_curr = self.feed.readings['Temp']
-                self.T_history = np.append(self.T_history, T_curr)
+            if temperature_history:
+                temperature_curr = self.feed.readings['Temp']
+                temperature_history = np.append(temperature_history, temperature_curr)
                 # if temperature unstable, increment the number of violations
                 # don't look at all historic data since temperature_tolerance
                 # may have changed during the scan
-                self.n_out += (abs(self.T_history[-1] - self.T_history[0]) >
-                               2*self.temperature_tolerance)
+                n_out += (abs(temperature_history[-1] - temperature_history[0]) >
+                          2 * self.temperature_tolerance)
                 # warn once for every 120 violations
-                if np.mod(self.n_out, 120) == 1:
+                if np.mod(n_out, 120) == 1:
                     logger.warning(u'Tempearature fluctuations > \xb1%sK.'
                                    % (2*self.temperature_tolerance))
-                    self.n_out += 1  # prevent from warning again next second
+                    n_out += 1  # prevent from warning again next second
 
                 # Pause measurement and suspend all pending jobs after 15 min
                 # of temperature instability
-                if self.n_out > 60*15:
+                if n_out > 60 * 15:
                     logger.error('Temperature could not be stabilized for ' +
                                  '15 min. Pausing current measurement and ' +
                                  'all pending jobs.')
@@ -1129,18 +1135,18 @@ class CustomXepr(QtCore.QObject):
             time.sleep(1)
 
         # get temperature stability over scan if mercury was connected
-        if self.feed is not None and self.feed.mercury is not None:
-            T_var = max(self.T_history) - min(self.T_history)
-            T_mean = np.mean(self.T_history)
+        if temperature_history:
+            temeprature_var = max(temperature_history) - min(temperature_history)
+            temperature_mean = np.mean(temperature_history)
             logger.info(u'Temperature stable at (%.2f\xb1%.2f)K during scans.'
-                        % (T_mean, T_var/2))
+                        % (temperature_mean, temeprature_var / 2))
 
         logger.info('All scans complete.')
 
         # -----------------get aquired dataset from Xepr and return------------
         # switch viewpoint to expriment which just finished running
-        expTitle = exp.aqGetExpName()
-        self.XeprCmds.aqExpSelect(1, expTitle)
+        exp_title = exp.aqGetExpName()
+        self.XeprCmds.aqExpSelect(1, exp_title)
 
         # get data set
         dset = self.Xepr.XeprDataset()
@@ -1178,8 +1184,8 @@ class CustomXepr(QtCore.QObject):
 
         # switch viewpoint to experiment if given
         if exp is not None:
-            expTitle = exp.aqGetExpName()
-            self.XeprCmds.aqExpSelect(1, expTitle)
+            exp_title = exp.aqGetExpName()
+            self.XeprCmds.aqExpSelect(1, exp_title)
 
         # title = filename if no title given
         if title is None:
@@ -1201,18 +1207,17 @@ class CustomXepr(QtCore.QObject):
 
         # check if WindDown experiment already exists, otherwise create
         try:
-            self.wd = self.Xepr.XeprExperiment('WindDown')
+            wd = self.Xepr.XeprExperiment('WindDown')
         except ExperimentError:
-            self.wd = self.Xepr.XeprExperiment('WindDown', exptype='C.W.',
-                                               axs1='Field',
-                                               ordaxs='Signal channel')
+            wd = self.Xepr.XeprExperiment('WindDown', exptype='C.W.',
+                                          axs1='Field', ordaxs='Signal channel')
         time.sleep(self.wait)
 
-        self.wd.aqExpActivate()
+        wd.aqExpActivate()
         time.sleep(self.wait)
-        self.wd['CenterField'].value = 0
+        wd['CenterField'].value = 0
         time.sleep(self.wait)
-        self.wd['AtCenter'].value = True
+        wd['AtCenter'].value = True
         time.sleep(self.wait)
 
         self.hidden['OpMode'].value = 'Tune'
@@ -1227,7 +1232,7 @@ class CustomXepr(QtCore.QObject):
 # =============================================================================
 
     @queued_exec(job_queue)
-    def setTemperature(self, T_target):
+    def setTemperature(self, target_temperature):
         """
         Sets the target temperature for the ESR900 cryostat and waits for it to
         stabilize within `self.temp_wait_time` with fluctuations below
@@ -1241,23 +1246,23 @@ class CustomXepr(QtCore.QObject):
                         ' require a connected cryostat will not work.')
             return
 
-        self.T_target = T_target
+        self._temperature_target = target_temperature  # create instance variable here to allow outside access
 
-        logger.info('Setting target temperature to %sK.' % self.T_target)
+        logger.info('Setting target temperature to %sK.' % self._temperature_target)
 
         # set temperature and wait to stabalize
-        self.feed.control.t_setpoint = self.T_target
+        self.feed.control.t_setpoint = self._temperature_target
         self._waitStable()
 
         # check if gasflow is too high for temperature setpoint
         # if yes, reduce minimum value until target is reached
-        ht = self.heater_target(self.T_target)
+        ht = self.heater_target(self._temperature_target)
         fmin = self.feed.readings['FlowMin']
 
         heater_too_strong = (self.feed.readings['HeaterVolt'] > 1.2*ht)
         flow_at_min = (self.feed.readings['FlowPercent'] == fmin)
 
-        if (heater_too_strong and flow_at_min):
+        if heater_too_strong and flow_at_min:
 
             logger.warning('Gas flow is too high, trying to reduce.')
             self.feed.control.flow_auto = 'ON'
@@ -1291,7 +1296,7 @@ class CustomXepr(QtCore.QObject):
             # set gasflow to minimum for temperatures above 247K, this improves
             # the PID control and speeds up stabilization
             if gasflow_man_counter == 0:
-                if self.feed.readings['Temp'] > 247 and self.T_target > 247:
+                if self.feed.readings['Temp'] > 247 and self._temperature_target > 247:
                     self.feed.control.flow_auto = 'OFF'
                     self.feed.control.flow = self.feed.readings['FlowMin']
                 else:
@@ -1299,7 +1304,7 @@ class CustomXepr(QtCore.QObject):
                 gasflow_man_counter += 1
 
             # check temperature deviation
-            self.T_diff = abs(self.T_target - self.feed.readings['Temp'])
+            self.T_diff = abs(self._temperature_target - self.feed.readings['Temp'])
             if self.T_diff > self.temperature_tolerance:
                 stable_counter = 0
                 time.sleep(self.feed.refresh)
@@ -1315,12 +1320,13 @@ class CustomXepr(QtCore.QObject):
                 t0 = time.time()
                 logger.warning('Temperature is taking too long to stablize.')
 
-        message = 'Mercury iTC: Temperature is stable at %sK.' % self.T_target
+        message = 'Mercury iTC: Temperature is stable at %sK.' % self._temperature_target
         logger.info(message)
 
-    def heater_target(self, T):
+    @staticmethod
+    def heater_target(temperature):
         """Calculates the ideal heater voltage for a given temperature."""
-        return 4.5*np.log(T)-5.5
+        return 4.5 * np.log(temperature) - 5.5
 
     def _ramp_time(self):
         """
@@ -1328,12 +1334,11 @@ class CustomXepr(QtCore.QObject):
         Assumes a max ramping speed of 5 K/min if "ramp" is turned off.
         """
         if self.feed.readings['TempRampEnable'] == 'ON':
-            expectedTime = (abs(self.T_target - self.feed.readings['Temp']) /
-                            self.feed.readings['TempRamp'])  # in min
+            expected_time = (abs(self._temperature_target - self.feed.readings['Temp']) /
+                             self.feed.readings['TempRamp'])  # in min
         elif self.feed.readings['TempRampEnable'] == 'OFF':
-            expectedTime = (abs(self.T_target - self.feed.readings['Temp']) /
-                            5)  # in min
-        return expectedTime*60
+            expected_time = (abs(self._temperature_target - self.feed.readings['Temp']) / 5)  # in min
+        return expected_time * 60  # return value in sec
 
     @queued_exec(job_queue)
     def setTempRamp(self, ramp):
@@ -1355,10 +1360,10 @@ class CustomXepr(QtCore.QObject):
     @queued_exec(job_queue)
     def transferMeasurement(self, smu_gate=K_CONF.get('Sweep', 'gate'),
                             smu_drain=K_CONF.get('Sweep', 'drain'),
-                            VgStart=K_CONF.get('Sweep', 'VgStart'),
-                            VgStop=K_CONF.get('Sweep', 'VgStop'),
-                            VgStep=K_CONF.get('Sweep', 'VgStep'),
-                            VdList=K_CONF.get('Sweep', 'VdList'),
+                            vg_start=K_CONF.get('Sweep', 'VgStart'),
+                            vg_stop=K_CONF.get('Sweep', 'VgStop'),
+                            vg_step=K_CONF.get('Sweep', 'VgStep'),
+                            vd_list=K_CONF.get('Sweep', 'vd_list'),
                             tInt=K_CONF.get('Sweep', 'tInt'),
                             delay=K_CONF.get('Sweep', 'delay'),
                             pulsed=K_CONF.get('Sweep', 'pulsed'),
@@ -1372,10 +1377,10 @@ class CustomXepr(QtCore.QObject):
                 measuremnt (keithley smu object).
             smu_drain: SMU attached to drain electrode of FET for transfer
                 measuremnt (keithley smu object).
-            VgStart (float): Start voltage of transfer sweep in Volts .
-            VgStop (float): End voltage of transfer sweep in Volts.
-            VgStep (float): Voltage step size for transfer sweep in Volts.
-            VdList (list): List of drain voltage steps in Volts.
+            vg_start (float): Start voltage of transfer sweep in Volts .
+            vg_stop (float): End voltage of transfer sweep in Volts.
+            vg_step (float): Voltage step size for transfer sweep in Volts.
+            vd_list (list): List of drain voltage steps in Volts.
             tInt (float): Integration time in sec for every data point.
             delay (float): Settling time in sec before every measurement. Set
                 to -1 for for automatic delay.
@@ -1394,8 +1399,8 @@ class CustomXepr(QtCore.QObject):
         smu_gate = getattr(self.keithley, smu_gate)
         smu_drain = getattr(self.keithley, smu_drain)
 
-        sd = self.keithley.transferMeasurement(smu_gate, smu_drain, VgStart,
-                                               VgStop, VgStep, VdList, tInt,
+        sd = self.keithley.transferMeasurement(smu_gate, smu_drain, vg_start,
+                                               vg_stop, vg_step, vd_list, tInt,
                                                delay, pulsed)
         if path is not None:
             sd.save(path)
@@ -1405,10 +1410,10 @@ class CustomXepr(QtCore.QObject):
     @queued_exec(job_queue)
     def outputMeasurement(self, smu_gate=K_CONF.get('Sweep', 'gate'),
                           smu_drain=K_CONF.get('Sweep', 'drain'),
-                          VdStart=K_CONF.get('Sweep', 'VdStart'),
-                          VdStop=K_CONF.get('Sweep', 'VdStop'),
-                          VdStep=K_CONF.get('Sweep', 'VdStep'),
-                          VgList=K_CONF.get('Sweep', 'VgList'),
+                          vd_start=K_CONF.get('Sweep', 'VdStart'),
+                          vd_stop=K_CONF.get('Sweep', 'VdStop'),
+                          vd_step=K_CONF.get('Sweep', 'VdStep'),
+                          vg_list=K_CONF.get('Sweep', 'VgList'),
                           tInt=K_CONF.get('Sweep', 'tInt'),
                           delay=K_CONF.get('Sweep', 'delay'),
                           pulsed=K_CONF.get('Sweep', 'pulsed'),
@@ -1422,10 +1427,10 @@ class CustomXepr(QtCore.QObject):
                 measuremnt (keithley smu object).
             smu_drain: SMU attached to drain electrode of FET for transfer
                 measuremnt (keithley smu object).
-            VgStart (float): Start voltage of output sweep in Volts .
-            VgStop (float): End voltage of output sweep in Volts.
-            VgStep (float): Voltage step size for output sweep in Volts.
-            VdList (list): List of gate voltage steps in Volts.
+            vd_start (float): Start voltage of output sweep in Volts .
+            vd_stop (float): End voltage of output sweep in Volts.
+            vd_step (float): Voltage step size for output sweep in Volts.
+            vg_list (list): List of gate voltage steps in Volts.
             tInt (float): Integration time in sec for every data point.
             delay (float): Settling time in sec before every measurement. Set
                 to -1 for for automatic delay.
@@ -1444,8 +1449,8 @@ class CustomXepr(QtCore.QObject):
         smu_gate = getattr(self.keithley, smu_gate)
         smu_drain = getattr(self.keithley, smu_drain)
 
-        sd = self.keithley.outputMeasurement(smu_gate, smu_drain, VdStart,
-                                             VdStop, VdStep, VgList, tInt,
+        sd = self.keithley.outputMeasurement(smu_gate, smu_drain, vd_start,
+                                             vd_stop, vd_step, vg_list, tInt,
                                              delay, pulsed)
         if path is not None:
             sd.save(path)
@@ -1453,7 +1458,7 @@ class CustomXepr(QtCore.QObject):
         return sd
 
     @queued_exec(job_queue)
-    def setGateVoltage(self, Vg, smu_gate=K_CONF.get('Sweep', 'gate')):
+    def setGateVoltage(self, vg, smu_gate=K_CONF.get('Sweep', 'gate')):
         """Sets the gate bias of the given keithley, grounds other SMUs."""
 
         if not self.keithley or not self.keithley.connected:
@@ -1469,13 +1474,13 @@ class CustomXepr(QtCore.QObject):
             smu = getattr(self.keithley, smu_name)
             smu.source.output = self.keithley.OUTPUT_OFF
 
-        self.keithley.rampToVoltage(gate, targetVolt=Vg, delay=0.1, stepSize=1)
+        self.keithley.rampToVoltage(gate, targetVolt=vg, delay=0.1, stepSize=1)
 
-        if Vg == 0:
+        if vg == 0:
             self.keithley.reset()
 
     @queued_exec(job_queue)
-    def applyDrainCurrent(self, I, smu=K_CONF.get('Sweep', 'drain')):
+    def applyDrainCurrent(self, i, smu=K_CONF.get('Sweep', 'drain')):
         """Applies a spcified current to the selected Keithley SMU."""
 
         if not self.keithley or not self.keithley.connected:
@@ -1485,7 +1490,7 @@ class CustomXepr(QtCore.QObject):
 
         smu = getattr(self.keithley, smu)
 
-        self.keithley.applyCurrent(smu, I)
+        self.keithley.applyCurrent(smu, i)
         self.keithley.beep(0.3, 2400)
 
 
@@ -1493,7 +1498,7 @@ class CustomXepr(QtCore.QObject):
 # Set up loggers to send emails and write to log files
 # =============================================================================
 
-def setup_root_logger(NOTIFY):
+def setup_root_logger(notify=NOTIFY):
 
     # Set up email notification handler for WARNING messages and above
     root_logger = logging.getLogger()
@@ -1512,7 +1517,7 @@ def setup_root_logger(NOTIFY):
         # create and add email handler
 
         email_handler = TlsSMTPHandler('localhost', 'ss2151@cam.ac.uk',
-                                       NOTIFY, 'Xepr logger')
+                                       notify, 'Xepr logger')
         email_handler.setFormatter(f)
         email_handler.setLevel(CONF.get('CustomXepr', 'email_handler_level'))
 
@@ -1522,15 +1527,15 @@ def setup_root_logger(NOTIFY):
     # Steptup logging to file
     # =========================================================================
     if len(fh) == 0:
-        homePath = os.path.expanduser('~')
-        loggingPath = os.path.join(homePath, '.CustomXepr', 'LOG_FILES')
+        home_path = os.path.expanduser('~')
+        logging_path = os.path.join(home_path, '.CustomXepr', 'LOG_FILES')
 
-        if not os.path.exists(loggingPath):
-            os.makedirs(loggingPath)
+        if not os.path.exists(logging_path):
+            os.makedirs(logging_path)
 
-        logFile = os.path.join(loggingPath, 'root_logger '
-                               + time.strftime("%Y-%m-%d_%H-%M-%S"))
-        file_handler = logging.FileHandler(logFile)
+        log_file = os.path.join(logging_path, 'root_logger '
+                                + time.strftime("%Y-%m-%d_%H-%M-%S"))
+        file_handler = logging.FileHandler(log_file)
         file_handler.setFormatter(f)
         file_handler.setLevel(logging.INFO)
         root_logger.addHandler(file_handler)
