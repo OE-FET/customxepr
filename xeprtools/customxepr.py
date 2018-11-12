@@ -115,6 +115,9 @@ class Excecutioner(QtCore.QObject):
                         self.result_q.put(result)
                     logger.status('IDLE')
 
+                except (KeyboardInterrupt, SystemExit):
+                    raise
+
                 except:
                     # log exception and pause excecution of jobs
                     logger.exception('EXCEPTION')
@@ -929,7 +932,7 @@ class CustomXepr(QtCore.QObject):
             mode_pic_data[modeZoom] = y_data
 
         mode_pic_obj = ModePicture(mode_pic_data, freq)
-        q_value = mode_pic_obj.QValue
+        q_value = mode_pic_obj.qValue
 
         self.hidden['PowerAtten'].value = 30
         time.sleep(self.wait)

@@ -46,7 +46,7 @@ def ping(ipAddress, ms_timeout=20):
         command = 'fping'
         options = '-c 1 -t %i' % round(ms_timeout)
     else:
-        sec_timeout = max(1, ms_timeout/1000)
+        sec_timeout = max([1, ms_timeout/1000])
         command = 'ping'
         options = '-c 1 -t %i ' % int(sec_timeout)
 

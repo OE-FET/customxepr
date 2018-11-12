@@ -13,6 +13,8 @@ from __future__ import division, absolute_import, unicode_literals
 import logging.handlers
 import smtplib
 import string
+from email.utils import formatdate
+from email.message import EmailMessage
 
 
 class TlsSMTPHandler(logging.handlers.SMTPHandler):
@@ -28,11 +30,6 @@ class TlsSMTPHandler(logging.handlers.SMTPHandler):
         Format the record and send it to the specified addressees.
         """
         try:
-            import smtplib
-            try:
-                from email.utils import formatdate
-            except ImportError:
-                formatdate = self.date_time
             port = self.mailport
             if not port:
                 port = smtplib.SMTP_PORT
@@ -91,22 +88,11 @@ class EmailSender(object):
     def create_email(self, toaddrs, subject, body):
         """Compose email form main body, subject and email addresses."""
 
-        try:
-            from email.utils import formatdate
-            from email.message import EmailMessage
-
-            msg = EmailMessage()
-            msg['From'] = self.fromaddr
-            msg['To'] = toaddrs
-            msg['Subject'] = subject
-            msg.set_content(body, subtype='html')
-
-        except ImportError:
-
-            msg = u'From: %s\r\nTo: %s\r\nSubject: %s\r\nDate: %s\r\n\r\n%s' % (
-                            self.fromaddr, string.join(toaddrs, ","),
-                            subject, formatdate(), body
-                            )
+        msg = EmailMessage()
+        msg['From'] = self.fromaddr
+        msg['To'] = toaddrs
+        msg['Subject'] = subject
+        msg.set_content(body, subtype='html')
 
         return msg
 
@@ -121,10 +107,7 @@ class EmailSender(object):
                 self.smtpehlo()
                 self.smtplogin(self.username, self.password)
 
-        if isinstance(msg, str):
-            self.smtpsendmail(self.fromaddr, self.toaddrs, msg)
-        else:
-            self.smtpsend_message(msg)
+        self.smtpsend_message(msg)
 
         if not self.standby:
             self.smtpquit()

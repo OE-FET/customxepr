@@ -183,8 +183,7 @@ if __name__ == '__main__':
         from utils.internal_ipkernel import InternalIPKernel
 
         # start event loop and console if run as standalone app
-        kernel_window = InternalIPKernel()
-        kernel_window.init_ipkernel(banner=BANNER)
+        kernel_window = InternalIPKernel(banner=BANNER)
         kernel_window.new_qt_console()
 
         var_dict = {'customXepr': customXepr, 'xepr': xepr,

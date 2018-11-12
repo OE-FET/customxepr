@@ -1,6 +1,6 @@
 # system imports
 from __future__ import absolute_import
-from IPython.lib.kernel import connect_qtconsole
+from ipykernel.connect import connect_qtconsole
 from ipykernel.kernelapp import IPKernelApp
 
 
@@ -17,7 +17,7 @@ def create_ip_kernel(gui, banner):
 
 class InternalIPKernel(object):
 
-    def init_ipkernel(self, backend='qt', banner=''):
+    def __init__(self, backend='qt', banner=''):
         # Start IPython kernel with GUI event loop and mpl support
         self.ipkernel = create_ip_kernel(backend, banner)
         # To create and track active qt consoles
@@ -26,14 +26,14 @@ class InternalIPKernel(object):
         # This application will also act on the shell user namespace
         self.namespace = self.ipkernel.shell.user_ns
 
-    def send_to_namespace(self, dictionary, evt=None):
+    def send_to_namespace(self, dictionary):
         """
         Pushes variables from dictionary to kernel name space. Replaces
         variables if they already exists.
         """
         self.namespace.update(dictionary)
 
-    def new_qt_console(self, evt=None, style=''):
+    def new_qt_console(self, style=''):
         """start a new qtconsole connected to our kernel"""
         return connect_qtconsole(self.ipkernel.abs_connection_file,
                                  profile=self.ipkernel.profile,
@@ -41,6 +41,6 @@ class InternalIPKernel(object):
                                        '--style', style,
                                        '--JupyterWidget.banner=""'])
 
-    def cleanup_consoles(self, evt=None):
+    def cleanup_consoles(self):
         for c in self.consoles:
             c.kill()

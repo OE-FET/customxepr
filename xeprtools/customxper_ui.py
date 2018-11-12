@@ -236,7 +236,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         # Send an email notification if there is no status update for 30 min.
 
         _timeout_min = 30  # time in minutes before timeout warning
-        self.min2msec = 60.0*1000.0  # conversion factor for min to msec
+        self.min2msec = 60*1000  # conversion factor for min to msec
 
         self.timeout_timer = QtCore.QTimer()
         self.timeout_timer.setInterval(_timeout_min * self.min2msec)
@@ -253,8 +253,8 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         xPos = screen.left()
         yPos = screen.top()
-        width = screen.width()*2/3
-        height = screen.height()*2/3
+        width = int(screen.width()*2/3)
+        height = int(screen.height()*2/3)
 
         self.setGeometry(xPos, yPos, width, height)
 
@@ -268,23 +268,23 @@ class JobStatusApp(QtWidgets.QMainWindow):
         """
 
         indexes = self.resultQueueDisplay.selectedIndexes()
-        if indexes == []:
+        if not indexes:
             return
 
         i0, i1 = indexes[0].row(), indexes[-1].row()
 
-        self.popup_menu = QtWidgets.QMenu()
+        popup_menu = QtWidgets.QMenu()
 
-        deleteAction = self.popup_menu.addAction('Delete entry')
+        deleteAction = popup_menu.addAction('Delete entry')
         plotAction = None
         saveAction = None
 
         if 'plot' in dir(self.result_queue.queue[i0]) and i0 == i1:
-            plotAction = self.popup_menu.addAction('Plot data')
+            plotAction = popup_menu.addAction('Plot data')
         if 'save' in dir(self.result_queue.queue[i0]) and i0 == i1:
-            saveAction = self.popup_menu.addAction('Save data')
+            saveAction = popup_menu.addAction('Save data')
 
-        action = self.popup_menu.exec_(QtGui.QCursor.pos())
+        action = popup_menu.exec_(QtGui.QCursor.pos())
 
         if action == 0:
             return
@@ -314,10 +314,10 @@ class JobStatusApp(QtWidgets.QMainWindow):
         indexes = self.jobQueueDisplay.selectedIndexes()
         i0, i1 = indexes[0].row(), indexes[-1].row()
 
-        self.popup_menu = QtWidgets.QMenu()
+        popup_menu = QtWidgets.QMenu()
 
-        deleteAction = self.popup_menu.addAction('Delete entry')
-        action = self.popup_menu.exec_(QtGui.QCursor.pos())
+        deleteAction = popup_menu.addAction('Delete entry')
+        action = popup_menu.exec_(QtGui.QCursor.pos())
 
         if action == deleteAction:
             for i in range(i1, i0-1, -1):
@@ -571,13 +571,13 @@ class JobStatusApp(QtWidgets.QMainWindow):
 # About Window
 # =============================================================================
 
-def classify_class_attrs(object):
-    'Patch classify_class_attrs from pydoc to irgnore inhertied attributes.'
+def classify_class_attrs(obj):
+    """Patch classify_class_attrs from pydoc to irgnore inhertied attributes."""
     results = []
-    for (name, kind, cls, value) in inspect.classify_class_attrs(object):
+    for (name, kind, cls, value) in inspect.classify_class_attrs(obj):
         if inspect.isdatadescriptor(value):
             kind = 'data descriptor'
-        if cls is object:  # only append attributes defined in object
+        if cls is obj:  # only append attributes defined in object
             results.append((name, kind, cls, value))
     return results
 
@@ -591,8 +591,8 @@ class CustomHtmlDoc(pydoc.TextDoc):
         """Format a string in bold html instead of unicode."""
         return '<span style="font-weight:bold">%s</span>' % text
 
-    def docclass(self, object, name=None, mod=None, *ignored):
-        text = super(CustomHtmlDoc, self).docclass(object, name, mod, *ignored)
+    def docclass(self, obj, name=None, mod=None, *ignored):
+        text = super(CustomHtmlDoc, self).docclass(obj, name, mod, *ignored)
         wrap_style = '<body style="white-space: pre-wrap;"> %s </body>'
         return wrap_style % text
 

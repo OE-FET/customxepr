@@ -28,19 +28,19 @@ def lorentz_peak(x, x0, w, A):
 
 class ModePicture(object):
 
-    def __init__(self, modePicData={}, freq=9.385):
+    def __init__(self, modePicData=None, freq=9.385):
         """
         Class to store mode pictures, calculate QValues and save the mode
         picture data as a .txt file.
         """
-
-        if not isinstance(modePicData, dict):
-            raise TypeError('"modePicData" must be a dictionary containing ' +
-                            'mode pictures for with different zoom factors.')
-
-        if modePicData == {}:
+        if modePicData is None:
             self.load()
         else:
+
+            if not isinstance(modePicData, dict):
+                raise TypeError('"modePicData" must be a dictionary containing ' +
+                                'mode pictures for with different zoom factors.')
+
             self.modePicData = modePicData
             self.freq0 = freq
 
@@ -117,7 +117,7 @@ class ModePicture(object):
 
         deltaFreq = result.best_values['w'] * 1e-3 / (2*modeZoom)
 
-        self.QValue = round(self.freq0 / deltaFreq, 1)
+        self.qValue = round(self.freq0 / deltaFreq, 1)
 
         return result
 
@@ -186,9 +186,15 @@ class ModePicture(object):
 
             self.xPointsTot = 2/1e-3 * self.xMHzTot
             self.nPoints = len(self.xPointsTot)
-            with open(filepath, 'r') as myfile:
+
+            linestring = None
+            with open(filepath, 'r') as fh:
                 for line in myfile:
                     if 'GHz' in line:
                         linestring = line
-            freq = re.findall("\d+\.\d+", linestring)
+            if linestring:
+                freq = re.findall("\d+\.\d+", linestring)
+            else:
+                raise RuntimeError('Could not find frequency information.')
+
             self.freq0 = float(freq[0])
