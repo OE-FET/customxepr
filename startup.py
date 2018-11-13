@@ -10,7 +10,10 @@ To Do:
 
 * See GitHub issues list at https://github.com/OE-FET/CustomXepr
 
-New in v2.1.1:
+New in v2.2:
+    * Window position and size is saved and restored between sessions.
+
+New in v2.1.:
     * Included revamped keithleygui with IV sweep functionality.
     * Proper disconnection from instruments when closing windows or shutting
       down the console with "exit" command.

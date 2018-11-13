@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1073</width>
-       <height>676</height>
+    <height>676</height>
    </rect>
   </property>
   <property name="palette">
@@ -50,9 +50,6 @@
   <property name="windowTitle">
    <string>CustomXepr</string>
   </property>
-     <property name="unifiedTitleAndToolBarOnMac">
-         <bool>true</bool>
-     </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <property name="leftMargin">
@@ -167,12 +164,12 @@
        </layout>
       </widget>
       <widget class="QWidget" name="layoutWidget_2">
-       <layout class="QGridLayout" name="gridLayout_2" columnstretch="2,0,0">
+       <layout class="QGridLayout" name="gridLayout_2" columnstretch="2,0">
         <property name="leftMargin">
          <number>10</number>
         </property>
-        <item row="9" column="0" colspan="3" alignment="Qt::AlignLeft">
-         <widget class="QPushButton" name="tuneButton">
+        <item row="19" column="0" colspan="2" alignment="Qt::AlignLeft">
+         <widget class="QPushButton" name="abortButton">
           <property name="minimumSize">
            <size>
             <width>130</width>
@@ -180,66 +177,116 @@
            </size>
           </property>
           <property name="text">
-           <string>Tune cavity</string>
+           <string>Abort current</string>
           </property>
          </widget>
         </item>
-        <item row="13" column="1" alignment="Qt::AlignRight">
-         <widget class="QLineEdit" name="lineEditT_tolerance">
+        <item row="20" column="0" colspan="2">
+         <spacer name="verticalSpacer_4">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="3" column="0" colspan="2">
+         <widget class="QRadioButton" name="radioButtonErrorMail">
+          <property name="text">
+           <string>Errors</string>
+          </property>
+         </widget>
+        </item>
+        <item row="18" column="0" colspan="2" alignment="Qt::AlignLeft">
+         <widget class="QPushButton" name="clearButton">
+          <property name="minimumSize">
+           <size>
+            <width>130</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Clear all jobs</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0" colspan="2">
+         <widget class="QRadioButton" name="radioButtonNoMail">
+          <property name="text">
+           <string>Silent</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" colspan="2">
+         <widget class="QLabel" name="labelEmailSettings">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Email notifications:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0" colspan="2">
+         <widget class="QRadioButton" name="radioButtonInfoMail">
+          <property name="text">
+           <string>Infos</string>
+          </property>
+         </widget>
+        </item>
+        <item row="13" column="0">
+         <widget class="QLabel" name="labelT_tolerance">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
           <property name="minimumSize">
            <size>
-            <width>35</width>
-            <height>0</height>
+            <width>150</width>
+            <height>21</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>40</width>
+            <width>100</width>
             <height>16777215</height>
            </size>
           </property>
-          <property name="baseSize">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
+          <property name="text">
+           <string>Temperature stability</string>
+          </property>
+         </widget>
+        </item>
+        <item row="12" column="0" colspan="2">
+         <widget class="QLabel" name="labelTempControl">
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
           </property>
           <property name="text">
-           <string>0.1</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           <string>Temperature control:</string>
           </property>
          </widget>
         </item>
-        <item row="2" column="0" colspan="3">
-         <widget class="QLineEdit" name="lineEditEmailList">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0" colspan="3">
-         <widget class="QRadioButton" name="radioButtonWarningMail">
-          <property name="text">
-           <string>Warnings (default)</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="0" colspan="3">
-         <spacer name="verticalSpacer_1">
+        <item row="0" column="0" colspan="2">
+         <spacer name="verticalSpacer_5">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
@@ -273,8 +320,8 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="0" colspan="3">
-         <spacer name="verticalSpacer_5">
+        <item row="7" column="0" colspan="2">
+         <spacer name="verticalSpacer_1">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
@@ -289,86 +336,28 @@
           </property>
          </spacer>
         </item>
-        <item row="12" column="0" colspan="3">
-         <widget class="QLabel" name="labelTempControl">
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
+        <item row="4" column="0" colspan="2">
+         <widget class="QRadioButton" name="radioButtonWarningMail">
           <property name="text">
-           <string>Temperature control:</string>
+           <string>Warnings (default)</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
-        <item row="13" column="0">
-         <widget class="QLabel" name="labelT_tolerance">
+        <item row="2" column="0" colspan="2">
+         <widget class="QLineEdit" name="lineEditEmailList">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
-          <property name="minimumSize">
-           <size>
-            <width>150</width>
-            <height>21</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>100</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Temperature stability</string>
-          </property>
          </widget>
         </item>
-        <item row="5" column="0" colspan="3">
-         <widget class="QRadioButton" name="radioButtonInfoMail">
-          <property name="text">
-           <string>Infos</string>
-          </property>
-         </widget>
-        </item>
-        <item row="13" column="2" alignment="Qt::AlignLeft">
-         <widget class="QLabel" name="labelT_toleranceUnit">
-          <property name="text">
-           <string>K</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0" colspan="3">
-         <widget class="QLabel" name="labelEmailSettings">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Email notifications:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="0" colspan="3">
-         <widget class="QRadioButton" name="radioButtonNoMail">
-          <property name="text">
-           <string>Silent</string>
-          </property>
-         </widget>
-        </item>
-        <item row="18" column="0" colspan="3" alignment="Qt::AlignLeft">
-         <widget class="QPushButton" name="clearButton">
+        <item row="9" column="0" colspan="2" alignment="Qt::AlignLeft">
+         <widget class="QPushButton" name="tuneButton">
           <property name="minimumSize">
            <size>
             <width>130</width>
@@ -376,44 +365,11 @@
            </size>
           </property>
           <property name="text">
-           <string>Clear all jobs</string>
+           <string>Tune cavity</string>
           </property>
          </widget>
         </item>
-        <item row="3" column="0" colspan="3">
-         <widget class="QRadioButton" name="radioButtonErrorMail">
-          <property name="text">
-           <string>Errors</string>
-          </property>
-         </widget>
-        </item>
-        <item row="19" column="0" colspan="3" alignment="Qt::AlignLeft">
-         <widget class="QPushButton" name="abortButton">
-          <property name="minimumSize">
-           <size>
-            <width>130</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Abort current</string>
-          </property>
-         </widget>
-        </item>
-        <item row="20" column="0" colspan="3">
-         <spacer name="verticalSpacer_4">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="15" column="0" colspan="3">
+        <item row="15" column="0" colspan="2">
          <spacer name="verticalSpacer_2">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
@@ -429,45 +385,36 @@
           </property>
          </spacer>
         </item>
-        <item row="14" column="1" alignment="Qt::AlignRight">
-         <widget class="QLineEdit" name="lineEditT_settling">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>35</width>
-            <height>0</height>
-           </size>
-          </property>
+        <item row="14" column="1" alignment="Qt::AlignLeft">
+         <widget class="QDoubleSpinBox" name="lineEditT_settling">
           <property name="maximumSize">
            <size>
-            <width>40</width>
+            <width>80</width>
             <height>16777215</height>
            </size>
-          </property>
-          <property name="font">
-           <font>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="layoutDirection">
-           <enum>Qt::LeftToRight</enum>
-          </property>
-          <property name="text">
-           <string>120</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
+          <property name="suffix">
+           <string> s</string>
+          </property>
+          <property name="decimals">
+           <number>0</number>
+          </property>
+          <property name="maximum">
+           <double>999999.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>10.000000000000000</double>
+          </property>
+          <property name="value">
+           <double>120.000000000000000</double>
+          </property>
          </widget>
         </item>
-        <item row="23" column="0" colspan="3">
-         <spacer name="verticalSpacer_3">
+        <item row="11" column="0" colspan="2">
+         <spacer name="verticalSpacer_6">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
@@ -479,40 +426,20 @@
           </property>
          </spacer>
         </item>
-        <item row="21" column="0" colspan="3">
-         <widget class="QLabel" name="labelOther">
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
+        <item row="10" column="0" colspan="2" alignment="Qt::AlignLeft">
+         <widget class="QPushButton" name="qValueButton">
+          <property name="minimumSize">
+           <size>
+            <width>130</width>
+            <height>0</height>
+           </size>
           </property>
           <property name="text">
-           <string>Other:</string>
+           <string>Get Q-Value</string>
           </property>
          </widget>
         </item>
-        <item row="16" column="0" colspan="3">
-         <widget class="QLabel" name="labelJobQControl">
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Job queue control:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="14" column="2" alignment="Qt::AlignLeft">
-         <widget class="QLabel" name="labelT_settlingUnit">
-          <property name="text">
-           <string>sec</string>
-          </property>
-         </widget>
-        </item>
-        <item row="17" column="0" colspan="3" alignment="Qt::AlignLeft">
+        <item row="17" column="0" colspan="2" alignment="Qt::AlignLeft">
          <widget class="QPushButton" name="pauseButton">
           <property name="minimumSize">
            <size>
@@ -525,7 +452,27 @@
           </property>
          </widget>
         </item>
-        <item row="22" column="0" colspan="3" alignment="Qt::AlignLeft">
+        <item row="24" column="0" colspan="2" alignment="Qt::AlignRight">
+         <widget class="QLabel" name="labelCopyRight">
+          <property name="text">
+           <string>(c) 2018 Sam Schott</string>
+          </property>
+         </widget>
+        </item>
+        <item row="23" column="0" colspan="2">
+         <spacer name="verticalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="22" column="0" colspan="2" alignment="Qt::AlignLeft">
          <widget class="QPushButton" name="pushButtonLogFiles">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -544,27 +491,33 @@
           </property>
          </widget>
         </item>
-        <item row="24" column="0" colspan="3" alignment="Qt::AlignRight">
-         <widget class="QLabel" name="labelCopyRight">
+        <item row="21" column="0" colspan="2">
+         <widget class="QLabel" name="labelOther">
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
           <property name="text">
-           <string>(c) 2018 Sam Schott</string>
+           <string>Other:</string>
           </property>
          </widget>
         </item>
-        <item row="10" column="0" colspan="3" alignment="Qt::AlignLeft">
-         <widget class="QPushButton" name="qValueButton">
-          <property name="minimumSize">
-           <size>
-            <width>130</width>
-            <height>0</height>
-           </size>
+        <item row="16" column="0" colspan="2">
+         <widget class="QLabel" name="labelJobQControl">
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
           </property>
           <property name="text">
-           <string>Get Q-Value</string>
+           <string>Job queue control:</string>
           </property>
          </widget>
         </item>
-        <item row="8" column="0" colspan="3">
+        <item row="8" column="0" colspan="2">
          <widget class="QLabel" name="labelCustomXeprControl">
           <property name="font">
            <font>
@@ -577,18 +530,30 @@
           </property>
          </widget>
         </item>
-        <item row="11" column="0" colspan="3">
-         <spacer name="verticalSpacer_6">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
+        <item row="13" column="1" alignment="Qt::AlignLeft">
+         <widget class="QDoubleSpinBox" name="lineEditT_tolerance">
+          <property name="maximumSize">
            <size>
-            <width>20</width>
-            <height>40</height>
+            <width>80</width>
+            <height>16777215</height>
            </size>
           </property>
-         </spacer>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+          <property name="suffix">
+           <string> K</string>
+          </property>
+          <property name="maximum">
+           <double>100.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.100000000000000</double>
+          </property>
+          <property name="value">
+           <double>0.100000000000000</double>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -608,17 +573,16 @@
    <widget class="QMenu" name="menu_CustomXepr">
     <property name="geometry">
      <rect>
-         <x>266</x>
+      <x>401</x>
       <y>131</y>
       <width>172</width>
-      <height>108</height>
+      <height>96</height>
      </rect>
     </property>
     <property name="title">
      <string>&amp;CustomXepr</string>
     </property>
     <addaction name="action_About"/>
-    <addaction name="separator"/>
     <addaction name="separator"/>
     <addaction name="action_Exit"/>
    </widget>
@@ -670,8 +634,6 @@
   <tabstop>radioButtonNoMail</tabstop>
   <tabstop>tuneButton</tabstop>
   <tabstop>qValueButton</tabstop>
-  <tabstop>lineEditT_tolerance</tabstop>
-  <tabstop>lineEditT_settling</tabstop>
   <tabstop>pauseButton</tabstop>
   <tabstop>clearButton</tabstop>
   <tabstop>abortButton</tabstop>

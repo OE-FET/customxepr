@@ -160,8 +160,8 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.getNotificationLevel()
 
         # get temperature control settings
-        self.lineEditT_tolerance.setText(str(self.customXepr.temperature_tolerance))
-        self.lineEditT_settling.setText(str(self.customXepr.temp_wait_time))
+        self.lineEditT_tolerance.setValue(self.customXepr.temperature_tolerance)
+        self.lineEditT_settling.setValue(self.customXepr.temp_wait_time)
 
         # perform various UI updates after status change
         status_handler.status_signal.connect(self.statusField.setText)
@@ -215,14 +215,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.clearButton.clicked.connect(self.on_clear_clicked)
         self.pushButtonLogFiles.clicked.connect(self.on_log_clicked)
 
-        # accept only numbers as input of temperature tolerance
-        # and settling time
-        self.lineEditT_tolerance.setValidator(QtGui.QDoubleValidator())
-        self.lineEditT_settling.setValidator(QtGui.QDoubleValidator())
-
         self.lineEditEmailList.returnPressed.connect(self.setEmailList)
-        self.lineEditT_tolerance.returnPressed.connect(self.set_temperature_tolerance)
-        self.lineEditT_settling.returnPressed.connect(self.setT_settling)
+        self.lineEditT_tolerance.valueChanged.connect(self.set_temperature_tolerance)
+        self.lineEditT_settling.valueChanged.connect(self.setT_settling)
 
         self.bG = QtWidgets.QButtonGroup(self)
         self.bG.setExclusive(True)
@@ -551,13 +546,11 @@ class JobStatusApp(QtWidgets.QMainWindow):
         elif clickedButton == self.radioButtonNoMail:
             self.customXepr.email_handler_level = 50
 
-    def set_temperature_tolerance(self):
-        newString = self.lineEditT_tolerance.text()
-        self.customXepr.temperature_tolerance = float(newString)
+    def set_temperature_tolerance(self, value):
+        self.customXepr.temperature_tolerance = value
 
-    def setT_settling(self):
-        newString = self.lineEditT_settling.text()
-        self.customXepr.temp_wait_time = float(newString)
+    def setT_settling(self, value):
+        self.customXepr.temp_wait_time = value
 
 # =============================================================================
 # Properties
