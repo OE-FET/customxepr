@@ -49,9 +49,10 @@ except ImportError:
 logging.STATUS = 15
 logging.addLevelName(logging.STATUS, 'STATUS')
 # noinspection PyProtectedMember
-logging.Logger.status = lambda message, *args: logger._log(logging.STATUS, message, args)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.STATUS)
+setattr(logger, 'status', lambda message,
+        *args: logger._log(logging.STATUS, message, args))
 
 
 def cmp(a, b):
@@ -1366,7 +1367,7 @@ class CustomXepr(QtCore.QObject):
                             vg_start=K_CONF.get('Sweep', 'VgStart'),
                             vg_stop=K_CONF.get('Sweep', 'VgStop'),
                             vg_step=K_CONF.get('Sweep', 'VgStep'),
-                            vd_list=K_CONF.get('Sweep', 'vd_list'),
+                            vd_list=K_CONF.get('Sweep', 'VdList'),
                             tInt=K_CONF.get('Sweep', 'tInt'),
                             delay=K_CONF.get('Sweep', 'delay'),
                             pulsed=K_CONF.get('Sweep', 'pulsed'),
@@ -1501,7 +1502,7 @@ class CustomXepr(QtCore.QObject):
 # Set up loggers to send emails and write to log files
 # =============================================================================
 
-def setup_root_logger(notify=NOTIFY):
+def setup_root_logger(notify):
 
     # Set up email notification handler for WARNING messages and above
     root_logger = logging.getLogger()

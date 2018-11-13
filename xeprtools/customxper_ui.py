@@ -25,6 +25,7 @@ import inspect
 
 # custom module imports
 from xeprtools import customxepr
+from config.main import CONF
 
 
 PY3 = sys.version[0] == '3'
@@ -141,8 +142,8 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.actionShow_log_files.triggered.connect(self.on_log_clicked)
         self.action_Exit.triggered.connect(self.exit_)
 
-        # position in top left corner
-        self.setIntialPosition()
+        # restore last position and size
+        self.restoreGeometry()
 
         # =====================================================================
         # Update user interface to reflect current status of CustomXepr
@@ -244,21 +245,32 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.timeout_timer.timeout.connect(self.timeout_warning)
 
         status_handler.status_signal.connect(self.timeout_timer.start)
+
 # =============================================================================
 # User interface setup
 # =============================================================================
 
-    def setIntialPosition(self):
-        screen = QtWidgets.QDesktopWidget().screenGeometry(self)
+    def restoreGeometry(self):
+        self.move(CONF.get('Window', 'x'), CONF.get('Window', 'y'))
+        self.resize(CONF.get('Window', 'width'), CONF.get('Window', 'height'))
+        self.splitter.setSizes(CONF.get('Window', 'splitter'))
 
-        xPos = screen.left()
-        yPos = screen.top()
-        width = int(screen.width()*2/3)
-        height = int(screen.height()*2/3)
+    def saveGeometry(self):
+        geo = self.geometry()
+        CONF.set('Window', 'height', geo.height())
+        CONF.set('Window', 'width', geo.width())
+        CONF.set('Window', 'x', geo.x())
+        CONF.set('Window', 'y', geo.y())
+        CONF.set('Window', 'splitter', self.splitter.sizes())
 
-        self.setGeometry(xPos, yPos, width, height)
+    def exit_(self):
+        self.on_abort_clicked()
+        self.on_clear_clicked()
+        self.saveGeometry()
+        self.deleteLater()
 
-        self.splitter.setSizes([width*0.75, width*0.25])
+    def closeEvent(self, event):
+        self.exit_()
 
     def openResultContextMenu(self):
         """
@@ -325,15 +337,6 @@ class JobStatusApp(QtWidgets.QMainWindow):
                     del self.job_queue.queue[i]
                 self.job_queue.task_done()
                 self.jobQueueModel.removeRow(i)
-
-    def exit_(self):
-        self.on_abort_clicked()
-        self.on_clear_clicked()
-
-        self.deleteLater()
-
-    def closeEvent(self, event):
-        self.exit_()
 
     def timeout_warning(self):
         """
