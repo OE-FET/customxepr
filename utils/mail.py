@@ -14,7 +14,7 @@ import logging.handlers
 import smtplib
 import string
 from email.utils import formatdate
-from email.message import EmailMessage
+from email.message import Message
 
 
 class TlsSMTPHandler(logging.handlers.SMTPHandler):
@@ -88,7 +88,7 @@ class EmailSender(object):
     def create_email(self, toaddrs, subject, body):
         """Compose email form main body, subject and email addresses."""
 
-        msg = EmailMessage()
+        msg = Message()
         msg['From'] = self.fromaddr
         msg['To'] = toaddrs
         msg['Subject'] = subject
