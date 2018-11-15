@@ -1,7 +1,6 @@
 IPython
 PyQt5
 decorator
-email
 ipykernel
 keithleygui
 lmfit

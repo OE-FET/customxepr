@@ -123,7 +123,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         super(self.__class__, self).__init__()
         # load user interface layout from .ui file
         uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                'customxepr_ui_new.ui'), self)
+                                'customxepr_ui.ui'), self)
         self.labelCopyRight.setText('(c) %s Sam Schott' % customxepr.__year__)
 
         # get input arguments

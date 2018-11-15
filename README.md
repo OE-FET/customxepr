@@ -113,6 +113,7 @@ The Keithley 2600 user interface and driver have been split off as separate pack
 - pyvisa
 - pyvisa-py
 - qtpy
+- queue (Python 2.7 only)
 - scipy
 
 *Recommended*:
