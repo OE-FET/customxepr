@@ -122,8 +122,21 @@ class JobStatusApp(QtWidgets.QMainWindow):
         """
         super(self.__class__, self).__init__()
         # load user interface layout from .ui file
+        system = platform.system()
+        if system == 'Darwin':
+            layoutFile = 'customxepr_ui_macos.ui'
+        elif system == 'Linux':
+            layoutFile = 'customxepr_ui_linux.ui'
+        elif system == 'Windows':
+            layoutFile = 'customxepr_ui_win.ui'
+
         uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                'customxepr_ui.ui'), self)
+                                layoutFile), self)
+
+        if platform.system() == 'Darwin':
+            # create toolbar unified toolbar
+            self.createToolbar()
+
         self.labelCopyRight.setText('(c) %s Sam Schott' % customxepr.__year__)
 
         # get input arguments
@@ -133,9 +146,6 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.pause_event = customXepr.pause_event
         self.abort_event = customXepr.abort_event
         self.abort_event_keithley = customXepr.keithley.abort_event
-
-        # create toolbar
-        self.createToolbar()
 
         # create about window
         self.aboutWindow = AboutWindow()
