@@ -1,12 +1,16 @@
 IPython
 PyQt5
 decorator
+email
+ipykernel
 keithleygui
 lmfit
 matplotlib
 mercurygui
+mercuryitc
 numpy
 pyvisa
 pyvisa-py
 qtpy
+queue
 scipy

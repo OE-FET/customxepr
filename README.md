@@ -67,14 +67,14 @@ for T in [5, 50, 100, 150, 200, 250, 300]:
 	# Perform ESR measurements at Vg = -70V and Vg = 0V
 	# =================================================================
 	for Vg in [0, -70]:
-	  	customXepr.biasGate(Vg)  # bias gate
-		# perform preconfigured ESR measurement
-		customXepr.runXeprExperiment(Exp, ModAmp=modAmp[T])
-		customXepr.biasGate(0)  # set gate voltage to zero
+        customXepr.biasGate(Vg)  # bias gate
+        # perform preconfigured ESR measurement
+        customXepr.runXeprExperiment(Exp, ModAmp=modAmp[T])
+        customXepr.biasGate(0)  # set gate voltage to zero
 
-    	# save ESR spectrum to file
-		esrDataFile = folder + title + '_' + str(T) + 'K_Vg_' + str(Vg)
-		customXepr.saveCurrentData(esrDataFile)
+        # save ESR spectrum to file
+        esrDataFile = folder + title + '_' + str(T) + 'K_Vg_' + str(Vg)
+        customXepr.saveCurrentData(esrDataFile)
 
 customXepr.setStandby()  # ramp down field and set MW bridge to standby
 ```

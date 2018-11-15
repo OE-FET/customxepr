@@ -25,6 +25,7 @@ import inspect
 
 # custom module imports
 from xeprtools import customxepr
+from config.main import CONF
 
 
 PY3 = sys.version[0] == '3'
@@ -141,8 +142,8 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.actionShow_log_files.triggered.connect(self.on_log_clicked)
         self.action_Exit.triggered.connect(self.exit_)
 
-        # position in top left corner
-        self.setIntialPosition()
+        # restore last position and size
+        self.restoreGeometry()
 
         # =====================================================================
         # Update user interface to reflect current status of CustomXepr
@@ -159,8 +160,8 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.getNotificationLevel()
 
         # get temperature control settings
-        self.lineEditT_tolerance.setText(str(self.customXepr.temperature_tolerance))
-        self.lineEditT_settling.setText(str(self.customXepr.temp_wait_time))
+        self.lineEditT_tolerance.setValue(self.customXepr.temperature_tolerance)
+        self.lineEditT_settling.setValue(self.customXepr.temp_wait_time)
 
         # perform various UI updates after status change
         status_handler.status_signal.connect(self.statusField.setText)
@@ -214,14 +215,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.clearButton.clicked.connect(self.on_clear_clicked)
         self.pushButtonLogFiles.clicked.connect(self.on_log_clicked)
 
-        # accept only numbers as input of temperature tolerance
-        # and settling time
-        self.lineEditT_tolerance.setValidator(QtGui.QDoubleValidator())
-        self.lineEditT_settling.setValidator(QtGui.QDoubleValidator())
-
         self.lineEditEmailList.returnPressed.connect(self.setEmailList)
-        self.lineEditT_tolerance.returnPressed.connect(self.set_temperature_tolerance)
-        self.lineEditT_settling.returnPressed.connect(self.setT_settling)
+        self.lineEditT_tolerance.valueChanged.connect(self.set_temperature_tolerance)
+        self.lineEditT_settling.valueChanged.connect(self.setT_settling)
 
         self.bG = QtWidgets.QButtonGroup(self)
         self.bG.setExclusive(True)
@@ -236,7 +232,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         # Send an email notification if there is no status update for 30 min.
 
         _timeout_min = 30  # time in minutes before timeout warning
-        self.min2msec = 60.0*1000.0  # conversion factor for min to msec
+        self.min2msec = 60*1000  # conversion factor for min to msec
 
         self.timeout_timer = QtCore.QTimer()
         self.timeout_timer.setInterval(_timeout_min * self.min2msec)
@@ -244,21 +240,36 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.timeout_timer.timeout.connect(self.timeout_warning)
 
         status_handler.status_signal.connect(self.timeout_timer.start)
+
 # =============================================================================
 # User interface setup
 # =============================================================================
 
-    def setIntialPosition(self):
-        screen = QtWidgets.QDesktopWidget().screenGeometry(self)
+    def restoreGeometry(self):
+        x = CONF.get('Window', 'x')
+        y = CONF.get('Window', 'y')
+        w = CONF.get('Window', 'width')
+        h = CONF.get('Window', 'height')
 
-        xPos = screen.left()
-        yPos = screen.top()
-        width = screen.width()*2/3
-        height = screen.height()*2/3
+        self.setGeometry(x, y, w, h)
+        self.splitter.setSizes(CONF.get('Window', 'splitter'))
 
-        self.setGeometry(xPos, yPos, width, height)
+    def saveGeometry(self):
+        geo = self.geometry()
+        CONF.set('Window', 'height', geo.height())
+        CONF.set('Window', 'width', geo.width())
+        CONF.set('Window', 'x', geo.x())
+        CONF.set('Window', 'y', geo.y())
+        CONF.set('Window', 'splitter', self.splitter.sizes())
 
-        self.splitter.setSizes([width*0.75, width*0.25])
+    def exit_(self):
+        self.on_abort_clicked()
+        self.on_clear_clicked()
+        self.saveGeometry()
+        self.deleteLater()
+
+    def closeEvent(self, event):
+        self.exit_()
 
     def openResultContextMenu(self):
         """
@@ -268,23 +279,23 @@ class JobStatusApp(QtWidgets.QMainWindow):
         """
 
         indexes = self.resultQueueDisplay.selectedIndexes()
-        if indexes == []:
+        if not indexes:
             return
 
         i0, i1 = indexes[0].row(), indexes[-1].row()
 
-        self.popup_menu = QtWidgets.QMenu()
+        popup_menu = QtWidgets.QMenu()
 
-        deleteAction = self.popup_menu.addAction('Delete entry')
+        deleteAction = popup_menu.addAction('Delete entry')
         plotAction = None
         saveAction = None
 
         if 'plot' in dir(self.result_queue.queue[i0]) and i0 == i1:
-            plotAction = self.popup_menu.addAction('Plot data')
+            plotAction = popup_menu.addAction('Plot data')
         if 'save' in dir(self.result_queue.queue[i0]) and i0 == i1:
-            saveAction = self.popup_menu.addAction('Save data')
+            saveAction = popup_menu.addAction('Save data')
 
-        action = self.popup_menu.exec_(QtGui.QCursor.pos())
+        action = popup_menu.exec_(QtGui.QCursor.pos())
 
         if action == 0:
             return
@@ -314,10 +325,10 @@ class JobStatusApp(QtWidgets.QMainWindow):
         indexes = self.jobQueueDisplay.selectedIndexes()
         i0, i1 = indexes[0].row(), indexes[-1].row()
 
-        self.popup_menu = QtWidgets.QMenu()
+        popup_menu = QtWidgets.QMenu()
 
-        deleteAction = self.popup_menu.addAction('Delete entry')
-        action = self.popup_menu.exec_(QtGui.QCursor.pos())
+        deleteAction = popup_menu.addAction('Delete entry')
+        action = popup_menu.exec_(QtGui.QCursor.pos())
 
         if action == deleteAction:
             for i in range(i1, i0-1, -1):
@@ -325,15 +336,6 @@ class JobStatusApp(QtWidgets.QMainWindow):
                     del self.job_queue.queue[i]
                 self.job_queue.task_done()
                 self.jobQueueModel.removeRow(i)
-
-    def exit_(self):
-        self.on_abort_clicked()
-        self.on_clear_clicked()
-
-        self.deleteLater()
-
-    def closeEvent(self, event):
-        self.exit_()
 
     def timeout_warning(self):
         """
@@ -544,13 +546,11 @@ class JobStatusApp(QtWidgets.QMainWindow):
         elif clickedButton == self.radioButtonNoMail:
             self.customXepr.email_handler_level = 50
 
-    def set_temperature_tolerance(self):
-        newString = self.lineEditT_tolerance.text()
-        self.customXepr.temperature_tolerance = float(newString)
+    def set_temperature_tolerance(self, value):
+        self.customXepr.temperature_tolerance = value
 
-    def setT_settling(self):
-        newString = self.lineEditT_settling.text()
-        self.customXepr.temp_wait_time = float(newString)
+    def setT_settling(self, value):
+        self.customXepr.temp_wait_time = value
 
 # =============================================================================
 # Properties
@@ -571,13 +571,13 @@ class JobStatusApp(QtWidgets.QMainWindow):
 # About Window
 # =============================================================================
 
-def classify_class_attrs(object):
-    'Patch classify_class_attrs from pydoc to irgnore inhertied attributes.'
+def classify_class_attrs(obj):
+    """Patch classify_class_attrs from pydoc to irgnore inhertied attributes."""
     results = []
-    for (name, kind, cls, value) in inspect.classify_class_attrs(object):
+    for (name, kind, cls, value) in inspect.classify_class_attrs(obj):
         if inspect.isdatadescriptor(value):
             kind = 'data descriptor'
-        if cls is object:  # only append attributes defined in object
+        if cls is obj:  # only append attributes defined in object
             results.append((name, kind, cls, value))
     return results
 

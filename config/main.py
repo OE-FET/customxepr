@@ -23,6 +23,14 @@ SUBFOLDER = '.%s' % PACKAGE_NAME
 #  Defaults
 # =============================================================================
 DEFAULTS = [
+            ('Window',
+             {
+              'x': 0,
+              'y': 0,
+              'width': 1024,
+              'height': 650,
+              'splitter': [824, 200],
+              }),
             ('CustomXepr',
              {
               'notify_address': [getpass.getuser() + '@cam.ac.uk', ],
