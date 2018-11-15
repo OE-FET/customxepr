@@ -585,7 +585,7 @@ def classify_class_attrs(obj):
 pydoc.classify_class_attrs = classify_class_attrs
 
 
-class CustomHtmlDoc(pydoc.TextDoc):
+class CustomHtmlDoc(object, pydoc.TextDoc):
     """Subclass of TextDoc which overrides string styling to basic HTML styling."""
 
     def bold(self, text):
