@@ -104,7 +104,7 @@
       <property name="maximumSize">
        <size>
         <width>16777215</width>
-        <height>27</height>
+        <height>30</height>
        </size>
       </property>
       <property name="styleSheet">
@@ -244,6 +244,9 @@
               <height>16777215</height>
              </size>
             </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Pause after the current job has been executed. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="text">
              <string>Pause next</string>
             </property>
@@ -263,6 +266,9 @@
               <height>16777215</height>
              </size>
             </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Abort the current job, move on to the next.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="text">
              <string>Abort current</string>
             </property>
@@ -281,6 +287,9 @@
               <width>120</width>
               <height>16777215</height>
              </size>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear all pending jobs.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string>Clear all jobs</string>
@@ -315,8 +324,11 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum fluctuations allowed for the temperature to be considered stable.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="text">
-             <string>Temperature stability:</string>
+             <string>Temperature stability tolerance:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -331,8 +343,11 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Settling time for the temperature after fluctuations are within the tolerance.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="text">
-             <string>Settling time:</string>
+             <string>Temperature settling time:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -343,15 +358,18 @@
            <widget class="ScienDSpinBox" name="lineEditT_settling">
             <property name="minimumSize">
              <size>
-              <width>100</width>
+              <width>110</width>
               <height>0</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>100</width>
+              <width>110</width>
               <height>16777215</height>
              </size>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Settling time for the temperature after fluctuations are within the tolerance.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -376,7 +394,7 @@
           <item row="1" column="0">
            <widget class="QLabel" name="label_3">
             <property name="text">
-             <string>Determine the cavity Q-Value:</string>
+             <string>Schedule a Q-Value determination job:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -387,15 +405,18 @@
            <widget class="ScienDSpinBox" name="lineEditT_tolerance">
             <property name="minimumSize">
              <size>
-              <width>100</width>
+              <width>110</width>
               <height>0</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>100</width>
+              <width>110</width>
               <height>16777215</height>
              </size>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum fluctuations allowed for the temperature to be considered stable.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -414,7 +435,7 @@
           <item row="2" column="0">
            <widget class="QLabel" name="label_4">
             <property name="text">
-             <string>Tune frequency, iris, phase and bias:</string>
+             <string>Schedule a cavity tuning job:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -451,18 +472,18 @@
            <widget class="QPushButton" name="qValueButton">
             <property name="minimumSize">
              <size>
-              <width>100</width>
+              <width>120</width>
               <height>0</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>100</width>
+              <width>120</width>
               <height>16777215</height>
              </size>
             </property>
             <property name="text">
-             <string>Q-Value</string>
+             <string>Get Q-Value</string>
             </property>
            </widget>
           </item>
@@ -470,18 +491,18 @@
            <widget class="QPushButton" name="tuneButton">
             <property name="minimumSize">
              <size>
-              <width>100</width>
+              <width>120</width>
               <height>0</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>100</width>
+              <width>120</width>
               <height>16777215</height>
              </size>
             </property>
             <property name="text">
-             <string>Tune</string>
+             <string>Tune cavity</string>
             </property>
            </widget>
           </item>
@@ -578,6 +599,9 @@
               <width>300</width>
               <height>16777215</height>
              </size>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma seperated list of addresses that notification emails will be sent to.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
@@ -779,6 +803,24 @@
    <header>utils.scientific_spinbox.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>jobQueueDisplay</tabstop>
+  <tabstop>pauseButton</tabstop>
+  <tabstop>clearButton</tabstop>
+  <tabstop>abortButton</tabstop>
+  <tabstop>qValueButton</tabstop>
+  <tabstop>tuneButton</tabstop>
+  <tabstop>lineEditT_tolerance</tabstop>
+  <tabstop>lineEditT_settling</tabstop>
+  <tabstop>resultQueueDisplay</tabstop>
+  <tabstop>messageLogDisplay</tabstop>
+  <tabstop>lineEditEmailList</tabstop>
+  <tabstop>radioButtonErrorMail</tabstop>
+  <tabstop>radioButtonWarningMail</tabstop>
+  <tabstop>radioButtonInfoMail</tabstop>
+  <tabstop>radioButtonNoMail</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
