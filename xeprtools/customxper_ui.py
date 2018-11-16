@@ -587,12 +587,13 @@ pydoc.classify_class_attrs = classify_class_attrs
 
 class CustomHtmlDoc(pydoc.TextDoc):
     """Subclass of TextDoc which overrides string styling to basic HTML styling."""
+
     def bold(self, text):
         """Format a string in bold html instead of unicode."""
         return '<span style="font-weight:bold">%s</span>' % text
 
-    def docclass(self, object, name=None, mod=None, *ignored):
-        text = super(self.__class__, self).docclass(object, name, mod, *ignored)
+    def docclass(self, obj, name=None, mod=None, *ignored):
+        text = pydoc.TextDoc.docclass(self, obj, name, mod, *ignored)
         wrap_style = '<body style="white-space: pre-wrap;"> %s </body>'
         return wrap_style % text
 
