@@ -312,7 +312,7 @@
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
             <property name="suffix">
-             <string> s</string>
+             <string>s</string>
             </property>
             <property name="decimals">
              <number>0</number>
@@ -359,7 +359,7 @@
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
             <property name="suffix">
-             <string> K</string>
+             <string>K</string>
             </property>
             <property name="singleStep">
              <double>0.100000000000000</double>
@@ -805,7 +805,7 @@ QTabWidget::pane
   <customwidget>
    <class>ScienDSpinBox</class>
    <extends>QDoubleSpinBox</extends>
-   <header>utils.scientific_spinbox.h</header>
+   <header>keithleygui.utils.scientific_spinbox.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
