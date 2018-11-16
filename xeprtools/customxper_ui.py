@@ -603,7 +603,7 @@ class CustomHtmlDoc(pydoc.TextDoc):
         return '<span style="font-weight:bold">%s</span>' % text
 
     def docclass(self, obj, name=None, mod=None, *ignored):
-        text = pydoc.TextDoc.docclass(obj, name, mod, *ignored)
+        text = pydoc.TextDoc.docclass(self, obj, name, mod, *ignored)
         wrap_style = '<body style="white-space: pre-wrap;"> %s </body>'
         return wrap_style % text
 
