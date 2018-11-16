@@ -597,6 +597,9 @@ pydoc.classify_class_attrs = classify_class_attrs
 
 class CustomHtmlDoc(pydoc.TextDoc):
     """Subclass of TextDoc which overrides string styling to basic HTML styling."""
+
+    __metaclass__ = type  # Py2 compatability: pydoc.TextDoc is classobj in Py2
+
     def bold(self, text):
         """Format a string in bold html instead of unicode."""
         return '<span style="font-weight:bold">%s</span>' % text
