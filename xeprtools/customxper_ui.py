@@ -598,14 +598,12 @@ pydoc.classify_class_attrs = classify_class_attrs
 class CustomHtmlDoc(pydoc.TextDoc):
     """Subclass of TextDoc which overrides string styling to basic HTML styling."""
 
-    __metaclass__ = type  # Py2 compatability: pydoc.TextDoc is classobj in Py2
-
     def bold(self, text):
         """Format a string in bold html instead of unicode."""
         return '<span style="font-weight:bold">%s</span>' % text
 
     def docclass(self, obj, name=None, mod=None, *ignored):
-        text = super(self.__class__, self).docclass(obj, name, mod, *ignored)
+        text = pydoc.TextDoc.docclass(obj, name, mod, *ignored)
         wrap_style = '<body style="white-space: pre-wrap;"> %s </body>'
         return wrap_style % text
 
@@ -616,7 +614,6 @@ class AboutWindow(QtWidgets.QWidget, QtCore.QCoreApplication):
     PyQt window.
     """
     def __init__(self):
-
         super(self.__class__, self).__init__()
         # load user interface file
         uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
