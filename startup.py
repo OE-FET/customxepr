@@ -108,7 +108,7 @@ def get_qt_app(*args, **kwargs):
 def show_splash_screen(app):
     """ Shows a splash screen from file."""
     direct = os.path.dirname(os.path.realpath(__file__))
-    image = QtGui.QPixmap(os.path.join(direct, 'images', 'splash.png'))
+    image = QtGui.QPixmap(os.path.join(direct, 'resources', 'splash.png'))
     image.setDevicePixelRatio(3)
     splash = QtWidgets.QSplashScreen(image)
     splash.show()
