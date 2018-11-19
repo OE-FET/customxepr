@@ -128,7 +128,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         elif system == 'Linux':
             layoutFile = 'customxepr_ui_linux.ui'
         elif system == 'Windows':
-            layoutFile = 'customxepr_ui_win.ui'
+            layoutFile = 'customxepr_ui_linux.ui'
 
         uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                 layoutFile), self)

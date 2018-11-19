@@ -11,7 +11,7 @@ To Do:
 * See GitHub issues list at https://github.com/OE-FET/CustomXepr
 
 New in v2.2:
-    * Window position and size is saved and restored between sessions.
+    * Window positions and sizes are saved and restored between sessions.
 
 New in v2.1.:
     * Included revamped keithleygui with IV sweep functionality.

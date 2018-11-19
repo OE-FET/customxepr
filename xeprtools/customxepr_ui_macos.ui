@@ -102,7 +102,7 @@
     <item row="1" column="0" colspan="4">
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="page">
        <layout class="QGridLayout" name="gridLayout_2">
@@ -320,9 +320,6 @@
             <property name="maximum">
              <double>99999.000000000000000</double>
             </property>
-            <property name="singleStep">
-             <double>10.000000000000000</double>
-            </property>
             <property name="value">
              <double>120.000000000000000</double>
             </property>
@@ -360,9 +357,6 @@
             </property>
             <property name="suffix">
              <string>K</string>
-            </property>
-            <property name="singleStep">
-             <double>0.100000000000000</double>
             </property>
             <property name="value">
              <double>0.100000000000000</double>
@@ -614,28 +608,15 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
+          <item row="2" column="0" rowspan="4">
            <widget class="QLabel" name="label_2">
             <property name="text">
              <string>Notification level:</string>
             </property>
             <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
             </property>
            </widget>
-          </item>
-          <item row="3" column="0" rowspan="3">
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
           </item>
          </layout>
         </item>
