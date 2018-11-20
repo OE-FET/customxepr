@@ -620,9 +620,9 @@
    <widget class="QMenu" name="menu_CustomXepr">
     <property name="geometry">
      <rect>
-      <x>298</x>
-      <y>154</y>
-      <width>172</width>
+      <x>194</x>
+      <y>131</y>
+      <width>168</width>
       <height>96</height>
      </rect>
     </property>
@@ -639,34 +639,63 @@
     </property>
     <addaction name="actionShow_log_files"/>
    </widget>
-   <widget class="QMenu" name="menuView">
+   <widget class="QMenu" name="menuWindow">
     <property name="title">
-     <string>View</string>
+     <string>Window</string>
     </property>
-   </widget>
-   <widget class="QMenu" name="menuEdit">
-    <property name="title">
-     <string>Edit</string>
-    </property>
+    <addaction name="actionMinimize"/>
+    <addaction name="actionZoom"/>
    </widget>
    <addaction name="menu_CustomXepr"/>
    <addaction name="menu_Files"/>
-   <addaction name="menuEdit"/>
-   <addaction name="menuView"/>
+   <addaction name="menuWindow"/>
   </widget>
   <action name="action_About">
    <property name="text">
-    <string> &amp;About CustomXepr...</string>
+    <string>&amp;About CustomXepr...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
   <action name="action_Exit">
    <property name="text">
-    <string> &amp;Quit CustomXepr</string>
+    <string>&amp;Quit CustomXepr</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionShow_log_files">
    <property name="text">
     <string>Show log files</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionMinimize">
+   <property name="text">
+    <string>Minimize</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+M</string>
+   </property>
+  </action>
+  <action name="actionBring_all_to_front">
+   <property name="text">
+    <string>Bring all to front</string>
+   </property>
+  </action>
+  <action name="actionZoom">
+   <property name="text">
+    <string>Zoom</string>
    </property>
   </action>
  </widget>
@@ -693,7 +722,40 @@
   <tabstop>radioButtonNoMail</tabstop>
  </tabstops>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>actionMinimize</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>showMinimized()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>403</x>
+     <y>331</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionZoom</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>showMaximized()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>403</x>
+     <y>331</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
  <buttongroups>
   <buttongroup name="bG"/>
  </buttongroups>
