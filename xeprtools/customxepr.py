@@ -57,7 +57,7 @@ setattr(logger, 'status', lambda message,
 
 def cmp(a, b):
     """ Definition of Python 2 cmp function."""
-    return (bool(a > b) - bool(a < b))
+    return (bool(a > b) - bool(a < b))  # convert to bool in case numpy boolean is returned
 
 
 # =============================================================================
