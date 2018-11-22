@@ -88,11 +88,10 @@ class EmailSender(object):
     def create_email(self, toaddrs, subject, body):
         """Compose email form main body, subject and email addresses."""
 
-        msg = Message()
-        msg['From'] = self.fromaddr
-        msg['To'] = toaddrs
-        msg['Subject'] = subject
-        msg.set_payload(body)
+        msg = u'From: %s\r\nTo: %s\r\nSubject: %s\r\nDate: %s\r\n\r\n%s' % (
+                self.fromaddr, string.join(toaddrs, ","),
+                subject, formatdate(), body
+                )
 
         return msg
 
@@ -107,7 +106,7 @@ class EmailSender(object):
                 self.smtpehlo()
                 self.smtplogin(self.username, self.password)
 
-        self.smtp.sendmail(self.fromaddr, toaddrs, msg.as_string())
+        self.smtp.sendmail(self.fromaddr, toaddrs, msg.encode('utf-8'))
 
         if not self.standby:
             self.smtpquit()
