@@ -109,4 +109,4 @@ class EmailSender(object):
         self.smtp.sendmail(self.fromaddr, toaddrs, msg.encode('utf-8'))
 
         if not self.standby:
-            self.smtpquit()
+            self.smtp.quit()
