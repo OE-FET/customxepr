@@ -222,6 +222,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         # =====================================================================
 
         self.qValueButton.clicked.connect(self.on_qValue_clicked)
+        self.tuneButton.clicked.connect(self.on_tune_clicked)
 
         self.pauseButton.clicked.connect(self.on_pause_clicked)
         self.abortButton.clicked.connect(self.on_abort_clicked)
