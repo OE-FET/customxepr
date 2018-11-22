@@ -92,7 +92,7 @@ class EmailSender(object):
         msg['From'] = self.fromaddr
         msg['To'] = toaddrs
         msg['Subject'] = subject
-        msg.set_content(body, subtype='html')
+        msg.set_payload(body)
 
         return msg
 
