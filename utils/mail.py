@@ -107,7 +107,7 @@ class EmailSender(object):
                 self.smtpehlo()
                 self.smtplogin(self.username, self.password)
 
-        self.smtp.send_message(msg)
+        self.smtp.send_message(self.fromaddr, toaddrs, msg.as_string())
 
         if not self.standby:
             self.smtpquit()
