@@ -122,8 +122,21 @@ class JobStatusApp(QtWidgets.QMainWindow):
         """
         super(self.__class__, self).__init__()
         # load user interface layout from .ui file
+        system = platform.system()
+        if system == 'Darwin':
+            layoutFile = 'customxepr_ui_macos.ui'
+        elif system == 'Linux':
+            layoutFile = 'customxepr_ui_linux.ui'
+        elif system == 'Windows':
+            layoutFile = 'customxepr_ui_linux.ui'
+
         uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                'customxepr_ui.ui'), self)
+                                layoutFile), self)
+
+        if platform.system() == 'Darwin':
+            # create toolbar unified toolbar
+            self.createToolbar()
+
         self.labelCopyRight.setText('(c) %s Sam Schott' % customxepr.__year__)
 
         # get input arguments
@@ -207,24 +220,17 @@ class JobStatusApp(QtWidgets.QMainWindow):
         # =====================================================================
         # Connect signals, slots, and callbacks
         # =====================================================================
-        self.tuneButton.clicked.connect(self.on_tune_clicked)
+
         self.qValueButton.clicked.connect(self.on_qValue_clicked)
+        self.tuneButton.clicked.connect(self.on_tune_clicked)
 
         self.pauseButton.clicked.connect(self.on_pause_clicked)
         self.abortButton.clicked.connect(self.on_abort_clicked)
         self.clearButton.clicked.connect(self.on_clear_clicked)
-        self.pushButtonLogFiles.clicked.connect(self.on_log_clicked)
 
         self.lineEditEmailList.returnPressed.connect(self.setEmailList)
         self.lineEditT_tolerance.valueChanged.connect(self.set_temperature_tolerance)
         self.lineEditT_settling.valueChanged.connect(self.setT_settling)
-
-        self.bG = QtWidgets.QButtonGroup(self)
-        self.bG.setExclusive(True)
-        self.bG.addButton(self.radioButtonErrorMail)
-        self.bG.addButton(self.radioButtonWarningMail)
-        self.bG.addButton(self.radioButtonInfoMail)
-        self.bG.addButton(self.radioButtonNoMail)
 
         self.bG.buttonClicked['int'].connect(self.onbGClicked)
 
@@ -245,6 +251,13 @@ class JobStatusApp(QtWidgets.QMainWindow):
 # User interface setup
 # =============================================================================
 
+    def createToolbar(self):
+        self.toolbar = QtWidgets.QToolBar(self)
+        self.toolbar.setFloatable(False)
+        self.toolbar.setMovable(False)
+        self.addToolBar(self.toolbar)
+        self.toolbar.addWidget(self.tabWidget)
+
     def restoreGeometry(self):
         x = CONF.get('Window', 'x')
         y = CONF.get('Window', 'y')
@@ -252,7 +265,6 @@ class JobStatusApp(QtWidgets.QMainWindow):
         h = CONF.get('Window', 'height')
 
         self.setGeometry(x, y, w, h)
-        self.splitter.setSizes(CONF.get('Window', 'splitter'))
 
     def saveGeometry(self):
         geo = self.geometry()
@@ -260,7 +272,6 @@ class JobStatusApp(QtWidgets.QMainWindow):
         CONF.set('Window', 'width', geo.width())
         CONF.set('Window', 'x', geo.x())
         CONF.set('Window', 'y', geo.y())
-        CONF.set('Window', 'splitter', self.splitter.sizes())
 
     def exit_(self):
         self.on_abort_clicked()
@@ -604,7 +615,6 @@ class AboutWindow(QtWidgets.QWidget, QtCore.QCoreApplication):
     PyQt window.
     """
     def __init__(self):
-
         super(self.__class__, self).__init__()
         # load user interface file
         uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),

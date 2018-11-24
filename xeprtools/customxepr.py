@@ -57,7 +57,7 @@ setattr(logger, 'status', lambda message,
 
 def cmp(a, b):
     """ Definition of Python 2 cmp function."""
-    return (bool(a > b) - bool(a < b))
+    return (bool(a > b) - bool(a < b))  # convert to bool in case numpy boolean is returned
 
 
 # =============================================================================
@@ -291,7 +291,7 @@ class CustomXepr(QtCore.QObject):
         # =====================================================================
 
         # waiting time for Xepr to process commands
-        self.wait = 0.2
+        self.wait = 0.5
         # settling time for cryostat temperature
         self._temp_wait_time = CONF.get('CustomXepr', 'temp_wait_time')
         # temperature stability tolerance
@@ -1016,41 +1016,9 @@ class CustomXepr(QtCore.QObject):
         # -----------set experiment parameters if given in kwargs--------------
         for key in kwargs:
             exp[key].value = kwargs[key]
-
-        # -------------- estimate running time --------------------------------
-
-        try:
-            sweep_time = exp['SweepTime'].value
-            time.sleep(self.wait)
-            n_scans = exp['NbScansToDo'].value
             time.sleep(self.wait)
 
-            # get number of second axis steps if present
-            try:
-                sweep_data = exp['SweepData'].value
-                time.sleep(self.wait)
-                ypts = len(sweep_data.split())
-
-                # get NbPoints if SweepData is empty string
-                if ypts == 0:
-                    ypts = exp['NbPoints'].value
-                    time.sleep(self.wait)
-                # get settling time between steps in seconds
-                delay = exp['Delay'].value / 1000
-
-            except ParameterError:
-                ypts = 1
-                delay = 0
-            experiment_sec = sweep_time * n_scans * ypts + delay
-
-            eta = time.time() + experiment_sec
-            eta_string = time.strftime('%H:%M', time.localtime(eta))
-            message = ('Measurement "%s" running. ' % exp.aqGetExpName() +
-                       'Estimated time: %s min, ETA: %s.' % (int(experiment_sec / 60), eta_string))
-
-        # catch exception in case of 1D experiment
-        except ParameterError:
-            message = ('Measurement "%s" running. ' % exp.aqGetExpName())
+        message = ('Measurement "%s" is running. ' % exp.aqGetExpName())
 
         logger.info(message)
 
@@ -1087,7 +1055,9 @@ class CustomXepr(QtCore.QObject):
                 return
 
             nb_scans_done = exp['NbScansDone'].value
+            time.sleep(self.wait)
             nb_scans_to_do = exp['NbScansToDo'].value
+            time.sleep(self.wait)
             logger.status('Recording scan %i of %i'
                           % (nb_scans_done + 1, nb_scans_to_do))
 
@@ -1104,6 +1074,7 @@ class CustomXepr(QtCore.QObject):
                 time.sleep(self.wait)
                 exp.aqExpRun()
                 time.sleep(self.wait)
+
                 while not exp.isRunning:
                     time.sleep(self.wait)
 
@@ -1115,9 +1086,7 @@ class CustomXepr(QtCore.QObject):
             if temperature_history:
                 temperature_curr = self.feed.readings['Temp']
                 temperature_history = np.append(temperature_history, temperature_curr)
-                # if temperature unstable, increment the number of violations
-                # don't look at all historic data since temperature_tolerance
-                # may have changed during the scan
+                # increment the number of violations n_out if temperature unstable
                 n_out += (abs(temperature_history[-1] - temperature_history[0]) >
                           2 * self.temperature_tolerance)
                 # warn once for every 120 violations
@@ -1150,10 +1119,13 @@ class CustomXepr(QtCore.QObject):
         # -----------------get aquired dataset from Xepr and return------------
         # switch viewpoint to expriment which just finished running
         exp_title = exp.aqGetExpName()
+        time.sleep(self.wait)
         self.XeprCmds.aqExpSelect(1, exp_title)
+        time.sleep(self.wait)
 
         # get data set
         dset = self.Xepr.XeprDataset()
+        time.sleep(self.wait)
 
         return dset
 
@@ -1236,7 +1208,7 @@ class CustomXepr(QtCore.QObject):
 # =============================================================================
 
     @queued_exec(job_queue)
-    def setTemperature(self, target_temperature):
+    def setTemperature(self, temperature_target):
         """
         Sets the target temperature for the ESR900 cryostat and waits for it to
         stabilize within `self.temp_wait_time` with fluctuations below
@@ -1250,8 +1222,8 @@ class CustomXepr(QtCore.QObject):
                         ' require a connected cryostat will not work.')
             return
 
-        self._temperature_target = target_temperature  # create instance variable here to allow outside access
-
+        # create instance variable here to allow outside access
+        self._temperature_target = temperature_target
         logger.info('Setting target temperature to %sK.' % self._temperature_target)
 
         # set temperature and wait to stabalize
