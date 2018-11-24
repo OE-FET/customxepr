@@ -1018,41 +1018,7 @@ class CustomXepr(QtCore.QObject):
             exp[key].value = kwargs[key]
             time.sleep(self.wait)
 
-        # -------------- estimate running time --------------------------------
-
-        try:
-            sweep_time = exp['SweepTime'].value
-            time.sleep(self.wait)
-            n_scans = exp['NbScansToDo'].value
-            time.sleep(self.wait)
-
-            # get number of second axis steps if present
-            try:
-                sweep_data = exp['SweepData'].value
-                time.sleep(self.wait)
-                ypts = len(sweep_data.split())
-
-                # get NbPoints if SweepData is empty string
-                if ypts == 0:
-                    ypts = exp['NbPoints'].value
-                    time.sleep(self.wait)
-                # get settling time between steps in seconds
-                delay = exp['Delay'].value / 1000
-                time.sleep(self.wait)
-
-            except ParameterError:
-                ypts = 1
-                delay = 0
-            experiment_sec = sweep_time * n_scans * ypts + delay
-
-            eta = time.time() + experiment_sec
-            eta_string = time.strftime('%H:%M', time.localtime(eta))
-            message = ('Measurement "%s" running. ' % exp.aqGetExpName() +
-                       'Estimated time: %s min, ETA: %s.' % (int(experiment_sec / 60), eta_string))
-
-        # catch exception in case of 1D experiment
-        except ParameterError:
-            message = ('Measurement "%s" running. ' % exp.aqGetExpName())
+        message = ('Measurement "%s" is running. ' % exp.aqGetExpName())
 
         logger.info(message)
 
@@ -1108,6 +1074,7 @@ class CustomXepr(QtCore.QObject):
                 time.sleep(self.wait)
                 exp.aqExpRun()
                 time.sleep(self.wait)
+
                 while not exp.isRunning:
                     time.sleep(self.wait)
 
