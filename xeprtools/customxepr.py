@@ -290,8 +290,8 @@ class CustomXepr(QtCore.QObject):
         # define certain settings for customxepr functions
         # =====================================================================
 
-        # waiting time for Xepr to process commands
-        self.wait = 0.5
+        # waiting time for Xepr to process commands, prevent memory error
+        self.wait = 0.1
         # settling time for cryostat temperature
         self._temp_wait_time = CONF.get('CustomXepr', 'temp_wait_time')
         # temperature stability tolerance
@@ -523,7 +523,9 @@ class CustomXepr(QtCore.QObject):
         time.sleep(self.wait)
 
         self.hidden['PowerAtten'].value = 50
+        time.sleep(self.wait)
         self._tuneBias()
+        time.sleep(self.wait)
 
         for atten in range(40, 0, -10):
             # check for abort event, clear event
@@ -535,23 +537,35 @@ class CustomXepr(QtCore.QObject):
                 return
 
             self.hidden['PowerAtten'].value = atten
+            time.sleep(self.wait)
 
             self._tunePhase()
+            time.sleep(self.wait)
             self._tuneIris()
+            time.sleep(self.wait)
 
         self._tuneFreq()
         self.hidden['PowerAtten'].value = 45
+        time.sleep(self.wait)
         self._tuneBias()
+        time.sleep(self.wait)
 
         self.hidden['PowerAtten'].value = 20
+        time.sleep(self.wait)
         self._tunePhase()
+        time.sleep(self.wait)
         self._tuneIris()
+        time.sleep(self.wait)
 
         self.hidden['PowerAtten'].value = 45
+        time.sleep(self.wait)
         self._tuneBias()
+        time.sleep(self.wait)
 
         self.hidden['PowerAtten'].value = 10
+        time.sleep(self.wait)
         self._tuneIris()
+        time.sleep(self.wait)
 
         self.hidden['PowerAtten'].value = atten_start
         time.sleep(self.wait)
@@ -577,6 +591,7 @@ class CustomXepr(QtCore.QObject):
 
         # get offset from 200 mA
         diff = self.hidden['DiodeCurrent'].value - 200
+        time.sleep(self.wait)
         tolerance1 = 10  # tolerance for fast tuning
         tolerance2 = 1  # tolerance for second fine tuning
 
@@ -591,6 +606,7 @@ class CustomXepr(QtCore.QObject):
                                     'Coarse %s' % step)
             time.sleep(0.5)
             diff = self.hidden['DiodeCurrent'].value - 200
+            time.sleep(self.wait)
 
         # fine tuning with low tolerance and small steps
         while abs(diff) > tolerance2:
@@ -603,6 +619,7 @@ class CustomXepr(QtCore.QObject):
                                     'Fine %s' % step)
             time.sleep(0.5)
             diff = self.hidden['DiodeCurrent'].value - 200
+            time.sleep(self.wait)
 
     def _tuneIris(self, tolerance=1):
         """Tunes the cavity's iris. A perfectly tuned iris results in a diode
@@ -643,7 +660,9 @@ class CustomXepr(QtCore.QObject):
             time.sleep(step)
             self.XeprCmds.aqParSet('AcqHidden', cmd, 'False')
             time.sleep(wait)
+
             diff = self.hidden['DiodeCurrent'].value - 200
+            time.sleep(self.wait)
 
     def _tuneFreq(self, tolerance=3):
         """Tunes the microwave frequency to a lock offset of zero.
@@ -660,6 +679,7 @@ class CustomXepr(QtCore.QObject):
         time.sleep(self.wait)
 
         fq_offset = self.hidden['LockOffset'].value
+        time.sleep(self.wait)
 
         while abs(fq_offset) > tolerance:
             # check for abort event
@@ -671,6 +691,7 @@ class CustomXepr(QtCore.QObject):
                                     'Fine %s' % step)
             time.sleep(1)
             fq_offset = self.hidden['LockOffset'].value
+            time.sleep(self.wait)
 
     def _tunePhase(self):
         """
@@ -689,9 +710,13 @@ class CustomXepr(QtCore.QObject):
 
         # get current phase and range
         phase0 = self.hidden['SignalPhase'].value
+        time.sleep(self.wait)
         phase_min = self.hidden['SignalPhase'].aqGetParMinValue()
+        time.sleep(self.wait)
         phase_max = self.hidden['SignalPhase'].aqGetParMaxValue()
+        time.sleep(self.wait)
         phase_step = self.hidden['SignalPhase'].aqGetParCoarseSteps()
+        time.sleep(self.wait)
 
         # determine direction of increasing diode current
         diode_curr_array = np.array([])
@@ -1161,7 +1186,9 @@ class CustomXepr(QtCore.QObject):
         # switch viewpoint to experiment if given
         if exp is not None:
             exp_title = exp.aqGetExpName()
+            time.sleep(self.wait)
             self.XeprCmds.aqExpSelect(1, exp_title)
+            time.sleep(self.wait)
 
         # title = filename if no title given
         if title is None:
@@ -1169,7 +1196,9 @@ class CustomXepr(QtCore.QObject):
 
         # save data
         self.XeprCmds.ddPath(path)
+        time.sleep(self.wait)
         self.XeprCmds.vpSave('Current Primary', title,  path)
+        time.sleep(self.wait)
         logger.info('Data saved to %s.' % path)
 
     @queued_exec(job_queue)
@@ -1184,6 +1213,7 @@ class CustomXepr(QtCore.QObject):
         # check if WindDown experiment already exists, otherwise create
         try:
             wd = self.Xepr.XeprExperiment('WindDown')
+            time.sleep(self.wait)
         except ExperimentError:
             wd = self.Xepr.XeprExperiment('WindDown', exptype='C.W.',
                                           axs1='Field', ordaxs='Signal channel')
