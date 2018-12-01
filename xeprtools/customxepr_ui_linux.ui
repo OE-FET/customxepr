@@ -634,9 +634,18 @@
     <addaction name="actionMinimize"/>
     <addaction name="actionZoom"/>
    </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionCustomXepr_Help"/>
+    <addaction name="separator"/>
+    <addaction name="actionXeprAPI_Help"/>
+   </widget>
    <addaction name="menu_CustomXepr"/>
    <addaction name="menu_Files"/>
    <addaction name="menuWindow"/>
+   <addaction name="menuHelp"/>
   </widget>
   <action name="action_About">
    <property name="text">
@@ -684,6 +693,16 @@
   <action name="actionZoom">
    <property name="text">
     <string>Zoom</string>
+   </property>
+  </action>
+  <action name="actionXeprAPI_Help">
+   <property name="text">
+    <string>XeprAPI Help</string>
+   </property>
+  </action>
+  <action name="actionCustomXepr_Help">
+   <property name="text">
+    <string>CustomXepr Help</string>
    </property>
   </action>
  </widget>

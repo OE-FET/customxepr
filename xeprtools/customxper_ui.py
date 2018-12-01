@@ -22,6 +22,7 @@ import subprocess
 import re
 import pydoc
 import inspect
+import webbrowser
 
 # custom module imports
 from xeprtools import customxepr
@@ -134,7 +135,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
                                 layoutFile), self)
 
         if platform.system() == 'Darwin':
-            # create toolbar unified toolbar
+            # create unified toolbar
             self.createToolbar()
 
         self.labelCopyRight.setText('(c) %s Sam Schott' % customxepr.__year__)
@@ -152,8 +153,15 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         # assign menu bar actions
         self.action_About.triggered.connect(self.aboutWindow.show)
+        self.actionCustomXepr_Help.triggered.connect(self.aboutWindow.show)
         self.actionShow_log_files.triggered.connect(self.on_log_clicked)
         self.action_Exit.triggered.connect(self.exit_)
+
+        if not os.popen("Xepr --apipath").read() == '':
+            url = 'file://' + os.popen("Xepr --apipath").read() + '/docs/XeprAPI.html'
+            self.actionXeprAPI_Help.triggered.connect(lambda: webbrowser.open_new(url))
+        else:
+            self.actionXeprAPI_Help.setEnabled(False)
 
         # restore last position and size
         self.restoreGeometry()
