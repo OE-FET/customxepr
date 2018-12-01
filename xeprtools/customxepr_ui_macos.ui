@@ -751,6 +751,10 @@ QTabWidget::pane
     <property name="title">
      <string>Edit</string>
     </property>
+    <addaction name="actionCut"/>
+    <addaction name="actionCopy"/>
+    <addaction name="actionPaste"/>
+    <addaction name="actionSelect_All"/>
    </widget>
    <widget class="QMenu" name="menuWindow">
     <property name="title">
@@ -764,6 +768,9 @@ QTabWidget::pane
     <property name="title">
      <string>Help</string>
     </property>
+    <addaction name="actionCustomXepr_Help"/>
+    <addaction name="separator"/>
+    <addaction name="actionXeprAPI_Help"/>
    </widget>
    <addaction name="menu_CustomXepr"/>
    <addaction name="menu_Files"/>
@@ -812,6 +819,63 @@ QTabWidget::pane
   <action name="actionBring_all_to_front">
    <property name="text">
     <string>Bring all to front</string>
+   </property>
+  </action>
+  <action name="actionCopy">
+   <property name="text">
+    <string>Copy</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="actionPaste">
+   <property name="text">
+    <string>Paste</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+V</string>
+   </property>
+  </action>
+  <action name="actionCut">
+   <property name="text">
+    <string>Cut</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+X</string>
+   </property>
+  </action>
+  <action name="actionSelect_All">
+   <property name="text">
+    <string>Select All</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
+   </property>
+  </action>
+  <action name="actionEnter_Full_Screen">
+   <property name="text">
+    <string>Enter Full Screen</string>
+   </property>
+  </action>
+  <action name="actiontest">
+   <property name="text">
+    <string>test</string>
+   </property>
+  </action>
+  <action name="actionPython_XeprAPI_Help">
+   <property name="text">
+    <string>Python XeprAPI Help</string>
+   </property>
+  </action>
+  <action name="actionXeprAPI_Help">
+   <property name="text">
+    <string>XeprAPI Help</string>
+   </property>
+  </action>
+  <action name="actionCustomXepr_Help">
+   <property name="text">
+    <string>CustomXepr Help</string>
    </property>
   </action>
  </widget>
