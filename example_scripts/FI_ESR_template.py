@@ -1,3 +1,10 @@
+# Assume we have an instance of CustomXepr running and experiments with names
+# 'Experiment' and 'PowerSat' defined in Xepr.
+#
+# Run this script in CustomXepr's interactive IPython console.
+
+sign = lambda x: (1, -1)[x < 0]
+
 Exp = xepr.XeprExperiment('Experiment')
 Pwrst = xepr.XeprExperiment('PowerSat')
 
@@ -11,7 +18,7 @@ multiplierVg = {0: 2.5, -10: 2.5, -20: 2.5, -30: 2, -40: 2, -50: 1.5, -60: 1, -7
 
 Vg = -70
 
-directory = '/home/ss2151/Dropbox/ESR_data_upload/my_sample/'
+directory = '/home/ss2151/Dropbox/ESR_data_upload/my_sample'
 filename = 'my_sample'
 
 for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
@@ -28,24 +35,25 @@ for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
     # =========================================================================
     # Perform FET measurements
     # =========================================================================
-    tString = str(int(T)).zfill(3)
-    transferFile = directory + filename + '_' + tString + 'K_transfer.txt'
-    outputFile = directory + filename + '_' + tString + 'K_output.txt'
+    path1 = "{0}/{1}_{2:03d}K_transfer.txt".format(directory, filename, T)
+    path2 = "{0}/{1}_{2:03d}K_output.txt".format(directory, filename, T)
 
-    customXepr.transferMeasurement(path=transferFile)
-    customXepr.outputMeasurement(path=outputFile)
+    customXepr.transferMeasurement(path=path1)
+    customXepr.outputMeasurement(path=path2)
 
     # =========================================================================
     # Perform ESR measurements at Vg and background scan at 0V
     # =========================================================================
 
-    for volt in [0, Vg]:
-        customXepr.biasGate(volt)
-        customXepr.runXeprExperiment(Exp, ModAmp=modAmp[T], PowerAtten=atten[T], SweepWidth=sweepWidth[T], NbScansToDo=nbScans[T])
+    for v in [0, Vg]:
+        customXepr.biasGate(v)
+        customXepr.runXeprExperiment(
+                Exp, ModAmp=modAmp[T], PowerAtten=atten[T],
+                SweepWidth=sweepWidth[T], NbScansToDo=nbScans[T])
         customXepr.biasGate(0)
 
-        esrDataFile = directory + '/' + filename + '_' + str(int(T)).zfill(3) + 'K_Vg_' + str(Vg).zfill(2)
-        customXepr.saveCurrentData(esrDataFile)
+        path = "{0}/{1}_{2:03d}K_Vg_{3:03d}".format(directory, filename, T, v)
+        customXepr.saveCurrentData(path)
 
     # =========================================================================
     # Perform PowerSat measurements at certain steps
@@ -55,11 +63,12 @@ for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
         customXepr.customtune()
 
         customXepr.biasGate(Vg)
-        customXepr.runXeprExperiment(Pwrst, ModAmp=modAmp[T], PowerAtten=atten[T], SweepWidth=sweepWidth[T])
+        customXepr.runXeprExperiment(Pwrst, ModAmp=modAmp[T], PowerAtten=atten[T],
+                                     SweepWidth=sweepWidth[T])
         customXepr.biasGate(0)
 
-        esrDataFile = directory + filename + '_PowerSat_' + tString + 'K_Vg_' + str(Vg).zfill(2)
-        customXepr.saveCurrentData(esrDataFile)
+        path = "{0}/{1}_PowerSat_{2:03d}K_Vg_{3:03d}".format(directory, filename, T, Vg)
+        customXepr.saveCurrentData(path)
 
     # =========================================================================
     # Gate voltage dependance
@@ -69,15 +78,17 @@ for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
 
         customXepr.customtune()
 
-        for Vg in [-20, -30, -40, -50, -60]:
+        for v in range(sign(Vg)*10, Vg, sign(Vg)*10): # list from +/-10V to Vg in steps of 10V
 
-            nscans = int(round(multiplierVg[Vg] * nbScans[T]))
+            nscans = int(round(multiplierVg[v] * nbScans[T]))
 
-            customXepr.biasGate(Vg)
-            customXepr.runXeprExperiment(Exp, ModAmp=modAmp[T], PowerAtten=atten[T], SweepWidth=sweepWidth[T], NbScansToDo=nscans)
+            customXepr.biasGate(v)
+            customXepr.runXeprExperiment(
+                    Exp, ModAmp=modAmp[T], PowerAtten=atten[T],
+                    SweepWidth=sweepWidth[T], NbScansToDo=nscans)
             customXepr.biasGate(0)
 
-            esrDataFile = directory + filename + '_' + str(int(T)).zfill(3) + 'K_Vg_' + str(Vg).zfill(2)
-            customXepr.saveCurrentData(esrDataFile)
+            path = "{0}/{1}_{2:03d}K_Vg_{3:03d}".format(directory, filename, T, v)
+            customXepr.saveCurrentData(path)
 
     customXepr.sendEmail('Meaurements at %sK completed.' % T)
