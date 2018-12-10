@@ -14,7 +14,6 @@ import logging.handlers
 import smtplib
 import string
 from email.utils import formatdate
-from email.message import Message
 
 
 class TlsSMTPHandler(logging.handlers.SMTPHandler):
@@ -45,9 +44,7 @@ class TlsSMTPHandler(logging.handlers.SMTPHandler):
                 smtp.login(self.username, self.password)
             smtp.sendmail(self.fromaddr, self.toaddrs, msg.encode('utf-8'))
             smtp.quit()
-        except (KeyboardInterrupt, SystemExit):
-            raise
-        except:
+        except Exception:
             pass
 
 

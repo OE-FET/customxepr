@@ -1504,7 +1504,7 @@ class CustomXepr(QtCore.QObject):
 # Set up loggers to send emails and write to log files
 # =============================================================================
 
-def setup_root_logger(notify):
+def setup_root_logger(to_address):
 
     # Set up email notification handler for WARNING messages and above
     root_logger = logging.getLogger()
@@ -1523,7 +1523,7 @@ def setup_root_logger(notify):
         # create and add email handler
 
         email_handler = TlsSMTPHandler('localhost', 'ss2151@cam.ac.uk',
-                                       notify, 'Xepr logger')
+                                       to_address, 'Xepr logger')
         email_handler.setFormatter(f)
         email_handler.setLevel(CONF.get('CustomXepr', 'email_handler_level'))
 
