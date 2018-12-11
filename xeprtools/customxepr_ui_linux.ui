@@ -59,7 +59,7 @@
      <number>0</number>
     </property>
     <property name="topMargin">
-     <number>20</number>
+     <number>15</number>
     </property>
     <property name="rightMargin">
      <number>0</number>
@@ -297,6 +297,9 @@
             </property>
             <property name="suffix">
              <string>K</string>
+            </property>
+            <property name="maximum">
+             <double>5.000000000000000</double>
             </property>
             <property name="value">
              <double>0.100000000000000</double>
@@ -722,7 +725,7 @@
   <customwidget>
    <class>ScienDSpinBox</class>
    <extends>QDoubleSpinBox</extends>
-   <header>keithleygui.utils.scientific_spinbox.h</header>
+   <header>utils.scientific_spinbox.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

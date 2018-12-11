@@ -116,10 +116,7 @@ class Excecutioner(QtCore.QObject):
                         self.result_q.put(result)
                     logger.status('IDLE')
 
-                except (KeyboardInterrupt, SystemExit):
-                    raise
-
-                except:
+                except Exception:
                     # log exception and pause excecution of jobs
                     logger.exception('EXCEPTION')
                     self.pause_event.set()

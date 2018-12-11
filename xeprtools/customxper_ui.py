@@ -138,7 +138,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
             # create unified toolbar
             self.createToolbar()
 
-        self.labelCopyRight.setText('(c) %s Sam Schott' % customxepr.__year__)
+        self.labelCopyRight.setText('(c) %s, Sam Schott.' % customxepr.__year__)
 
         # get input arguments
         self.customXepr = customXepr
