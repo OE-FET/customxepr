@@ -58,6 +58,9 @@
     <property name="leftMargin">
      <number>0</number>
     </property>
+    <property name="topMargin">
+     <number>20</number>
+    </property>
     <property name="rightMargin">
      <number>0</number>
     </property>
@@ -71,7 +74,7 @@
 </string>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -387,6 +390,9 @@
           <property name="alternatingRowColors">
            <bool>true</bool>
           </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::MultiSelection</enum>
+          </property>
          </widget>
         </item>
        </layout>
@@ -409,6 +415,9 @@
           </property>
           <property name="alternatingRowColors">
            <bool>true</bool>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::MultiSelection</enum>
           </property>
          </widget>
         </item>
@@ -558,6 +567,9 @@
           </property>
           <property name="alternatingRowColors">
            <bool>true</bool>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::MultiSelection</enum>
           </property>
          </widget>
         </item>

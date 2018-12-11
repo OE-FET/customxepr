@@ -132,6 +132,9 @@
           <property name="alternatingRowColors">
            <bool>true</bool>
           </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::MultiSelection</enum>
+          </property>
           <property name="autoExpandDelay">
            <number>1</number>
           </property>
@@ -473,6 +476,9 @@
           <property name="alternatingRowColors">
            <bool>true</bool>
           </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::MultiSelection</enum>
+          </property>
          </widget>
         </item>
        </layout>
@@ -634,6 +640,9 @@
           </property>
           <property name="alternatingRowColors">
            <bool>true</bool>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::MultiSelection</enum>
           </property>
          </widget>
         </item>
