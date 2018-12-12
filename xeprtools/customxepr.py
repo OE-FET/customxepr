@@ -25,10 +25,6 @@ import numpy as np
 from decorator import decorator
 from qtpy import QtCore
 
-__author__ = 'Sam Schott <ss2151@cam.ac.uk>'
-__year__ = str(time.localtime().tm_year)
-__version__ = 'v2.1.1'
-
 # custom imports
 from utils.mail import TlsSMTPHandler, EmailSender
 from xeprtools.mode_picture import ModePicture
@@ -44,8 +40,12 @@ except ImportError:
                  'is installed on your system.')
 
 
-# add logging level for status updates between DEBUG (10) and INFO (20)
+__author__ = 'Sam Schott <ss2151@cam.ac.uk>'
+__year__ = str(time.localtime().tm_year)
+__version__ = 'v2.2.1'
 
+
+# add logging level for status updates between DEBUG (10) and INFO (20)
 logging.STATUS = 15
 logging.addLevelName(logging.STATUS, 'STATUS')
 # noinspection PyProtectedMember
@@ -56,8 +56,10 @@ setattr(logger, 'status', lambda message,
 
 
 def cmp(a, b):
-    """ Definition of Python 2 cmp function."""
-    return (bool(a > b) - bool(a < b))  # convert to bool in case numpy boolean is returned
+    """
+    Definition of Python2 cmp function.
+    """
+    return (bool(a > b) - bool(a < b))  # convert possible numpy-bool to bool
 
 
 # =============================================================================
@@ -77,7 +79,7 @@ def queued_exec(queue):
 
 
 # =============================================================================
-# define worker that gets method calls from queue and performs them
+# define worker that gets method calls from queue and carriers them out
 # =============================================================================
 
 class Excecutioner(QtCore.QObject):
@@ -193,7 +195,6 @@ class CustomXepr(QtCore.QObject):
         customxepr.temperature_tolerance = 0.1  # in Kelvin
 
     ESR methods:
-        customxepr.connectToESR()
         customxepr.tune()
         customxepr.finetune()
         customxepr.customtune()
@@ -225,7 +226,7 @@ class CustomXepr(QtCore.QObject):
     """
 
 # =============================================================================
-    # set up basic customxepr functionality
+# Set up basic CustomXepr functionality
 # =============================================================================
 
     job_queue = SignalQueue()
@@ -252,22 +253,9 @@ class CustomXepr(QtCore.QObject):
         # target temperature, set during first use
         self._temperature_target = None
 
-        if not self.Xepr:
-            logger.info('No Xepr instance supplied. Functions that ' +
-                        'require Xepr will not work.')
-        elif not self.Xepr.XeprActive():
-            logger.info('XeprAPI not active. Please activate Xepr API.')
-        else:
-            self.XeprCmds = self.Xepr.XeprCmds
-            self.connectToESR()
-
-        if not self.feed or not self.feed.mercury:
-            logger.info('No MercuryiTC instance supplied. Functions that' +
-                        ' require a connected cryostat will not work.')
-
-        if not self.keithley:
-            logger.info('No Keithley instance supplied. Functions that ' +
-                        'require a connected Keithley SMU will not work.')
+        self._check_for_xepr()
+        self._check_for_mercury()
+        self._check_for_keithley()
 
         # =====================================================================
         # create background thread to process all excecutions in queue
@@ -284,7 +272,7 @@ class CustomXepr(QtCore.QObject):
         logger.status('IDLE')
 
         # =====================================================================
-        # define certain settings for customxepr functions
+        # define / load certain settings for customxepr functions
         # =====================================================================
 
         # waiting time for Xepr to process commands, prevent memory error
@@ -309,7 +297,8 @@ class CustomXepr(QtCore.QObject):
         """
         Sends a text to the default email address.
         """
-        self.emailSender.sendmail(self.notify_address, 'CustomXepr Notification', body)
+        self.emailSender.sendmail(self.notify_address,
+                                  'CustomXepr Notification', body)
 
     @queued_exec(job_queue)
     def pause(self, seconds):
@@ -447,30 +436,12 @@ class CustomXepr(QtCore.QObject):
 # =============================================================================
 
     @queued_exec(job_queue)
-    def connectToESR(self):
-        """
-        Establishes connection to acquisition server if a spectrometer is
-        connected.
-        """
-        try:
-            self.hidden = self.Xepr.XeprExperiment('AcqHidden')
-        except ExperimentError:
-            try:
-                logger.info('Connecting to spectrometer.')
-                self.XeprCmds.aqSetServer('localhost')
-                self.hidden = self.Xepr.XeprExperiment('AcqHidden')
-            except ValueError:
-                logger.warning('Cannot find spectrometer: timeout.')
-
-    @queued_exec(job_queue)
     def tune(self):
         """
-        Performs the Xepr built-in tuning routine.
+        Runs Xepr's built-in tuning routine.
         """
 
-        if not self.hidden:
-            logger.info('Bruker ESR is not connected. Functions that ' +
-                        'require a connected ESR will not work.')
+        if not self._check_for_xepr():
             return
 
         self.XeprCmds.aqParSet('AcqHidden', '*cwBridge.OpMode', 'Tune')
@@ -479,12 +450,10 @@ class CustomXepr(QtCore.QObject):
     @queued_exec(job_queue)
     def finetune(self):
         """
-        Performs the Xepr built-in fine-tuning routine.
+        Runs Xepr's built-in fine-tuning routine.
         """
 
-        if not self.hidden:
-            logger.info('Bruker ESR is not connected. Functions that ' +
-                        'require a connected ESR will not work.')
+        if not self._check_for_xepr():
             return
 
         self.XeprCmds.aqParSet('AcqHidden', '*cwBridge.Tune', 'Fine')
@@ -492,14 +461,11 @@ class CustomXepr(QtCore.QObject):
     @queued_exec(job_queue)
     def customtune(self):
         """
-        Custom tuning routine with better accuracy.
-        Takes longer than tune() and requires the spectrometer to
-        be already close to tuned.
+        Custom tuning routine with better accuracy. It takes longer than tune()
+        and requires the spectrometer to be be already close to tuned.
         """
 
-        if not self.hidden:
-            logger.info('Bruker ESR is not connected. Functions that ' +
-                        'require a connected ESR will not work.')
+        if not self._check_for_xepr():
             return
 
         logger.info('Tuning')
@@ -576,8 +542,10 @@ class CustomXepr(QtCore.QObject):
         logger.status('Tuning done.')
 
     def _tuneBias(self):
-        """Tunes the diode bias. A perfectly tuned bias results in a diode
-        current of 200 mA for all microwave powers."""
+        """
+        Tunes the diode bias. A perfectly tuned bias results in a diode
+        current of 200 mA for all microwave powers.
+        """
 
         # check for abort event
         if self.abort_event.is_set():
@@ -619,8 +587,14 @@ class CustomXepr(QtCore.QObject):
             time.sleep(self.wait)
 
     def _tuneIris(self, tolerance=1):
-        """Tunes the cavity's iris. A perfectly tuned iris results in a diode
-        current of 200 mA for all microwave powers."""
+        """
+        Tunes the cavity's iris. A perfectly tuned iris results in a diode
+        current of 200 mA for all microwave powers.
+
+        Args:
+            tolerance (int): Minumum diode current offset that must be achieved
+                before `_tuneIris` returns.
+        """
         # check for abort event
         if self.abort_event.is_set():
             return
@@ -662,11 +636,12 @@ class CustomXepr(QtCore.QObject):
             time.sleep(self.wait)
 
     def _tuneFreq(self, tolerance=3):
-        """Tunes the microwave frequency to a lock offset of zero.
+        """
+        Tunes the microwave frequency to a lock offset of zero.
 
         Args:
-            tolerance: Minumum frequency offset that must be achieved before
-                _tuneFreq returns.
+            tolerance (int): Minumum frequency offset that must be achieved
+                before `_tuneFreq` returns.
         """
         # check for abort event
         if self.abort_event.is_set():
@@ -831,9 +806,7 @@ class CustomXepr(QtCore.QObject):
             Measured Q-Value.
         """
 
-        if not self.hidden:
-            logger.info('Bruker ESR is not connected. Functions that ' +
-                        'require a connected ESR will not work.')
+        if not self._check_for_xepr():
             return
 
         wait_old = self.wait
@@ -899,23 +872,22 @@ class CustomXepr(QtCore.QObject):
         Args:
             direct (str): Directory where Q-Value reading is saved with
                 corresponding temperature and time-stamp.
-            temperature (float): Temperature in Kelvin during Q-Value measurement.
-                 Tries to get temperature reading from MercuryiTC if not given.
+            temperature (float): Temperature in Kelvin during a Q-value
+                 measurement. Tries to get temperature reading from MercuryiTC
+                 if not given.
 
         Returns:
             ModePicture instance.
         """
 
-        if not self.hidden:
-            logger.info('Bruker ESR is not connected. Functions that ' +
-                        'require a connected ESR will not work.')
+        if not self._check_for_xepr():
             return
 
-        # get temperature from MercuryiTC if connected, else use temperature = 298K
+        # get temperature from MercuryiTC if connected, else use T = 298K
         if not temperature:
-            try:
+            if self._check_for_mercury():
                 temperature = self.feed.readings['Temp']
-            except AttributeError:
+            else:
                 temperature = 298
 
         wait_old = self.wait
@@ -989,8 +961,6 @@ class CustomXepr(QtCore.QObject):
             path = os.path.join(direct, 'ModePicture' +
                                 str(int(temperature)).zfill(3) + 'K.txt')
             mode_pic_obj.save(path)
-        else:
-            raise RuntimeError('No such directory "%s"' % direct)
 
         self.wait = wait_old
 
@@ -1002,13 +972,13 @@ class CustomXepr(QtCore.QObject):
         string = '%s\t%d\t%s\n' % (time_str, temperature, q_value)
 
         if os.path.isfile(path):
-            with open(path, 'a') as file_handle:
-                file_handle.write(string)
+            with open(path, 'a') as f:
+                f.write(string)
         else:
             header = 'Time stamp\tTemperature [K]\tQValue\n'
-            with open(path, 'a') as file_handle:
-                file_handle.write(header)
-                file_handle.write(string)
+            with open(path, 'a') as f:
+                f.write(header)
+                f.write(string)
 
     @queued_exec(job_queue)
     def runXeprExperiment(self, exp, **kwargs):
@@ -1030,9 +1000,7 @@ class CustomXepr(QtCore.QObject):
             Xepr dataset object.
         """
 
-        if not self.hidden:
-            logger.info('Bruker ESR is not connected. Functions that ' +
-                        'require a connected ESR will not work.')
+        if not self._check_for_xepr():
             return
 
         # -----------set experiment parameters if given in kwargs--------------
@@ -1158,13 +1126,11 @@ class CustomXepr(QtCore.QObject):
         exp == None the currently displayed dataset is saved.
 
         Xepr only allows file paths shorter than 128 characters.
-
         """
 
-        if not self.hidden:
-            logger.info('Bruker ESR is not connected. Functions that ' +
-                        'require a connected ESR will not work.')
+        if not self._check_for_xepr():
             return
+
         directory, filename = os.path.split(path)
 
         # check if path is valid
@@ -1200,11 +1166,11 @@ class CustomXepr(QtCore.QObject):
 
     @queued_exec(job_queue)
     def setStandby(self):
-        """Sets the magnetic field to zero and the MW bridge to standby."""
+        """
+        Sets the magnetic field to zero and the MW bridge to standby.
+        """
 
-        if not self.hidden:
-            logger.info('Bruker ESR is not connected. Functions that ' +
-                        'require a connected ESR will not work.')
+        if not self._check_for_xepr():
             return
 
         # check if WindDown experiment already exists, otherwise create
@@ -1244,9 +1210,7 @@ class CustomXepr(QtCore.QObject):
         Warns the user if this takes too long.
         """
 
-        if not self.feed or not self.feed.mercury:
-            logger.info('No MercuryiTC instance supplied. Functions that' +
-                        ' require a connected cryostat will not work.')
+        if not self._check_for_mercury():
             return
 
         # create instance variable here to allow outside access
@@ -1347,9 +1311,7 @@ class CustomXepr(QtCore.QObject):
     def setTempRamp(self, ramp):
         """Sets the temperature ramp for the ESR900 cryostat in K/min."""
 
-        if not self.feed or not self.feed.mercury:
-            logger.info('No MercuryiTC instance supplied. Functions that' +
-                        ' require a connected cryostat will not work.')
+        if not self._check_for_mercury():
             return
 
         # set temperature and wait to stabalize
@@ -1394,9 +1356,7 @@ class CustomXepr(QtCore.QObject):
             Returns a TransistorSweepData object containing sweep data.
         """
 
-        if not self.keithley or not self.keithley.connected:
-            logger.info('Keithley is not connnected. Functions that ' +
-                        'require a connected Keithley SMU will not work.')
+        if not self._check_for_keithley():
             return
 
         smu_gate = getattr(self.keithley, smu_gate)
@@ -1444,9 +1404,7 @@ class CustomXepr(QtCore.QObject):
             Returns a TransistorSweepData object containing sweep data.
         """
 
-        if not self.keithley or not self.keithley.connected:
-            logger.info('Keithley is not connnected. Functions that ' +
-                        'require a connected Keithley SMU will not work.')
+        if not self._check_for_keithley():
             return
 
         smu_gate = getattr(self.keithley, smu_gate)
@@ -1464,9 +1422,7 @@ class CustomXepr(QtCore.QObject):
     def setGateVoltage(self, vg, smu_gate=K_CONF.get('Sweep', 'gate')):
         """Sets the gate bias of the given keithley, grounds other SMUs."""
 
-        if not self.keithley or not self.keithley.connected:
-            logger.info('Keithley is not connnected. Functions that ' +
-                        'require a connected Keithley SMU will not work.')
+        if not self._check_for_keithley():
             return
 
         gate = getattr(self.keithley, smu_gate)
@@ -1486,15 +1442,63 @@ class CustomXepr(QtCore.QObject):
     def applyDrainCurrent(self, i, smu=K_CONF.get('Sweep', 'drain')):
         """Applies a spcified current to the selected Keithley SMU."""
 
-        if not self.keithley or not self.keithley.connected:
-            logger.info('Keithley is not connnected. Functions that ' +
-                        'require a connected Keithley SMU will not work.')
+        if not self._check_for_keithley():
             return
 
         smu = getattr(self.keithley, smu)
 
         self.keithley.applyCurrent(smu, i)
         self.keithley.beep(0.3, 2400)
+
+# =============================================================================
+# Helper methods
+# =============================================================================
+
+    def _check_for_mercury(self):
+        """
+        Checks if a mercury instance has been passed and is connected to an
+        an actual instrument.
+        """
+        if not self.feed or not self.feed.mercury or not self.feed.mercury.connected:
+            logger.info('No MercuryiTC instance supplied. Functions that' +
+                        ' require a connected cryostat will not work.')
+            return False
+        else:
+            return True
+
+    def _check_for_keithley(self):
+        """
+        Checks if a keithley instance has been passed and is connected to an
+        an actual instrument.
+        """
+
+        if not self.keithley or not self.keithley.connected:
+            logger.info('Keithley is not connnected. Functions that ' +
+                        'require a connected Keithley SMU will not work.')
+            return False
+        else:
+            return True
+
+    def _check_for_xepr(self):
+        if not self.Xepr:
+            logger.info('No Xepr instance supplied. Functions that ' +
+                        'require Xepr will not work.')
+            return False
+        elif not self.Xepr.XeprActive():
+            logger.info('Xepr API not active. Please activate Xepr API by ' +
+                        'pressing "Processing > XeprAPI > Enable Xepr API"')
+            return False
+        elif not self.hidden:
+            try:
+                self.hidden = self.Xepr.XeprExperiment('AcqHidden')
+                return True
+            except ExperimentError:
+                logger.info('Xepr is not connected connected to the ' +
+                            'spectrometer. Please connect by pressing ' +
+                            '"Acquisition > Connect To Spectrometer..."')
+                return False
+        else:
+            return True
 
 
 # =============================================================================

@@ -1,7 +1,7 @@
 """
 Created on Tue Aug 23 11:03:57 2016
 
-@author: Sam Schott  (ss2151@cam.ac.uk)
+@author: Sam Schott (ss2151@cam.ac.uk)
 
 (c) Sam Schott; This work is licensed under a Creative Commons
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
@@ -9,6 +9,12 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 To Do:
 
 * See GitHub issues list at https://github.com/OE-FET/CustomXepr
+
+New in v2.2.1:
+    * Fixed a bug that could result in values inside spin-boxes to be displayed
+      without their decimal marker on some systems.
+    * Fixed a bug that could result in unhandled exceptions when trying to
+      access a deleted mercury and keithley object.
 
 New in v2.2:
     * Window positions and sizes are saved and restored between sessions.
@@ -170,7 +176,8 @@ if __name__ == '__main__':
     # connect to instruments
     customXepr, xepr, keithley, mercury, mercuryfeed = connect_to_instruments()
     # start user interfaces
-    customXepr_gui, keithley_gui, mercury_gui = start_gui(customXepr, mercuryfeed,
+    customXepr_gui, keithley_gui, mercury_gui = start_gui(customXepr,
+                                                          mercuryfeed,
                                                           keithley)
 
     BANNER = ('Welcome to CustomXepr %s. ' % __version__ +
@@ -195,10 +202,11 @@ if __name__ == '__main__':
                     'keithley': keithley, 'keithley_gui': keithley_gui}
 
         kernel_window.send_to_namespace(var_dict)
-        # noinspection PyUnresolvedReferences
         app.aboutToQuit.connect(kernel_window.cleanup_consoles)
         # remove splash screen
         splash.finish(keithley_gui)
+        # patch exception hook to display errors from Qt event loop
+        patch_excepthook()
         # start event loop
         kernel_window.ipkernel.start()
 
