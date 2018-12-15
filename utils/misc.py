@@ -21,7 +21,7 @@ from xeprtools.customxepr import __author__
 class ErrorDialog(QtWidgets.QDialog):
     def __init__(self, title, message, error_info, parent=None):
         super(self.__class__, self).__init__()
-        self.setWindowTitle('Internal CustomXepr Error')
+        self.setWindowTitle(title)
         self.setFixedWidth(550)
 
         self.gridLayout = QtWidgets.QGridLayout()
@@ -55,12 +55,12 @@ def new_except_hook(etype, evalue, tb):
     """
     Custom exception hook which displays exceptions from threads in a QMessageBox.
     """
-    title = 'CustomXepr Error'
+    title = 'Internal CustomXepr Error'
     message = ('CustomXepr has encountered an internal error. ' +
                'Please report this bug to %s.' % __author__)
     error_info = (etype, evalue, tb)
     msg_box = ErrorDialog(title, message, error_info)
-    msg_box.open()
+    msg_box.exec_()
 
 
 def _patch_excepthook():

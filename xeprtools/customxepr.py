@@ -164,11 +164,14 @@ class CustomXepr(QtCore.QObject):
     SMUs.
 
     All CustomXepr methods are executed in a worker thread in the order of
-    their calls. To execute an external function in this thread, add it to the
-    job queue:
+    their calls. To execute an external function in this thread, you can use
+    the queued_exec decorator form xeprtools.customxepr:
 
-    >>> job = (func, args, kwargs)
-    >>> customxepr.job_queue.put(job)
+    >>> from xeprtools.customxepr import queued_exec
+    >>> @queued_exec(customXepr.job_queue)
+        def: test_func(*args):
+            return args
+    >>>
 
     All results are added to the result queue and can be retrieved with:
 

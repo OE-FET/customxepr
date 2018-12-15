@@ -27,12 +27,9 @@ import webbrowser
 # custom module imports
 from xeprtools import customxepr
 from config.main import CONF
-
+from utils.misc import ErrorDialog
 
 PY3 = sys.version[0] == '3'
-
-logger = logging.getLogger('xeprtools.customxepr')
-root_logger = logging.getLogger()
 
 
 def linux_notify(**kwargs):
@@ -86,9 +83,27 @@ class QStatusLogHandler(logging.Handler, QtCore.QObject):
         self.status_signal.emit('Status: ' + record.message)
 
 
+class QErrorLogHandler(logging.Handler, QtCore.QObject):
+    """
+    Handler which displays a message box with information about occured errors.
+    """
+
+    error_signal = QtCore.Signal(tuple)
+
+    def __init__(self):
+        logging.Handler.__init__(self)
+        QtCore.QObject.__init__(self)
+
+    def emit(self, record):
+        self.format(record)
+        self.error_signal.emit(record.exc_info)
+
+
 # =========================================================================
 # Set up handlers for STATUS and INFO messages
 # =========================================================================
+
+logger = logging.getLogger('xeprtools.customxepr')
 
 # create QInfoLogHandler to handle all INFO level events
 info_fmt = logging.Formatter(fmt='%(asctime)s %(threadName)s ' +
@@ -96,12 +111,17 @@ info_fmt = logging.Formatter(fmt='%(asctime)s %(threadName)s ' +
 info_handler = QInfoLogHandler()
 info_handler.setFormatter(info_fmt)
 info_handler.setLevel(logging.INFO)
-root_logger.addHandler(info_handler)
+logger.addHandler(info_handler)
 
 # create QStatusLogHandler to handle all STATUS level events
 status_handler = QStatusLogHandler()
 status_handler.setLevel(logging.STATUS)
-root_logger.addHandler(status_handler)
+logger.addHandler(status_handler)
+
+# create QErrorLogHandler to handle all ERROR level events
+error_handler = QErrorLogHandler()
+error_handler.setLevel(logging.ERROR)
+logger.addHandler(error_handler)
 
 
 # =============================================================================
@@ -177,7 +197,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
             self.pauseButton.setText('Pause')
 
         # get email list and notification level
-        self.getEmailList()
+        self.get_email_list()
         self.getNotificationLevel()
 
         # get temperature control settings
@@ -186,8 +206,11 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         # perform various UI updates after status change
         status_handler.status_signal.connect(self.statusField.setText)
-        status_handler.status_signal.connect(self.checkPaused)
-        status_handler.status_signal.connect(self.getEmailList)
+        status_handler.status_signal.connect(self.check_paused)
+        status_handler.status_signal.connect(self.get_email_list)
+
+        # notify user of any errors in job excecution with a messagebox
+        error_handler.error_signal.connect(self.show_error)
 
         # create data models for message log, job queue and result queue
         self.messageLogModel = info_handler.model
@@ -236,7 +259,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.abortButton.clicked.connect(self.on_abort_clicked)
         self.clearButton.clicked.connect(self.on_clear_clicked)
 
-        self.lineEditEmailList.returnPressed.connect(self.setEmailList)
+        self.lineEditEmailList.returnPressed.connect(self.set_email_list)
         self.lineEditT_tolerance.valueChanged.connect(self.set_temperature_tolerance)
         self.lineEditT_settling.valueChanged.connect(self.setT_settling)
 
@@ -356,6 +379,12 @@ class JobStatusApp(QtWidgets.QMainWindow):
                 self.job_queue.task_done()
                 self.jobQueueModel.removeRow(i)
 
+    def show_error(self, exc_info):
+        title = 'CustomXepr Job Exception'
+        message = ('CustomXepr has encountered an error while excecuting a job.')
+        msg = ErrorDialog(title, message, exc_info, parent=self)
+        msg.exec_()
+
     def timeout_warning(self):
         """
         Issues a warning email if no status update has come in for the time
@@ -368,13 +397,14 @@ class JobStatusApp(QtWidgets.QMainWindow):
 # =============================================================================
 # Functions to handle communication with job and result queues
 # =============================================================================
+
     def addJob(self, index=-1):
         """
         Adds new entry to jobQueueDisplay.
         """
         func, args, kwargs = self.job_queue.queue[index]
 
-        if args[0] == self.customXepr:
+        if len(args) > 0 and args[0] == self.customXepr:
             args = args[1:]
 
         if PY3:
@@ -436,7 +466,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         for i in range(0, self.job_queue.qsize()):
             self.addJob(i)
 
-    def checkPaused(self):
+    def check_paused(self):
         """
         Checks if worker thread is running and updates the Run/Pause button
         accordingly.
@@ -511,7 +541,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
 # Callbacks and functions for CustomXepr settings adjustments
 # =============================================================================
 
-    def setEmailList(self):
+    def set_email_list(self):
         """
         Gets the email list from user interface and udates it in CustomXepr.
         """
@@ -530,7 +560,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         # send list to CustomXepr
         self.customXepr.notify_address = adressList
 
-    def getEmailList(self):
+    def get_email_list(self):
         """
         Gets the email list from CustomXepr and udates it in the GUI.
         """
