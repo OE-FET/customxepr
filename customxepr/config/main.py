@@ -12,8 +12,8 @@ quickly load a user config file
 """
 import getpass
 
-# Local import
-from config.user import UserConfig
+# local imports
+from customxepr.config.user import UserConfig
 
 PACKAGE_NAME = 'CustomXepr'
 SUBFOLDER = '.%s' % PACKAGE_NAME

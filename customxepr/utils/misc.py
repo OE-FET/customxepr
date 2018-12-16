@@ -15,7 +15,7 @@ from pygments.lexers import PythonTracebackLexer
 from traceback import format_exception
 import subprocess
 
-from xeprtools.customxepr import __author__
+from customxepr.customxepr import __author__
 
 
 class ErrorDialog(QtWidgets.QDialog):
@@ -37,7 +37,7 @@ class ErrorDialog(QtWidgets.QDialog):
 
         self.details = QtWidgets.QTextEdit(self)
         self.details.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
-        html_formatter = HtmlFormatter(noclasses=True)
+        html_formatter = HtmlFormatter(noclasses=True, nobackground=True)
         html_info = highlight(''.join(format_exception(*error_info)),
                               PythonTracebackLexer(), html_formatter)
         self.details.setHtml(html_info)

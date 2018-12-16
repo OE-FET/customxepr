@@ -11,25 +11,21 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 """
 
 from __future__ import division, absolute_import
-
-import logging
-import os
-# system imports
 import sys
+import os
+import logging
 import time
-# noinspection PyCompatibility
 from queue import Queue
 from threading import Event
-
 import numpy as np
 from decorator import decorator
 from qtpy import QtCore
-
-# custom imports
-from utils.mail import TlsSMTPHandler, EmailSender
-from xeprtools.mode_picture import ModePicture
-from config.main import CONF
 from keithleygui import CONF as K_CONF
+
+# local imports
+from customxepr.utils.mail import TlsSMTPHandler, EmailSender
+from customxepr.mode_picture import ModePicture
+from customxepr.config.main import CONF
 
 try:
     sys.path.insert(0, os.popen("Xepr --apipath").read())
@@ -1462,9 +1458,13 @@ class CustomXepr(QtCore.QObject):
         Checks if a mercury instance has been passed and is connected to an
         an actual instrument.
         """
-        if not self.feed or not self.feed.mercury or not self.feed.mercury.connected:
-            logger.info('No MercuryiTC instance supplied. Functions that' +
-                        ' require a connected cryostat will not work.')
+        if not self.feed or not self.feed.mercury:
+            logger.info('No Mercury instance supplied. Functions that ' +
+                        'require a connected cryostat will not work.')
+            return False
+        elif not self.feed.mercury.connected:
+            logger.info('MercuryiTC is not connected. Functions that ' +
+                        'require a connected cryostat will not work.')
             return False
         else:
             return True
@@ -1475,9 +1475,13 @@ class CustomXepr(QtCore.QObject):
         an actual instrument.
         """
 
-        if not self.keithley or not self.keithley.connected:
-            logger.info('Keithley is not connnected. Functions that ' +
+        if not self.keithley:
+            logger.info('No Keithley instance supplied. Functions that ' +
                         'require a connected Keithley SMU will not work.')
+            return False
+        elif not self.keithley.connected:
+            logger.info('Keithley is not connnected. Functions that ' +
+                        'require a connected Keithley will not work.')
             return False
         else:
             return True
@@ -1496,9 +1500,9 @@ class CustomXepr(QtCore.QObject):
                 self.hidden = self.Xepr.XeprExperiment('AcqHidden')
                 return True
             except ExperimentError:
-                logger.info('Xepr is not connected connected to the ' +
-                            'spectrometer. Please connect by pressing ' +
-                            '"Acquisition > Connect To Spectrometer..."')
+                logger.info('Xepr is not connected to the spectrometer.' +
+                            'Please connect by pressing "Acquisition > ' +
+                            'Connect To Spectrometer..."')
                 return False
         else:
             return True

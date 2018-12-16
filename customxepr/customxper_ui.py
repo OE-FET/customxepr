@@ -5,12 +5,10 @@ Created on Tue Aug 23 11:03:57 2016
 
 @author: Sam Schott  (ss2151@cam.ac.uk)
 
-ockpot(c) Sam Schott; This work is licensed under a Creative Commons
+(c) Sam Schott; This work is licensed under a Creative Commons
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
-
-# system module imports
 from __future__ import division, absolute_import
 import sys
 import os
@@ -24,20 +22,18 @@ import pydoc
 import inspect
 import webbrowser
 
-# custom module imports
-from xeprtools import customxepr
-from config.main import CONF
-from utils.misc import ErrorDialog
+# local imports
+from customxepr.customxepr import CustomXepr, __version__, __year__, __author__
+from customxepr.config.main import CONF
+from customxepr.utils.misc import ErrorDialog
+from customxepr.utils.notify import Notipy
 
 PY3 = sys.version[0] == '3'
 
 
-def linux_notify(**kwargs):
-    """Small script to send linux pop-up notifications."""
-    if str(sys.platform) == 'linux2':
-        subprocess.call(["notify-send",
-                         kwargs.get('title'),
-                         kwargs.get('message')])
+# =============================================================================
+# Set up logging handlers for STATUS, INFO and ERROR messages
+# =============================================================================
 
 
 class QInfoLogHandler(logging.Handler, QtCore.QObject):
@@ -46,8 +42,12 @@ class QInfoLogHandler(logging.Handler, QtCore.QObject):
     model will be used to populate the "Message log" in the GUI with all
     logging messages of level INFO and higher.
     """
+
+    notify = Notipy()
+
     def __init__(self):
-        super(self.__class__, self).__init__()
+        logging.Handler.__init__(self)
+        QtCore.QObject.__init__(self)
         # create QStandardItemModel
         self.model = QtGui.QStandardItemModel(0, 3)
         self.model.setHorizontalHeaderLabels(['Time', 'Level', 'Message'])
@@ -60,8 +60,8 @@ class QInfoLogHandler(logging.Handler, QtCore.QObject):
         msg_item = QtGui.QStandardItem(record.msg)
         # add logging record to QStandardItemModel
         self.model.appendRow([time_item, level_item, msg_item])
-        # show small pop up notification in linux
-        linux_notify(title='CustomXepr info', message=record.message)
+        # show notification
+        self.notify.send(title='CustomXepr Info', message=record.message)
 
 
 class QStatusLogHandler(logging.Handler, QtCore.QObject):
@@ -99,28 +99,27 @@ class QErrorLogHandler(logging.Handler, QtCore.QObject):
         self.error_signal.emit(record.exc_info)
 
 
-# =========================================================================
-# Set up handlers for STATUS and INFO messages
-# =========================================================================
-
-logger = logging.getLogger('xeprtools.customxepr')
-
 # create QInfoLogHandler to handle all INFO level events
-info_fmt = logging.Formatter(fmt='%(asctime)s %(threadName)s ' +
-                             '%(levelname)s: %(message)s', datefmt='%H:%M')
+fmt_string = '%(asctime)s %(threadName)s %(levelname)s: %(message)s'
+info_fmt = logging.Formatter(fmt=fmt_string, datefmt='%H:%M')
 info_handler = QInfoLogHandler()
 info_handler.setFormatter(info_fmt)
 info_handler.setLevel(logging.INFO)
-logger.addHandler(info_handler)
 
 # create QStatusLogHandler to handle all STATUS level events
 status_handler = QStatusLogHandler()
 status_handler.setLevel(logging.STATUS)
-logger.addHandler(status_handler)
 
 # create QErrorLogHandler to handle all ERROR level events
 error_handler = QErrorLogHandler()
 error_handler.setLevel(logging.ERROR)
+
+# add handlers
+root_logger = logging.getLogger()
+logger = logging.getLogger('xeprtools.customxepr')
+
+root_logger.addHandler(status_handler)
+root_logger.addHandler(info_handler)
 logger.addHandler(error_handler)
 
 
@@ -129,26 +128,46 @@ logger.addHandler(error_handler)
 # =============================================================================
 
 class JobStatusApp(QtWidgets.QMainWindow):
+
+    """
+    A GUI for CustomXepr, composed of three panels:
+
+        1) List of queued jobs and functionality to pause, resume and abort any
+           job excecution. Basic CustomnXepr settigs such as the temperature
+           settling time and tolerance, as well as shortcuts to tuning and
+           Q-value evaluation routines, can be accesses here as well.
+
+        2) List of all results. Right-clicking on a result exposes plotting and
+           saving functionaity if corresponding methods are provided by the
+           result object (e.g, FET characteristics, mode pictures, etc.)
+
+        3) Message log for info-messages and higher. This panel also exposes a
+           UI to specify email addresses for notifications and the desired
+           notification level (Status, Info, Warning or Error).
+
+    This class requires a :class:`CustomXepr` instance as input.
+
+    """
+
     def __init__(self, customXepr):
-        """
-        Gives an overview of all loggig messages and pending jobs in a
-        job_queue. The worker thread can be pause/resumed and all pending jobs
-        can be cancelled and by pressing the respective buttons.
-
-        A side panael allows the user to adjust some basic settings for email
-        notifications, the temperature control, etc.
-
-        This class requires a CustomXepr instance as input.
-
-        """
         super(self.__class__, self).__init__()
-        # load user interface layout from .ui file
-        system = platform.system()
-        if system == 'Darwin':
+
+        # get input arguments
+        self.customXepr = customXepr
+        self.job_queue = customXepr.job_queue
+        self.result_queue = customXepr.result_queue
+        self.pause_event = customXepr.pause_event
+        self.abort_event = customXepr.abort_event
+        self.abort_event_keithley = customXepr.keithley.abort_event
+
+        # =====================================================================
+        # Set-up the UI
+        # =====================================================================
+
+        # load layout file, setup toolbar on macOS
+        if platform.system() == 'Darwin':
             layoutFile = 'customxepr_ui_macos.ui'
-        elif system == 'Linux':
-            layoutFile = 'customxepr_ui_linux.ui'
-        elif system == 'Windows':
+        else:
             layoutFile = 'customxepr_ui_linux.ui'
 
         uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -158,15 +177,8 @@ class JobStatusApp(QtWidgets.QMainWindow):
             # create unified toolbar
             self.createToolbar()
 
-        self.labelCopyRight.setText('(c) %s, Sam Schott.' % customxepr.__year__)
-
-        # get input arguments
-        self.customXepr = customXepr
-        self.job_queue = customXepr.job_queue
-        self.result_queue = customXepr.result_queue
-        self.pause_event = customXepr.pause_event
-        self.abort_event = customXepr.abort_event
-        self.abort_event_keithley = customXepr.keithley.abort_event
+        self.labelCopyRight.setText('(c) {0}, {1}.'.format(
+                __year__, __author__))
 
         # create about window
         self.aboutWindow = AboutWindow()
@@ -187,7 +199,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.restoreGeometry()
 
         # =====================================================================
-        # Update user interface to reflect current status of CustomXepr
+        # Connect UI to CustomXepr functionality
         # =====================================================================
 
         # check status of worker thread (Paused or Running) and adjust buttons
@@ -198,7 +210,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         # get email list and notification level
         self.get_email_list()
-        self.getNotificationLevel()
+        self.get_notification_level()
 
         # get temperature control settings
         self.lineEditT_tolerance.setValue(self.customXepr.temperature_tolerance)
@@ -261,9 +273,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         self.lineEditEmailList.returnPressed.connect(self.set_email_list)
         self.lineEditT_tolerance.valueChanged.connect(self.set_temperature_tolerance)
-        self.lineEditT_settling.valueChanged.connect(self.setT_settling)
+        self.lineEditT_settling.valueChanged.connect(self.set_t_settling)
 
-        self.bG.buttonClicked['int'].connect(self.onbGClicked)
+        self.bG.buttonClicked['int'].connect(self.onbG_clicked)
 
         # Universal timeout:
         # Send an email notification if there is no status update for 30 min.
@@ -278,9 +290,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         status_handler.status_signal.connect(self.timeout_timer.start)
 
-# =============================================================================
-# User interface setup
-# =============================================================================
+    # =========================================================================
+    # User interface setup
+    # =========================================================================
 
     def createToolbar(self):
         self.toolbar = QtWidgets.QToolBar(self)
@@ -312,6 +324,12 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
     def closeEvent(self, event):
         self.exit_()
+
+    def show_error(self, exc_info):
+        title = 'CustomXepr Job Exception'
+        message = ('CustomXepr has encountered an error while excecuting a job.')
+        msg = ErrorDialog(title, message, exc_info, parent=self)
+        msg.exec_()
 
     def openResultContextMenu(self):
         """
@@ -378,12 +396,6 @@ class JobStatusApp(QtWidgets.QMainWindow):
                     del self.job_queue.queue[i]
                 self.job_queue.task_done()
                 self.jobQueueModel.removeRow(i)
-
-    def show_error(self, exc_info):
-        title = 'CustomXepr Job Exception'
-        message = ('CustomXepr has encountered an error while excecuting a job.')
-        msg = ErrorDialog(title, message, exc_info, parent=self)
-        msg.exec_()
 
     def timeout_warning(self):
         """
@@ -477,9 +489,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
         elif not self.pause_event.is_set():
             self.pauseButton.setText('Pause')
 
-# =============================================================================
-# Button callbacks: Pause / Resume, Clear, Abort, Show Log Files, Tune, QValue
-# =============================================================================
+    # =========================================================================
+    # Button callbacks
+    # =========================================================================
 
     def on_tune_clicked(self):
         """ Schedules a tuning job if the ESR is connected."""
@@ -537,13 +549,13 @@ class JobStatusApp(QtWidgets.QMainWindow):
         else:
             subprocess.Popen(['xdg-open', path])
 
-# =============================================================================
-# Callbacks and functions for CustomXepr settings adjustments
-# =============================================================================
+    # =========================================================================
+    # Callbacks and functions for CustomXepr settings adjustments
+    # =========================================================================
 
     def set_email_list(self):
         """
-        Gets the email list from user interface and udates it in CustomXepr.
+        Gets the email list from the UI and udates it in CustomXepr.
         """
         # get string from lineEdit field
         adressString = self.lineEditEmailList.text()
@@ -562,13 +574,13 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
     def get_email_list(self):
         """
-        Gets the email list from CustomXepr and udates it in the GUI.
+        Gets the email list from CustomXepr and udates it in the UI.
         """
         adressList = self.customXepr.notify_address
         if not self.lineEditEmailList.hasFocus():
             self.lineEditEmailList.setText(', '.join(adressList))
 
-    def getNotificationLevel(self):
+    def get_notification_level(self):
         """
         Checks the notification level for email handler and sets the respective
         checkButton to checked.
@@ -583,7 +595,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         elif level == 50:
             self.radioButtonNoMail.setChecked(True)
 
-    def onbGClicked(self):
+    def onbG_clicked(self):
         """ Sets the email notification level to the selected level."""
         clickedButton = self.bG.checkedButton()
         if clickedButton == self.radioButtonErrorMail:
@@ -598,12 +610,12 @@ class JobStatusApp(QtWidgets.QMainWindow):
     def set_temperature_tolerance(self, value):
         self.customXepr.temperature_tolerance = value
 
-    def setT_settling(self, value):
+    def set_t_settling(self, value):
         self.customXepr.temp_wait_time = value
 
-# =============================================================================
-# Properties
-# =============================================================================
+    # =========================================================================
+    # Properties
+    # =========================================================================
 
     @property
     def t_timeout(self):
@@ -621,7 +633,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
 # =============================================================================
 
 def classify_class_attrs(obj):
-    """Patch classify_class_attrs from pydoc to irgnore inhertied attributes."""
+    """
+    Patch classify_class_attrs from pydoc to irgnore inhertied attributes.
+    """
     results = []
     for (name, kind, cls, value) in inspect.classify_class_attrs(obj):
         if inspect.isdatadescriptor(value):
@@ -635,7 +649,9 @@ pydoc.classify_class_attrs = classify_class_attrs
 
 
 class CustomHtmlDoc(pydoc.TextDoc):
-    """Subclass of TextDoc which overrides string styling to basic HTML styling."""
+    """
+    Subclass of TextDoc which overrides string styling to basic HTML styling.
+    """
 
     def bold(self, text):
         """Format a string in bold html instead of unicode."""
@@ -658,16 +674,13 @@ class AboutWindow(QtWidgets.QWidget, QtCore.QCoreApplication):
         uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                 'about_window.ui'), self)
         # set copyright text
-        text = """(c) %s, Sam Schott; This work is licensed under a Creative Commons
-        Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License. """ % customxepr.__year__
-
-        self.labelCopyRight.setText(text)
+        placeholder = self.labelCopyRight.text()
+        self.labelCopyRight.setText(placeholder.format(__year__, __author__))
         # get help output in html format
         textdoc = CustomHtmlDoc()
-        self.help_output = textdoc.docclass(customxepr.CustomXepr)
+        self.help_output = textdoc.docclass(CustomXepr)
         # print help output to scroll area of window
         self.textBrowser.setText(self.help_output)
         # set title string of window to CustomXepr version
-        self.title_string = (customxepr.CustomXepr.__name__ + ' ' +
-                             customxepr.__version__)
+        self.title_string = (CustomXepr.__name__ + ' ' + __version__)
         self.titleText.setText(self.title_string)

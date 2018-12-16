@@ -1,6 +1,5 @@
 IPython
 PyQt5
-decorator
 ipykernel
 keithleygui
 lmfit
@@ -10,6 +9,6 @@ mercuryitc
 numpy
 pyvisa
 pyvisa-py
-qtpy
 queue
+qtpy
 scipy

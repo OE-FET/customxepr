@@ -49,7 +49,6 @@ New in v2.0.0:
 import logging
 import os
 import sys
-
 from IPython import get_ipython
 from keithley2600 import Keithley2600
 from keithleygui import CONF as KCONF
@@ -59,10 +58,10 @@ from mercurygui import MercuryFeed, MercuryMonitorApp
 from mercuryitc import MercuryITC
 from qtpy import QtCore, QtWidgets, QtGui
 
-from utils.misc import patch_excepthook
 # local imports
-from xeprtools.customxepr import CustomXepr, __version__, __author__, __year__
-from xeprtools.customxper_ui import JobStatusApp
+from customxepr.utils.misc import patch_excepthook
+from customxepr.customxepr import CustomXepr, __version__, __author__, __year__
+from customxepr.customxper_ui import JobStatusApp
 
 try:
     sys.path.insert(0, os.popen("Xepr --apipath").read())
@@ -165,7 +164,7 @@ def start_gui(customxepr, mercuryfeed, keithley):
     return customxepr_gui, keithley_gui, mercury_gui
 
 
-if __name__ == '__main__':
+def run():
 
     # create a new Qt app or return an existing one
     app, CREATED = get_qt_app()
@@ -190,7 +189,7 @@ if __name__ == '__main__':
 
     if CREATED:
 
-        from utils.internal_ipkernel import InternalIPKernel
+        from customxepr.utils.internal_ipkernel import InternalIPKernel
 
         # start event loop and console if run as standalone app
         kernel_window = InternalIPKernel(banner=BANNER)
@@ -217,3 +216,9 @@ if __name__ == '__main__':
         splash.finish(customXepr_gui)
         # patch exception hook to display errors from Qt event loop
         patch_excepthook()
+
+        return customXepr, xepr, mercury, mercuryfeed, keithley
+
+
+if __name__ == '__main__':
+    customXepr, xepr, mercury, mercuryfeed, keithley = run()

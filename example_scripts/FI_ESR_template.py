@@ -1,7 +1,5 @@
-# Assume we have an instance of CustomXepr running and experiments with names
-# 'Experiment' and 'PowerSat' defined in Xepr.
-#
-# Run this script in CustomXepr's interactive IPython console.
+from customxepr import run
+customXepr, _ = run()
 
 sign = lambda x: (1, -1)[x < 0]
 

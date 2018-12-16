@@ -78,7 +78,7 @@
    <item>
     <widget class="QLabel" name="labelCopyRight">
      <property name="text">
-      <string>(c) 2018, Sam Schott; This work is licensed under a Creative Commons
+      <string>(c) {0}, {1}. This work is licensed under a Creative Commons
 Attribution-NonCommercial-NoDerivs 2.0 UK: England &amp; Wales License.</string>
      </property>
      <property name="alignment">

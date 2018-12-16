@@ -33,7 +33,16 @@ By default, all messages of level "info" and higher are saved to a log file in t
 
 The detection and escalation of possible problems is key to enabling unattended measurements. Otherwise the user may come back after two days expecting a completed measurement cycle, only to see that the helium dewar was emptied a day ago or that the program got stuck asking the user if it should really override a data file.
 
-## Example code
+## Usage
+
+CustomXepr can be run interactively from an IPython console, or as a standalone program. In the latter case, it will create its own internal IPython console for the user to run commands.
+
+You can start CustomXepr from a Python command prompt as follows:
+```python
+>>> from customxepr import run
+>>> customXepr, xepr, mercury, mercuryfeed, keithley = run()
+```
+If exceuted from an IPython console, this will automatically start the integrated Qt event loop and run in interactive mode. To start CustomXepr from the console / terminal, run `CustomXepr`.
 
 CustomXepr has a user interface which displays all jobs waiting in the queue, all results returned from previous jobs, and all logging messages. Common tasks such as pausing, aborting and clearing jobs, plotting and saving returned data, and setting temperature stability tolerances can be performed through the interface itself. However, apart from tuning the cavity and reading a Q factor, all jobs  must be scheduled programmatically through the provided Jupyter console. For example, a measurement script which cycles through different temperatures and records ESR spectra and transfer curves at each step reads as follows:
 
@@ -84,7 +93,7 @@ In this code, all functions belonging to CustomXepr will be added to the job que
 ## Mercury controls
 CustomXepr includes a higher-level worker thread which regularly queries the MercuryiTC for its sensor readings and provides a live stream of this data to other parts of the software. This prevents individual functions from querying the MercuryiTC directly and causing unnecessary overhead.
 
-The user interface for the cryostat plots historic temperature readings going back up to 24 h and provides access to relevant temperature control settings such as gas flow, heater power, and ramping speed while lower-level configurations such as calibration tables must be changed programatically through the provided Jupuyter console.
+The user interface for the cryostat plots historic temperature readings going back up to 24 h and provides access to relevant temperature control settings such as gas flow, heater power, and ramping speed while lower-level configurations such as calibration tables must be changed programmatically through the provided IPython console.
 
 The MercuryiTC user interface and driver have been split off as separate packages at [https://github.com/OE-FET/mercuryitc](https://github.com/OE-FET/mercuryitc) and [https://github.com/OE-FET/mercurygui](https://github.com/OE-FET/mercurygui).
 
@@ -97,12 +106,11 @@ The Keithley 2600 user interface and driver have been split off as separate pack
 *Required*:
 
 - Linux or macOS (may run on Windows with some limited functionality)
-- Python 2.7 or 3.x
+- Python 2.7 or 3.6 and higher
 
 *Required python modules:*
 - PyQt5
 - IPython
-- decorator
 - keithley2600
 - keithleygui
 - lmfit

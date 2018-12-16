@@ -4,8 +4,6 @@ This module provides user configuration file management features.
 
 It's based on the ConfigParser module (present in the standard library).
 """
-
-# Std imports
 import ast
 import os
 import os.path as osp
@@ -17,8 +15,8 @@ import codecs
 import configparser as cp
 from distutils.version import LooseVersion
 
-# Local imports
-from config.base import get_conf_path, get_home_dir
+# local imports
+from customxepr.config.base import get_conf_path, get_home_dir
 
 PY2 = sys.version[0] == '2'
 
