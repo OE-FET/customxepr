@@ -55,7 +55,7 @@ def new_except_hook(etype, evalue, tb):
     """
     Custom exception hook which displays exceptions from threads in a QMessageBox.
     """
-    title = 'Internal CustomXepr Error'
+    title = 'CustomXepr Internal Error'
     message = ('CustomXepr has encountered an internal error. ' +
                'Please report this bug to %s.' % __author__)
     error_info = (etype, evalue, tb)

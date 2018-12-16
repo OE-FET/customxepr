@@ -326,7 +326,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.exit_()
 
     def show_error(self, exc_info):
-        title = 'CustomXepr Job Exception'
+        title = 'CustomXepr Job Error'
         message = ('CustomXepr has encountered an error while excecuting a job.')
         msg = ErrorDialog(title, message, exc_info, parent=self)
         msg.exec_()

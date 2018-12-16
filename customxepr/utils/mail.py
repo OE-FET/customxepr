@@ -34,10 +34,16 @@ class TlsSMTPHandler(logging.handlers.SMTPHandler):
                 port = smtplib.SMTP_PORT
             smtp = smtplib.SMTP(self.mailhost, port)
             log_msg = self.format(record)
-            msg = u'From: %s\r\nTo: %s\r\nSubject: %s\r\nDate: %s\r\n\r\n%s' % (
-                            self.fromaddr, string.join(self.toaddrs, ","),
-                            self.getSubject(record), formatdate(), log_msg
-                            )
+
+            msg = u"""
+            From: {0}\r\n
+            To: {1}\r\n
+            Subject: {2}\r\n
+            Date: {3}\r\n \r\n
+            {4}
+            """.format(self.fromaddr, string.join(self.toaddrs, ","),
+                       self.getSubject(record), formatdate(), log_msg)
+
             if self.username:
                 smtp.starttls()
                 smtp.ehlo()
@@ -51,7 +57,8 @@ class TlsSMTPHandler(logging.handlers.SMTPHandler):
 class EmailSender(object):
     """ Logging handler which sends out emails."""
 
-    def __init__(self, fromaddr, mailhost, port=None, username=None, password=None, standby=False):
+    def __init__(self, fromaddr, mailhost, port=None, username=None,
+                 password=None, standby=False):
         self.fromaddr = fromaddr
         self.mailhost = mailhost
         if port:
@@ -74,8 +81,9 @@ class EmailSender(object):
         """
         Quit mailserver when instance is deleted.
 
-        This gets called when the instance is garbage-collected, even for instances where __init__
-        failed with an exception. We therefore need to insure that attributes have been created.
+        This gets called when the instance is garbage-collected, even for
+        instances where __init__ failed with an exception. We therefore need to
+        insure that attributes have been created.
         """
 
         if hasattr(self, 's') and hasattr(self, 'standby'):
@@ -85,10 +93,14 @@ class EmailSender(object):
     def create_email(self, toaddrs, subject, body):
         """Compose email form main body, subject and email addresses."""
 
-        msg = u'From: %s\r\nTo: %s\r\nSubject: %s\r\nDate: %s\r\n\r\n%s' % (
-                self.fromaddr, string.join(toaddrs, ","),
-                subject, formatdate(), body
-                )
+        msg = u"""
+        From: {0}\r\n
+        To: {1}\r\n
+        Subject: {2}\r\n
+        Date: {3}\r\n\r\n
+        {4}
+        """.format(self.fromaddr, string.join(toaddrs, ","), subject,
+                   formatdate(), body)
 
         return msg
 

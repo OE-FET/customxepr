@@ -55,6 +55,7 @@ setup(
         "mercurygui",
         "mercuryitc",
         "numpy",
+        "pygments",
         "pyvisa",
         "pyvisa-py",
         "qtpy",
