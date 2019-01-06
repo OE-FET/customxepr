@@ -152,7 +152,7 @@ def run():
 
         from customxepr.utils.internal_ipkernel import InternalIPKernel
 
-        # start event loop and console if run as standalone app
+        # start event loop and console if run as a standalone app
         kernel_window = InternalIPKernel(banner=BANNER)
         kernel_window.new_qt_console()
 
@@ -178,8 +178,14 @@ def run():
         # patch exception hook to display errors from Qt event loop
         patch_excepthook()
 
-        return customXepr, xepr, mercury, mercuryfeed, keithley
+        inst_list = customXepr, xepr, mercury, mercuryfeed, keithley
+        ui_list = customXepr_gui, keithley_gui, mercury_gui
+
+        return inst_list, ui_list
 
 
 if __name__ == '__main__':
-    customXepr, xepr, mercury, mercuryfeed, keithley = run()
+    inst_list, ui_list = run()
+
+    customXepr, xepr, mercury, mercuryfeed, keithley = inst_list
+    customXepr_gui, keithley_gui, mercury_gui = ui_list
