@@ -35,14 +35,10 @@ class TlsSMTPHandler(logging.handlers.SMTPHandler):
             smtp = smtplib.SMTP(self.mailhost, port)
             log_msg = self.format(record)
 
-            msg = u"""
-            From: {0}\r\n
-            To: {1}\r\n
-            Subject: {2}\r\n
-            Date: {3}\r\n \r\n
-            {4}
-            """.format(self.fromaddr, string.join(self.toaddrs, ","),
-                       self.getSubject(record), formatdate(), log_msg)
+            msg = u"""From: {0}\r\nTo: {1}\r\nSubject: {2}\r\nDate: {3}\r\n\r\n{4}""".format(
+                    self.fromaddr, string.join(self.toaddrs, ","), self.getSubject(record),
+                    formatdate(), log_msg
+                    )
 
             if self.username:
                 smtp.starttls()
@@ -93,14 +89,9 @@ class EmailSender(object):
     def create_email(self, toaddrs, subject, body):
         """Compose email form main body, subject and email addresses."""
 
-        msg = u"""
-        From: {0}\r\n
-        To: {1}\r\n
-        Subject: {2}\r\n
-        Date: {3}\r\n\r\n
-        {4}
-        """.format(self.fromaddr, string.join(toaddrs, ","), subject,
-                   formatdate(), body)
+        msg = u"""From: {0}\r\nTo: {1}\r\nSubject: {2}\r\nDate: {3}\r\n\r\n{4}""".format(
+                self.fromaddr, string.join(toaddrs, ","), subject, formatdate(), body
+                )
 
         return msg
 
