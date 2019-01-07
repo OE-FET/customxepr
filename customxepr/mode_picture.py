@@ -13,7 +13,6 @@ from lmfit import Model
 from lmfit.models import PolynomialModel
 import matplotlib.pyplot as plt
 import time
-from qtpy import QtWidgets
 
 
 def lorentz_peak(x, x0, w, A):
@@ -188,10 +187,11 @@ class ModePicture(object):
 
         # save to file
         if filepath is None:
+            from qtpy import QtWidgets
             prompt = 'Save as file'
             filename = 'untitled.txt'
             formats = 'Text file (*.txt)'
-            filepath = QtWidgets.QFileDialog.getSaveFileName(self, prompt,
+            filepath = QtWidgets.QFileDialog.getSaveFileName(None, prompt,
                                                              filename, formats)
             filepath = filepath[0]
 
@@ -209,8 +209,9 @@ class ModePicture(object):
         :param str filepath: Absolute filepath.
         """
         if filepath is None:
+            from qtpy import QtWidgets
             prompt = 'Select mode picture file'
-            filepath = QtWidgets.QFileDialog.getOpenFileName(self, prompt)
+            filepath = QtWidgets.QFileDialog.getOpenFileName(None, prompt)
             filepath = filepath[0]
 
         if len(filepath) > 4:
