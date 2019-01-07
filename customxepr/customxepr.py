@@ -963,7 +963,7 @@ class CustomXepr(QtCore.QObject):
             mode_pic_data[modeZoom] = y_data
 
         mode_pic_obj = ModePicture(mode_pic_data, freq)
-        q_value = mode_pic_obj.qValue
+        q_value = mode_pic_obj.qvalue
 
         self.hidden['PowerAtten'].value = 30
         time.sleep(self.wait)
