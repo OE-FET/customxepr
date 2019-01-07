@@ -1,7 +1,10 @@
 from customxepr import run
-customXepr, _ = run()
+customXepr, xepr, _ = run()
 
-sign = lambda x: (1, -1)[x < 0]
+
+def sign(x):
+    return (1, -1)[x < 0]
+
 
 Exp = xepr.XeprExperiment('Experiment')
 Pwrst = xepr.XeprExperiment('PowerSat')
@@ -76,7 +79,7 @@ for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
 
         customXepr.customtune()
 
-        for v in range(sign(Vg)*10, Vg, sign(Vg)*10): # list from +/-10V to Vg in steps of 10V
+        for v in range(sign(Vg)*10, Vg, sign(Vg)*10):  # list from +/-10V to Vg in steps of 10V
 
             nscans = int(round(multiplierVg[v] * nbScans[T]))
 
