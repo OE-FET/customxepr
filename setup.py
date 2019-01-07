@@ -47,7 +47,6 @@ setup(
             },
     install_requires=[
         "IPython",
-        "PyQt5",
         "ipykernel",
         "keithleygui",
         "lmfit",
