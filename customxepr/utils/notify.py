@@ -9,7 +9,7 @@ ockpot(c) Sam Schott; This work is licensed under a Creative Commons
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
-
+from __future__ import division, absolute_import
 import os
 from enum import Enum
 

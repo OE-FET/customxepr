@@ -7,6 +7,7 @@ Created on Tue Aug 23 11:03:57 2016
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
+from __future__ import division, absolute_import
 import logging
 import os
 import sys

@@ -48,6 +48,7 @@ setup(
     install_requires=[
         "IPython",
         "PyQt5",
+        "decorator",
         "ipykernel",
         "keithleygui",
         "lmfit",

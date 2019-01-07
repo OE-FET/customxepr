@@ -20,7 +20,7 @@ from customxepr.customxepr import __author__
 
 class ErrorDialog(QtWidgets.QDialog):
     def __init__(self, title, message, error_info, parent=None):
-        super(self.__class__, self).__init__()
+        super(self.__class__, self).__init__(parent=parent)
         self.setWindowTitle(title)
         self.setFixedWidth(550)
 

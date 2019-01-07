@@ -1136,7 +1136,7 @@ class CustomXepr(QtCore.QObject):
         # get temperature stability over scan if mercury was connected
         if temperature_history:
             temeprature_var = max(temperature_history) - min(temperature_history)
-            temperature_mean = np.mean(temperature_history)
+            temperature_mean = float(np.mean(temperature_history))
             logger.info(u'Temperature stable at (%.2f\xb1%.2f)K during scans.'
                         % (temperature_mean, temeprature_var / 2))
 
@@ -1339,7 +1339,7 @@ class CustomXepr(QtCore.QObject):
         if self.feed.readings['TempRampEnable'] == 'ON':
             expected_time = (abs(self._temperature_target - self.feed.readings['Temp']) /
                              self.feed.readings['TempRamp'])  # in min
-        elif self.feed.readings['TempRampEnable'] == 'OFF':
+        else:   # assume ramp of 5 K/min
             expected_time = (abs(self._temperature_target - self.feed.readings['Temp']) / 5)  # in min
         return expected_time * 60  # return value in sec
 
