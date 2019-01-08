@@ -35,7 +35,7 @@ By default, all messages of level "info" and higher are saved to a log file in t
 
 The detection and escalation of possible problems is key to enabling unattended measurements. Otherwise the user may come back after two days expecting a completed measurement cycle, only to see that the helium dewar was emptied a day ago or that the program got stuck asking the user if it should really override a data file.
 
-![Screenshot of CustomXepr GUI](/screenshots/CustomXepr_logs.png)
+![Screenshot of CustomXepr GUI](/screenshots/CustomXepr_log.png)
 
 ## Usage
 
