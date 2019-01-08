@@ -48,6 +48,7 @@ class QInfoLogHandler(logging.Handler, QtCore.QObject):
     def __init__(self):
         logging.Handler.__init__(self)
         QtCore.QObject.__init__(self)
+
         # create QStandardItemModel
         self.model = QtGui.QStandardItemModel(0, 3)
         self.model.setHorizontalHeaderLabels(['Time', 'Level', 'Message'])
@@ -58,6 +59,7 @@ class QInfoLogHandler(logging.Handler, QtCore.QObject):
         time_item = QtGui.QStandardItem(record.asctime)
         level_item = QtGui.QStandardItem(record.levelname)
         msg_item = QtGui.QStandardItem(record.msg)
+
         # add logging record to QStandardItemModel
         self.model.appendRow([time_item, level_item, msg_item])
         # show notification
@@ -116,7 +118,7 @@ error_handler.setLevel(logging.ERROR)
 
 # add handlers
 root_logger = logging.getLogger()
-logger = logging.getLogger('xeprtools.customxepr')
+logger = logging.getLogger('customxepr.customxepr')
 
 root_logger.addHandler(status_handler)
 root_logger.addHandler(info_handler)
