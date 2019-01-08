@@ -23,8 +23,6 @@ In addition, the queuing system can be used to manually schedule any user-specif
 
 ![Screenshot of CustomXepr GUI](/screenshots/CustomXepr_jobs.png)
 
-![Screenshot of CustomXepr GUI](/screenshots/CustomXepr_results.png)
-
 ## Logging and error handling
 
 All CustomXper methods release logging messages during their execution which may have the levels "status", "info", "warning", and "error". Status notifications will only be shown in the user interface and typically contain information about the progress of a job (number of completed scans in an ESR measurement, countdown until the temperature is stable, etc). Info notifications typically contain information about the beginning or completion of a job (e.g., "Waiting for temperature to stabilize.", "All scans complete."), and potentially useful information about how the job was completed (e.g., "Temperature stable at 120.01±0.02 K during scans.").
