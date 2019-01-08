@@ -281,6 +281,7 @@ class CustomXepr(QtCore.QObject):
         # =====================================================================
 
         self.Xepr = Xepr
+        self.XeprCmds = Xepr.XeprCmds
         self.feed = mercury_feed
         self.keithley = keithley
 
