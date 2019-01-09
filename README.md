@@ -1,10 +1,10 @@
 # CustomXepr
 
-A Python instrument controller and GUI for Bruker E500 ESR spectrometers, MercuryiTC temperature controllers and Keithley 2600 series source measurement units. CustomXepr relies on the python drivers [keithley2600](https://github.com/OE-FET/keithley2600) and [mercuryitc](https://github.com/OE-FET/mercuryitc) and the respective user interfaces [keithleygui](https://github.com/OE-FET/keithleygui) and [mercurygui](https://github.com/OE-FET/mercurygui) for functionability regarding the Keithley 2600 and MercuryiTC instruments.
+A Python instrument controller and GUI for Bruker E500 EPR spectrometers, MercuryiTC temperature controllers and Keithley 2600 series source measurement units. CustomXepr relies on the python drivers [keithley2600](https://github.com/OE-FET/keithley2600) and [mercuryitc](https://github.com/OE-FET/mercuryitc) and the respective user interfaces [keithleygui](https://github.com/OE-FET/keithleygui) and [mercurygui](https://github.com/OE-FET/mercurygui) for functionability regarding the Keithley 2600 and MercuryiTC instruments.
 
 ## Overview
 
-*CustomXepr* for Linux and macOS enables the interaction with all instruments involved in electron spin resonance (ESR) measurements: the Bruker E500 spectrometer, through Bruker's Xepr Python API, the Oxford Instruments MercuryiTC temperature controller, and the Keithley 2600 series of source measurement units (SMUs).
+*CustomXepr* for Linux and macOS enables the interaction with all instruments involved in electron spin resonance (EPR) measurements: the Bruker E500 spectrometer, through Bruker's Xepr Python API, the Oxford Instruments MercuryiTC temperature controller, and the Keithley 2600 series of source measurement units (SMUs).
 
 The aim of CustomXepr is twofold: First and foremost, it enables the user to automate and schedule full measurement plans which may run for weeks without user input. Second, it complements the functionality of Bruker's Xepr control software. This includes for instance powerful logging capabilities for all key events, a more accurate determination of the cavity's Q-value from its frequency response, more reliable tuning of the cavity, the ability to re-tune the cavity during long-running measurements, logging of the cryostat temperature during measurements, and many more. On the other hand, low level functionality and communication with the spectrometer remains with Xepr.
 
@@ -13,21 +13,21 @@ CustomXepr communicates with with the Keithley and MercuryiTC through NI-VISA or
 
 ## Job-scheduling
 
-CustomXepr's core consists of functions for preconfigured tasks, such as changing the cryostat temperature, recording a transfer curve, performing a preconfigured ESR measurement.
+CustomXepr's core consists of functions for preconfigured tasks, such as changing the cryostat temperature, recording a transfer curve, performing a preconfigured EPR measurement.
 For instance, `customXepr.setTemperature(110)` tells the MercuryiTC to change its temperature set-point to 110 K and waits until the latter is reached and maintained with the desired stability (default: ±0.1 K for 120 sec). It also adjusts the helium flow if necessary and warns the user if the target temperature cannot be reached within the expected time.
-`customXepr.runExperiment(powersat)` will run the preconfigured ESR measurement "powersat" while tuning the cavity between scans and monitoring the temperature stability during the measurement.
+`customXepr.runExperiment(powersat)` will run the preconfigured EPR measurement "powersat" while tuning the cavity between scans and monitoring the temperature stability during the measurement.
 
 Such built in jobs are not performed immediately but are queued and executed after the successful completion of the previous jobs. Any data returned by a job, such as a transfer curve or a cavity mode picture, will be kept in a result queue and saved to a specified file if requested. CustomXepr functions that are expected to run for longer than 1 sec can gracefully abort upon user request without leaving the setup in an inconsistent state.
 
-In addition, the queuing system can be used to manually schedule any user-specified jobs, related or unrelated to the ESR setup and its ancillary equipment.
+In addition, the queuing system can be used to manually schedule any user-specified jobs, related or unrelated to the EPR setup and its ancillary equipment.
 
 ![Screenshot of CustomXepr GUI](/screenshots/CustomXepr_jobs.png)
 
 ## Logging and error handling
 
-All CustomXper methods release logging messages during their execution which may have the levels "status", "info", "warning", and "error". Status notifications will only be shown in the user interface and typically contain information about the progress of a job (number of completed scans in an ESR measurement, countdown until the temperature is stable, etc). Info notifications typically contain information about the beginning or completion of a job (e.g., "Waiting for temperature to stabilize.", "All scans complete."), and potentially useful information about how the job was completed (e.g., "Temperature stable at 120.01±0.02 K during scans.").
+All CustomXper methods release logging messages during their execution which may have the levels "status", "info", "warning", and "error". Status notifications will only be shown in the user interface and typically contain information about the progress of a job (number of completed scans in an EPR measurement, countdown until the temperature is stable, etc). Info notifications typically contain information about the beginning or completion of a job (e.g., "Waiting for temperature to stabilize.", "All scans complete."), and potentially useful information about how the job was completed (e.g., "Temperature stable at 120.01±0.02 K during scans.").
 
-Warning notifications are logged when CustomXepr believes that there may be a problem which requires user intervention, for instance if a job is taking significantly longer than expected, or if the gas flow required to maintain a certain temperature is unusually high. Finally, error messages are released if CustomXepr is unable to proceed with a job, in which case it will abort and pause all pending jobs. Such errors may include loss of communication with an instrument, repeated strong temperature fluctuations during an ESR measurement, etc.
+Warning notifications are logged when CustomXepr believes that there may be a problem which requires user intervention, for instance if a job is taking significantly longer than expected, or if the gas flow required to maintain a certain temperature is unusually high. Finally, error messages are released if CustomXepr is unable to proceed with a job, in which case it will abort and pause all pending jobs. Such errors may include loss of communication with an instrument, repeated strong temperature fluctuations during an EPR measurement, etc.
 
 By default, all messages of level "info" and higher are saved to a log file in the user's home directory and messages of level "warning" and higher are sent as an email to the user's address. In addition, temperature readings are saved to a log file every 5 min, allowing the user to retrospectively confirm the temperature stability during measurements.
 
@@ -46,7 +46,7 @@ You can start CustomXepr from a Python command prompt as follows:
 ```
 If exceuted from an IPython console, this will automatically start the integrated Qt event loop and run in interactive mode. To start CustomXepr from the console / terminal, run `CustomXepr`.
 
-CustomXepr has a user interface which displays all jobs waiting in the queue, all results returned from previous jobs, and all logging messages. Common tasks such as pausing, aborting and clearing jobs, plotting and saving returned data, and setting temperature stability tolerances can be performed through the interface itself. However, apart from tuning the cavity and reading a Q factor, all jobs  must be scheduled programmatically through the provided Jupyter console. For example, a measurement script which cycles through different temperatures and records ESR spectra and transfer curves at each step reads as follows:
+CustomXepr has a user interface which displays all jobs waiting in the queue, all results returned from previous jobs, and all logging messages. Common tasks such as pausing, aborting and clearing jobs, plotting and saving returned data, and setting temperature stability tolerances can be performed through the interface itself. However, apart from tuning the cavity and reading a Q factor, all jobs  must be scheduled programmatically through the provided Jupyter console. For example, a measurement script which cycles through different temperatures and records EPR spectra and transfer curves at each step reads as follows:
 
 ```python
 # get preconfigured experiment from Xepr
@@ -75,22 +75,22 @@ for T in [5, 50, 100, 150, 200, 250, 300]:
 	customXepr.transferMeasurement(filePath=transferFile)
 
 	# =================================================================
-	# Perform ESR measurements at Vg = -70V and Vg = 0V
+	# Perform EPR measurements at Vg = -70V and Vg = 0V
 	# =================================================================
 	for Vg in [0, -70]:
         customXepr.biasGate(Vg)  # bias gate
-        # perform preconfigured ESR measurement
+        # perform preconfigured EPR measurement
         customXepr.runXeprExperiment(exp, ModAmp=modAmp[T])
         customXepr.biasGate(0)  # set gate voltage to zero
 
-        # save ESR spectrum to file
+        # save EPR spectrum to file
         esrDataFile = folder + title + '_' + str(T) + 'K_Vg_' + str(Vg)
         customXepr.saveCurrentData(esrDataFile)
 
 customXepr.setStandby()  # ramp down field and set MW bridge to standby
 ```
 
-In this code, all functions belonging to CustomXepr will be added to the job queue and will be carried out successively such that, for instance, ESR measurements will not start while the temperature is still being ramped.
+In this code, all functions belonging to CustomXepr will be added to the job queue and will be carried out successively such that, for instance, EPR measurements will not start while the temperature is still being ramped.
 
 ## Mercury controls
 CustomXepr includes a higher-level worker thread which regularly queries the MercuryiTC for its sensor readings and provides a live stream of this data to other parts of the software. This prevents individual functions from querying the MercuryiTC directly and causing unnecessary overhead.
@@ -105,14 +105,21 @@ As with the cryostat, CustomXepr includes a high-level user interface for Keithl
 The Keithley 2600 user interface and driver have been split off as separate packages at [https://github.com/OE-FET/keithley2600](https://github.com/OE-FET/keithley2600) and [https://github.com/OE-FET/keithleygui](https://github.com/OE-FET/keithleygui).
 
 ## Requirements
-*Required*:
+*System requirements:*
 
-- Linux or macOS (may run on Windows with some limited functionality)
+- Linux or macOS (not tested on Windows)
 - Python 2.7 or 3.6 and higher
 
+*Recommended:*
+
+- Bruker Xepr software with Python XeprAPI (required for EPR related functions)
+- Postfix - mail transfer agent (required for email notifications from localhost)
+- NI-VISA (pyvisa-py is used as a fallback if not installed)
+
 *Required python modules:*
-- PyQt5
+- PyQt 5.9 or higher
 - IPython
+- decorator
 - keithley2600
 - keithleygui
 - lmfit
@@ -126,16 +133,9 @@ The Keithley 2600 user interface and driver have been split off as separate pack
 - queue (Python 2.7 only)
 - scipy
 
-*Recommended*:
-
-- Bruker Xepr software and XeprAPI (EPR related functions will not work otherwise)
-- Postfix - mail transfer agent for macOS and Linux, currently required for email notifications.
-- NI-VISA
-
-*Recommended python modules*:
-- email
-- pyusb (for pyvisa-py backend)
-- pyserial (for pyvisa-py backend)
+*Recommended python modules:*
+- pyusb (only when using pyvisa-py backend)
+- pyserial (only when using pyvisa-py backend)
 
 ## Acknowledgements
 Config modules are based on the implementation from [Spyder](https://github.com/spyder-ide).
