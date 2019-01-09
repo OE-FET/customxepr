@@ -27,16 +27,17 @@ def lorentz_peak(x, x0, w, A):
 
 class ModePicture(object):
     """
-    Class to store mode pictures. It provides methods to calculate Q-values, and save and load mode picture data from
-    and to .txt files.
+    Class to store mode pictures. It provides methods to calculate Q-values,
+    and save and load mode picture data from and to .txt files.
 
-    If several mode pictures with different zoom factors are given, `ModePicture` will rescale and combine the data into
-    a single mode picture.
+    If several mode pictures with different zoom factors are given,
+    `ModePicture` will rescale and combine the data into a single mode picture.
     """
 
     def __init__(self, mode_pic_data=None, freq=9.385):
         """
-        :param dict mode_pic_data: Dict with zoom factors as keys and respective mode picture curves as values.
+        :param dict mode_pic_data: Dict with zoom factors as keys and
+            respective mode picture curves as values.
         :param float freq: Cavity resonance frequency in GHz as float.
         """
         if mode_pic_data is None:
@@ -74,10 +75,12 @@ class ModePicture(object):
         """
         Rescales mode pictures from different zoom factors and combines them to one.
 
-        :param dict mode_pic_data: Dict with zoom factors as keys and respective mode picture curves as values.
-        :returns: `(x_axis_mhz_comb, x_axis_points_comb, mode_pic_comb)` where `x_axis_mhz_comb` and
-            `x_axis_points_comb` are the combined x-axis values of all mode pictures in mhz and points, respectively,
-            and `mode_pic_comb` is the combines y-axis data in a.u..
+        :param dict mode_pic_data: Dict with zoom factors as keys and
+            respective mode picture curves as values.
+        :returns: `(x_axis_mhz_comb, x_axis_points_comb, mode_pic_comb)` where
+            `x_axis_mhz_comb` and `x_axis_points_comb` are the combined x-axis
+            values of all mode pictures in mhz and points, respectively, and
+            `mode_pic_comb` is the combines y-axis data in a.u..
         """
         n_points = len(mode_pic_data.values()[0])
         x_axis_points = np.arange(0, n_points)
@@ -182,7 +185,7 @@ class ModePicture(object):
         stnd_err_delta_freq = stnd_err_w * 1e-3 / 2
         stnd_err_q_value = round(self.freq0 / delta_freq**2 * stnd_err_delta_freq, 1)
 
-        return sigma1_conf_int_w
+        return stnd_err_q_value
 
     def plot(self):
         """
@@ -243,9 +246,11 @@ class ModePicture(object):
         user is promted to select a location and name through a user interface.
 
         :param str filepath: Absolute filepath.
-        :returns: `(x_axis_mhz_comb, x_axis_points_comb, mode_pic_comb, freq0)` where `x_axis_mhz_comb` and
-            `x_axis_points_comb` are the combined x-axis values of all mode pictures in mhz and points, respectively,
-            `mode_pic_comb` is the combines y-axis data in a.u. and `freq0` is the center resonance frequency.
+        :returns: `(x_axis_mhz_comb, x_axis_points_comb, mode_pic_comb, freq0)`
+            where `x_axis_mhz_comb` and `x_axis_points_comb` are the combined
+            x-axis values of all mode pictures in mhz and points, respectively,
+            `mode_pic_comb` is the combines y-axis data in a.u. and `freq0` is
+            the center resonance frequency.
         """
         if filepath is None:
             from qtpy import QtWidgets
