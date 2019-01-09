@@ -286,7 +286,6 @@ class CustomXepr(QtCore.QObject):
         # =====================================================================
 
         self.Xepr = Xepr
-        self.XeprCmds = Xepr.XeprCmds
         self.feed = mercury_feed
         self.keithley = keithley
 
@@ -1537,7 +1536,10 @@ class CustomXepr(QtCore.QObject):
             logger.info('Xepr API not active. Please activate Xepr API by ' +
                         'pressing "Processing > XeprAPI > Enable Xepr API"')
             return False
-        elif not self.hidden:
+
+        self.XeprCmds = self.Xepr.XeprCmds
+
+        if not self.hidden:
             try:
                 self.hidden = self.Xepr.XeprExperiment('AcqHidden')
                 return True
