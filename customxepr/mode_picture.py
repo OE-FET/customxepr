@@ -80,8 +80,8 @@ class ModePicture(object):
 
         # rescale x-axes according to zoom factor
         for zooom_fact in mode_pic_data.keys():
-            rlst = self.fit_qvalue(x_axis_points, mode_pic_data[zooom_fact], zooom_fact)
-            x_axis_mhz[zooom_fact] = self._points_to_mhz(n_points, zooom_fact, rlst.best_values['x0'])
+            q_value, fit_rslt = self.fit_qvalue(x_axis_points, mode_pic_data[zooom_fact], zooom_fact)
+            x_axis_mhz[zooom_fact] = self._points_to_mhz(n_points, zooom_fact, fit_rslt.best_values['x0'])
 
         # combine data from all zoom factors
         x_axis_mhz_comb = np.concatenate(x_axis_mhz.values())
@@ -121,6 +121,11 @@ class ModePicture(object):
         """
         Least square fit of Lorentzian and polynomial background
         to mode picture.
+
+        :param x_data: Iterable containing x-data of mode picture in points.
+        :param y_data: Iterable containing y-data of mode picture in a.u..
+        :param zoom_factor: Zoom factor (scaling factor of x-axis).
+        :returns: (q_value, fit_result) where `fit_result` is a
         """
         peak_center, fwhm, peak_area = self._get_fit_starting_points(x_data, y_data)
 
@@ -142,11 +147,12 @@ class ModePicture(object):
                       ('w', fwhm, True, None, None, None, None),
                       ('A', peak_area, True, None, None, None, None))
 
-        result = mode_picture_model.fit(y_data, pars, x=x_data)
+        fit_result = mode_picture_model.fit(y_data, pars, x=x_data)
 
         delta_freq = result.best_values['w'] * 1e-3 / (2 * zoom_factor)
+        q_value = round(self.freq0 / delta_freq, 1)
 
-        return round(self.freq0 / delta_freq, 1), result
+        return q_value, fit_result
 
     def plot(self):
         """
