@@ -41,7 +41,7 @@ class ModePicture(object):
         :param float freq: Cavity resonance frequency in GHz as float.
         """
         if mode_pic_data is None:
-            self.x_data_mhz_comb, self.x_data_points_comb, self.y_data_comb, self.freq0 = self.load()
+            self.x_data_mhz, self.x_data_points, self.y_data, self.freq0 = self.load()
         else:
 
             if not isinstance(mode_pic_data, dict):
@@ -52,9 +52,10 @@ class ModePicture(object):
             self.freq0 = freq
 
             self.zoomFactors = mode_pic_data.keys()
-            self.x_data_mhz_comb, self.x_data_points_comb, self.y_data_comb = self.combine_data(mode_pic_data)
+            self.x_data_mhz, self.x_data_points, self.y_data = self.combine_data(mode_pic_data)
 
-        self.qvalue, self.fit_result = self.fit_qvalue(self.x_data_points_comb, self.y_data_comb)
+        self.qvalue, self.fit_result = self.fit_qvalue(self.x_data_points, self.y_data)
+        self.qvalue_stderr = self.get_qvalue_stderr()
 
     def _points_to_mhz(self, n_points, zf, x0):
         """
@@ -88,9 +89,9 @@ class ModePicture(object):
         x_axis_mhz = {}
 
         # rescale x-axes according to zoom factor
-        for zooom_fact in mode_pic_data.keys():
-            q_value, fit_rslt = self.fit_qvalue(x_axis_points, mode_pic_data[zooom_fact], zooom_fact)
-            x_axis_mhz[zooom_fact] = self._points_to_mhz(n_points, zooom_fact, fit_rslt.best_values['x0'])
+        for zf in mode_pic_data.keys():
+            q_value, fit_rslt = self.fit_qvalue(x_axis_points, mode_pic_data[zf], zf)
+            x_axis_mhz[zf] = self._points_to_mhz(n_points, zf, fit_rslt.best_values['x0'])
 
         # combine data from all zoom factors
         x_axis_mhz_comb = np.concatenate(x_axis_mhz.values())
@@ -187,15 +188,15 @@ class ModePicture(object):
         """
         Plots mode picture and the least squares fit used to determine the Q-value.
         """
-        comps = self.fit_result.eval_components(x=self.x_data_points_comb)
+        comps = self.fit_result.eval_components(x=self.x_data_points)
         offset = self.fit_result.best_values['c0']
 
         yfit = self.fit_result.best_fit
         lz = offset - comps['lorentz_peak']
 
-        plt.plot(self.x_data_mhz_comb, self.y_data_comb, '.', color='#2980B9')
-        plt.plot(self.x_data_mhz_comb, lz, 'k--')
-        plt.plot(self.x_data_mhz_comb, yfit, '-', color='#C70039')
+        plt.plot(self.x_data_mhz, self.y_data, '.', color='#2980B9')
+        plt.plot(self.x_data_mhz, lz, 'k--')
+        plt.plot(self.x_data_mhz, yfit, '-', color='#C70039')
 
         plt.legend(['Mode picture', 'Cavity dip', 'Total fit'])
         plt.xlabel('Microwave frequency [MHz]')
@@ -217,7 +218,7 @@ class ModePicture(object):
         header = ['freq [MHz]', 'MW abs. [a.u.]']
         header = '\t'.join(header)
 
-        data_matrix = [self.x_data_mhz_comb, self.y_data_comb]
+        data_matrix = [self.x_data_mhz, self.y_data]
         data_matrix = zip(*data_matrix)
 
         # save to file
