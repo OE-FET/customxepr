@@ -168,7 +168,7 @@ class ModePicture(object):
 
         return q_value, fit_result
 
-    def get_qvalue_stnd_err(self):
+    def get_qvalue_stderr(self):
         """
         Determines 1 sigma confidence bounds for Q-value.
 
@@ -176,16 +176,12 @@ class ModePicture(object):
         :rtype: float
         """
 
-        delta_freq = self.fit_result.best_values['w'] * 1e-3 / 2
+        delta_freq = self.fit_result.params['w'].value * 1e-3 / 2
+        delta_freq_stderr = self.fit_result.params['w'].stderr * 1e-3 / 2
 
-        conf_ints = self.fit_result.conf_interval(sigmas=[1])
-        conf_int_w = conf_ints['w']
+        qvalue_stderr = round(self.freq0 / delta_freq**2 * delta_freq_stderr, 1)
 
-        stnd_err_w = (conf_int_w[2][1] - conf_int_w[0][1])/2
-        stnd_err_delta_freq = stnd_err_w * 1e-3 / 2
-        stnd_err_q_value = round(self.freq0 / delta_freq**2 * stnd_err_delta_freq, 1)
-
-        return stnd_err_q_value
+        return qvalue_stderr
 
     def plot(self):
         """
