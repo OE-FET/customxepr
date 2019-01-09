@@ -8,48 +8,6 @@ Created on Tue Aug 23 11:03:57 2016
 (c) Sam Schott; This work is licensed under a Creative Commons
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
-New in v2.2.2:
-    * CustomXepr is now distributed as a python package and can be installed
-      with pip. This also installs the terminal command "CustomXepr".
-    * Added confidence interval for Q-value calculation.
-
-New in v2.2.1:
-    * Fixed a bug that could result in values inside spin-boxes to be displayed
-      without their decimal marker on some systems.
-    * Fixed a bug that could result in unhandled exceptions when trying to
-      access a deleted mercury and keithley object.
-    * Display job errors in GUI in addition to email notifications.
-
-New in v2.2:
-    * Window positions and sizes are saved and restored between sessions.
-    * Removed all ETA estimates from CustomXepr.
-
-New in v2.1.:
-    * Included revamped keithleygui with IV sweep functionality.
-    * Proper disconnection from instruments when closing windows or shutting
-      down the console with "exit" command.
-    * Fixed a bug that would prevent Xepr experiments to run if the measurement
-      time cannot be estimated. Applies for instance to rapid scan and time
-      domain measurements where proper ETA estimates have not yet been
-      implemented.
-
-New in v2.1.0:
-    * Removed dark theme: code is easier to maintain.
-    * Split off mercury_gui and keithley_gui as separate packages.
-    * Warnings when invalid file paths are handed to Xepr.
-
-New in v2.0.0:
-
-    * Moved driver backends from NI-VISA to pyvisa-py. It is no longer
-      necessary to install NI-VISA from National Instruments on your system.
-    * Moved drivers to external packages. Install with pip before first use.
-    * Improved data plotting in Mercury user interface:
-        - heater output and gasflow are plotted alongside the temperature
-        - major speedups in plotting framerate by relying on numpy for updating
-          the data and redrawing only changed elements of plot widget
-        - allow real-time panning and zooming of plots
-    * Started working on Python 3.6 compatability.
-
 """
 
 from __future__ import division, absolute_import
