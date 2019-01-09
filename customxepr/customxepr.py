@@ -967,9 +967,7 @@ class CustomXepr(QtCore.QObject):
 
             mode_pic_data[mode_zoom] = y_data
 
-        mode_pic_obj = ModePicture(mode_pic_data, freq)
-        qvalue = mode_pic_obj.qvalue
-        qvalue_stderr = mode_pic_obj.get_qvalue_stderr()
+        mp = ModePicture(mode_pic_data, freq)
 
         self.hidden['PowerAtten'].value = 30
         time.sleep(self.wait)
@@ -989,22 +987,23 @@ class CustomXepr(QtCore.QObject):
         self.hidden['PowerAtten'].value = att
         time.sleep(self.wait)
 
-        if qvalue > 3000:
-            logger.info('Q = %i \xb1 %i.' % (qvalue, qvalue_stderr))
-        elif qvalue <= 3000:
-            logger.warning('Q = %i \xb1 %i is very small. Please check on experiment.' % (qvalue, qvalue_stderr))
+        if mp.qvalue > 3000:
+            logger.info('Q = %i \xb1 %i.' % (mp.qvalue, mp.qvalue_stderr))
+        elif mp.qvalue <= 3000:
+            logger.warning('Q = %i \xb1 %i is very small. ' % (mp.qvalue, mp.qvalue_stderr) +
+                           'Please check on experiment.')
 
         if direct is None:
             pass
         elif os.path.isdir(direct):
             path = os.path.join(direct, 'QValues.txt')
-            self._saveQValue2File(temperature, qvalue, qvalue_stderr, path)
+            self._saveQValue2File(temperature, mp.qvalue, mp.qvalue_stderr, path)
             path = os.path.join(direct, 'ModePicture{0:03d}K.txt'.format(temperature))
-            mode_pic_obj.save(path)
+            mp.save(path)
 
         self.wait = wait_old
 
-        return mode_pic_obj
+        return mp
 
     def _saveQValue2File(self, temperature, qvalue, qvalue_stderr, path):
 
