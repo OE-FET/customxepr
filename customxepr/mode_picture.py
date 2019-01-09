@@ -27,8 +27,11 @@ def lorentz_peak(x, x0, w, A):
 
 class ModePicture(object):
     """
-    Class to store mode pictures, calculate QValues and save the mode
-    picture data as a .txt file.
+    Class to store mode pictures. It provides methods to calculate Q-values, and save and load mode picture data from
+    and to .txt files.
+
+    If several mode pictures with different zoom factors are given, `ModePicture` will rescale and combine the data into
+    a single mode picture.
     """
 
     def __init__(self, mode_pic_data=None, freq=9.385):
@@ -37,7 +40,7 @@ class ModePicture(object):
         :param float freq: Cavity resonance frequency in GHz as float.
         """
         if mode_pic_data is None:
-            self.x_axis_mhz_comb, self.x_axis_points_comb, self.mode_pic_comb, self.freq0 = self.load()
+            self.x_data_mhz_comb, self.x_data_points_comb, self.y_data_comb, self.freq0 = self.load()
         else:
 
             if not isinstance(mode_pic_data, dict):
@@ -48,16 +51,16 @@ class ModePicture(object):
             self.freq0 = freq
 
             self.zoomFactors = mode_pic_data.keys()
-            self.x_axis_mhz_comb, self.x_axis_points_comb, self.mode_pic_comb = self.combine_data(mode_pic_data)
+            self.x_data_mhz_comb, self.x_data_points_comb, self.y_data_comb = self.combine_data(mode_pic_data)
 
-        self.qvalue, self.fit_result = self.fit_qvalue(self.x_axis_points_comb, self.mode_pic_comb)
+        self.qvalue, self.fit_result = self.fit_qvalue(self.x_data_points_comb, self.y_data_comb)
 
     def _points_to_mhz(self, n_points, zf, x0):
         """
         Converts an x-axis from points to MHz according to the mode picture's zoom factor.
 
         :param int n_points: Number of data points in mode picture.
-        :param int zf: Zoom factor (1, 2, 4, 8).
+        :param int zf: Zoom factor, i.e., scaling factor of x-axis. Typically is 1, 2, 4, or 8.
         :param int x0: Center of axis correspoding to `freq0`.
         :return: X-axis of mode picture in MHz.
         :rtype: np.array
@@ -72,6 +75,9 @@ class ModePicture(object):
         Rescales mode pictures from different zoom factors and combines them to one.
 
         :param dict mode_pic_data: Dict with zoom factors as keys and respective mode picture curves as values.
+        :returns: `(x_axis_mhz_comb, x_axis_points_comb, mode_pic_comb)` where `x_axis_mhz_comb` and
+            `x_axis_points_comb` are the combined x-axis values of all mode pictures in mhz and points, respectively,
+            and `mode_pic_comb` is the combines y-axis data in a.u..
         """
         n_points = len(mode_pic_data.values()[0])
         x_axis_points = np.arange(0, n_points)
@@ -97,7 +103,7 @@ class ModePicture(object):
 
     def _get_fit_starting_points(self, x_data, y_data):
         """
-        Return plausible starting points for least square Lorentzian fit.
+        Returns plausible starting points for least square Lorentzian fit.
         """
         # find center dip
         peakCenter = x_data[np.argmin(y_data)]
@@ -119,54 +125,78 @@ class ModePicture(object):
 
     def fit_qvalue(self, x_data, y_data, zoom_factor=1):
         """
-        Least square fit of Lorentzian and polynomial background
-        to mode picture.
+        Least square fit of Lorentzian and polynomial background to mode picture.
 
         :param x_data: Iterable containing x-data of mode picture in points.
         :param y_data: Iterable containing y-data of mode picture in a.u..
         :param zoom_factor: Zoom factor (scaling factor of x-axis).
         :returns: (q_value, fit_result) where `fit_result` is a
         """
+        # get first guess parameters for Lorentzian fit
         peak_center, fwhm, peak_area = self._get_fit_starting_points(x_data, y_data)
 
-        # perform peak fit
+        # set up fit models for polynomial background and Lorentzian dip
         pmod = PolynomialModel(degree=7)
         lmodel = Model(lorentz_peak)
 
         mode_picture_model = pmod - lmodel
 
+        # isolate back ground area from resonance dip
         idx1 = sum((x_data < (peak_center - 3 * fwhm)))
         idx2 = sum((x_data > (peak_center + 3 * fwhm)))
 
         x_bg = np.concatenate((x_data[0:idx1], x_data[-idx2:-1]))
         y_bg = np.concatenate((y_data[0:idx1], y_data[-idx2:-1]))
 
+        # get first guess parameters for background
         pars = pmod.guess(y_bg, x=x_bg)
 
+        # add fit parameters for Lorentzian resonance dip
         pars.add_many(('x0', peak_center, True, None, None, None, None),
                       ('w', fwhm, True, None, None, None, None),
                       ('A', peak_area, True, None, None, None, None))
 
+        # perform full fit
         fit_result = mode_picture_model.fit(y_data, pars, x=x_data)
 
+        # calculate Q-value from resonance width
         delta_freq = fit_result.best_values['w'] * 1e-3 / (2 * zoom_factor)
         q_value = round(self.freq0 / delta_freq, 1)
 
         return q_value, fit_result
 
+    def get_qvalue_stnd_err(self):
+        """
+        Determines 1 sigma confidence bounds for Q-value.
+
+        :returns: Standard error of Q-value from fitting.
+        :rtype: float
+        """
+
+        delta_freq = self.fit_result.best_values['w'] * 1e-3 / 2
+
+        conf_ints = self.fit_result.conf_interval(sigmas=[1])
+        conf_int_w = conf_ints['w']
+
+        stnd_err_w = (conf_int_w[2][1] - conf_int_w[0][1])/2
+        stnd_err_delta_freq = stnd_err_w * 1e-3 / 2
+        stnd_err_q_value = round(self.freq0 / delta_freq**2 * stnd_err_delta_freq, 1)
+
+        return sigma1_conf_int_w
+
     def plot(self):
         """
-        Plot mode picture and least squares fit.
+        Plots mode picture and the least squares fit used to determine the Q-value.
         """
-        comps = self.fit_result.eval_components(x=self.x_axis_points_comb)
+        comps = self.fit_result.eval_components(x=self.x_data_points_comb)
         offset = self.fit_result.best_values['c0']
 
         yfit = self.fit_result.best_fit
         lz = offset - comps['lorentz_peak']
 
-        plt.plot(self.x_axis_mhz_comb, self.mode_pic_comb, '.', color='#2980B9')
-        plt.plot(self.x_axis_mhz_comb, lz, 'k--')
-        plt.plot(self.x_axis_mhz_comb, yfit, '-', color='#C70039')
+        plt.plot(self.x_data_mhz_comb, self.y_data_comb, '.', color='#2980B9')
+        plt.plot(self.x_data_mhz_comb, lz, 'k--')
+        plt.plot(self.x_data_mhz_comb, yfit, '-', color='#C70039')
 
         plt.legend(['Mode picture', 'Cavity dip', 'Total fit'])
         plt.xlabel('Microwave frequency [MHz]')
@@ -188,7 +218,7 @@ class ModePicture(object):
         header = ['freq [MHz]', 'MW abs. [a.u.]']
         header = '\t'.join(header)
 
-        data_matrix = [self.x_axis_mhz_comb, self.mode_pic_comb]
+        data_matrix = [self.x_data_mhz_comb, self.y_data_comb]
         data_matrix = zip(*data_matrix)
 
         # save to file
@@ -213,6 +243,9 @@ class ModePicture(object):
         user is promted to select a location and name through a user interface.
 
         :param str filepath: Absolute filepath.
+        :returns: `(x_axis_mhz_comb, x_axis_points_comb, mode_pic_comb, freq0)` where `x_axis_mhz_comb` and
+            `x_axis_points_comb` are the combined x-axis values of all mode pictures in mhz and points, respectively,
+            `mode_pic_comb` is the combines y-axis data in a.u. and `freq0` is the center resonance frequency.
         """
         if filepath is None:
             from qtpy import QtWidgets

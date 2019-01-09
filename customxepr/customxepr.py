@@ -8,6 +8,11 @@ Created on Tue Aug 23 11:03:57 2016
 (c) Sam Schott; This work is licensed under a Creative Commons
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
+New in v2.2.2:
+    * CustomXepr is now distributed as a python package and can be installed
+      with pip. This also installs the terminal command "CustomXepr".
+    * Added confidence interval for Q-value calculation.
+
 New in v2.2.1:
     * Fixed a bug that could result in values inside spin-boxes to be displayed
       without their decimal marker on some systems.
@@ -75,7 +80,7 @@ except ImportError:
 
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'
 __year__ = str(time.localtime().tm_year)
-__version__ = 'v2.2.1'
+__version__ = 'v2.2.2'
 
 
 # add logging level for status updates between DEBUG (10) and INFO (20)
@@ -965,6 +970,7 @@ class CustomXepr(QtCore.QObject):
 
         mode_pic_obj = ModePicture(mode_pic_data, freq)
         q_value = mode_pic_obj.qvalue
+        q_value_stnd_err = mode_pic_obj.get_qvalue_stnd_err()
 
         self.hidden['PowerAtten'].value = 30
         time.sleep(self.wait)
@@ -985,34 +991,32 @@ class CustomXepr(QtCore.QObject):
         time.sleep(self.wait)
 
         if q_value > 3000:
-            logger.info('Q = %i.' % q_value)
+            logger.info('Q = %i \xb1 %i.' % (q_value, q_value_stnd_err))
         elif q_value <= 3000:
-            logger.warning('Q = %i is very small. Please check-up ' % q_value +
-                           'on experiment.')
+            logger.warning('Q = %i \xb1 %i is very small. Please check on experiment.' % (q_value, q_value_stnd_err))
 
         if direct is None:
             pass
         elif os.path.isdir(direct):
             path = os.path.join(direct, 'QValues.txt')
-            self._saveQValue2File(temperature, q_value, path)
-            path = os.path.join(direct, 'ModePicture' +
-                                str(int(temperature)).zfill(3) + 'K.txt')
+            self._saveQValue2File(temperature, q_value, q_value_stnd_err, path)
+            path = os.path.join(direct, 'ModePicture{0:03d}K.txt'.format(temperature))
             mode_pic_obj.save(path)
 
         self.wait = wait_old
 
         return mode_pic_obj
 
-    def _saveQValue2File(self, temperature, q_value, path):
+    def _saveQValue2File(self, temperature, q_value, q_value_stnd_err, path):
 
         time_str = time.strftime('%Y-%m-%d %H:%M')
-        string = '%s\t%d\t%s\n' % (time_str, temperature, q_value)
+        string = '%s\t%d\t%s\t%s\n' % (time_str, temperature, q_value, q_value_stnd_err)
 
         if os.path.isfile(path):
             with open(path, 'a') as f:
                 f.write(string)
         else:
-            header = 'Time stamp\tTemperature [K]\tQValue\n'
+            header = 'Time stamp\tTemperature [K]\tQ-value\tStandard error\n'
             with open(path, 'a') as f:
                 f.write(header)
                 f.write(string)

@@ -6,8 +6,8 @@ def sign(x):
     return (1, -1)[x < 0]
 
 
-Exp = xepr.XeprExperiment('Experiment')
-Pwrst = xepr.XeprExperiment('PowerSat')
+exp = xepr.XeprExperiment('Experiment')
+pwrst = xepr.XeprExperiment('PowerSat')
 
 atten = {5: 50, 10: 40, 20: 36, 30: 35, 50: 30, 80: 20, 110: 20, 140: 20, 170: 20, 200: 20, 230: 20, 260: 15, 290: 15}
 modAmp = {5: 1.5, 10: 1.3, 20: 1, 30: 0.8, 50: 0.5, 80: 0.4, 110: 0.3, 140: 0.2, 170: 0.3, 200: 0.4, 230: 0.7, 260: 0.9, 290: 1}
@@ -49,7 +49,7 @@ for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
     for v in [0, Vg]:
         customXepr.biasGate(v)
         customXepr.runXeprExperiment(
-                Exp, ModAmp=modAmp[T], PowerAtten=atten[T],
+                exp, ModAmp=modAmp[T], PowerAtten=atten[T],
                 SweepWidth=sweepWidth[T], NbScansToDo=nbScans[T])
         customXepr.biasGate(0)
 
@@ -64,7 +64,7 @@ for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
         customXepr.customtune()
 
         customXepr.biasGate(Vg)
-        customXepr.runXeprExperiment(Pwrst, ModAmp=modAmp[T], PowerAtten=atten[T],
+        customXepr.runXeprExperiment(pwrst, ModAmp=modAmp[T], PowerAtten=atten[T],
                                      SweepWidth=sweepWidth[T])
         customXepr.biasGate(0)
 
@@ -85,7 +85,7 @@ for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
 
             customXepr.biasGate(v)
             customXepr.runXeprExperiment(
-                    Exp, ModAmp=modAmp[T], PowerAtten=atten[T],
+                    exp, ModAmp=modAmp[T], PowerAtten=atten[T],
                     SweepWidth=sweepWidth[T], NbScansToDo=nscans)
             customXepr.biasGate(0)
 
