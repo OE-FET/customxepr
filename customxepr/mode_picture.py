@@ -149,7 +149,7 @@ class ModePicture(object):
 
         fit_result = mode_picture_model.fit(y_data, pars, x=x_data)
 
-        delta_freq = result.best_values['w'] * 1e-3 / (2 * zoom_factor)
+        delta_freq = fit_result.best_values['w'] * 1e-3 / (2 * zoom_factor)
         q_value = round(self.freq0 / delta_freq, 1)
 
         return q_value, fit_result
