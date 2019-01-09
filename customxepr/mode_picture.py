@@ -80,8 +80,8 @@ class ModePicture(object):
 
         # rescale x-axes according to zoom factor
         for zooom_fact in mode_pic_data.keys():
-            rlst = self.fit_qvalue(x_axis_points, mode_pic_data[zf], zf)
-            x_axis_mhz[zf] = self._points_to_mhz(n_points, zooom_fact, rlst.best_values['x0'])
+            rlst = self.fit_qvalue(x_axis_points, mode_pic_data[zooom_fact], zooom_fact)
+            x_axis_mhz[zooom_fact] = self._points_to_mhz(n_points, zooom_fact, rlst.best_values['x0'])
 
         # combine data from all zoom factors
         x_axis_mhz_comb = np.concatenate(x_axis_mhz.values())

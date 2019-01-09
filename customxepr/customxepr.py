@@ -92,7 +92,7 @@ def cmp(a, b):
     """
     Definition of Python2 cmp function.
     """
-    return (bool(a > b) - bool(a < b))  # convert possible numpy-bool to bool
+    return bool(a > b) - bool(a < b)  # convert possible numpy-bool to bool
 
 
 # =============================================================================
@@ -949,10 +949,10 @@ class CustomXepr(QtCore.QObject):
         # collect mode pictures for different zoom levels
         mode_pic_data = {}
 
-        for modeZoom in [1, 2, 4, 8]:
+        for mode_zoom in [1, 2, 4, 8]:
             y_data = np.array([])
 
-            self.hidden['ModeZoom'].value = modeZoom
+            self.hidden['ModeZoom'].value = mode_zoom
             time.sleep(2)
 
             n_points = int(self.hidden['DataRange'][1])
@@ -961,7 +961,7 @@ class CustomXepr(QtCore.QObject):
             for i in range(0, n_points):
                 y_data = np.append(y_data, self.hidden['Data'][i])
 
-            mode_pic_data[modeZoom] = y_data
+            mode_pic_data[mode_zoom] = y_data
 
         mode_pic_obj = ModePicture(mode_pic_data, freq)
         q_value = mode_pic_obj.qvalue
