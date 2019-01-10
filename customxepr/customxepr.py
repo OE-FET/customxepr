@@ -850,12 +850,17 @@ class CustomXepr(QtCore.QObject):
         self.hidden['PowerAtten'].value = att
         time.sleep(self.wait)
         q_mean = q_values.mean()
+        q_stderr = q_values.std()
 
         if direct is not None:
             path = os.path.join(direct, 'QValues.txt')
-            self._saveQValue2File(temperature, q_mean, path)
+            self._saveQValue2File(temperature, q_mean, q_stderr, path)
 
-        logger.info('Q = %i.' % q_mean)
+        if q_mean > 3000:
+            logger.info('Q = %i \xb1 %i.' % (q_mean, q_stderr))
+        elif q_mean <= 3000:
+            logger.warning('Q = %i \xb1 %i is very small. ' % (q_mean, q_stderr) +
+                           'Please check on experiment.')
 
         self.wait = wait_old
 
@@ -1048,7 +1053,7 @@ class CustomXepr(QtCore.QObject):
             logger.status('Recording scan %i of %i'
                           % (nb_scans_done + 1, nb_scans_to_do))
 
-            # tune frequency when a new slice scan starts
+            # tune frequency and iris when a new slice scan starts
             if exp.isPaused and not nb_scans_done == nb_scans_to_do:
                 logger.status('Checking tuned.')
 
@@ -1057,7 +1062,7 @@ class CustomXepr(QtCore.QObject):
                 self._tuneFreq(tolerance=3)
                 time.sleep(self.wait)
 
-                self._tuneIris(tolerance=5)
+                self._tuneIris(tolerance=7)
                 time.sleep(self.wait)
                 exp.aqExpRun()
                 time.sleep(self.wait)

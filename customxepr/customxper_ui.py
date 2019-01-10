@@ -198,7 +198,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
             self.actionXeprAPI_Help.setEnabled(False)
 
         # restore last position and size
-        self.restoreGeometry()
+        self.restore_geometry()
 
         # =====================================================================
         # Connect UI to CustomXepr functionality
@@ -303,7 +303,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.addToolBar(self.toolbar)
         self.toolbar.addWidget(self.tabWidget)
 
-    def restoreGeometry(self):
+    def restore_geometry(self):
         x = CONF.get('Window', 'x')
         y = CONF.get('Window', 'y')
         w = CONF.get('Window', 'width')
@@ -311,7 +311,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         self.setGeometry(x, y, w, h)
 
-    def saveGeometry(self):
+    def save_geometry(self):
         geo = self.geometry()
         CONF.set('Window', 'height', geo.height())
         CONF.set('Window', 'width', geo.width())
@@ -321,7 +321,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
     def exit_(self):
         self.on_abort_clicked()
         self.on_clear_clicked()
-        self.saveGeometry()
+        self.save_geometry()
         self.deleteLater()
 
     def closeEvent(self, event):
@@ -329,7 +329,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
     def show_error(self, exc_info):
         title = 'CustomXepr Job Error'
-        message = ('CustomXepr has encountered an error while excecuting a job.')
+        message = 'CustomXepr has encountered an error while excecuting a job.'
         msg = ErrorDialog(title, message, exc_info, parent=self)
         msg.exec_()
 
