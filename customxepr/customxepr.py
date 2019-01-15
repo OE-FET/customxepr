@@ -977,7 +977,7 @@ class CustomXepr(QtCore.QObject):
             with open(path, 'a') as f:
                 f.write(string)
         else:
-            header = 'Time stamp\tTemperature [K]\tQ-value\tStandard error\n'
+            header = 'Time stamp\tTemperature [K]\tQValue\tStandard error\n'
             with open(path, 'a') as f:
                 f.write(header)
                 f.write(string)
