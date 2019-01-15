@@ -47,11 +47,11 @@ for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
     # =========================================================================
 
     for v in [0, Vg]:
-        customXepr.biasGate(v)
+        customXepr.setGateVoltage(v)
         customXepr.runXeprExperiment(
                 exp, ModAmp=modAmp[T], PowerAtten=atten[T],
                 SweepWidth=sweepWidth[T], NbScansToDo=nbScans[T])
-        customXepr.biasGate(0)
+        customXepr.setGateVoltage(0)
 
         path = "{0}/{1}_{2:03d}K_Vg_{3:03d}".format(directory, filename, T, v)
         customXepr.saveCurrentData(path)
@@ -63,10 +63,10 @@ for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
 
         customXepr.customtune()
 
-        customXepr.biasGate(Vg)
+        customXepr.setGateVoltage(Vg)
         customXepr.runXeprExperiment(pwrst, ModAmp=modAmp[T], PowerAtten=atten[T],
                                      SweepWidth=sweepWidth[T])
-        customXepr.biasGate(0)
+        customXepr.setGateVoltage(0)
 
         path = "{0}/{1}_PowerSat_{2:03d}K_Vg_{3:03d}".format(directory, filename, T, Vg)
         customXepr.saveCurrentData(path)
@@ -83,11 +83,11 @@ for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
 
             nscans = int(round(multiplierVg[v] * nbScans[T]))
 
-            customXepr.biasGate(v)
+            customXepr.setGateVoltage(v)
             customXepr.runXeprExperiment(
                     exp, ModAmp=modAmp[T], PowerAtten=atten[T],
                     SweepWidth=sweepWidth[T], NbScansToDo=nscans)
-            customXepr.biasGate(0)
+            customXepr.setGateVoltage(0)
 
             path = "{0}/{1}_{2:03d}K_Vg_{3:03d}".format(directory, filename, T, v)
             customXepr.saveCurrentData(path)
