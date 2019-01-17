@@ -1,24 +1,18 @@
-#### v2.2.2 (2019-01-09):
+#### v2.2.0 (2019-01-09):
 _Added:_
 - Added terminal / command line script "CustomXepr".
 - Added confidence interval for Q-value calculation in ModePicture class.
+- Window positions and sizes are saved and restored between sessions.
+- Show errors during job excecution in GUI in addition to email notifications.
+- Nicely colored tracebacks for error messages.
 
 _Changed:_
 - CustomXepr is now distributed as a python package and can be installed with pip.
-
-#### v2.2.1:
-_Added:_
-- Show errors during job excecution in GUI in addition to email notifications.
-- Nicely colored tracebacks for error messages.
 
 _Fixed:_
 - Fixed a bug that could result in values inside spin-boxes to be displayed without their decimal marker on some
 systems.
 - Fixed a bug that could result in crashes after closing the keithley or mercury control windows.
-
-#### v2.2:
-_Added:_
-- Window positions and sizes are saved and restored between sessions.
 
 _Removed:_
 - Removed all ETA estimates for experiments.
@@ -46,7 +40,7 @@ _Removed:_
 - Removed dark theme: code is easier to maintain. System level dark themes, such as macOS Mojave's dark mode, may be
 supported in the future when Qt support is added.
 
-#### v2.0.0:
+#### v2.0.1:
 _Changed:_
 - Moved default driver backends from NI-VISA to pyvisa-py. It is no longer necessary to install NI-VISA from National
 Instruments on your system.

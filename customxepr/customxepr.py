@@ -38,7 +38,7 @@ except ImportError:
 
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'
 __year__ = str(time.localtime().tm_year)
-__version__ = 'v2.2.2'
+__version__ = 'v2.2.0'
 
 
 # add logging level for status updates between DEBUG (10) and INFO (20)
