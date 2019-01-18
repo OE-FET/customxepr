@@ -857,9 +857,9 @@ class CustomXepr(QtCore.QObject):
             self._saveQValue2File(temperature, q_mean, q_stderr, path)
 
         if q_mean > 3000:
-            logger.info('Q = %i \xb1 %i.' % (q_mean, q_stderr))
+            logger.info('Q = %i±%i.' % (q_mean, q_stderr))
         elif q_mean <= 3000:
-            logger.warning('Q = %i \xb1 %i is very small. ' % (q_mean, q_stderr) +
+            logger.warning('Q = %i±%i is very small. ' % (q_mean, q_stderr) +
                            'Please check on experiment.')
 
         self.wait = wait_old
@@ -951,9 +951,9 @@ class CustomXepr(QtCore.QObject):
         time.sleep(self.wait)
 
         if mp.qvalue > 3000:
-            logger.info('Q = %i \xb1 %i.' % (mp.qvalue, mp.qvalue_stderr))
+            logger.info('Q = %i±%i.' % (mp.qvalue, mp.qvalue_stderr))
         elif mp.qvalue <= 3000:
-            logger.warning('Q = %i \xb1 %i is very small. ' % (mp.qvalue, mp.qvalue_stderr) +
+            logger.warning('Q = %i±%i is very small. ' % (mp.qvalue, mp.qvalue_stderr) +
                            'Please check on experiment.')
 
         if direct is None:
@@ -1083,7 +1083,7 @@ class CustomXepr(QtCore.QObject):
                           2 * self.temperature_tolerance)
                 # warn once for every 120 violations
                 if np.mod(n_out, 120) == 1:
-                    logger.warning(u'Tempearature fluctuations > \xb1%sK.'
+                    logger.warning(u'Tempearature fluctuations > ±%sK.'
                                    % (2*self.temperature_tolerance))
                     n_out += 1  # prevent from warning again next second
 
@@ -1103,7 +1103,7 @@ class CustomXepr(QtCore.QObject):
         if temperature_history:
             temeprature_var = max(temperature_history) - min(temperature_history)
             temperature_mean = float(np.mean(temperature_history))
-            logger.info(u'Temperature stable at (%.2f\xb1%.2f)K during scans.'
+            logger.info(u'Temperature stable at (%.2f±%.2f)K during scans.'
                         % (temperature_mean, temeprature_var / 2))
 
         logger.info('All scans complete.')
