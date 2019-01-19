@@ -92,8 +92,11 @@
       </item>
       <item row="0" column="1" alignment="Qt::AlignRight">
        <widget class="QLabel" name="labelCopyRight">
+        <property name="styleSheet">
+         <string notr="true">color: grey</string>
+        </property>
         <property name="text">
-         <string>(c) 2018 Sam Schott</string>
+         <string>© 2018 Sam Schott</string>
         </property>
        </widget>
       </item>

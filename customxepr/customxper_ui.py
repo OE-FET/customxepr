@@ -179,7 +179,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
             # create unified toolbar
             self.create_toolbar()
 
-        self.labelCopyRight.setText('(c) {0}, {1}.'.format(
+        self.labelCopyRight.setText('© {0}, {1}.'.format(
                 __year__, __author__))
 
         # create about window
