@@ -105,7 +105,8 @@ class ModePicture(object):
 
         return x_axis_mhz_comb, x_axis_points_comb, mode_pic_comb
 
-    def _get_fit_starting_points(self, x_data, y_data):
+    @staticmethod
+    def _get_fit_starting_points(x_data, y_data):
         """
         Returns plausible starting points for least square Lorentzian fit.
         """
@@ -194,13 +195,17 @@ class ModePicture(object):
         yfit = self.fit_result.best_fit
         lz = offset - comps['lorentz_peak']
 
-        plt.plot(self.x_data_mhz, self.y_data, '.', color='#2980B9')
-        plt.plot(self.x_data_mhz, lz, 'k--')
-        plt.plot(self.x_data_mhz, yfit, '-', color='#C70039')
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        l0 = ax.plot(self.x_data_mhz, self.y_data, '.', color='#2980B9')
+        l1 = ax.plot(self.x_data_mhz, lz, '--', color='#000000')
+        l2 = ax.plot(self.x_data_mhz, yfit, '-', color='#C70039')
 
-        plt.legend(['Mode picture', 'Cavity dip', 'Total fit'])
-        plt.xlabel('Microwave frequency [MHz]')
-        plt.ylabel('Microwave absorption [a.u.]')
+        ax.legend([l0, l1, l2], ['Mode picture', 'Cavity dip', 'Total fit'])
+        ax.xlabel('Microwave frequency [MHz]')
+        ax.ylabel('Microwave absorption [a.u.]')
+
+        fig.show()
 
     def save(self, filepath=None):
         """
@@ -232,6 +237,7 @@ class ModePicture(object):
             filepath = filepath[0]
 
         if len(filepath) > 4:
+            # noinspection PyTypeChecker
             np.savetxt(filepath, data_matrix, fmt='%.9E', delimiter='\t',
                        newline='\n', header=header, comments=title)
 

@@ -177,7 +177,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         if platform.system() == 'Darwin':
             # create unified toolbar
-            self.createToolbar()
+            self.create_toolbar()
 
         self.labelCopyRight.setText('(c) {0}, {1}.'.format(
                 __year__, __author__))
@@ -244,29 +244,29 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.jobQueueDisplay.setModel(self.jobQueueModel)
         self.resultQueueDisplay.setModel(self.resultQueueModel)
 
-        # populate models with queue elemts
-        self.populateResults()
-        self.populateJobs()
+        # populate models with queue elements
+        self.populate_results()
+        self.populate_jobs()
 
         # update views when items are added to or removed from queues
-        self.customXepr.result_queue.pop_signal.connect(self.removeResult)
-        self.customXepr.result_queue.put_signal.connect(self.addResult)
+        self.customXepr.result_queue.pop_signal.connect(self.remove_result)
+        self.customXepr.result_queue.put_signal.connect(self.add_result)
 
-        self.customXepr.job_queue.pop_signal.connect(self.removeJob)
-        self.customXepr.job_queue.put_signal.connect(self.addJob)
+        self.customXepr.job_queue.pop_signal.connect(self.remove_job)
+        self.customXepr.job_queue.put_signal.connect(self.add_job)
 
         # set context menues for job_queue and result_queue items
         self.resultQueueDisplay.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.jobQueueDisplay.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
 
-        self.resultQueueDisplay.customContextMenuRequested.connect(self.openResultContextMenu)
-        self.jobQueueDisplay.customContextMenuRequested.connect(self.openJobContextMenu)
+        self.resultQueueDisplay.customContextMenuRequested.connect(self.open_result_context_menu)
+        self.jobQueueDisplay.customContextMenuRequested.connect(self.open_job_context_menu)
 
         # =====================================================================
         # Connect signals, slots, and callbacks
         # =====================================================================
 
-        self.qValueButton.clicked.connect(self.on_qValue_clicked)
+        self.qValueButton.clicked.connect(self.on_qvalue_clicked)
         self.tuneButton.clicked.connect(self.on_tune_clicked)
 
         self.pauseButton.clicked.connect(self.on_pause_clicked)
@@ -277,7 +277,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.lineEditT_tolerance.valueChanged.connect(self.set_temperature_tolerance)
         self.lineEditT_settling.valueChanged.connect(self.set_t_settling)
 
-        self.bG.buttonClicked['int'].connect(self.onbG_clicked)
+        self.bG.buttonClicked['int'].connect(self.on_bg_clicked)
 
         # Universal timeout:
         # Send an email notification if there is no status update for 30 min.
@@ -296,7 +296,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
     # User interface setup
     # =========================================================================
 
-    def createToolbar(self):
+    def create_toolbar(self):
         self.toolbar = QtWidgets.QToolBar(self)
         self.toolbar.setFloatable(False)
         self.toolbar.setMovable(False)
@@ -333,7 +333,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         msg = ErrorDialog(title, message, exc_info, parent=self)
         msg.exec_()
 
-    def openResultContextMenu(self):
+    def open_result_context_menu(self):
         """
         Context menu for items in resultQueueDisplay. Gives the options to
         delete the item, to plot it or to save it, depending on the implemented
@@ -379,7 +379,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         elif action == plotAction:
             self.result_queue.queue[i0].plot()
 
-    def openJobContextMenu(self):
+    def open_job_context_menu(self):
         """
         Context menu for items in jobQueueDisplay. Gives the option to
         delete the item.
@@ -412,7 +412,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
 # Functions to handle communication with job and result queues
 # =============================================================================
 
-    def addJob(self, index=-1):
+    def add_job(self, index=-1):
         """
         Adds new entry to jobQueueDisplay.
         """
@@ -431,15 +431,15 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         self.jobQueueModel.appendRow([func_str, args_str, kwargs_str])
 
-    def removeJob(self, index=0):
+    def remove_job(self, index=0):
         """
-        Removes top entry of jobQueueDisplay.
+        Removes entry with index `i` from jobQueueDisplay (default: i = 1).
         """
         self.jobQueueModel.removeRow(index)
 
-    def addResult(self, index=-1):
+    def add_result(self, index=-1):
         """
-        Adds new result to resultQueueDisplay, tries to plot the result.
+        Adds new result to the end of resultQueueDisplay, tries to plot the result.
         """
         result = self.result_queue.queue[index]
 
@@ -459,26 +459,26 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         self.resultQueueModel.appendRow([rslt_type, rslt_size, rslt_value])
 
-    def removeResult(self, index=0):
+    def remove_result(self, index=0):
         """
-        Removes top entry of resultQueueDisplay.
+        Removes entry with index `i` from resultQueueDisplay (default: i = 1).
         """
         self.resultQueueModel.removeRow(index)
 
-    def populateResults(self):
+    def populate_results(self):
         """
         Gets all current items of result_queue and adds them to
         resultQueueDisplay.
         """
         for i in range(0, self.result_queue.qsize()):
-            self.addResult(i)
+            self.add_result(i)
 
-    def populateJobs(self):
+    def populate_jobs(self):
         """
         Gets all current items of job_queue and adds them to jobQueueDisplay.
         """
         for i in range(0, self.job_queue.qsize()):
-            self.addJob(i)
+            self.add_job(i)
 
     def check_paused(self):
         """
@@ -503,7 +503,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         if self.job_queue.qsize() > 1:
             logger.info('Tuning job added to the end of the job queue.')
 
-    def on_qValue_clicked(self):
+    def on_qvalue_clicked(self):
         """ Schedules a Q-Value readout if the ESR is connected."""
 
         self.customXepr.getQValueCalc()
@@ -597,7 +597,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         elif level == 50:
             self.radioButtonNoMail.setChecked(True)
 
-    def onbG_clicked(self):
+    def on_bg_clicked(self):
         """ Sets the email notification level to the selected level."""
         clickedButton = self.bG.checkedButton()
         if clickedButton == self.radioButtonErrorMail:
@@ -636,7 +636,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
 def classify_class_attrs(obj):
     """
-    Patch classify_class_attrs from pydoc to irgnore inhertied attributes.
+    Patch classify_class_attrs from pydoc to ignore inhertied attributes.
     """
     results = []
     for (name, kind, cls, value) in inspect.classify_class_attrs(obj):
