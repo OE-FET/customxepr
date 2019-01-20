@@ -86,66 +86,88 @@ class Excecutioner(QtCore.QObject):
     Args:
         job_q: Queue with jobs to be performed.
         result_q:  Queue with results from completed jobs.
-        pause_event: Event that causes the worker to pause between jobs if set.
+        running: Event that causes the worker to pause between jobs if set.
+        abort_event: Event that tells a job to abort if set. After a job has
+            been aborted, Excecutioner will clear the `abort_event`.
     """
 
-    def __init__(self, job_q, result_q, pause_event):
+    def __init__(self, job_q, result_q, running, abort_event):
         super(self.__class__, self).__init__(None)
         self.job_q = job_q
         self.result_q = result_q
-        self.pause_event = pause_event
+        self.running = running
+        self.abort_event = abort_event
 
     def process(self):
         while True:
             time.sleep(0.1)
 
-            if self.pause_event.is_set():
+            if not self.running.is_set():
                 logger.status('PAUSED')
 
-            while self.pause_event.is_set():
-                time.sleep(0.1)
+            self.running.wait()
 
             if not self.job_q.empty():
-                func, args, kwargs = self.job_q.get()
+                func, args, kwargs = self.job_q.get()  # get next job, wait if necessary
                 # Try to perform a job. Any exceptions are logged.
                 try:
                     result = func(*args, **kwargs)
+                    exit_status = 'Finished'
+
                     if result is not None:
                         self.result_q.put(result)
+
+                    if self.abort_event.is_set():
+                        exit_status = 'Aborted'
+                        self.abort_event.clear()
+
                     logger.status('IDLE')
 
                 except Exception:
                     # log exception and pause excecution of jobs
                     logger.exception('EXCEPTION')
-                    self.pause_event.set()
+                    self.running.clear()
                     logger.status('PAUSED')
+                    exit_status = 'Failed'
 
-                self.job_q.task_done()
-
+                self.job_q.task_done(exit_status)
 
 # =============================================================================
 # define custom queue which emits PyQt signals
 # =============================================================================
 
 class SignalQueue(QtCore.QObject, Queue):
+    """
+    Custom queue that emits Qt signals if an item is added or removed and if
+    `task_done` is called.
+
+    :cvar put_signal: Is emitted when an item is put into the queue.
+    :cvar pop_signal: Is emitted when an item is removed from the queue.
+    :cvar task_done_signal: Is emitted when `task_done` is called.
+        `task_done_signal` carries an exit status string indictating if the
+        task has been completed successfully.
+    """
 
     put_signal = QtCore.Signal()
     pop_signal = QtCore.Signal()
+    task_done_signal = QtCore.Signal(str)
 
     def __init__(self):
-        super(SignalQueue, self).__init__()
+        QtCore.QObject.__init__(self)
         Queue.__init__(self)
 
-    # Put a new item in the queue, emit put_signal
     def _put(self, item):
-        self.queue.append(item)
+        Queue._put(self, item)
         self.put_signal.emit()
 
-    # Get an item from the queue, emit pop_signal
     def _get(self):
-        item = self.queue.popleft()
+        item = Queue._get(self)
         self.pop_signal.emit()
         return item
+
+    def task_done(self, exit_status='Cleared'):
+        Queue.task_done(self)
+        self.task_done_signal.emit(exit_status)
 
 
 # =============================================================================
@@ -155,19 +177,26 @@ class SignalQueue(QtCore.QObject, Queue):
 # noinspection PyUnresolvedReferences
 class CustomXepr(QtCore.QObject):
     """
-    Custom Xepr defines routines such as tuning and setting the temperature,
+    CustomXepr defines routines such as tuning and setting the temperature,
     applying voltages and recording IV characteristics with attached Keithley
     SMUs.
 
     All CustomXepr methods are executed in a worker thread in the order of
-    their calls. To execute an external function in this thread, you can use
-    the queued_exec decorator form xeprtools.customxepr:
+    their calls. To execute your own function in this thread, you can use
+    the `queued_exec` decorator provided by customxepr and query the
+    `abort_event` to support CustomXepr's abort functionality:
 
-    >>> from xeprtools.customxepr import queued_exec
-    >>> @queued_exec(customXepr.job_queue)
-        def: test_func(*args):
-            return args
-    >>>
+    >>> import customxepr
+    >>> from customxepr import queued_exec
+    >>> customXepr = customxepr.run()
+    >>> @queued_exec(customXepr.job_queue) ...
+    ... def test_func(*args):
+    ...     # do something
+    ...     for i in range(0, 10):
+    ...         time.sleep(1)
+    ...         if customXepr.abort_event.is_set()
+    ...             break
+    ...     return args
 
     All results are added to the result queue and can be retrieved with:
 
@@ -175,11 +204,11 @@ class CustomXepr(QtCore.QObject):
 
     To pause or resume the worker between jobs, do
 
-    >>> customxepr.pause_event.set()
+    >>> customxepr.running.clear()
 
     or
 
-    >>> customxepr.pause_event.clear()
+    >>> customxepr.running.set()
 
     CustomXepr functions:
         customxepr.clear_all_jobs()
@@ -219,7 +248,7 @@ class CustomXepr(QtCore.QObject):
     Attributes:
         job_queue: Queue containing all pending jobs.
         result_queue: Queue containing all results returned from jobs.
-        pause_event: Event to pause job excecution.
+        running: Event to pause / run job excecution.
         abort_event: Event to abort current job.
 
     """
@@ -230,7 +259,7 @@ class CustomXepr(QtCore.QObject):
 
     job_queue = SignalQueue()
     result_queue = SignalQueue()
-    pause_event = Event()
+    running = Event()
     abort_event = Event()
 
     def __init__(self, Xepr=None, mercury_feed=None, keithley=None):
@@ -263,11 +292,12 @@ class CustomXepr(QtCore.QObject):
         self.worker_thread = QtCore.QThread()
         self.worker_thread.setObjectName('CustomXeprThread')
         self.worker = Excecutioner(self.job_queue, self.result_queue,
-                                   self.pause_event)
+                                   self.running, self.abort_event)
         self.worker.moveToThread(self.worker_thread)
 
         self.worker_thread.started.connect(self.worker.process)
         self.worker_thread.start()
+        self.running.set()
         logger.status('IDLE')
 
         # =====================================================================
@@ -317,7 +347,6 @@ class CustomXepr(QtCore.QObject):
                 logger.status('Waiting %s/%s' % (i+1, seconds))
                 # check for abort event
                 if self.abort_event.is_set():
-                    self.abort_event.clear()
                     logger.info('Aborted by user.')
                     return
         # use a single sleep command for less than one second pause
@@ -492,7 +521,6 @@ class CustomXepr(QtCore.QObject):
         for atten in range(40, 0, -10):
             # check for abort event, clear event
             if self.abort_event.is_set():
-                self.abort_event.clear()
                 self.hidden['PowerAtten'].value = atten_start
                 time.sleep(self.wait)
                 logger.info('Aborted by user.')
@@ -534,7 +562,6 @@ class CustomXepr(QtCore.QObject):
 
         # check for abort event, clear event
         if self.abort_event.is_set():
-            self.abort_event.clear()
             logger.info('Aborted by user.')
             return
 
@@ -968,7 +995,8 @@ class CustomXepr(QtCore.QObject):
 
         return mp
 
-    def _saveQValue2File(self, temperature, qvalue, qvalue_stderr, path):
+    @staticmethod
+    def _saveQValue2File(temperature, qvalue, qvalue_stderr, path):
 
         time_str = time.strftime('%Y-%m-%d %H:%M')
         string = '%s\t%d\t%s\t%s\n' % (time_str, temperature, qvalue, qvalue_stderr)
@@ -1042,7 +1070,6 @@ class CustomXepr(QtCore.QObject):
             # check for abort event
             if self.abort_event.is_set():
                 exp.aqExpPause()
-                self.abort_event.clear()
                 logger.info('Aborted by user.')
                 return
 
@@ -1094,7 +1121,7 @@ class CustomXepr(QtCore.QObject):
                                  '15 min. Pausing current measurement and ' +
                                  'all pending jobs.')
                     exp.aqExpPause()
-                    self.pause_event.set()
+                    self.running.clear()
                     return
 
             time.sleep(1)
@@ -1138,14 +1165,14 @@ class CustomXepr(QtCore.QObject):
         # check if path is valid
         if not os.path.isdir(directory):
             logger.error('The directory "%s" does not exist.' % directory)
-            self.pause_event.set()
+            self.running.clear()
             return
 
         # check if path is valid
         if len(path) > 128:
             logger.error('Invalid path. Full path must be shorter than 110 ' +
                          'characters.')
-            self.pause_event.set()
+            self.running.clear()
             return
 
         # switch viewpoint to experiment if given
@@ -1258,7 +1285,6 @@ class CustomXepr(QtCore.QObject):
         while stable_counter < self.temp_wait_time:
             # check for abort command
             if self.abort_event.is_set():
-                self.abort_event.clear()
                 logger.info('Aborted by user.')
                 return
 
@@ -1305,8 +1331,8 @@ class CustomXepr(QtCore.QObject):
         if self.feed.readings['TempRampEnable'] == 'ON':
             expected_time = (abs(self._temperature_target - self.feed.readings['Temp']) /
                              self.feed.readings['TempRamp'])  # in min
-        else:   # assume ramp of 5 K/min
-            expected_time = (abs(self._temperature_target - self.feed.readings['Temp']) / 5)  # in min
+        else:  # assume ramp of 5 K/min
+            expected_time = (abs(self._temperature_target - self.feed.readings['Temp']) / 5)
         return expected_time * 60  # return value in sec
 
     @queued_exec(job_queue)

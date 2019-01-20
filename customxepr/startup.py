@@ -184,5 +184,6 @@ def run():
 
 
 if __name__ == '__main__':
-    from customxepr import run
-    customXepr, xepr, mercury, mercuryfeed, keithley, customXepr_gui, keithley_gui, mercury_gui = run()
+    import customxepr
+    customXepr, xepr, mercury, mercuryfeed, keithley,\
+        customXepr_gui, keithley_gui, mercury_gui = customxepr.run()

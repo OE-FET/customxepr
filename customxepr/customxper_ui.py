@@ -14,7 +14,6 @@ import sys
 import os
 from qtpy import QtCore, QtWidgets, QtGui, uic
 import logging
-import logging.handlers
 import platform
 import subprocess
 import re
@@ -28,7 +27,8 @@ from customxepr.config.main import CONF
 from customxepr.utils.misc import ErrorDialog
 from customxepr.utils.notify import Notipy
 
-PY3 = sys.version[0] == '3'
+PY2 = sys.version[0] == '2'
+_root = QtCore.QFileInfo(__file__).absolutePath()
 
 
 # =============================================================================
@@ -129,6 +129,7 @@ logger.addHandler(error_handler)
 # Define JobStatusApp class
 # =============================================================================
 
+
 class JobStatusApp(QtWidgets.QMainWindow):
 
     """
@@ -151,6 +152,8 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
     """
 
+    MAX_JOB_HISTORY_LENGTH = 1
+
     def __init__(self, customXepr):
         super(self.__class__, self).__init__()
 
@@ -158,7 +161,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.customXepr = customXepr
         self.job_queue = customXepr.job_queue
         self.result_queue = customXepr.result_queue
-        self.pause_event = customXepr.pause_event
+        self.running = customXepr.running
         self.abort_event = customXepr.abort_event
         self.abort_event_keithley = customXepr.keithley.abort_event
 
@@ -185,14 +188,22 @@ class JobStatusApp(QtWidgets.QMainWindow):
         # create about window
         self.aboutWindow = AboutWindow()
 
+        # load resources
+        self.icon_queued = QtGui.QIcon(_root + '/resources/queued@2x.png')
+        self.icon_running = QtGui.QIcon(_root + '/resources/running@2x.png')
+        self.icon_paused = QtGui.QIcon(_root + '/resources/pause@2x.png')
+        self.icon_aborted = QtGui.QIcon(_root + '/resources/aborted@2x.png')
+        self.icon_failed = QtGui.QIcon(_root + '/resources/failed@2x.png')
+        self.icon_finished = QtGui.QIcon(_root + '/resources/finished@2x.png')
+
         # assign menu bar actions
         self.action_About.triggered.connect(self.aboutWindow.show)
         self.actionCustomXepr_Help.triggered.connect(self.aboutWindow.show)
         self.actionShow_log_files.triggered.connect(self.on_log_clicked)
         self.action_Exit.triggered.connect(self.exit_)
 
-        if not os.popen("Xepr --apipath").read() == '':
-            url = 'file://' + os.popen("Xepr --apipath").read() + '/docs/XeprAPI.html'
+        if not os.popen('Xepr --apipath').read() == '':
+            url = 'file://' + os.popen('Xepr --apipath').read() + '/docs/XeprAPI.html'
             self.actionXeprAPI_Help.triggered.connect(lambda: webbrowser.open_new(url))
         else:
             self.actionXeprAPI_Help.setEnabled(False)
@@ -205,10 +216,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         # =====================================================================
 
         # check status of worker thread (Paused or Running) and adjust buttons
-        if self.pause_event.is_set():
-            self.pauseButton.setText('Resume')
-        elif not self.pause_event.is_set():
-            self.pauseButton.setText('Pause')
+        self.check_paused()
 
         # get email list and notification level
         self.get_email_list()
@@ -249,11 +257,12 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.populate_jobs()
 
         # update views when items are added to or removed from queues
-        self.customXepr.result_queue.pop_signal.connect(self.remove_result)
         self.customXepr.result_queue.put_signal.connect(self.add_result)
+        self.customXepr.result_queue.pop_signal.connect(self.on_result_pop)
 
-        self.customXepr.job_queue.pop_signal.connect(self.remove_job)
         self.customXepr.job_queue.put_signal.connect(self.add_job)
+        self.customXepr.job_queue.pop_signal.connect(self.on_job_pop)
+        self.customXepr.job_queue.task_done_signal.connect(self.on_task_done)
 
         # set context menues for job_queue and result_queue items
         self.resultQueueDisplay.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -387,17 +396,21 @@ class JobStatusApp(QtWidgets.QMainWindow):
         indexes = self.jobQueueDisplay.selectedIndexes()
         i0, i1 = indexes[0].row(), indexes[-1].row()
 
+        if i0 < self.first_queued_index():
+            return
+
         popup_menu = QtWidgets.QMenu()
 
         deleteAction = popup_menu.addAction('Delete entry')
         action = popup_menu.exec_(QtGui.QCursor.pos())
 
         if action == deleteAction:
-            for i in range(i1, i0-1, -1):
+            for i_model in range(i1, i0-1, -1):
+                i_job = self.first_queued_index() - i_model
                 with self.job_queue.mutex:
-                    del self.job_queue.queue[i]
+                    del self.job_queue.queue[i_job]
                 self.job_queue.task_done()
-                self.jobQueueModel.removeRow(i)
+                self.jobQueueModel.removeRow(i_model)
 
     def timeout_warning(self):
         """
@@ -412,6 +425,12 @@ class JobStatusApp(QtWidgets.QMainWindow):
 # Functions to handle communication with job and result queues
 # =============================================================================
 
+    def first_queued_index(self):
+        """
+        Returns index of first item in jobQueueModel which belongs to a queued job.
+        """
+        return self.jobQueueModel.rowCount() - self.job_queue.qsize()
+
     def add_job(self, index=-1):
         """
         Adds new entry to jobQueueDisplay.
@@ -421,25 +440,36 @@ class JobStatusApp(QtWidgets.QMainWindow):
         if len(args) > 0 and args[0] == self.customXepr:
             args = args[1:]
 
-        if PY3:
-            func_str = QtGui.QStandardItem(func.__name__)
-        else:
-            func_str = QtGui.QStandardItem(func.func_name)
-
-        args_str = QtGui.QStandardItem(str(args))
-        kwargs_str = QtGui.QStandardItem(str(kwargs))
+        func_str = QtGui.QStandardItem(func.func_name if PY2 else func.__name__)
+        args_str = QtGui.QStandardItem(str(args).lstrip('(').strip(',)'))
+        kwargs_str = QtGui.QStandardItem(str(kwargs).lstrip('{').strip(',}'))
 
         self.jobQueueModel.appendRow([func_str, args_str, kwargs_str])
+        n_rows = self.jobQueueModel.rowCount()
+        self.jobQueueModel.item(n_rows-1).setIcon(self.icon_queued)
 
-    def remove_job(self, index=0):
+    def on_task_done(self, exit_status='Cleared'):
         """
-        Removes entry with index `i` from jobQueueDisplay (default: i = 1).
+        Updates status of top item in jobQueueDisplay.
         """
-        self.jobQueueModel.removeRow(index)
+        i = self.first_queued_index() - 1
+        if exit_status == 'Aborted':
+            self.jobQueueModel.item(i).setIcon(self.icon_aborted)
+        elif exit_status == 'Failed':
+            self.jobQueueModel.item(i).setIcon(self.icon_failed)
+        elif exit_status == 'Finished':
+            self.jobQueueModel.item(i).setIcon(self.icon_finished)
+
+        self.jobQueueDisplay.scrollTo(self.jobQueueModel.createIndex(i-3, 1))
+
+    def on_job_pop(self):
+        i = self.first_queued_index() - 1
+        self.jobQueueModel.item(i).setIcon(self.icon_running)
 
     def add_result(self, index=-1):
         """
-        Adds new result to the end of resultQueueDisplay, tries to plot the result.
+        Adds new result to the resultQueueDisplay, tries to plot the result.
+        The new result is added to the end of the resultQueueDisplay.
         """
         result = self.result_queue.queue[index]
 
@@ -448,10 +478,11 @@ class JobStatusApp(QtWidgets.QMainWindow):
         except TypeError:
             result_size = '--'
 
-        try:
-            result.plot()
-        except AttributeError:
-            pass
+        if self.plotCheckBox.isChecked():
+            try:
+                result.plot()
+            except AttributeError:
+                pass
 
         rslt_type = QtGui.QStandardItem(type(result).__name__)
         rslt_size = QtGui.QStandardItem(str(result_size))
@@ -459,7 +490,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         self.resultQueueModel.appendRow([rslt_type, rslt_size, rslt_value])
 
-    def remove_result(self, index=0):
+    def on_result_pop(self, index=0):
         """
         Removes entry with index `i` from resultQueueDisplay (default: i = 1).
         """
@@ -485,48 +516,55 @@ class JobStatusApp(QtWidgets.QMainWindow):
         Checks if worker thread is running and updates the Run/Pause button
         accordingly.
         """
-        # check status of worker thread
-        if self.pause_event.is_set():
-            self.pauseButton.setText('Resume')
-        elif not self.pause_event.is_set():
+        if self.running.is_set():
             self.pauseButton.setText('Pause')
+        else:
+            self.pauseButton.setText('Resume')
 
     # =========================================================================
     # Button callbacks
     # =========================================================================
 
     def on_tune_clicked(self):
-        """ Schedules a tuning job if the ESR is connected."""
+        """
+        Schedules a tuning job if the ESR is connected.
+        """
 
         self.customXepr.customtune()
 
         if self.job_queue.qsize() > 1:
-            logger.info('Tuning job added to the end of the job queue.')
+            logger.info('Tuning job added to the job queue.')
 
     def on_qvalue_clicked(self):
-        """ Schedules a Q-Value readout if the ESR is connected."""
+        """
+        Schedules a Q-Value readout if the ESR is connected.
+        """
 
         self.customXepr.getQValueCalc()
 
         if self.job_queue.qsize() > 1:
-            logger.info('Q-Value readout added to the end of the job queue.')
+            logger.info('Q-Value readout added to the job queue.')
 
     def on_clear_clicked(self):
-        """ Clears all pending jobs in job_queue."""
-        for item in range(0, self.job_queue.qsize()):
-            self.job_queue.get()
+        """
+        Clears all pending jobs in job_queue.
+        """
+        while not self.job_queue.empty():
+            with self.job_queue.mutex:
+                del self.job_queue.queue[-1]
             self.job_queue.task_done()
+            self.jobQueueModel.removeRow(self.jobQueueModel.rowCount() - 1)
 
     def on_pause_clicked(self):
         """
         Pauses or resumes worker thread on button click.
         """
-        if not self.pause_event.is_set():
-            self.pause_event.set()
+        if self.running.is_set():
+            self.running.clear()
             self.pauseButton.setText('Resume')
-
-        elif self.pause_event.is_set():
-            self.pause_event.clear()
+            logger.status('PAUSED')
+        else:
+            self.running.set()
             self.pauseButton.setText('Pause')
             logger.status('IDLE')
 
@@ -567,7 +605,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         adressList = [x.strip() for x in adressList]
         # validate correct email address format
         for email in adressList:
-            if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            if not re.match(r'[^@]+@[^@]+\.[^@]+', email):
                 logger.info(email + ' is not a valid email address.')
                 adressList = [x for x in adressList if (x is not email)]
 
