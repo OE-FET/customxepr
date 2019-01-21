@@ -460,7 +460,8 @@ class JobStatusApp(QtWidgets.QMainWindow):
         elif exit_status == 'Finished':
             self.jobQueueModel.item(i).setIcon(self.icon_finished)
 
-        self.jobQueueDisplay.scrollTo(self.jobQueueModel.createIndex(i-3, 1))
+        self.jobQueueDisplay.scrollTo(self.jobQueueModel.createIndex(i-1, 1),
+                                      self.jobQueueDisplay.PositionAtTop)
 
     def on_job_pop(self):
         i = self.first_queued_index() - 1

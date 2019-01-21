@@ -132,6 +132,7 @@ class Excecutioner(QtCore.QObject):
 
                 self.job_q.task_done(exit_status)
 
+
 # =============================================================================
 # define custom queue which emits PyQt signals
 # =============================================================================
@@ -202,7 +203,7 @@ class CustomXepr(QtCore.QObject):
 
     >>> result = customxepr.result_queue.get()
 
-    To pause or resume the worker between jobs, do
+    To pause or resume the worker between jobs, run
 
     >>> customxepr.running.clear()
 
