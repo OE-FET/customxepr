@@ -406,7 +406,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         if action == deleteAction:
             for i_model in range(i1, i0-1, -1):
-                i_job = self.first_queued_index() - i_model
+                i_job = i_model - self.first_queued_index()
                 with self.job_queue.mutex:
                     del self.job_queue.queue[i_job]
                 self.job_queue.task_done()
