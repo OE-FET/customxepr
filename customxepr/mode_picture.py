@@ -197,11 +197,11 @@ class ModePicture(object):
 
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        l0 = ax.plot(self.x_data_mhz, self.y_data, '.', color='#2980B9')
-        l1 = ax.plot(self.x_data_mhz, lz, '--', color='#000000')
-        l2 = ax.plot(self.x_data_mhz, yfit, '-', color='#C70039')
+        l0 = ax.plot(self.x_data_mhz, self.y_data, '.', color='#2980B9', label='Mode picture')
+        l1 = ax.plot(self.x_data_mhz, lz, '--', color='#000000', label='Cavity dip')
+        l2 = ax.plot(self.x_data_mhz, yfit, '-', color='#C70039', label='Total fit')
 
-        ax.legend([l0, l1, l2], ['Mode picture', 'Cavity dip', 'Total fit'])
+        ax.legend()
         ax.xlabel('Microwave frequency [MHz]')
         ax.ylabel('Microwave absorption [a.u.]')
 

@@ -448,7 +448,7 @@
            <number>20</number>
           </property>
           <item row="0" column="0">
-           <widget class="QCheckBox" name="checkBox">
+           <widget class="QCheckBox" name="plotCheckBox">
             <property name="text">
              <string>Plot results automatically</string>
             </property>
