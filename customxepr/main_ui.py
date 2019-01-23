@@ -10,7 +10,6 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
 from __future__ import division, absolute_import
-import sys
 import os
 from qtpy import QtCore, QtWidgets, QtGui, uic
 import logging
@@ -22,12 +21,12 @@ import inspect
 import webbrowser
 
 # local imports
-from customxepr.customxepr import CustomXepr, __version__, __year__, __author__
+from customxepr.main import CustomXepr, __version__, __year__, __author__
+from customxepr.manager import Experiment
 from customxepr.config.main import CONF
 from customxepr.utils.misc import ErrorDialog
 from customxepr.utils.notify import Notipy
 
-PY2 = sys.version[0] == '2'
 _root = QtCore.QFileInfo(__file__).absolutePath()
 
 
@@ -70,7 +69,7 @@ class QStatusLogHandler(logging.Handler, QtCore.QObject):
     """
     Handler which emits a signal containing the logging message for every
     logged event. The signal will be connected to "Status" field of the GUI and
-    trigger a 30 min timout counter which will be reset by the next signal.
+    trigger a 30 min time out counter which will be reset by the next signal.
     """
     status_signal = QtCore.Signal(str)
 
@@ -87,7 +86,7 @@ class QStatusLogHandler(logging.Handler, QtCore.QObject):
 
 class QErrorLogHandler(logging.Handler, QtCore.QObject):
     """
-    Handler which displays a message box with information about occured errors.
+    Handler which displays a message box with information about occurred errors.
     """
 
     error_signal = QtCore.Signal(tuple)
@@ -118,7 +117,7 @@ error_handler.setLevel(logging.ERROR)
 
 # add handlers
 root_logger = logging.getLogger()
-logger = logging.getLogger('customxepr.customxepr')
+logger = logging.getLogger('customxepr.main')
 
 root_logger.addHandler(status_handler)
 root_logger.addHandler(info_handler)
@@ -136,12 +135,12 @@ class JobStatusApp(QtWidgets.QMainWindow):
     A GUI for CustomXepr, composed of three panels:
 
         1) List of queued jobs and functionality to pause, resume and abort any
-           job excecution. Basic CustomnXepr settigs such as the temperature
+           job execution. Basic CustomXepr settings such as the temperature
            settling time and tolerance, as well as shortcuts to tuning and
            Q-value evaluation routines, can be accesses here as well.
 
         2) List of all results. Right-clicking on a result exposes plotting and
-           saving functionaity if corresponding methods are provided by the
+           saving functionality if corresponding methods are provided by the
            result object (e.g, FET characteristics, mode pictures, etc.)
 
         3) Message log for info-messages and higher. This panel also exposes a
@@ -154,16 +153,16 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
     MAX_JOB_HISTORY_LENGTH = 1
 
-    def __init__(self, customXepr):
+    def __init__(self, customxepr):
         super(self.__class__, self).__init__()
 
         # get input arguments
-        self.customXepr = customXepr
-        self.job_queue = customXepr.job_queue
-        self.result_queue = customXepr.result_queue
-        self.running = customXepr.running
-        self.abort_event = customXepr.abort_event
-        self.abort_event_keithley = customXepr.keithley.abort_event
+        self.customxepr = customxepr
+        self.job_queue = customxepr.job_queue
+        self.result_queue = customxepr.result_queue
+        self.running = customxepr.running
+        self.abort_event = customxepr.abort
+        self.abort_event_keithley = customxepr.keithley.abort_event
 
         # =====================================================================
         # Set-up the UI
@@ -171,12 +170,12 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         # load layout file, setup toolbar on macOS
         if platform.system() == 'Darwin':
-            layoutFile = 'customxepr_ui_macos.ui'
+            layout_file = 'main_ui_macos.ui'
         else:
-            layoutFile = 'customxepr_ui_linux.ui'
+            layout_file = 'main_ui_linux.ui'
 
         uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                layoutFile), self)
+                                layout_file), self)
 
         if platform.system() == 'Darwin':
             # create unified toolbar
@@ -223,8 +222,8 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.get_notification_level()
 
         # get temperature control settings
-        self.lineEditT_tolerance.setValue(self.customXepr.temperature_tolerance)
-        self.lineEditT_settling.setValue(self.customXepr.temp_wait_time)
+        self.lineEditT_tolerance.setValue(self.customxepr.temperature_tolerance)
+        self.lineEditT_settling.setValue(self.customxepr.temp_wait_time)
 
         # perform various UI updates after status change
         status_handler.status_signal.connect(self.statusField.setText)
@@ -257,14 +256,14 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.populate_jobs()
 
         # update views when items are added to or removed from queues
-        self.customXepr.result_queue.put_signal.connect(self.add_result)
-        self.customXepr.result_queue.pop_signal.connect(self.on_result_pop)
+        self.customxepr.result_queue.put_signal.connect(self.add_result)
+        self.customxepr.result_queue.pop_signal.connect(self.on_result_pop)
 
-        self.customXepr.job_queue.put_signal.connect(self.add_job)
-        self.customXepr.job_queue.pop_signal.connect(self.on_job_pop)
-        self.customXepr.job_queue.task_done_signal.connect(self.on_task_done)
+        self.customxepr.job_queue.added_signal.connect(self.on_job_added)
+        self.customxepr.job_queue.removed_signal.connect(self.on_job_removed)
+        self.customxepr.job_queue.status_changed_signal.connect(self.on_job_status_changed)
 
-        # set context menues for job_queue and result_queue items
+        # set context menus for job_queue and result_queue items
         self.resultQueueDisplay.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.jobQueueDisplay.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
 
@@ -357,25 +356,27 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         popup_menu = QtWidgets.QMenu()
 
-        deleteAction = popup_menu.addAction('Delete entry')
-        plotAction = None
-        saveAction = None
+        plot_action = popup_menu.addAction('Plot')
+        save_action = popup_menu.addAction('Save...')
+        delete_action = popup_menu.addAction('Delete')
 
-        if 'plot' in dir(self.result_queue.queue[i0]) and i0 == i1:
-            plotAction = popup_menu.addAction('Plot data')
-        if 'save' in dir(self.result_queue.queue[i0]) and i0 == i1:
-            saveAction = popup_menu.addAction('Save data')
+        plot_action.setEnabled(False)
+        save_action.setEnabled(False)
+
+        if hasattr(self.result_queue.queue[i0], 'plot') and i0 == i1:
+            plot_action.setEnabled(True)
+        if hasattr(self.result_queue.queue[i0], 'save') and i0 == i1:
+            save_action.setEnabled(True)
 
         action = popup_menu.exec_(QtGui.QCursor.pos())
 
         if action == 0:
             return
-        elif action == deleteAction:
+        elif action == delete_action:
             for i in range(i1, i0-1, -1):
-                with self.result_queue.mutex:
-                    del self.result_queue.queue[i]
+                self.result_queue.remove_item(i)
                 self.resultQueueModel.removeRow(i)
-        elif action == saveAction:
+        elif action == save_action:
             prompt = 'Save as file'
             filename = 'untitled.txt'
             formats = 'Text file (*.txt)'
@@ -385,7 +386,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
                 return
             self.result_queue.queue[i0].save(filepath[0])
 
-        elif action == plotAction:
+        elif action == plot_action:
             self.result_queue.queue[i0].plot()
 
     def open_job_context_menu(self):
@@ -394,30 +395,28 @@ class JobStatusApp(QtWidgets.QMainWindow):
         delete the item.
         """
         indexes = self.jobQueueDisplay.selectedIndexes()
+        if not indexes:
+            return
         i0, i1 = indexes[0].row(), indexes[-1].row()
 
-        if i0 < self.first_queued_index():
-            return
-
         popup_menu = QtWidgets.QMenu()
+        delete_action = popup_menu.addAction('Delete')
 
-        deleteAction = popup_menu.addAction('Delete entry')
+        if i0 < self.job_queue.first_queued_index():
+            delete_action.setEnabled(False)
+
         action = popup_menu.exec_(QtGui.QCursor.pos())
 
-        if action == deleteAction:
-            for i_model in range(i1, i0-1, -1):
-                i_job = i_model - self.first_queued_index()
-                with self.job_queue.mutex:
-                    del self.job_queue.queue[i_job]
-                self.job_queue.task_done()
-                self.jobQueueModel.removeRow(i_model)
+        if action == delete_action:
+            for i in range(i1, i0-1, -1):
+                self.job_queue.remove_item(i)
 
     def timeout_warning(self):
         """
         Issues a warning email if no status update has come in for the time
         specified in self.t_timeout.
         """
-        if self.job_queue.unfinished_tasks > 0:
+        if self.job_queue.has_running() > 0:
             logger.warning('No status update for %s min.' % self.t_timeout +
                            ' Please check on experiment')
 
@@ -425,47 +424,47 @@ class JobStatusApp(QtWidgets.QMainWindow):
 # Functions to handle communication with job and result queues
 # =============================================================================
 
-    def first_queued_index(self):
-        """
-        Returns index of first item in jobQueueModel which belongs to a queued job.
-        """
-        return self.jobQueueModel.rowCount() - self.job_queue.qsize()
-
-    def add_job(self, index=-1):
+    def on_job_added(self, index=-1):
         """
         Adds new entry to jobQueueDisplay.
         """
-        func, args, kwargs = self.job_queue.queue[index]
+        exp = self.job_queue.queue[index]
 
-        if len(args) > 0 and args[0] == self.customXepr:
-            args = args[1:]
+        if len(exp.args) > 0 and exp.args[0] == self.customxepr:
+            args = exp.args[1:]
+        else:
+            args = exp.args
 
-        func_str = QtGui.QStandardItem(func.func_name if PY2 else func.__name__)
-        args_str = QtGui.QStandardItem(str(args).lstrip('(').strip(',)'))
-        kwargs_str = QtGui.QStandardItem(str(kwargs).lstrip('{').strip(',}'))
+        func_item = QtGui.QStandardItem(exp.func.__name__)
+        args_item = QtGui.QStandardItem(str(args).lstrip('(').strip(',)'))
+        kwargs_item = QtGui.QStandardItem(str(exp.kwargs).lstrip('{').strip(',}'))
 
-        self.jobQueueModel.appendRow([func_str, args_str, kwargs_str])
-        n_rows = self.jobQueueModel.rowCount()
-        self.jobQueueModel.item(n_rows-1).setIcon(self.icon_queued)
+        func_item.setIcon(self.icon_queued)
 
-    def on_task_done(self, exit_status='Cleared'):
+        self.jobQueueModel.appendRow([func_item, args_item, kwargs_item])
+
+    def on_job_status_changed(self, index_status_tuple):
         """
         Updates status of top item in jobQueueDisplay.
         """
-        i = self.first_queued_index() - 1
-        if exit_status == 'Aborted':
-            self.jobQueueModel.item(i).setIcon(self.icon_aborted)
-        elif exit_status == 'Failed':
-            self.jobQueueModel.item(i).setIcon(self.icon_failed)
-        elif exit_status == 'Finished':
-            self.jobQueueModel.item(i).setIcon(self.icon_finished)
+        index, status = index_status_tuple
 
-        self.jobQueueDisplay.scrollTo(self.jobQueueModel.createIndex(i-1, 1),
+        if status is Experiment.RUNNING:
+            self.jobQueueModel.item(index).setIcon(self.icon_running)
+        elif status is Experiment.ABORTED:
+            self.jobQueueModel.item(index).setIcon(self.icon_aborted)
+        elif status is Experiment.FAILED:
+            self.jobQueueModel.item(index).setIcon(self.icon_failed)
+        elif status is Experiment.FINISHED:
+            self.jobQueueModel.item(index).setIcon(self.icon_finished)
+        elif status is Experiment.QUEUED:
+            self.jobQueueModel.item(index).setIcon(self.icon_queued)
+
+        self.jobQueueDisplay.scrollTo(self.jobQueueModel.createIndex(index-3, 1),
                                       self.jobQueueDisplay.PositionAtTop)
 
-    def on_job_pop(self):
-        i = self.first_queued_index() - 1
-        self.jobQueueModel.item(i).setIcon(self.icon_running)
+    def on_job_removed(self, i):
+        self.jobQueueModel.removeRow(i)
 
     def add_result(self, index=-1):
         """
@@ -497,6 +496,13 @@ class JobStatusApp(QtWidgets.QMainWindow):
         """
         self.resultQueueModel.removeRow(index)
 
+    def populate_jobs(self):
+        """
+        Gets all current items of job_queue and adds them to jobQueueDisplay.
+        """
+        for i in range(0, self.job_queue.qsize()):
+            self.on_job_added(i)
+
     def populate_results(self):
         """
         Gets all current items of result_queue and adds them to
@@ -504,13 +510,6 @@ class JobStatusApp(QtWidgets.QMainWindow):
         """
         for i in range(0, self.result_queue.qsize()):
             self.add_result(i)
-
-    def populate_jobs(self):
-        """
-        Gets all current items of job_queue and adds them to jobQueueDisplay.
-        """
-        for i in range(0, self.job_queue.qsize()):
-            self.add_job(i)
 
     def check_paused(self):
         """
@@ -531,9 +530,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
         Schedules a tuning job if the ESR is connected.
         """
 
-        self.customXepr.customtune()
+        self.customxepr.customtune()
 
-        if self.job_queue.qsize() > 1:
+        if self.job_queue.qsize('queued') > 0:
             logger.info('Tuning job added to the job queue.')
 
     def on_qvalue_clicked(self):
@@ -541,19 +540,17 @@ class JobStatusApp(QtWidgets.QMainWindow):
         Schedules a Q-Value readout if the ESR is connected.
         """
 
-        self.customXepr.getQValueCalc()
+        self.customxepr.getQValueCalc()
 
-        if self.job_queue.qsize() > 1:
+        if self.job_queue.qsize('queued') > 0:
             logger.info('Q-Value readout added to the job queue.')
 
     def on_clear_clicked(self):
         """
         Clears all pending jobs in job_queue.
         """
-        while not self.job_queue.empty():
-            with self.job_queue.mutex:
-                del self.job_queue.queue[-1]
-            self.job_queue.task_done()
+        while self.job_queue.has_queued():
+            self.job_queue.remove_item(-1)
             self.jobQueueModel.removeRow(self.jobQueueModel.rowCount() - 1)
 
     def on_pause_clicked(self):
@@ -573,7 +570,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         """
         Aborts a running job.
         """
-        if self.job_queue.unfinished_tasks > 0:
+        if self.job_queue.has_running() > 0:
             self.abort_event.set()
             self.abort_event_keithley.set()
 
@@ -581,11 +578,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
         """
         Opens directory with log files with current log file selected.
         """
-        path = self.customXepr.log_file_dir
+        path = self.customxepr.log_file_dir
 
-        if platform.system() == 'Windows':
-            os.startfile(path)
-        elif platform.system() == 'Darwin':
+        if platform.system() == 'Darwin':
             subprocess.Popen(['open', path])
         else:
             subprocess.Popen(['xdg-open', path])
@@ -596,37 +591,37 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
     def set_email_list(self):
         """
-        Gets the email list from the UI and udates it in CustomXepr.
+        Gets the email list from the UI and updates it in CustomXepr.
         """
         # get string from lineEdit field
-        adressString = self.lineEditEmailList.text()
+        address_string = self.lineEditEmailList.text()
         # convert string to list of strings
-        adressList = adressString.split(',')
+        address_list = address_string.split(',')
         # strip trailing spaces
-        adressList = [x.strip() for x in adressList]
+        address_list = [x.strip() for x in address_list]
         # validate correct email address format
-        for email in adressList:
+        for email in address_list:
             if not re.match(r'[^@]+@[^@]+\.[^@]+', email):
                 logger.info(email + ' is not a valid email address.')
-                adressList = [x for x in adressList if (x is not email)]
+                address_list = [x for x in address_list if (x is not email)]
 
         # send list to CustomXepr
-        self.customXepr.notify_address = adressList
+        self.customxepr.notify_address = address_list
 
     def get_email_list(self):
         """
-        Gets the email list from CustomXepr and udates it in the UI.
+        Gets the email list from CustomXepr and updates it in the UI.
         """
-        adressList = self.customXepr.notify_address
+        address_list = self.customxepr.notify_address
         if not self.lineEditEmailList.hasFocus():
-            self.lineEditEmailList.setText(', '.join(adressList))
+            self.lineEditEmailList.setText(', '.join(address_list))
 
     def get_notification_level(self):
         """
         Checks the notification level for email handler and sets the respective
         checkButton to checked.
         """
-        level = self.customXepr.email_handler_level
+        level = self.customxepr.email_handler_level
         if level == 40:
             self.radioButtonErrorMail.setChecked(True)
         elif level == 30:
@@ -638,21 +633,21 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
     def on_bg_clicked(self):
         """ Sets the email notification level to the selected level."""
-        clickedButton = self.bG.checkedButton()
-        if clickedButton == self.radioButtonErrorMail:
-            self.customXepr.email_handler_level = 40
-        elif clickedButton == self.radioButtonWarningMail:
-            self.customXepr.email_handler_level = 30
-        elif clickedButton == self.radioButtonInfoMail:
-            self.customXepr.email_handler_level = 20
-        elif clickedButton == self.radioButtonNoMail:
-            self.customXepr.email_handler_level = 50
+        clicked_button = self.bG.checkedButton()
+        if clicked_button == self.radioButtonErrorMail:
+            self.customxepr.email_handler_level = 40
+        elif clicked_button == self.radioButtonWarningMail:
+            self.customxepr.email_handler_level = 30
+        elif clicked_button == self.radioButtonInfoMail:
+            self.customxepr.email_handler_level = 20
+        elif clicked_button == self.radioButtonNoMail:
+            self.customxepr.email_handler_level = 50
 
     def set_temperature_tolerance(self, value):
-        self.customXepr.temperature_tolerance = value
+        self.customxepr.temperature_tolerance = value
 
     def set_t_settling(self, value):
-        self.customXepr.temp_wait_time = value
+        self.customxepr.temp_wait_time = value
 
     # =========================================================================
     # Properties
@@ -670,12 +665,12 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
 
 # =============================================================================
-# About Window
+# About / Help Window
 # =============================================================================
 
 def classify_class_attrs(obj):
     """
-    Patch classify_class_attrs from pydoc to ignore inhertied attributes.
+    Patch classify_class_attrs from pydoc to ignore inherited attributes.
     """
     results = []
     for (name, kind, cls, value) in inspect.classify_class_attrs(obj):

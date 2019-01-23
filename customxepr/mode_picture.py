@@ -4,6 +4,10 @@
 Created on Sun Jun  4 14:03:29 2017
 
 @author: SamSchott
+
+(c) Sam Schott; This work is licensed under a Creative Commons
+Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
+
 """
 from __future__ import division, absolute_import
 import math
@@ -15,14 +19,14 @@ import matplotlib.pyplot as plt
 import time
 
 
-def lorentz_peak(x, x0, w, A):
+def lorentz_peak(x, x0, w, a):
     """
-    Lorentzian with area A and fwhm w centered around x0.
+    Lorentzian with area `a`, full-width-at-half-maximum `w`, and center `x0`.
     """
 
     numerator = 2/math.pi * w
     denominator = 4*(x - x0)**2 + w**2
-    return A * numerator / denominator
+    return a * numerator / denominator
 
 
 class ModePicture(object):
@@ -63,7 +67,7 @@ class ModePicture(object):
 
         :param int n_points: Number of data points in mode picture.
         :param int zf: Zoom factor, i.e., scaling factor of x-axis. Typically is 1, 2, 4, or 8.
-        :param int x0: Center of axis correspoding to `freq0`.
+        :param int x0: Center of axis corresponding to `freq0`.
         :return: X-axis of mode picture in MHz.
         :rtype: np.array
         """
@@ -209,11 +213,11 @@ class ModePicture(object):
 
     def save(self, filepath=None):
         """
-        Saves mode picture data as a text file with headers. If no filepath
-        is given, the user is promted to select a location and name through a
+        Saves mode picture data as a text file with headers. If no file path
+        is given, the user is prompted to select a location and name through a
         user interface.
 
-        :param str filepath: Absolute filepath.
+        :param str filepath: Absolute file path.
         """
         # create header and title for file
         time_str = time.strftime('%H:%M, %d/%m/%Y')
@@ -243,12 +247,13 @@ class ModePicture(object):
 
         return filepath
 
-    def load(self, filepath=None):
+    @staticmethod
+    def load(filepath=None):
         """
-        Loads mode picture data from text file. If no filepath is given, the
-        user is promted to select a location and name through a user interface.
+        Loads mode picture data from text file. If no file path is given, the
+        user is prompted to select a location and name through a user interface.
 
-        :param str filepath: Absolute filepath.
+        :param str filepath: Absolute file path.
         :returns: `(x_axis_mhz_comb, x_axis_points_comb, mode_pic_comb, freq0)`
             where `x_axis_mhz_comb` and `x_axis_points_comb` are the combined
             x-axis values of all mode pictures in mhz and points, respectively,

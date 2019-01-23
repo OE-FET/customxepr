@@ -31,7 +31,7 @@ def get_version(relpath):
 
 setup(
     name="customxepr",
-    version=get_version("customxepr/customxepr.py"),
+    version=get_version("customxepr/main.py"),
     description="Python interface for for Bruker Xepr.",
     url="https://github.com/OE-FET/CustomXepr",
     author="Sam Schott",
