@@ -380,28 +380,33 @@ class CustomXepr(QtCore.QObject):
 
         logger.info('Tuning')
 
-        self.hidden = self.xepr.XeprExperiment('AcqHidden')
-        time.sleep(self.wait)
+        # save current operation mode and attenuation
         mode = self.hidden['OpMode'].value
         time.sleep(self.wait)
         atten_start = self.hidden['PowerAtten'].value
         time.sleep(self.wait)
+
+        # switch mode to 'Operate'
         if not mode == 'Operate':
             self.hidden['OpMode'].value = 'Operate'
             time.sleep(self.wait)
 
+        # tune frequency at 30 dB
         self.hidden['PowerAtten'].value = 30
         time.sleep(self.wait)
         self._tuneFreq()
         time.sleep(self.wait)
 
+        # tune bias of reference arm at 50 dB
+        # (where diode current is determined by reference arm)
         self.hidden['PowerAtten'].value = 50
         time.sleep(self.wait)
         self._tuneBias()
         time.sleep(self.wait)
 
-        for atten in range(40, 0, -10):
-            # check for abort event, clear event
+        # tune iris at 40 dB and 30 dB
+        for atten in [40, 30]:
+            # check for abort event
             if self.abort.is_set():
                 self.hidden['PowerAtten'].value = atten_start
                 time.sleep(self.wait)
@@ -411,41 +416,56 @@ class CustomXepr(QtCore.QObject):
             self.hidden['PowerAtten'].value = atten
             time.sleep(self.wait)
 
+            self._tuneIris()
+            time.sleep(self.wait)
+
+        # tune iris and phase and frequency at 20 dB and 10 dB
+        for atten in [20, 10]:
+            # check for abort event, clear event
+            if self.abort.is_set():
+                self.hidden['PowerAtten'].value = atten_start
+                time.sleep(self.wait)
+                logger.info('Aborted by user.')
+                return
+
+            self.hidden['PowerAtten'].value = atten
+            time.sleep(self.wait)
             self._tunePhase()
             time.sleep(self.wait)
             self._tuneIris()
             time.sleep(self.wait)
+            self._tuneFreq()
+            time.sleep(self.wait)
 
-        self._tuneFreq()
-        self.hidden['PowerAtten'].value = 45
+        # tune bias at 50 dB
+        self.hidden['PowerAtten'].value = 50
         time.sleep(self.wait)
         self._tuneBias()
         time.sleep(self.wait)
 
+        # tune iris at 15 dB
         self.hidden['PowerAtten'].value = 20
-        time.sleep(self.wait)
-        self._tunePhase()
         time.sleep(self.wait)
         self._tuneIris()
         time.sleep(self.wait)
 
-        self.hidden['PowerAtten'].value = 45
+        # tune bias at 50 dB
+        self.hidden['PowerAtten'].value = 50
         time.sleep(self.wait)
         self._tuneBias()
         time.sleep(self.wait)
 
+        # tune iris at 10 dB
         self.hidden['PowerAtten'].value = 10
         time.sleep(self.wait)
         self._tuneIris()
         time.sleep(self.wait)
 
+        # reset attenuation to original value, tune frequency again
         self.hidden['PowerAtten'].value = atten_start
         time.sleep(self.wait)
-
-        # check for abort event, clear event
-        if self.abort.is_set():
-            logger.info('Aborted by user.')
-            return
+        self._tuneFreq()
+        time.sleep(self.wait)
 
         logger.status('Tuning done.')
 
