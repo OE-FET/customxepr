@@ -116,7 +116,7 @@ class ExperimentQueue(QtCore.QObject):
     @property
     def queue(self):
         with self._lock:
-            return self._history.queue + self._running.queue + self._queued.queue
+            return list(self._history.queue) + list(self._running.queue) + list(self._queued.queue)
 
     def put(self, exp):
         if not exp.status == Experiment.QUEUED:
