@@ -4,6 +4,10 @@
 Created on Sun Jun  4 14:03:29 2017
 
 @author: SamSchott
+
+(c) Sam Schott; This work is licensed under a Creative Commons
+Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
+
 """
 from __future__ import division, absolute_import
 import math
@@ -15,14 +19,14 @@ import matplotlib.pyplot as plt
 import time
 
 
-def lorentz_peak(x, x0, w, A):
+def lorentz_peak(x, x0, w, a):
     """
-    Lorentzian with area A and fwhm w centered around x0.
+    Lorentzian with area `a`, full-width-at-half-maximum `w`, and center `x0`.
     """
 
     numerator = 2/math.pi * w
     denominator = 4*(x - x0)**2 + w**2
-    return A * numerator / denominator
+    return a * numerator / denominator
 
 
 class ModePicture(object):
@@ -57,13 +61,14 @@ class ModePicture(object):
         self.qvalue, self.fit_result = self.fit_qvalue(self.x_data_points, self.y_data)
         self.qvalue_stderr = self.get_qvalue_stderr()
 
-    def _points_to_mhz(self, n_points, zf, x0):
+    @staticmethod
+    def _points_to_mhz(n_points, zf, x0):
         """
         Converts an x-axis from points to MHz according to the mode picture's zoom factor.
 
         :param int n_points: Number of data points in mode picture.
         :param int zf: Zoom factor, i.e., scaling factor of x-axis. Typically is 1, 2, 4, or 8.
-        :param int x0: Center of axis correspoding to `freq0`.
+        :param int x0: Center of axis corresponding to `freq0`.
         :return: X-axis of mode picture in MHz.
         :rtype: np.array
         """
@@ -111,7 +116,7 @@ class ModePicture(object):
         Returns plausible starting points for least square Lorentzian fit.
         """
         # find center dip
-        peakCenter = x_data[np.argmin(y_data)]
+        peak_center = x_data[np.argmin(y_data)]
 
         # find baseline height
         interval = 0.25
@@ -126,7 +131,7 @@ class ModePicture(object):
         fwhm = max(np.max(x_data[peak_index]) - np.min(x_data[peak_index]), 1)
         peak_area = peak_height * fwhm * math.pi / 2
 
-        return peakCenter, fwhm, peak_area
+        return peak_center, fwhm, peak_area
 
     def fit_qvalue(self, x_data, y_data, zoom_factor=1):
         """
@@ -197,23 +202,23 @@ class ModePicture(object):
 
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        l0 = ax.plot(self.x_data_mhz, self.y_data, '.', color='#2980B9', label='Mode picture')
-        l1 = ax.plot(self.x_data_mhz, lz, '--', color='#000000', label='Cavity dip')
-        l2 = ax.plot(self.x_data_mhz, yfit, '-', color='#C70039', label='Total fit')
+        ax.plot(self.x_data_mhz, self.y_data, '.', color='#2980B9', label='Mode picture')
+        ax.plot(self.x_data_mhz, lz, '--', color='#000000', label='Cavity dip')
+        ax.plot(self.x_data_mhz, yfit, '-', color='#C70039', label='Total fit')
 
         ax.legend()
-        ax.xlabel('Microwave frequency [MHz]')
-        ax.ylabel('Microwave absorption [a.u.]')
+        ax.set_xlabel('Microwave frequency [MHz]')
+        ax.set_ylabel('Microwave absorption [a.u.]')
 
         fig.show()
 
     def save(self, filepath=None):
         """
-        Saves mode picture data as a text file with headers. If no filepath
-        is given, the user is promted to select a location and name through a
+        Saves mode picture data as a text file with headers. If no file path
+        is given, the user is prompted to select a location and name through a
         user interface.
 
-        :param str filepath: Absolute filepath.
+        :param str filepath: Absolute file path.
         """
         # create header and title for file
         time_str = time.strftime('%H:%M, %d/%m/%Y')
@@ -243,12 +248,13 @@ class ModePicture(object):
 
         return filepath
 
-    def load(self, filepath=None):
+    @staticmethod
+    def load(filepath=None):
         """
-        Loads mode picture data from text file. If no filepath is given, the
-        user is promted to select a location and name through a user interface.
+        Loads mode picture data from text file. If no file path is given, the
+        user is prompted to select a location and name through a user interface.
 
-        :param str filepath: Absolute filepath.
+        :param str filepath: Absolute file path.
         :returns: `(x_axis_mhz_comb, x_axis_points_comb, mode_pic_comb, freq0)`
             where `x_axis_mhz_comb` and `x_axis_points_comb` are the combined
             x-axis values of all mode pictures in mhz and points, respectively,

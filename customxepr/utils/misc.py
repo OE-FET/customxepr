@@ -15,7 +15,7 @@ from pygments.lexers import PythonTracebackLexer
 from traceback import format_exception
 import subprocess
 
-from customxepr.customxepr import __author__
+from customxepr.main import __author__
 
 
 class ErrorDialog(QtWidgets.QDialog):

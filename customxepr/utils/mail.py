@@ -12,14 +12,13 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 from __future__ import division, absolute_import, unicode_literals
 import logging.handlers
 import smtplib
-import string
 from email.utils import formatdate
 
 
 class TlsSMTPHandler(logging.handlers.SMTPHandler):
     """
     Logging handler which sends out emails.
-    Extemnds SMTPHandler from logging package with TLS support.
+    Extends SMTPHandler from logging package with TLS support.
     """
 
     def emit(self, record):
@@ -36,7 +35,7 @@ class TlsSMTPHandler(logging.handlers.SMTPHandler):
             log_msg = self.format(record)
 
             msg = u"""From: {0}\r\nTo: {1}\r\nSubject: {2}\r\nDate: {3}\r\n\r\n{4}""".format(
-                    self.fromaddr, string.join(self.toaddrs, ","), self.getSubject(record),
+                    self.fromaddr, ",".join(self.toaddrs), self.getSubject(record),
                     formatdate(), log_msg
                     )
 
@@ -69,13 +68,13 @@ class EmailSender(object):
         if self.standby:
             self.smtp = smtplib.SMTP(self.mailhost, self.port)
             if self.username:
-                self.smtpstarttls()
-                self.smtpehlo()
-                self.smtplogin(self.username, self.password)
+                self.smtp.starttls()
+                self.smtp.ehlo()
+                self.smtp.login(self.username, self.password)
 
     def __del__(self):
         """
-        Quit mailserver when instance is deleted.
+        Quit mail server when instance is deleted.
 
         This gets called when the instance is garbage-collected, even for
         instances where __init__ failed with an exception. We therefore need to
@@ -90,7 +89,7 @@ class EmailSender(object):
         """Compose email form main body, subject and email addresses."""
 
         msg = u"""From: {0}\r\nTo: {1}\r\nSubject: {2}\r\nDate: {3}\r\n\r\n{4}""".format(
-                self.fromaddr, string.join(toaddrs, ","), subject, formatdate(), body
+                self.fromaddr, ",".join(toaddrs), subject, formatdate(), body
                 )
 
         return msg
@@ -102,9 +101,9 @@ class EmailSender(object):
         if not self.standby:
             self.smtp = smtplib.SMTP(self.mailhost, self.port)
             if self.username:
-                self.smtpstarttls()
-                self.smtpehlo()
-                self.smtplogin(self.username, self.password)
+                self.smtp.starttls()
+                self.smtp.ehlo()
+                self.smtp.login(self.username, self.password)
 
         self.smtp.sendmail(self.fromaddr, toaddrs, msg.encode('utf-8'))
 

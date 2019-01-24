@@ -22,8 +22,8 @@ from qtpy import QtCore, QtWidgets, QtGui
 
 # local imports
 from customxepr.utils.misc import patch_excepthook
-from customxepr.customxepr import CustomXepr, __version__, __author__, __year__
-from customxepr.customxper_ui import JobStatusApp
+from customxepr.main import CustomXepr, __version__, __author__, __year__
+from customxepr.main_ui import JobStatusApp
 
 try:
     sys.path.insert(0, os.popen("Xepr --apipath").read())
@@ -129,7 +129,7 @@ def start_gui(customxepr, mercuryfeed, keithley):
 def run():
 
     # create a new Qt app or return an existing one
-    app, CREATED = get_qt_app()
+    app, created = get_qt_app()
 
     # create and show splash screen
     splash = show_splash_screen(app)
@@ -141,7 +141,7 @@ def run():
                                                           mercuryfeed,
                                                           keithley)
 
-    BANNER = ('Welcome to CustomXepr %s. ' % __version__ +
+    banner = ('Welcome to CustomXepr %s. ' % __version__ +
               'You can access connected instruments through "customXepr" ' +
               'or directly as "xepr", "keithley" and "mercury".\n\n' +
               'Use "%run path/to/file.py" to run a python script such as a ' +
@@ -149,12 +149,12 @@ def run():
               'Type "exit" to gracefully exit ' +
               'CustomXepr.\n\n(c) 2016 - %s, %s.' % (__year__, __author__))
 
-    if CREATED:
+    if created:
 
         from customxepr.utils.internal_ipkernel import InternalIPKernel
 
         # start event loop and console if run as a standalone app
-        kernel_window = InternalIPKernel(banner=BANNER)
+        kernel_window = InternalIPKernel(banner=banner)
         kernel_window.new_qt_console()
 
         var_dict = {'customXepr': customXepr, 'xepr': xepr,
@@ -163,6 +163,7 @@ def run():
                     'keithley': keithley, 'keithley_gui': keithley_gui}
 
         kernel_window.send_to_namespace(var_dict)
+        # noinspection PyUnresolvedReferences
         app.aboutToQuit.connect(kernel_window.cleanup_consoles)
         # remove splash screen
         splash.finish(keithley_gui)
@@ -173,7 +174,7 @@ def run():
 
     else:
         # print banner
-        print(BANNER)
+        print(banner)
         # remove splash screen
         splash.finish(customXepr_gui)
         # patch exception hook to display errors from Qt event loop

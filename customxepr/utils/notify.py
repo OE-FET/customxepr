@@ -5,7 +5,7 @@ Created on Wed Oct 31 16:23:13 2018
 
 @author: Sam Schott  (ss2151@cam.ac.uk)
 
-ockpot(c) Sam Schott; This work is licensed under a Creative Commons
+(c) Sam Schott; This work is licensed under a Creative Commons
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
@@ -38,7 +38,8 @@ class Notipy(object):
 
     def __send_message(self, message, title=""):
         if self.implementation == SupportedImplementation.osascript:
-            os.system("osascript -e 'display notification \"{}\" with title \"{}\"'".format(message, title))
+            os.system("osascript -e 'display notification \"{}\" with title \"{}\"'".format(
+                message, title))
         elif self.implementation == SupportedImplementation.notifySend:
             os.system('notify-send "{}" "{}"'.format(title, message))
         else:
