@@ -207,8 +207,8 @@ class ModePicture(object):
         ax.plot(self.x_data_mhz, yfit, '-', color='#C70039', label='Total fit')
 
         ax.legend()
-        ax.xlabel('Microwave frequency [MHz]')
-        ax.ylabel('Microwave absorption [a.u.]')
+        ax.set_xlabel('Microwave frequency [MHz]')
+        ax.set_ylabel('Microwave absorption [a.u.]')
 
         fig.show()
 
