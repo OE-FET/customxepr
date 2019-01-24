@@ -164,7 +164,7 @@ class ModePicture(object):
         # add fit parameters for Lorentzian resonance dip
         pars.add_many(('x0', peak_center, True, None, None, None, None),
                       ('w', fwhm, True, None, None, None, None),
-                      ('A', peak_area, True, None, None, None, None))
+                      ('a', peak_area, True, None, None, None, None))
 
         # perform full fit
         fit_result = mode_picture_model.fit(y_data, pars, x=x_data)

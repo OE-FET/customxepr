@@ -233,7 +233,7 @@ class Worker(QtCore.QObject):
                     result = exp.func(*exp.args, **exp.kwargs)  # run the job
                 except Exception:  # log exception and pause execution of jobs
                     logger.exception('EXCEPTION')
-                    self.job_q.task_done(exp.FAILED)
+                    self.job_q.task_done(exp.FAILED, result=None)
                     self.running.clear()
                     logger.status('PAUSED')
                 else:
