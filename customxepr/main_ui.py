@@ -530,20 +530,20 @@ class JobStatusApp(QtWidgets.QMainWindow):
         Schedules a tuning job if the ESR is connected.
         """
 
-        self.customxepr.customtune()
-
         if self.job_queue.qsize('queued') > 0:
             logger.info('Tuning job added to the job queue.')
+
+        self.customxepr.customtune()
 
     def on_qvalue_clicked(self):
         """
         Schedules a Q-Value readout if the ESR is connected.
         """
 
-        self.customxepr.getQValueCalc()
-
         if self.job_queue.qsize('queued') > 0:
             logger.info('Q-Value readout added to the job queue.')
+
+        self.customxepr.getQValueCalc()
 
     def on_clear_clicked(self):
         """
