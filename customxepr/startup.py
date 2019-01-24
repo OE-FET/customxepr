@@ -163,6 +163,7 @@ def run():
                     'keithley': keithley, 'keithley_gui': keithley_gui}
 
         kernel_window.send_to_namespace(var_dict)
+        # noinspection PyUnresolvedReferences
         app.aboutToQuit.connect(kernel_window.cleanup_consoles)
         # remove splash screen
         splash.finish(keithley_gui)

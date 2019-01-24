@@ -179,6 +179,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         if platform.system() == 'Darwin':
             # create unified toolbar
+            self.toolbar = QtWidgets.QToolBar(self)
             self.create_toolbar()
 
         self.labelCopyRight.setText('© {0}, {1}.'.format(
@@ -230,7 +231,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         status_handler.status_signal.connect(self.check_paused)
         status_handler.status_signal.connect(self.get_email_list)
 
-        # notify user of any errors in job excecution with a messagebox
+        # notify user of any errors in job execution with a message box
         error_handler.error_signal.connect(self.show_error)
 
         # create data models for message log, job queue and result queue
@@ -239,7 +240,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.resultQueueModel = QtGui.QStandardItemModel(0, 3)
 
         h1 = ['Time', 'Level', 'Message']
-        h2 = ['Function', 'Arguments', 'Keywoard Arguments']
+        h2 = ['Function', 'Arguments', 'Keyword Arguments']
         h3 = ['Type', 'Size', 'Value']
 
         self.messageLogModel.setHorizontalHeaderLabels(h1)
@@ -305,7 +306,6 @@ class JobStatusApp(QtWidgets.QMainWindow):
     # =========================================================================
 
     def create_toolbar(self):
-        self.toolbar = QtWidgets.QToolBar(self)
         self.toolbar.setFloatable(False)
         self.toolbar.setMovable(False)
         self.addToolBar(self.toolbar)
@@ -337,7 +337,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
     def show_error(self, exc_info):
         title = 'CustomXepr Job Error'
-        message = 'CustomXepr has encountered an error while excecuting a job.'
+        message = 'CustomXepr has encountered an error while executing a job.'
         msg = ErrorDialog(title, message, exc_info, parent=self)
         msg.exec_()
 

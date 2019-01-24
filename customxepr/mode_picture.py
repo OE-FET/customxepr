@@ -61,7 +61,8 @@ class ModePicture(object):
         self.qvalue, self.fit_result = self.fit_qvalue(self.x_data_points, self.y_data)
         self.qvalue_stderr = self.get_qvalue_stderr()
 
-    def _points_to_mhz(self, n_points, zf, x0):
+    @staticmethod
+    def _points_to_mhz(n_points, zf, x0):
         """
         Converts an x-axis from points to MHz according to the mode picture's zoom factor.
 
@@ -115,7 +116,7 @@ class ModePicture(object):
         Returns plausible starting points for least square Lorentzian fit.
         """
         # find center dip
-        peakCenter = x_data[np.argmin(y_data)]
+        peak_center = x_data[np.argmin(y_data)]
 
         # find baseline height
         interval = 0.25
@@ -130,7 +131,7 @@ class ModePicture(object):
         fwhm = max(np.max(x_data[peak_index]) - np.min(x_data[peak_index]), 1)
         peak_area = peak_height * fwhm * math.pi / 2
 
-        return peakCenter, fwhm, peak_area
+        return peak_center, fwhm, peak_area
 
     def fit_qvalue(self, x_data, y_data, zoom_factor=1):
         """
@@ -201,9 +202,9 @@ class ModePicture(object):
 
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        l0 = ax.plot(self.x_data_mhz, self.y_data, '.', color='#2980B9', label='Mode picture')
-        l1 = ax.plot(self.x_data_mhz, lz, '--', color='#000000', label='Cavity dip')
-        l2 = ax.plot(self.x_data_mhz, yfit, '-', color='#C70039', label='Total fit')
+        ax.plot(self.x_data_mhz, self.y_data, '.', color='#2980B9', label='Mode picture')
+        ax.plot(self.x_data_mhz, lz, '--', color='#000000', label='Cavity dip')
+        ax.plot(self.x_data_mhz, yfit, '-', color='#C70039', label='Total fit')
 
         ax.legend()
         ax.xlabel('Microwave frequency [MHz]')
