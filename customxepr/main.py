@@ -13,6 +13,7 @@ from __future__ import division, absolute_import
 import sys
 import os
 import logging
+import logging.handlers
 import time
 from threading import Event
 import numpy as np
@@ -20,7 +21,7 @@ from qtpy import QtCore
 from keithleygui import CONF as K_CONF
 
 # local imports
-from customxepr.utils.mail import TlsSMTPHandler, EmailSender
+from customxepr.utils.mail import EmailSender
 from customxepr.mode_picture import ModePicture
 from customxepr.manager import ExperimentQueue, SignalQueue, Worker, queued_exec
 from customxepr.config.main import CONF
@@ -149,7 +150,7 @@ class CustomXepr(QtCore.QObject):
 
         super(CustomXepr, self).__init__()
 
-        self.emailSender = EmailSender('ss2151@cam.ac.uk', 'localhost')
+        self.emailSender = EmailSender('ss2151@cam.ac.uk', 'localhost', displayname='Sam Schott')
 
         # =====================================================================
         # check if connections to Xepr, MercuryiTC and Keithley are present
@@ -265,7 +266,7 @@ class CustomXepr(QtCore.QObject):
         # get root logger
         root_logger = logging.getLogger()
         # find all email handlers (there should be only one)
-        eh = [x for x in root_logger.handlers if type(x) == TlsSMTPHandler]
+        eh = [x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler]
 
         if len(eh) == 0:
             logging.warning('No email handler could be found.')
@@ -284,7 +285,7 @@ class CustomXepr(QtCore.QObject):
         # get root logger
         root_logger = logging.getLogger()
         # find all email handlers (there should be only one)
-        eh = [x for x in root_logger.handlers if type(x) == TlsSMTPHandler]
+        eh = [x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler]
 
         if len(eh) == 0:
             logging.warning('No email handler could be found.')
@@ -319,7 +320,7 @@ class CustomXepr(QtCore.QObject):
         # get root logger
         root_logger = logging.getLogger()
         # find all email handlers (there should be only one)
-        eh = [x for x in root_logger.handlers if type(x) == TlsSMTPHandler]
+        eh = [x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler]
 
         if len(eh) == 0:
             logging.warning('No email handler could be found.')
@@ -332,7 +333,7 @@ class CustomXepr(QtCore.QObject):
         # get root logger
         root_logger = logging.getLogger()
         # find all email handlers (there should be only one)
-        eh = [x for x in root_logger.handlers if type(x) == TlsSMTPHandler]
+        eh = [x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler]
 
         if len(eh) == 0:
             logging.warning('No email handler could be found.')
@@ -378,7 +379,7 @@ class CustomXepr(QtCore.QObject):
         if not self._check_for_xepr():
             return
 
-        logger.info('Tuning')
+        logger.info('Tuning.')
 
         # save current operation mode and attenuation
         mode = self.hidden['OpMode'].value
@@ -1453,7 +1454,7 @@ def setup_root_logger(to_address):
     root_logger.setLevel(logging.STATUS)
 
     # find all email handlers (there should be none)
-    eh = [x for x in root_logger.handlers if type(x) == TlsSMTPHandler]
+    eh = [x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler]
     # find all file handlers (there should be none)
     fh = [x for x in root_logger.handlers if type(x) == logging.FileHandler]
 
@@ -1464,8 +1465,8 @@ def setup_root_logger(to_address):
     if len(eh) == 0:
         # create and add email handler
 
-        email_handler = TlsSMTPHandler('localhost', 'ss2151@cam.ac.uk',
-                                       to_address, 'Xepr logger')
+        email_handler = logging.handlers.SMTPHandler('localhost', 'ss2151@cam.ac.uk',
+                                                     to_address, 'Xepr logger')
         email_handler.setFormatter(f)
         email_handler.setLevel(CONF.get('CustomXepr', 'email_handler_level'))
 

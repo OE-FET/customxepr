@@ -10,51 +10,21 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
 from __future__ import division, absolute_import, unicode_literals
-import logging.handlers
 import smtplib
 from email.utils import formatdate
-
-
-class TlsSMTPHandler(logging.handlers.SMTPHandler):
-    """
-    Logging handler which sends out emails.
-    Extends SMTPHandler from logging package with TLS support.
-    """
-
-    def emit(self, record):
-        """
-        Emit a record.
-
-        Format the record and send it to the specified addressees.
-        """
-        try:
-            port = self.mailport
-            if not port:
-                port = smtplib.SMTP_PORT
-            smtp = smtplib.SMTP(self.mailhost, port)
-            log_msg = self.format(record)
-
-            msg = u"""From: {0}\r\nTo: {1}\r\nSubject: {2}\r\nDate: {3}\r\n\r\n{4}""".format(
-                    self.fromaddr, ",".join(self.toaddrs), self.getSubject(record),
-                    formatdate(), log_msg
-                    )
-
-            if self.username:
-                smtp.starttls()
-                smtp.ehlo()
-                smtp.login(self.username, self.password)
-            smtp.sendmail(self.fromaddr, self.toaddrs, msg.encode('utf-8'))
-            smtp.quit()
-        except Exception:
-            pass
 
 
 class EmailSender(object):
     """ Logging handler which sends out emails."""
 
-    def __init__(self, fromaddr, mailhost, port=None, username=None,
+    def __init__(self, fromaddr, mailhost, displayname=None, port=None, username=None,
                  password=None, standby=False):
         self.fromaddr = fromaddr
+        if displayname is not None:
+            self.displayname = '%s <%s>' % (displayname, fromaddr)
+        else:
+            self.displayname = fromaddr
+
         self.mailhost = mailhost
         if port:
             self.port = port
@@ -89,7 +59,7 @@ class EmailSender(object):
         """Compose email form main body, subject and email addresses."""
 
         msg = u"""From: {0}\r\nTo: {1}\r\nSubject: {2}\r\nDate: {3}\r\n\r\n{4}""".format(
-                self.fromaddr, ",".join(toaddrs), subject, formatdate(), body
+                self.displayname, ",".join(toaddrs), subject, formatdate(), body
                 )
 
         return msg
