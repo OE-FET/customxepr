@@ -186,7 +186,7 @@ class ExperimentQueue(QtCore.QObject):
         with self._lock:
             if i < 0:
                 # convert to positive index if negative
-                i = self.qsize() - i
+                i = self.qsize() + i
             index = i - self.first_queued_index()  # convert to index of self._queued.queue
 
             if index < 0:
