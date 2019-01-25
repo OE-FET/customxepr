@@ -184,7 +184,9 @@ class ExperimentQueue(QtCore.QObject):
         :param int i: Index of item to remove.
         """
         with self._lock:
-            i = (self.qsize() - i) if i < 0 else i  # convert to positive index if negative
+            if i < 0:
+                # convert to positive index if negative
+                i = self.qsize() - i
             index = i - self.first_queued_index()  # convert to index of self._queued.queue
 
             if index < 0:
