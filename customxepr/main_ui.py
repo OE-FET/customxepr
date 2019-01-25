@@ -22,7 +22,7 @@ import webbrowser
 
 # local imports
 from customxepr.main import CustomXepr, __version__, __year__, __author__
-from customxepr.manager import Experiment
+from customxepr.manager import ExpStatus
 from customxepr.config.main import CONF
 from customxepr.utils.misc import ErrorDialog
 from customxepr.utils.notify import Notipy
@@ -449,15 +449,15 @@ class JobStatusApp(QtWidgets.QMainWindow):
         """
         index, status = index_status_tuple
 
-        if status is Experiment.RUNNING:
+        if status is ExpStatus.RUNNING:
             self.jobQueueModel.item(index).setIcon(self.icon_running)
-        elif status is Experiment.ABORTED:
+        elif status is ExpStatus.ABORTED:
             self.jobQueueModel.item(index).setIcon(self.icon_aborted)
-        elif status is Experiment.FAILED:
+        elif status is ExpStatus.FAILED:
             self.jobQueueModel.item(index).setIcon(self.icon_failed)
-        elif status is Experiment.FINISHED:
+        elif status is ExpStatus.FINISHED:
             self.jobQueueModel.item(index).setIcon(self.icon_finished)
-        elif status is Experiment.QUEUED:
+        elif status is ExpStatus.QUEUED:
             self.jobQueueModel.item(index).setIcon(self.icon_queued)
 
         self.jobQueueDisplay.scrollTo(self.jobQueueModel.createIndex(index-3, 1),

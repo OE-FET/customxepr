@@ -17,8 +17,8 @@ from email.utils import formatdate
 class EmailSender(object):
     """ Logging handler which sends out emails."""
 
-    def __init__(self, fromaddr, mailhost, displayname=None, port=None, username=None,
-                 password=None, standby=False):
+    def __init__(self, fromaddr, mailhost, displayname=None, port=None,
+                 username=None, password=None, standby=False):
         self.fromaddr = fromaddr
         if displayname is not None:
             self.displayname = '%s <%s>' % (displayname, fromaddr)

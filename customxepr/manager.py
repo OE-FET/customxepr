@@ -17,6 +17,7 @@ import logging
 from queue import Queue, Empty
 from threading import RLock
 from decorator import decorator
+from enum import Enum
 from qtpy import QtCore
 
 PY2 = sys.version[0] == '2'
@@ -24,16 +25,19 @@ logger = logging.getLogger('customxepr.main')
 
 
 # =============================================================================
-# class to wrap queued function calls and provide metadata
+# class to wrap queued function calls ("experiments") and provide metadata
 # =============================================================================
 
-class Experiment(object):
+class ExpStatus(Enum):
+    _order_ = 'QUEUED RUNNING ABORTED FAILED FINISHED'
+    QUEUED = object()
+    RUNNING = object()
+    ABORTED = object()
+    FAILED = object()
+    FINISHED = object()
 
-    QUEUED = 0
-    RUNNING = 1
-    ABORTED = 2
-    FAILED = 3
-    FINISHED = 4
+
+class Experiment(object):
 
     def __init__(self, func, args, kwargs):
 
@@ -41,7 +45,7 @@ class Experiment(object):
         self.args = args
         self.kwargs = kwargs
 
-        self._status = self.QUEUED
+        self._status = ExpStatus.QUEUED
         self.result = None
 
         if PY2:
@@ -53,8 +57,13 @@ class Experiment(object):
 
     @status.setter
     def status(self, s):
-        if s not in [self.QUEUED, self.RUNNING, self.ABORTED, self.FAILED, self.FINISHED]:
-            raise ValueError('Invalid experiment status.')
+        """
+        Sets status of experiment to `s`.
+
+        :param s: Experiment status. Must be in `ExpStatus`.
+        """
+        if s not in ExpStatus:
+            raise ValueError('Argument must be of type %s' % type(ExpStatus))
         else:
             self._status = s
 
@@ -115,27 +124,48 @@ class ExperimentQueue(QtCore.QObject):
 
     @property
     def queue(self):
+        """
+        Returns list of all items in queue (done, currently running, and queued).
+        """
         with self._lock:
             return list(self._history.queue) + list(self._running.queue) + list(self._queued.queue)
 
     def put(self, exp):
-        if not exp.status == Experiment.QUEUED:
+        """
+        Adds item `exp` to the end of the queue. Its status must be `QUEUED`.
+        Emits the `added_signal` signal.
+        """
+        if not exp.status == ExpStatus.QUEUED:
             raise ValueError('Can only append experiments with status "QUEUED".')
         with self._lock:
             self._queued.put(exp)
         self.added_signal.emit()
 
     def next_job(self):
+        """
+        Returns the next item with status `ExpStatus.QUEUED` and flags it as running.
+        If there are no items with status `ExpStatus.QUEUED`, `queue.Empty` is raised.
+        Emits the `status_changed_signal` with the item's index and its new status.
+        """
         with self._lock:
             exp = self._queued.get_nowait()
-            exp.status = Experiment.RUNNING
+            exp.status = ExpStatus.RUNNING
             self._running.put(exp)
             index = self.first_queued_index() - 1
 
         self.status_changed_signal.emit((index, exp.status))
         return exp
 
-    def task_done(self, exit_status, result):
+    def task_done(self, exit_status, result=None):
+        """
+        Call to inform the Experiment queue that a task is completed. Changes
+        the corresponding item's status to `exit_status` and its result to `result`.
+        Emits the `status_changed_signal` with the item's index and its new status.
+
+        :param exit_status: Status of the completed job, i.e., `ExpStatus.ABORTED`.
+        :param result: Return value of job, if available.
+        """
+
         with self._lock:
             exp = self._running.get_nowait()
             exp.status = exit_status
@@ -146,8 +176,17 @@ class ExperimentQueue(QtCore.QObject):
         self.status_changed_signal.emit((index, exit_status))
 
     def remove_item(self, i):
-        index = i - self.first_queued_index()
+        """
+        Removes the item with index `i` from the queue. Raises a ValueError if
+        the item belongs to a running or already completed job. Emits the `removed_signal`
+        carrying the index.
+
+        :param int i: Index of item to remove.
+        """
         with self._lock:
+            i = (self.qsize() - i) if i < 0 else i  # convert to positive index if negative
+            index = i - self.first_queued_index()  # convert to index of self._queued.queue
+
             if index < 0:
                 raise ValueError('Only queued experiments can be removed.')
             else:
@@ -172,8 +211,7 @@ class ExperimentQueue(QtCore.QObject):
         """
         Return the approximate number of jobs with given status (not reliable!).
 
-        Args:
-            status: Can be 'queued', 'running', or 'history'. Otherwise, the full
+        :param status: Can be 'queued', 'running', 'history' or None. If None, the full
             queue size will be returned.
         """
         with self._lock:
@@ -233,7 +271,7 @@ class Worker(QtCore.QObject):
                     result = exp.func(*exp.args, **exp.kwargs)  # run the job
                 except Exception:  # log exception and pause execution of jobs
                     logger.exception('EXCEPTION')
-                    self.job_q.task_done(exp.FAILED, result=None)
+                    self.job_q.task_done(ExpStatus.FAILED, result=None)
                     self.running.clear()
                     logger.status('PAUSED')
                 else:
@@ -241,10 +279,10 @@ class Worker(QtCore.QObject):
                         self.result_q.put(result)
 
                     if self.abort.is_set():
-                        exit_status = exp.ABORTED
+                        exit_status = ExpStatus.ABORTED
                         self.abort.clear()
                     else:
-                        exit_status = exp.FINISHED
+                        exit_status = ExpStatus.FINISHED
 
                     self.job_q.task_done(exit_status, result)
                     logger.status('IDLE')

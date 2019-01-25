@@ -15,7 +15,8 @@ from enum import Enum
 
 
 class SupportedImplementation(Enum):
-    notifySend = 'notify-send'
+    _order_ = 'notify_send osascript'
+    notify_send = 'notify-send'
     osascript = 'osascript'
 
 
@@ -40,7 +41,7 @@ class Notipy(object):
         if self.implementation == SupportedImplementation.osascript:
             os.system("osascript -e 'display notification \"{}\" with title \"{}\"'".format(
                 message, title))
-        elif self.implementation == SupportedImplementation.notifySend:
+        elif self.implementation == SupportedImplementation.notify_send:
             os.system('notify-send "{}" "{}"'.format(title, message))
         else:
             print('{}: {}'.format(title, message))
@@ -56,5 +57,5 @@ class Notipy(object):
         if self.__command_exists('osascript'):
             return SupportedImplementation.osascript
         elif self.__command_exists('notify-send'):
-            return SupportedImplementation.notifySend
+            return SupportedImplementation.notify_send
         return None

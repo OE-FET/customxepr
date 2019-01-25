@@ -47,6 +47,7 @@ logging.addLevelName(logging.STATUS, 'STATUS')
 # noinspection PyProtectedMember
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.STATUS)
+# noinspection PyUnresolvedReferences
 setattr(logger, 'status', lambda message,
         *args: logger._log(logging.STATUS, message, args))
 
@@ -1451,6 +1452,7 @@ def setup_root_logger(to_address):
 
     # Set up email notification handler for WARNING messages and above
     root_logger = logging.getLogger()
+    # noinspection PyUnresolvedReferences
     root_logger.setLevel(logging.STATUS)
 
     # find all email handlers (there should be none)
