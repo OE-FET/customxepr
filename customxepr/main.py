@@ -189,7 +189,7 @@ class CustomXepr(QtCore.QObject):
         # =====================================================================
 
         # waiting time for Xepr to process commands, prevent memory error
-        self.wait = 0.1
+        self.wait = 0.5
         # settling time for cryostat temperature
         self._temp_wait_time = CONF.get('CustomXepr', 'temp_wait_time')
         # temperature stability tolerance
