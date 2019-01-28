@@ -26,12 +26,11 @@ from customxepr.main import CustomXepr, __version__, __author__, __year__
 from customxepr.main_ui import JobStatusApp
 
 try:
-    sys.path.insert(0, os.popen("Xepr --apipath").read())
+    sys.path.insert(0, os.popen('Xepr --apipath').read())
     import XeprAPI
 except ImportError:
     XeprAPI = None
-    logging.info('XeprAPI could not be located. Please make sure that it' +
-                 ' is installed on your system.')
+    logging.info('XeprAPI could not be located.')
 
 # if we are running from IPython:
 # start integrated Qt event loop, disable autoreload

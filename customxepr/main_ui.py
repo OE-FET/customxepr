@@ -81,7 +81,7 @@ class QStatusLogHandler(logging.Handler, QtCore.QObject):
         # format logging record
         self.format(record)
         # emit logging record as signal
-        self.status_signal.emit('Status: ' + record.message)
+        self.status_signal.emit('Status: %s' % record.message)
 
 
 class QErrorLogHandler(logging.Handler, QtCore.QObject):
