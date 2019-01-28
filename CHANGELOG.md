@@ -4,7 +4,7 @@ _Added_:
   (e.g., running, finished, aborted, ...)
 
 _Changed_:
-- Switched from custom TslSMTPHandler to python bundled SMTPHandler for email
+- Switched from custom TslSMTPHandler to python-bundled SMTPHandler for email
   notifications.
 
 #### v2.2.0 (2019-01-09):
