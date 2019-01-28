@@ -5,8 +5,9 @@ from ipykernel.kernelapp import IPKernelApp
 
 
 def create_ip_kernel(gui, banner):
-    """Launch and return an IPython kernel with matplotlib support for the
-    desired gui
+    """
+    Launch and return an IPython kernel with matplotlib support for the
+    desired gui.
     """
     kernel = IPKernelApp.instance()
     kernel.initialize(['python', '-m', 'CustomXeprKernel',
@@ -18,10 +19,9 @@ def create_ip_kernel(gui, banner):
 class InternalIPKernel(object):
 
     def __init__(self, backend='qt', banner=''):
-        # Start IPython kernel with GUI event loop and mpl support
+        # Start IPython kernel
         self.ipkernel = create_ip_kernel(backend, banner)
-        # To create and track active qt consoles
-        self.consoles = []
+        self.consoles = []  # To create and track active qt consoles
 
         # This application will also act on the shell user namespace
         self.namespace = self.ipkernel.shell.user_ns

@@ -15,7 +15,9 @@ from email.utils import formatdate
 
 
 class EmailSender(object):
-    """ Logging handler which sends out emails."""
+    """
+    Class to send plain text email notifications.
+    """
 
     def __init__(self, fromaddr, mailhost, displayname=None, port=None,
                  username=None, password=None, standby=False):

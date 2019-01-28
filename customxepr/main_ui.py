@@ -380,8 +380,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
             prompt = 'Save as file'
             filename = 'untitled.txt'
             formats = 'Text file (*.txt)'
-            filepath = QtWidgets.QFileDialog.getSaveFileName(self, prompt,
-                                                             filename, formats)
+            filepath = QtWidgets.QFileDialog.getSaveFileName(self, prompt, filename, formats)
             if len(filepath[0]) < 4:
                 return
             self.result_queue.queue[i0].save(filepath[0])

@@ -22,7 +22,7 @@ class ErrorDialog(QtWidgets.QDialog):
     def __init__(self, title, message, error_info, parent=None):
         super(self.__class__, self).__init__(parent=parent)
         self.setWindowTitle(title)
-        self.setFixedWidth(550)
+        self.setFixedWidth(650)
 
         self.gridLayout = QtWidgets.QGridLayout()
         self.setLayout(self.gridLayout)
