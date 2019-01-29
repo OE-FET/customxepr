@@ -27,7 +27,6 @@ from customxepr.manager import ExperimentQueue, SignalQueue, Worker, queued_exec
 from customxepr.config.main import CONF
 
 try:
-    sys.path.insert(0, os.popen("Xepr --apipath").read())
     from XeprAPI import ParameterError, ExperimentError
 except ImportError:
     ParameterError = ExperimentError = RuntimeError
@@ -481,7 +480,7 @@ class CustomXepr(QtCore.QObject):
         if self.abort.is_set():
             return
 
-        logger.status('Tuning (Bias)')
+        logger.status('Tuning (Bias).')
         time.sleep(self.wait)
 
         # get offset from 200 mA
@@ -529,7 +528,7 @@ class CustomXepr(QtCore.QObject):
         if self.abort.is_set():
             return
 
-        logger.status('Tuning (Iris)')
+        logger.status('Tuning (Iris).')
         time.sleep(self.wait)
 
         diff = self.hidden['DiodeCurrent'].value - 200
@@ -551,6 +550,7 @@ class CustomXepr(QtCore.QObject):
             step_size = max(abs(diff), 30) * 0.01
             # scale step size for MW power: smaller steps at higher power
             step = step_size * (self.hidden['PowerAtten'].value**2)/400
+            time.sleep(self.wait)
             # set value to 0.1 if step is smaller
             # (usually only happens below 10dB)
             step = max(step, 0.1)
@@ -577,7 +577,7 @@ class CustomXepr(QtCore.QObject):
         if self.abort.is_set():
             return
 
-        logger.status('Tuning (Freq)')
+        logger.status('Tuning (Freq).')
         time.sleep(self.wait)
 
         fq_offset = self.hidden['LockOffset'].value
@@ -605,7 +605,7 @@ class CustomXepr(QtCore.QObject):
         if self.abort.is_set():
                 return
 
-        logger.status('Tuning (Phase)')
+        logger.status('Tuning (Phase).')
         time.sleep(self.wait)
 
         t0 = time.time()
@@ -788,9 +788,9 @@ class CustomXepr(QtCore.QObject):
             self._saveQValue2File(temperature, q_mean, q_stderr, path)
 
         if q_mean > 3000:
-            logger.info('Q = %i±%i.' % (q_mean, q_stderr))
+            logger.info('Q = %i+/-%i.' % (q_mean, q_stderr))
         elif q_mean <= 3000:
-            logger.warning('Q = %i±%i is very small. ' % (q_mean, q_stderr) +
+            logger.warning('Q = %i+/-%i is very small. ' % (q_mean, q_stderr) +
                            'Please check on experiment.')
 
         self.wait = wait_old
@@ -871,7 +871,7 @@ class CustomXepr(QtCore.QObject):
         time.sleep(self.wait)
         self.hidden['OpMode'].value = 'Operate'
 
-        time.sleep(3)
+        time.sleep(2)
 
         self._tuneFreq()
         self._tuneFreq()
@@ -902,20 +902,24 @@ class CustomXepr(QtCore.QObject):
     @staticmethod
     def _saveQValue2File(temperature, qvalue, qvalue_stderr, path):
 
+        delim = '\t'
+        newline = '\n'
+
         time_str = time.strftime('%Y-%m-%d %H:%M')
-        string = '%s\t%d\t%s\t%s\n' % (time_str, temperature, qvalue, qvalue_stderr)
+        line = delim.join([time_str, temperature, qvalue, qvalue_stderr, newline])
 
         if os.path.isfile(path):
             with open(path, 'a') as f:
-                f.write(string)
+                f.write(line)
         else:
-            header = 'Time stamp\tTemperature [K]\tQValue\tStandard error\n'
+            header = delim.join(['Time stamp', 'Temperature [K]', 'QValue',
+                                 'Standard error', newline])
             with open(path, 'a') as f:
                 f.write(header)
-                f.write(string)
+                f.write(line)
 
     @queued_exec(job_queue)
-    def runXeprExperiment(self, exp, **kwargs):
+    def runXeprExperiment(self, exp, retune=False, **kwargs):
         """Runs an Xepr experiment
 
         Runs the Xepr experiment given by "exp". Keyword arguments (kwargs)
@@ -927,6 +931,7 @@ class CustomXepr(QtCore.QObject):
 
         Args:
             exp: Xepr experiment instance.
+            retune: Retune iris and freq between scans (default: False).
             **kwargs: Keyword arguments corresponding to measurement
                 parameters.
 
@@ -962,9 +967,10 @@ class CustomXepr(QtCore.QObject):
         while not exp.isRunning:
             time.sleep(self.wait)
 
-        time.sleep(1)
-        exp.aqExpPause()
-        time.sleep(self.wait)
+        if retune:  # schedule pause after scan to retune
+            time.sleep(1)
+            exp.aqExpPause()
+            time.sleep(self.wait)
 
         # count the number of temperature stability violations
         n_out = 0  # start at n_out = 0
@@ -981,29 +987,28 @@ class CustomXepr(QtCore.QObject):
             time.sleep(self.wait)
             nb_scans_to_do = exp['NbScansToDo'].value
             time.sleep(self.wait)
-            logger.status('Recording scan %i of %i'
-                          % (nb_scans_done + 1, nb_scans_to_do))
+            logger.status('Recording scan %i of %i' % (nb_scans_done + 1, nb_scans_to_do))
 
-            # tune frequency and iris when a new slice scan starts
-            if exp.isPaused and not nb_scans_done == nb_scans_to_do:
-                logger.status('Checking tuned.')
-
-                self._tuneFreq(tolerance=3)
-                time.sleep(1)
-                self._tuneFreq(tolerance=3)
-                time.sleep(self.wait)
-
-                self._tuneIris(tolerance=7)
-                time.sleep(self.wait)
-                exp.aqExpRun()
-                time.sleep(self.wait)
-
-                while not exp.isRunning:
+            if retune:
+                # tune frequency and iris when a new slice scan starts
+                if exp.isPaused and not nb_scans_done == nb_scans_to_do:
+                    logger.status('Checking tuned.')
+                    self._tuneFreq(tolerance=3)
+                    time.sleep(self.wait)
+                    self._tuneFreq(tolerance=3)
+                    time.sleep(self.wait)
+                    self._tuneIris(tolerance=7)
                     time.sleep(self.wait)
 
-                time.sleep(1)
-                exp.aqExpPause()
-                time.sleep(self.wait)
+                    # start next scan
+                    exp.aqExpRun()
+                    time.sleep(self.wait)
+
+                    # wait for scan to start and schedule next pause
+                    while not exp.isRunning:
+                        time.sleep(1)
+                    exp.aqExpPause()
+                    time.sleep(self.wait)
 
             # record temperature and warn if fluctuations exceed the tolerance
             if temperature_history:
@@ -1021,9 +1026,9 @@ class CustomXepr(QtCore.QObject):
                 # Pause measurement and suspend all pending jobs after 15 min
                 # of temperature instability
                 if n_out > 60 * 15:
-                    logger.error('Temperature could not be stabilized for ' +
-                                 '15 min. Pausing current measurement and ' +
-                                 'all pending jobs.')
+                    logger.warning('Temperature could not be stabilized for ' +
+                                   '15 min. Pausing current measurement and ' +
+                                   'all pending jobs.')
                     exp.aqExpPause()
                     self.running.clear()
                     return
