@@ -10,6 +10,7 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
 from __future__ import division, absolute_import
+import sys
 import os
 from qtpy import QtCore, QtWidgets, QtGui, uic
 import logging
@@ -27,6 +28,7 @@ from customxepr.config.main import CONF
 from customxepr.utils.misc import ErrorDialog
 from customxepr.utils.notify import Notipy
 
+PY2 = sys.version[0] == '2'
 _root = QtCore.QFileInfo(__file__).absolutePath()
 
 
@@ -424,7 +426,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
 # =============================================================================
 
     @staticmethod
-    def _truncate_str(string, length=13):
+    def _trunc_str(string, length=13):
         """
         Returns string truncated to given length.
 
@@ -442,16 +444,18 @@ class JobStatusApp(QtWidgets.QMainWindow):
         """
         exp = self.job_queue.queue[index]
 
-        if len(exp.args) > 0 and exp.args[0] == self.customxepr:
-            args = exp.args[1:]
+        if PY2:
+            argspec = inspect.getargspec(exp.func)
         else:
-            args = exp.args
+            argspec = inspect.getfullargspec(exp.func)
 
-        args_dict = inspect.getcallargs(exp.func, *exp.args, **exp.kwargs)
-        kwargs_dict = args_dict['kwargs']
-        del args_dict['kwargs']
-        args_strs = ['%s = %s' % (a, self._truncate_str(str(v))) for a, v in args_dict.items()]
-        kwargs_strs = ['%s = %s' % (a, self._truncate_str(str(v))) for a, v in kwargs_dict.items()]
+        argnames = argspec.args
+
+        args_strs = ['%s = %s' % (a, self._trunc_str(str(v))) for a, v in zip(argnames, exp.args)]
+        kwargs_strs = ['%s = %s' % (a, self._trunc_str(str(v))) for a, v in exp.kwargs.items()]
+
+        if argnames[0] == 'self':
+            args_strs.pop(0)
 
         func_item = QtGui.QStandardItem(exp.func.__name__)
         args_item = QtGui.QStandardItem(', '.join(args_strs))
