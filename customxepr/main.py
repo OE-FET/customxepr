@@ -73,6 +73,7 @@ class CustomXepr(QtCore.QObject):
     >>> import customxepr
     >>> from customxepr import queued_exec
     >>> customXepr = customxepr.run()
+    >>> # create test function
     >>> @queued_exec(customXepr.job_queue) ...
     ... def test_func(*args):
     ...     # do something
@@ -81,18 +82,23 @@ class CustomXepr(QtCore.QObject):
     ...         if customXepr.abort_event.is_set()
     ...             break
     ...     return args
+    >>> # run the function: this will return immediately
+    >>> test_func('test succeeded')
 
     All results are added to the result queue and can be retrieved with:
 
-    >>> result = customxepr.result_queue.get()
+    >>> result = customxepr.result_queue.get()  # blocks until result is available
+    >>> print(result)  # prints 'test succeeded'
 
     To pause or resume the worker between jobs, run
 
     >>> customxepr.running.clear()
-
-    or
-
+    >>> # or
     >>> customxepr.running.set()
+
+    To abort a job, run:
+
+    >>> customxepr.abort_event.set()
 
     CustomXepr functions:
         customxepr.clear_all_jobs()
@@ -227,7 +233,7 @@ class CustomXepr(QtCore.QObject):
         if seconds > 1:
             for i in range(0, seconds):
                 time.sleep(1)
-                logger.status('Waiting %s/%s' % (i+1, seconds))
+                logger.status('Waiting %s/%s.' % (i+1, seconds))
                 # check for abort event
                 if self.abort.is_set():
                     logger.info('Aborted by user.')
@@ -952,7 +958,6 @@ class CustomXepr(QtCore.QObject):
         logger.info(message)
 
         # -------------------start experiment----------------------------------
-
         if self.feed is not None and self.feed.mercury is not None:
             temperature_history = np.array([])
         else:
@@ -987,7 +992,7 @@ class CustomXepr(QtCore.QObject):
             time.sleep(self.wait)
             nb_scans_to_do = exp['NbScansToDo'].value
             time.sleep(self.wait)
-            logger.status('Recording scan %i of %i' % (nb_scans_done + 1, nb_scans_to_do))
+            logger.status('Recording scan %i of %i.' % (nb_scans_done + 1, nb_scans_to_do))
 
             if retune:
                 # tune frequency and iris when a new slice scan starts
@@ -1011,7 +1016,7 @@ class CustomXepr(QtCore.QObject):
                     time.sleep(self.wait)
 
             # record temperature and warn if fluctuations exceed the tolerance
-            if temperature_history:
+            if temperature_history is not None:
                 temperature_curr = self.feed.readings['Temp']
                 temperature_history = np.append(temperature_history, temperature_curr)
                 # increment the number of violations n_out if temperature unstable
@@ -1046,6 +1051,7 @@ class CustomXepr(QtCore.QObject):
 
         # -----------------get acquired data set from Xepr and return----------
         # switch viewpoint to experiment which just finished running
+        time.sleep(self.wait)
         exp_title = exp.aqGetExpName()
         time.sleep(self.wait)
         self.XeprCmds.aqExpSelect(1, exp_title)
