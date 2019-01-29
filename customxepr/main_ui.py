@@ -238,21 +238,21 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         # create data models for message log, job queue and result queue
         self.messageLogModel = info_handler.model
-        self.jobQueueModel = QtGui.QStandardItemModel(0, 3)
+        self.jobQueueModel = QtGui.QStandardItemModel(0, 2)
         self.resultQueueModel = QtGui.QStandardItemModel(0, 3)
 
-        h1 = ['Time', 'Level', 'Message']
-        h2 = ['Function', 'Arguments', 'Keyword Arguments']
-        h3 = ['Type', 'Size', 'Value']
+        h0 = ['Function', 'Arguments']
+        h1 = ['Type', 'Size', 'Value']
+        h2 = ['Time', 'Level', 'Message']
 
-        self.messageLogModel.setHorizontalHeaderLabels(h1)
-        self.jobQueueModel.setHorizontalHeaderLabels(h2)
-        self.resultQueueModel.setHorizontalHeaderLabels(h3)
+        self.jobQueueModel.setHorizontalHeaderLabels(h0)
+        self.resultQueueModel.setHorizontalHeaderLabels(h1)
+        self.messageLogModel.setHorizontalHeaderLabels(h2)
 
         # add models to views
-        self.messageLogDisplay.setModel(self.messageLogModel)
         self.jobQueueDisplay.setModel(self.jobQueueModel)
         self.resultQueueDisplay.setModel(self.resultQueueModel)
+        self.messageLogDisplay.setModel(self.messageLogModel)
 
         # populate models with queue elements
         self.populate_results()
@@ -332,6 +332,8 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.on_abort_clicked()
         self.on_clear_clicked()
         self.save_geometry()
+        if self.customxepr.xepr is not None:
+            self.customxepr.xepr.XeprClose()
         self.deleteLater()
 
     def closeEvent(self, event):
@@ -426,22 +428,49 @@ class JobStatusApp(QtWidgets.QMainWindow):
 # =============================================================================
 
     @staticmethod
-    def _trunc_str(string, length=13):
+    def _trunc_str(string, max_length=13):
         """
         Returns string truncated to given length.
 
         :param str string: String to truncate.
-        :param int length: Maximum number of characters in truncated string.
-        :return: Truncated string.
+        :param int max_length: Maximum number of characters in truncated string.
+            Must be >= 5.
+        :return: Truncated string of length `max_length`.
         :rtype: str
         """
-        ll = length - 3
+        if max_length < 5:
+            raise ValueError("'max_length' must be larger than 4.")
+        ll = max_length - 4
         return string[:ll] + (string[ll:] and '...' + string[-1])
+
+    def _trunc_str_list(self, string_list, max_length=150):
+        """
+        Truncates strings in list until total length is small than `length`.
+        Starts with last string and moves forward. No string will be truncated
+        shorter than 13 characters.
+
+        :param list string_list: List of strings to truncate
+        :param int max_length: Maximum number of characters in truncated string list.
+        :return: List of truncated strings.
+        :rtype: list
+        """
+        overlength = sum(len(s) for s in string_list) - max_length
+        i = len(string_list) - 1
+
+        while overlength > 0 and i > -1:
+            keep = max(len(string_list[i]) - overlength, 13)
+            string_list[i] = self._trunc_str(string_list[i], max_length=keep)
+
+            overlength = sum(len(s) for s in string_list) - max_length
+            i -= 1
+
+        return string_list
 
     def on_job_added(self, index=-1):
         """
         Adds new entry to jobQueueDisplay.
         """
+
         exp = self.job_queue.queue[index]
 
         if PY2:
@@ -449,21 +478,21 @@ class JobStatusApp(QtWidgets.QMainWindow):
         else:
             argspec = inspect.getfullargspec(exp.func)
 
-        argnames = argspec.args
+        argument_strings = [v for v in list(argspec.args) + list(exp.kwargs.keys())]
+        value_strings = [repr(v) for v in list(exp.args) + list(exp.kwargs.values())]
+        value_strings = self._trunc_str_list(value_strings)
 
-        args_strs = ['%s = %s' % (a, self._trunc_str(str(v))) for a, v in zip(argnames, exp.args)]
-        kwargs_strs = ['%s = %s' % (a, self._trunc_str(str(v))) for a, v in exp.kwargs.items()]
+        str_list = ['%s=%s' % (n, v) for n, v in zip(argument_strings, value_strings)]
 
-        if argnames[0] == 'self':
-            args_strs.pop(0)
+        if argspec.args[0] == 'self':
+            str_list.pop(0)
 
         func_item = QtGui.QStandardItem(exp.func.__name__)
-        args_item = QtGui.QStandardItem(', '.join(args_strs))
-        kwargs_item = QtGui.QStandardItem(', '.join(kwargs_strs))
+        args_item = QtGui.QStandardItem(', '.join(str_list))
 
         func_item.setIcon(self.icon_queued)
 
-        self.jobQueueModel.appendRow([func_item, args_item, kwargs_item])
+        self.jobQueueModel.appendRow([func_item, args_item])
 
     def on_job_status_changed(self, index_status_tuple):
         """

@@ -288,7 +288,7 @@ class ModePicture(object):
 
             return x_axis_mhz_comb, x_axis_points_comb, mode_pic_comb, freq0
 
-    def __str__(self):
+    def __repr__(self):
         return '<{0}(QValue = {1}+/-{2}, freq = {3}GHz)>'.format(
             self.__class__.__name__, self.qvalue, self.qvalue_stderr, round(self.freq0, 4))
 

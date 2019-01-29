@@ -34,12 +34,16 @@ class InternalIPKernel(object):
         self.namespace.update(dictionary)
 
     def new_qt_console(self, style=''):
-        """start a new qtconsole connected to our kernel"""
-        return connect_qtconsole(self.ipkernel.abs_connection_file,
-                                 profile=self.ipkernel.profile,
-                                 argv=['--gui-completion', 'droplist',
-                                       '--style', style,
-                                       '--JupyterWidget.banner=""'])
+        """
+        Start a new qtconsole connected to our kernel.
+        """
+        arglist = ['--gui-completion', 'droplist',
+                   '--style', style,
+                   '--JupyterWidget.banner=""',
+                   '--JupyterWidget.font_family="Menlo"'
+                   '--JupyterWidget.font_size=11']
+        return connect_qtconsole(self.ipkernel.abs_connection_file, profile=self.ipkernel.profile,
+                                 argv=arglist)
 
     def cleanup_consoles(self):
         for c in self.consoles:

@@ -116,8 +116,8 @@ class CustomXepr(QtCore.QObject):
         customxepr.tune()
         customxepr.finetune()
         customxepr.customtune()
-        customxepr.getQValueFromXepr(direct=None, T=298)
-        customxepr.getQValueCalc(direct=None, T=298)
+        customxepr.getQValueFromXepr(path=None, T=298)
+        customxepr.getQValueCalc(path=None, T=298)
         customxepr.runXeprExperiment(exp, **kwargs)
         customxepr.saveCurrentData(path, title=None, exp=None)
         customxepr.setStandby()
@@ -727,14 +727,14 @@ class CustomXepr(QtCore.QObject):
         time.sleep(self.wait)
 
     @queued_exec(job_queue)
-    def getQValueFromXepr(self, direct=None, temperature=298):
+    def getQValueFromXepr(self, path=None, temperature=298):
         """Gets Q-Value determined by Xepr
 
         Reads out the resonator Q-value, averaged over 20 sec, and saves it
         in the specified file.
 
         Args:
-            direct (str): Directory where Q-Value reading is saved with
+            path (str): Directory where Q-Value reading is saved with
                 corresponding temperature and time-stamp.
             temperature (float): Temperature in Kelvin during Q-Value measurement.
 
@@ -789,8 +789,8 @@ class CustomXepr(QtCore.QObject):
         q_mean = q_values.mean()
         q_stderr = q_values.std()
 
-        if direct is not None:
-            path = os.path.join(direct, 'QValues.txt')
+        if path is not None:
+            path = os.path.join(path, 'QValues.txt')
             self._saveQValue2File(temperature, q_mean, q_stderr, path)
 
         if q_mean > 3000:
@@ -804,18 +804,17 @@ class CustomXepr(QtCore.QObject):
         return q_mean
 
     @queued_exec(job_queue)
-    def getQValueCalc(self, direct=None, temperature=None):
+    def getQValueCalc(self, path=None, temperature=298):
         """Calculates Q-Value from cavity mode pictures
 
         Calculated Q-Value by fitting the cavity mode picture to a Lorentzian
         dip.
 
         Args:
-            direct (str): Directory where Q-Value reading is saved with
+            path (str): Directory where Q-Value reading is saved with
                 corresponding temperature and time-stamp.
             temperature (float): Temperature in Kelvin during a Q-value
-                 measurement. Tries to get temperature reading from MercuryiTC
-                 if not given.
+                 measurement. Defaults to room temperature.
 
         Returns:
             ModePicture instance.
@@ -823,13 +822,6 @@ class CustomXepr(QtCore.QObject):
 
         if not self._check_for_xepr():
             return
-
-        # get temperature from MercuryiTC if connected, else use T = 298K
-        if not temperature:
-            if self._check_for_mercury():
-                temperature = self.feed.readings['Temp']
-            else:
-                temperature = 298
 
         wait_old = self.wait
         self.wait = 1
@@ -893,12 +885,12 @@ class CustomXepr(QtCore.QObject):
             logger.warning('Q = %i+/-%i is very small. ' % (mp.qvalue, mp.qvalue_stderr) +
                            'Please check on experiment.')
 
-        if direct is None:
+        if path is None:
             pass
-        elif os.path.isdir(direct):
-            path = os.path.join(direct, 'QValues.txt')
+        elif os.path.isdir(path):
+            path = os.path.join(path, 'QValues.txt')
             self._saveQValue2File(temperature, mp.qvalue, mp.qvalue_stderr, path)
-            path = os.path.join(direct, 'ModePicture{0:03d}K.txt'.format(temperature))
+            path = os.path.join(path, 'ModePicture{0:03d}K.txt'.format(temperature))
             mp.save(path)
 
         self.wait = wait_old
@@ -1067,9 +1059,14 @@ class CustomXepr(QtCore.QObject):
     def saveCurrentData(self, path, title=None, exp=None):
         """
         Saves the data from given experiment in Xepr to the specified path. If
-        exp == None the currently displayed data set is saved.
+        `exp` is `None` the currently displayed data set is saved.
 
         Xepr only allows file paths shorter than 128 characters.
+
+        Args:
+            path (str): Absolute path to save data file.
+            title (str): Experiment title. Defaults to file name if not given.
+            exp: Xepr experiment instance associated with data set.
         """
 
         if not self._check_for_xepr():
@@ -1145,20 +1142,23 @@ class CustomXepr(QtCore.QObject):
 # =============================================================================
 
     @queued_exec(job_queue)
-    def setTemperature(self, temperature_target):
+    def setTemperature(self, target):
         """
         Sets the target temperature for the ESR900 cryostat and waits for it to
         stabilize within `self.temp_wait_time` with fluctuations below
         `self.temperature_tolerance`.
 
         Warns the user if this takes too long.
+
+        Args:
+            target (float): Temperature target in Kelvin.
         """
 
         if not self._check_for_mercury():
             return
 
         # create instance variable here to allow outside access
-        self._temperature_target = temperature_target
+        self._temperature_target = target
         logger.info('Setting target temperature to %sK.' % self._temperature_target)
 
         # set temperature and wait to stabilize
@@ -1363,7 +1363,13 @@ class CustomXepr(QtCore.QObject):
 
     @queued_exec(job_queue)
     def setGateVoltage(self, vg, smu_gate=K_CONF.get('Sweep', 'gate')):
-        """Sets the gate bias of the given keithley, grounds other SMUs."""
+        """
+        Sets the gate bias of the given keithley, grounds other SMUs.
+
+        Args:
+            vg (float): Gate voltage in Volts.
+            smu_gate (str): Name of SMU. Defaults to value saved in keithley preferences.
+        """
 
         if not self._check_for_keithley():
             return
