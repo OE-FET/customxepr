@@ -55,7 +55,7 @@ class ModePicture(object):
             self.mode_pic_data = mode_pic_data
             self.freq0 = freq
 
-            self.zoomFactors = mode_pic_data.keys()
+            self.zoom_factors = list(mode_pic_data.keys())
             self.x_data_mhz, self.x_data_points, self.y_data = self.combine_data(mode_pic_data)
 
         self.qvalue, self.fit_result = self.fit_qvalue(self.x_data_points, self.y_data)
@@ -287,3 +287,8 @@ class ModePicture(object):
             freq0 = float(freq[0])
 
             return x_axis_mhz_comb, x_axis_points_comb, mode_pic_comb, freq0
+
+    def __str__(self):
+        return '<{0}(QValue = {1}+/-{2}, freq = {3}GHz)>'.format(
+            self.__class__.__name__, self.qvalue, self.qvalue_stderr, round(self.freq0, 4))
+

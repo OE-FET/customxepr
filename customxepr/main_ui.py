@@ -423,6 +423,19 @@ class JobStatusApp(QtWidgets.QMainWindow):
 # Functions to handle communication with job and result queues
 # =============================================================================
 
+    @staticmethod
+    def _truncate_str(string, length=13):
+        """
+        Returns string truncated to given length.
+
+        :param str string: String to truncate.
+        :param int length: Maximum number of characters in truncated string.
+        :return: Truncated string.
+        :rtype: str
+        """
+        ll = length - 3
+        return string[:ll] + (string[ll:] and '...' + string[-1])
+
     def on_job_added(self, index=-1):
         """
         Adds new entry to jobQueueDisplay.
@@ -434,9 +447,15 @@ class JobStatusApp(QtWidgets.QMainWindow):
         else:
             args = exp.args
 
+        args_dict = inspect.getcallargs(exp.func, *exp.args, **exp.kwargs)
+        kwargs_dict = args_dict['kwargs']
+        del args_dict['kwargs']
+        args_strs = ['%s = %s' % (a, self._truncate_str(str(v))) for a, v in args_dict.items()]
+        kwargs_strs = ['%s = %s' % (a, self._truncate_str(str(v))) for a, v in kwargs_dict.items()]
+
         func_item = QtGui.QStandardItem(exp.func.__name__)
-        args_item = QtGui.QStandardItem(str(args).lstrip('(').strip(',)'))
-        kwargs_item = QtGui.QStandardItem(str(exp.kwargs).lstrip('{').strip(',}'))
+        args_item = QtGui.QStandardItem(', '.join(args_strs))
+        kwargs_item = QtGui.QStandardItem(', '.join(kwargs_strs))
 
         func_item.setIcon(self.icon_queued)
 
