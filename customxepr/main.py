@@ -1041,7 +1041,7 @@ class CustomXepr(QtCore.QObject):
             time.sleep(1)
 
         # get temperature stability over scan if mercury was connected
-        if temperature_history:
+        if temperature_history is not None:
             temperature_var = max(temperature_history) - min(temperature_history)
             temperature_mean = float(np.mean(temperature_history))
             logger.info(u'Temperature stable at (%.2f+/-%.2f)K during scans.'
