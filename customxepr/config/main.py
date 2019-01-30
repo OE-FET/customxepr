@@ -38,31 +38,6 @@ DEFAULTS = [
               'temp_wait_time': 120,
               'temperature_tolerance': 0.1
               }),
-            (
-             'MercuryFeed',
-             {
-              'MERCURY_ADDRESS': 'TCPIP0::172.20.91.43::7020::SOCKET',
-              'temperature_module': 0,
-              'gasflow_module': 0,
-              'heater_module': 0
-              }),
-            ('Keithley',
-             {
-              'KEITHLEY_ADDRESS': 'TCPIP0::192.168.2.121::INSTR',
-              'VgStart': 10,
-              'VgStop': -60,
-              'VgStep': 1,
-              'VdList': [-5, -60],
-              'VdStart': 0,
-              'VdStop': -60,
-              'VdStep': 1,
-              'VgList': [0, -20, -40, -60],
-              'tInt': 0.1,
-              'pulsed': False,
-              'delay': -1,
-              'gate': 'smua',
-              'drain': 'smub'
-             })
             ]
 
 
@@ -76,7 +51,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '3.0.0'
+CONF_VERSION = '4.0.0'
 
 # Main configuration instance
 try:

@@ -443,25 +443,28 @@ class JobStatusApp(QtWidgets.QMainWindow):
         ll = max_length - 4
         return string[:ll] + (string[ll:] and '...' + string[-1])
 
-    def _trunc_str_list(self, string_list, max_length=150):
+    def _trunc_str_list(self, string_list, max_total_len=150, min_item_len=13):
         """
-        Truncates strings in list until total length is small than `length`.
-        Starts with last string and moves forward. No string will be truncated
-        shorter than 13 characters.
+        Tries to truncate strings in list until total length is smaller than
+        `max_total_len`. Starts with the last string in list and moves backward.
+        No individual string will be truncated shorter than `min_item_len`,
+        even if `max_total_len` must be exceeded.
 
         :param list string_list: List of strings to truncate
-        :param int max_length: Maximum number of characters in truncated string list.
+        :param int max_total_len: Maximum number of characters in truncated
+            string list (default = 150).
+        :param int min_item_len: Minimum number of characters per string (default = 13).
         :return: List of truncated strings.
         :rtype: list
         """
-        overlength = sum(len(s) for s in string_list) - max_length
+        overlength = sum(len(s) for s in string_list) - max_total_len
         i = len(string_list) - 1
 
         while overlength > 0 and i > -1:
-            keep = max(len(string_list[i]) - overlength, 13)
+            keep = max(len(string_list[i]) - overlength, min_item_len)
             string_list[i] = self._trunc_str(string_list[i], max_length=keep)
 
-            overlength = sum(len(s) for s in string_list) - max_length
+            overlength = sum(len(s) for s in string_list) - max_total_len
             i -= 1
 
         return string_list
