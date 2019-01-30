@@ -1502,7 +1502,7 @@ def setup_root_logger(to_address):
             os.makedirs(logging_path)
 
         log_file = os.path.join(logging_path, 'root_logger '
-                                + time.strftime("%Y-%m-%d_%H-%M-%S"))
+                                + time.strftime("%Y-%m-%d_%H-%M-%S") + '.txt')
         file_handler = logging.FileHandler(log_file)
         file_handler.setFormatter(f)
         file_handler.setLevel(logging.INFO)
