@@ -1,5 +1,4 @@
 IPython
-PyQt5
 decorator
 ipykernel
 keithleygui
