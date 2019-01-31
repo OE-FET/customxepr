@@ -253,8 +253,7 @@ class ModePicture(object):
 
         return filepath
 
-    @staticmethod
-    def load(filepath=None):
+    def load(self, filepath=None):
         """
         Loads mode picture data from text file. If no file path is given, the
         user is prompted to select a location and name through a user interface.
