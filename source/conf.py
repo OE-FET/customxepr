@@ -16,7 +16,7 @@ import os
 import sys
 import mock
 
-MOCK_MODULES = ['PyQt5']
+MOCK_MODULES = ['PyQt5', 'queue', 'PySide']
 sys.modules.update((mod_name, mock.MagicMock()) for mod_name in MOCK_MODULES)
 
 sys.path.insert(0, os.path.abspath('.'))
