@@ -11,6 +11,5 @@ numpy
 pygments
 pyvisa
 pyvisa-py
-queue
 qtpy
 scipy
