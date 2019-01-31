@@ -35,15 +35,22 @@ class ModePicture(object):
     and save and load mode picture data from and to .txt files.
 
     If several mode pictures with different zoom factors are given,
-    `ModePicture` will rescale and combine the data into a single mode picture.
+    :class:`ModePicture` will rescale and combine the data into a single mode
+    picture.
+
+    :param dict mode_pic_data: Dict with zoom factors as keys and respective mode picture
+        curves as values.
+    :param float freq: Cavity resonance frequency in GHz as float.
+
+    :ivar x_data_mhz: Numpy array with x-axis data of mode picture in MHz.
+    :ivar x_data_points: Numpy array with x-axis data of mode picture in pts.
+    :ivar y_data: Mode picture y-axis data (absorption of cavity).
+    :ivar freq0: Center frequency of cavity resonance.
+    :ivar qvalue: Fitted Q-Value.
+    :ivar qvalue_stderr: Standard error of Q-Value from fitting.
     """
 
     def __init__(self, mode_pic_data=None, freq=9.385):
-        """
-        :param dict mode_pic_data: Dict with zoom factors as keys and
-            respective mode picture curves as values.
-        :param float freq: Cavity resonance frequency in GHz as float.
-        """
         if mode_pic_data is None:
             self.x_data_mhz, self.x_data_points, self.y_data, self.freq0 = self.load()
         else:
@@ -67,7 +74,8 @@ class ModePicture(object):
         Converts an x-axis from points to MHz according to the mode picture's zoom factor.
 
         :param int n_points: Number of data points in mode picture.
-        :param int zf: Zoom factor, i.e., scaling factor of x-axis. Typically is 1, 2, 4, or 8.
+        :param int zf: Zoom factor, i.e., scaling factor of x-axis. Typically is 1, 2, 4,
+            or 8.
         :param int x0: Center of axis corresponding to `freq0`.
         :return: X-axis of mode picture in MHz.
         :rtype: np.array
@@ -222,8 +230,8 @@ class ModePicture(object):
         """
         # create header and title for file
         time_str = time.strftime('%H:%M, %d/%m/%Y')
-        title = ('# Cavity mode picture, recorded at %s\n'
-                 '# Center frequency =  %0.3f GHz\n' % (time_str, self.freq0))
+        title = ('Cavity mode picture, recorded at %s\n'
+                 'Center frequency =  %0.3f GHz\n' % (time_str, self.freq0))
 
         header = ['freq [MHz]', 'MW abs. [a.u.]']
         header = '\t'.join(header)
@@ -244,7 +252,7 @@ class ModePicture(object):
         if len(filepath) > 4:
             # noinspection PyTypeChecker
             np.savetxt(filepath, data_matrix, fmt='%.9E', delimiter='\t',
-                       newline='\n', header=header, comments=title)
+                       header=title+header)
 
         return filepath
 
@@ -268,7 +276,7 @@ class ModePicture(object):
             filepath = filepath[0]
 
         if len(filepath) > 4:
-            data_matrix = np.loadtxt(filepath, skiprows=3)
+            data_matrix = np.loadtxt(filepath)
             x_axis_mhz_comb = data_matrix[:, 0]
             mode_pic_comb = data_matrix[:, 1]
 

@@ -841,7 +841,7 @@ QTabWidget::pane
   </action>
   <action name="actionShow_log_files">
    <property name="text">
-    <string>Show log files</string>
+    <string>Show log files...</string>
    </property>
   </action>
   <action name="actionMinimize">
@@ -914,12 +914,12 @@ QTabWidget::pane
   </action>
   <action name="actionXeprAPI_Help">
    <property name="text">
-    <string>XeprAPI Help</string>
+    <string>XeprAPI Help...</string>
    </property>
   </action>
   <action name="actionCustomXepr_Help">
    <property name="text">
-    <string>CustomXepr Help</string>
+    <string>CustomXepr Help...</string>
    </property>
   </action>
  </widget>

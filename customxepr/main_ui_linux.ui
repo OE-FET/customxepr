@@ -670,7 +670,7 @@
    <widget class="QMenu" name="menu_CustomXepr">
     <property name="geometry">
      <rect>
-      <x>194</x>
+      <x>199</x>
       <y>131</y>
       <width>168</width>
       <height>96</height>
@@ -733,7 +733,7 @@
   </action>
   <action name="actionShow_log_files">
    <property name="text">
-    <string>Show log files</string>
+    <string>Show log files...</string>
    </property>
    <property name="iconVisibleInMenu">
     <bool>false</bool>
@@ -759,12 +759,12 @@
   </action>
   <action name="actionXeprAPI_Help">
    <property name="text">
-    <string>XeprAPI Help</string>
+    <string>XeprAPI Help...</string>
    </property>
   </action>
   <action name="actionCustomXepr_Help">
    <property name="text">
-    <string>CustomXepr Help</string>
+    <string>CustomXepr Help...</string>
    </property>
   </action>
  </widget>

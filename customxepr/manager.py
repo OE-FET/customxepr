@@ -29,6 +29,9 @@ logger = logging.getLogger('customxepr.main')
 # =============================================================================
 
 class ExpStatus(Enum):
+    """
+    Enumeration to hold experiment status.
+    """
     _order_ = 'QUEUED RUNNING ABORTED FAILED FINISHED'
     QUEUED = object()
     RUNNING = object()
@@ -38,6 +41,16 @@ class ExpStatus(Enum):
 
 
 class Experiment(object):
+    """
+    Class to hold a scheduled job / experiment and keep track of its
+    status and result.
+
+    :param func: Function or method to call when running experiment.
+    :param args: Arguments for function call.
+    :param kwargs: Keyword arguments for function call.
+
+    :ivar result: Holds the result returned by `func` after successful job completion.
+    """
 
     def __init__(self, func, args, kwargs):
 
@@ -53,14 +66,19 @@ class Experiment(object):
 
     @property
     def status(self):
+        """
+        Returns the status of the job.
+
+        :return: Experiment status of type :class:`ExpStatus`.
+        """
         return self._status
 
     @status.setter
     def status(self, s):
         """
-        Sets status of experiment to `s`.
+        Sets status of the job to `s`.
 
-        :param s: Experiment status. Must be in `ExpStatus`.
+        :param s: Experiment status. Must be of type :class:`ExpStatus`.
         """
         if s not in ExpStatus:
             raise ValueError('Argument must be of type %s' % type(ExpStatus))
@@ -75,7 +93,7 @@ class Experiment(object):
 class SignalQueue(QtCore.QObject, Queue):
     """
     Custom queue that emits Qt signals if an item is added or removed and if
-    `task_done` is called.
+    :func:`task_done` is called.
 
     :cvar put_signal: Is emitted when an item is put into the queue.
     :cvar pop_signal: Is emitted when an item is removed from the queue.
@@ -99,6 +117,12 @@ class SignalQueue(QtCore.QObject, Queue):
         return item
 
     def remove_item(self, i):
+        """
+        Removed item from the queue in thread safe manner. Calls
+        :func:`task_done` when done.
+
+        :param int i: Index of item to remove.
+        """
         with self.mutex:
             del self.queue[i]
         self.task_done()
@@ -109,6 +133,16 @@ class SignalQueue(QtCore.QObject, Queue):
 # =============================================================================
 
 class ExperimentQueue(QtCore.QObject):
+    """
+    Queue to hold all jobs: Pending, running and already completed.
+
+    :cvar added_signal: Emitted when a new job is added to the queue.
+    :cvar removed_signal: Emitted when a job is removed from the queue.
+        Carriers the index of the job in :class:`ExperimentQueue`.
+    :cvar status_changed_signal: Emitted when a job status changes, e.g.,
+        from `ExpStatus.QUEUED` to `ExpStatus.RUNNING`. Carries a tuple
+        holding the job index and status.
+    """
 
     added_signal = QtCore.Signal()
     removed_signal = QtCore.Signal(int)
@@ -125,7 +159,7 @@ class ExperimentQueue(QtCore.QObject):
     @property
     def queue(self):
         """
-        Returns list of all items in queue (done, currently running, and queued).
+        Returns list of all items in queue (queued, running, and in history).
         """
         with self._lock:
             return list(self._history.queue) + list(self._running.queue) + list(self._queued.queue)
@@ -177,9 +211,9 @@ class ExperimentQueue(QtCore.QObject):
 
     def remove_item(self, i):
         """
-        Removes the item with index `i` from the queue. Raises a ValueError if
-        the item belongs to a running or already completed job. Emits the `removed_signal`
-        carrying the index.
+        Removes the item with index `i` from the queue. Raises a `ValueError` if
+        the item belongs to a running or already completed job. Emits the
+        `removed_signal` carrying the index.
 
         :param int i: Index of item to remove.
         """
@@ -213,7 +247,7 @@ class ExperimentQueue(QtCore.QObject):
         """
         Return the approximate number of jobs with given status (not reliable!).
 
-        :param status: Can be 'queued', 'running', 'history' or None. If None, the full
+        :param status: Can be 'queued', 'running', 'history' or `None`. If `None`, the full
             queue size will be returned.
         """
         with self._lock:
@@ -237,14 +271,14 @@ class ExperimentQueue(QtCore.QObject):
 class Worker(QtCore.QObject):
     """
     Worker that gets all method calls with args from job_q and executes them.
-    Results are then stored in the result_q.
+    Results are then stored in the `result_q`.
 
-    Args:
-        job_q: Queue with jobs to be performed.
-        result_q:  Queue with results from completed jobs.
-        running: Event that causes the worker to pause between jobs if set.
-        abort: Event that tells a job to abort if set. After a job has
-            been aborted, Worker will clear the `abort` event.
+    :param job_q: Queue with jobs to be performed.
+    :param result_q: Queue with results from completed jobs.
+    :param running: Event that causes the worker to pause between jobs if set.
+    :param abort: Event that tells a job to abort if set. After a job has
+        been aborted, Worker will clear the `abort` event.
+
     """
 
     def __init__(self, job_q, result_q, running, abort):
@@ -296,8 +330,11 @@ class Worker(QtCore.QObject):
 
 def queued_exec(queue):
     """
-    Wrapper that ads a method call with *args and **kwargs to a queue instead
-    of executing in the main thread.
+    Wrapper that puts a call to a wrapped function into a queue
+    instead of executing it. Items in the queue will be of
+    type :class:`Experiment`.
+
+    :param queue: Queue to put function calls.
     """
     @decorator
     def put_to_queue(func, *args, **kwargs):

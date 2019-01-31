@@ -146,3 +146,5 @@ ESR measurement scripts/*
 resources/splash.key
 resources/splash.pdf
 resources/splash_old.png
+make.bat
+Makefile

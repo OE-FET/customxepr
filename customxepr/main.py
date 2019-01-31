@@ -52,16 +52,14 @@ setattr(logger, 'status', lambda message,
 
 
 def cmp(a, b):
-    """
-    Definition of Python2 cmp function.
-    """
     return bool(a > b) - bool(a < b)  # convert possible numpy-bool to bool
 
 
 # noinspection PyUnresolvedReferences
 class CustomXepr(QtCore.QObject):
     """
-    CustomXepr defines routines such as tuning and setting the temperature,
+    CustomXepr defines routines to control the Bruker Xepr software and full ESR
+    measurement cycles. This includes tuning and setting the temperature,
     applying voltages and recording IV characteristics with attached Keithley
     SMUs.
 
@@ -93,54 +91,37 @@ class CustomXepr(QtCore.QObject):
     To pause or resume the worker between jobs, run
 
     >>> customxepr.running.clear()
-    >>> # or
+
+    or
+
     >>> customxepr.running.set()
 
     To abort a job, run:
 
     >>> customxepr.abort_event.set()
 
-    CustomXepr functions:
-        customxepr.clear_all_jobs()
-        customxepr.sendEmail(text)
-        customxepr.pause(seconds)
+    :param xepr: :class:`Xepr` instance from the Bruker Python XeprAPI. Defaults
+        to `None` if not provided.
+    :param mercuryfeed: :class:`MercuryFeed` instance for live feed from MercuryiTC
+        temperature controller. Defaults to `None` if not provided.
+    :param keithley: :class:`Keithley2600` instance from keithley2600 driver.
+        Defaults to `None` if not provided.
 
-    CustomXepr properties:
-        customxepr.notify_address = 'ss2151@cam.ac.uk'
-        customxepr.log_file_dir = '~/.CustomXepr/LOG_FILES'
-        customxepr.email_handler_level = logging.WARNING
-        customxepr.temp_wait_time = 120  # in sec
-        customxepr.temperature_tolerance = 0.1  # in Kelvin
+    :cvar job_queue: Queue that holds all experiments / jobs. Must be an instance
+        of :class:`ExperimentQueue`.
+    :cvar result_queue:  Queue that holds job results. Must be an instance
+        of :class:`SignalQueue`.
+    :cvar running: Instance of :class:`threading.Event`. If `running.is_set()`,
+        jobs will be processed in the background. Otherwise, job execution will
+        be paused.
+    :cvar abort: Instance of :class:`threading.Event` to abort currently running
+        job. After the job has been aborted, the event will be cleared automatically.
 
-    ESR methods:
-        customxepr.tune()
-        customxepr.finetune()
-        customxepr.customtune()
-        customxepr.getQValueFromXepr(path=None, T=298)
-        customxepr.getQValueCalc(path=None, T=298)
-        customxepr.runXeprExperiment(exp, **kwargs)
-        customxepr.saveCurrentData(path, title=None, exp=None)
-        customxepr.setStandby()
-
-    MercuryiTC methods:
-        customxepr.setTemperature(target_temperature)
-        customxepr.setTempRamp(ramp)
-        customxepr.heater_target(temperature)
-
-    Keithley methods:
-        customxepr.transferMeasurement(path=None, **kwargs)
-        customxepr.outputMeasurement(path=None,  **kwargs)
-        customxepr.setGateVoltage(Vg)
-        customxepr.applyDrainCurrent(smu, curr)
-
-    See output of help(CustomXepr) for full documentation.
-
-    Attributes:
-        job_queue: Queue containing all pending jobs.
-        result_queue: Queue containing all results returned from jobs.
-        running: Event to pause / run job execution.
-        abort_event: Event to abort current job.
-
+    :ivar hidden: Xepr's hidden experiment.
+    :ivar xepr: Connected Xepr instance.
+    :ivar keithley: Connected :class:`Keithley2600` instance.
+    :ivar feed: Connected :class:`MercuryFeed` instance.
+    :ivar wait: Delay between commands sent to Xepr.
     """
 
 # =============================================================================
@@ -152,7 +133,7 @@ class CustomXepr(QtCore.QObject):
     running = Event()
     abort = Event()
 
-    def __init__(self, xepr=None, mercury_feed=None, keithley=None):
+    def __init__(self, xepr=None, mercuryfeed=None, keithley=None):
 
         super(CustomXepr, self).__init__()
 
@@ -163,7 +144,7 @@ class CustomXepr(QtCore.QObject):
         # =====================================================================
 
         self.xepr = xepr
-        self.feed = mercury_feed
+        self.feed = mercuryfeed
         self.keithley = keithley
 
         # hidden Xepr experiment, created when EPR is connected:
@@ -206,7 +187,9 @@ class CustomXepr(QtCore.QObject):
 # =============================================================================
 
     def clear_all_jobs(self):
-        """ Clears all pending jobs in job_queue."""
+        """
+        Clears all pending jobs in `job_queue`.
+        """
         for item in range(0, self.job_queue.qsize()):
             self.job_queue.get()
 
@@ -244,7 +227,7 @@ class CustomXepr(QtCore.QObject):
 
     @property
     def temp_wait_time(self):
-        """Wait time until temperature is considered stable."""
+        """Wait time until temperature is considered stable. Defaults to 120 sec."""
         return self._temp_wait_time
 
     @temp_wait_time.setter
@@ -256,7 +239,7 @@ class CustomXepr(QtCore.QObject):
 
     @property
     def temperature_tolerance(self):
-        """Temperature fluctuation tolerance."""
+        """Temperature fluctuation tolerance. Defaults to 0.1 Kelvin."""
         return self._temperature_tolerance
 
     @temperature_tolerance.setter
@@ -308,7 +291,7 @@ class CustomXepr(QtCore.QObject):
 
     @property
     def log_file_dir(self):
-        """Directory for log files."""
+        """Directory for log files. Defaults to '~/.CustomXepr'."""
         # get root logger
         root_log = logging.getLogger()
         # find all email handlers (there should be only one)
@@ -322,7 +305,9 @@ class CustomXepr(QtCore.QObject):
 
     @property
     def email_handler_level(self):
-        """Logging level for email notifications."""
+        """
+        Logging level for email notifications. Defaults to :class:`logging.WARNING`.
+        """
         # get root logger
         root_logger = logging.getLogger()
         # find all email handlers (there should be only one)
@@ -378,7 +363,7 @@ class CustomXepr(QtCore.QObject):
     @queued_exec(job_queue)
     def customtune(self):
         """
-        Custom tuning routine with better accuracy. It takes longer than tune()
+        Custom tuning routine with better accuracy. It takes longer than :func:`tune`
         and requires the spectrometer to be be already close to tuned.
         """
 
@@ -526,9 +511,8 @@ class CustomXepr(QtCore.QObject):
         Tunes the cavity's iris. A perfectly tuned iris results in a diode
         current of 200 mA for all microwave powers.
 
-        Args:
-            tolerance (int): Minimum diode current offset that must be achieved
-                before `_tuneIris` returns.
+        :param int tolerance: Minimum diode current offset that must be achieved
+            before :func:`_tuneIris` returns.
         """
         # check for abort event
         if self.abort.is_set():
@@ -575,9 +559,8 @@ class CustomXepr(QtCore.QObject):
         """
         Tunes the microwave frequency to a lock offset of zero.
 
-        Args:
-            tolerance (int): Minimum frequency offset that must be achieved
-                before `_tuneFreq` returns.
+        :param int tolerance: Minimum frequency offset that must be achieved
+            before :func:`_tuneFreq` returns.
         """
         # check for abort event
         if self.abort.is_set():
@@ -733,13 +716,12 @@ class CustomXepr(QtCore.QObject):
         Reads out the resonator Q-value, averaged over 20 sec, and saves it
         in the specified file.
 
-        Args:
-            path (str): Directory where Q-Value reading is saved with
-                corresponding temperature and time-stamp.
-            temperature (float): Temperature in Kelvin during Q-Value measurement.
+        :param str path: Directory where Q-Value reading is saved with
+            corresponding temperature and time-stamp.
+        :param float temperature: Temperature in Kelvin during Q-Value measurement.
 
-        Returns:
-            Measured Q-Value.
+        :return: Measured Q-Value.
+        :rtype: float
         """
 
         if not self._check_for_xepr():
@@ -810,14 +792,12 @@ class CustomXepr(QtCore.QObject):
         Calculated Q-Value by fitting the cavity mode picture to a Lorentzian
         dip.
 
-        Args:
-            path (str): Directory where Q-Value reading is saved with
-                corresponding temperature and time-stamp.
-            temperature (float): Temperature in Kelvin during a Q-value
-                 measurement. Defaults to room temperature.
+        :param str path: Directory where Q-Value reading is saved with
+            corresponding temperature and time-stamp.
+        :param float temperature: Temperature in Kelvin during a Q-value
+            measurement. Defaults to room temperature.
 
-        Returns:
-            ModePicture instance.
+        :return: :class:`ModePicture` instance.
         """
 
         if not self._check_for_xepr():
@@ -927,14 +907,12 @@ class CustomXepr(QtCore.QObject):
         If connected to a temperature controller, the temperature during the
         measurements is monitored.
 
-        Args:
-            exp: Xepr experiment instance.
-            retune: Retune iris and freq between scans (default: False).
-            **kwargs: Keyword arguments corresponding to measurement
-                parameters.
+        :param exp: Xepr experiment object.
+        :param bool retune: Retune iris and freq between scans (default: False).
+        :param kwargs: Keyword arguments corresponding to measurement
+            parameters.
 
-        Returns:
-            Xepr data set object.
+        :return: Xepr data set object.
         """
 
         if not self._check_for_xepr():
@@ -1063,10 +1041,10 @@ class CustomXepr(QtCore.QObject):
 
         Xepr only allows file paths shorter than 128 characters.
 
-        Args:
-            path (str): Absolute path to save data file.
-            title (str): Experiment title. Defaults to file name if not given.
-            exp: Xepr experiment instance associated with data set.
+        :param str path: Absolute path to save data file.
+        :param str title: Experiment title. Defaults to the file name if not given.
+        :param exp: Xepr experiment instance associated with data set. Defaults
+            to currently selected experiment if not given.
         """
 
         if not self._check_for_xepr():
@@ -1145,13 +1123,12 @@ class CustomXepr(QtCore.QObject):
     def setTemperature(self, target):
         """
         Sets the target temperature for the ESR900 cryostat and waits for it to
-        stabilize within `self.temp_wait_time` with fluctuations below
-        `self.temperature_tolerance`.
+        stabilize within `temp_wait_time` with fluctuations below
+        `temperature_tolerance`.
 
         Warns the user if this takes too long.
 
-        Args:
-            target (float): Temperature target in Kelvin.
+        :param float target: Target temperature in Kelvin.
         """
 
         if not self._check_for_mercury():
@@ -1182,8 +1159,8 @@ class CustomXepr(QtCore.QObject):
     def _waitStable(self):
         """
         Waits for the cryostat temperature to stabilize within the specified
-        tolerance `self.temperature_tolerance`. Releases after it has been
-        stable for `self.temp_wait_time` seconds (default of 120 sec).
+        tolerance `temperature_tolerance`. Releases after it has been
+        stable for `temp_wait_time` seconds (default of 120 sec).
         """
 
         # time in sec after which a timeout warning is issued
@@ -1235,7 +1212,11 @@ class CustomXepr(QtCore.QObject):
 
     @staticmethod
     def heater_target(temperature):
-        """Calculates the ideal heater voltage for a given temperature."""
+        """
+        Calculates the ideal heater voltage for a given temperature.
+
+        :param float temperature: Temperature in Kelvin.
+        """
         return 4.5 * np.log(temperature) - 5.5
 
     def _ramp_time(self):
@@ -1252,7 +1233,11 @@ class CustomXepr(QtCore.QObject):
 
     @queued_exec(job_queue)
     def setTempRamp(self, ramp):
-        """Sets the temperature ramp for the ESR900 cryostat in K/min."""
+        """
+        Sets the temperature ramp for the ESR900 cryostat in K/min.
+
+        :param float ramp: Ramp in Kelvin per minute.
+        """
 
         if not self._check_for_mercury():
             return
@@ -1280,23 +1265,21 @@ class CustomXepr(QtCore.QObject):
         Records a transfer curve and saves the results in a TransistorSweepData
         instance.
 
-        Args:
-            smu_gate: SMU attached to gate electrode of FET for transfer
-                measurement (keithley smu object).
-            smu_drain: SMU attached to drain electrode of FET for transfer
-                measurement (keithley smu object).
-            vg_start (float): Start voltage of transfer sweep in Volts .
-            vg_stop (float): End voltage of transfer sweep in Volts.
-            vg_step (float): Voltage step size for transfer sweep in Volts.
-            vd_list (list): List of drain voltage steps in Volts.
-            t_int (float): Integration time in sec for every data point.
-            delay (float): Settling time in sec before every measurement. Set
-                to -1 for for automatic delay.
-            pulsed (bool): True or False for pulsed or continuous measurements.
-            path (str): File path to save transfer curve data as .txt file.
+        :param smu_gate: SMU attached to gate electrode of FET for transfer
+            measurement (keithley smu object).
+        :param smu_drain: SMU attached to drain electrode of FET for transfer
+            measurement (keithley smu object).
+        :param float vg_start: Start voltage of transfer sweep in Volts.
+        :param float vg_stop: End voltage of transfer sweep in Volts.
+        :param float vg_step: Voltage step size for transfer sweep in Volts.
+        :param list vd_list: List of drain voltage steps in Volts.
+        :param float t_int: Integration time in sec for every data point.
+        :param float delay: Settling time in sec before every measurement. Set
+            to -1 for for automatic delay.
+        :param bool pulsed: True or False for pulsed or continuous measurements.
+        :param str path: File path to save transfer curve data as .txt file.
 
-        Returns:
-            Returns a TransistorSweepData object containing sweep data.
+        :return: A :class:`TransistorSweepData` instance.
         """
 
         if not self._check_for_keithley():
@@ -1328,23 +1311,21 @@ class CustomXepr(QtCore.QObject):
         Records an output curve and saves the results in a TransistorSweepData
         instance.
 
-        Args:
-            smu_gate: SMU attached to gate electrode of FET for transfer
-                measurement (keithley smu object).
-            smu_drain: SMU attached to drain electrode of FET for transfer
-                measurement (keithley smu object).
-            vd_start (float): Start voltage of output sweep in Volts .
-            vd_stop (float): End voltage of output sweep in Volts.
-            vd_step (float): Voltage step size for output sweep in Volts.
-            vg_list (list): List of gate voltage steps in Volts.
-            t_int (float): Integration time in sec for every data point.
-            delay (float): Settling time in sec before every measurement. Set
-                to -1 for for automatic delay.
-            pulsed (bool): True or False for pulsed or continuous measurements.
-            path (str): File path to save output curve data as .txt file.
+        :param smu_gate: SMU attached to gate electrode of FET for transfer
+            measurement (keithley smu object).
+        :param smu_drain: SMU attached to drain electrode of FET for transfer
+            measurement (keithley smu object).
+        :param float vd_start: Start voltage of output sweep in Volts .
+        :param float vd_stop: End voltage of output sweep in Volts.
+        :param float vd_step: Voltage step size for output sweep in Volts.
+        :param list vg_list: List of gate voltage steps in Volts.
+        :param float t_int: Integration time in sec for every data point.
+        :param float delay: Settling time in sec before every measurement. Set
+            to -1 for for automatic delay.
+        :param bool pulsed: True or False for pulsed or continuous measurements.
+        :param str path: File path to save output curve data as .txt file.
 
-        Returns:
-            Returns a TransistorSweepData object containing sweep data.
+        :return: A :class:`TransistorSweepData` instance.
         """
 
         if not self._check_for_keithley():
@@ -1366,9 +1347,8 @@ class CustomXepr(QtCore.QObject):
         """
         Sets the gate bias of the given keithley, grounds other SMUs.
 
-        Args:
-            vg (float): Gate voltage in Volts.
-            smu_gate (str): Name of SMU. Defaults to value saved in keithley preferences.
+        :param float vg: Gate voltage in Volts.
+        :param str smu_gate: Name of SMU. Defaults to value saved in keithley preferences.
         """
 
         if not self._check_for_keithley():
