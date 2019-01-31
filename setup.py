@@ -28,6 +28,7 @@ def get_metadata(relpath, varname):
             elif "'" in line:
                 return line.split("'")[1]
 
+
 setup(
     name="customxepr",
     version=get_metadata("customxepr/main.py", "__version__"),
@@ -37,7 +38,7 @@ setup(
     author_email="ss2151@cam.ac.uk",
     license="MIT",
     long_description=open("README.md").read(),
-    long_description_content_type='text/markdown',
+    long_description_content_type="text/markdown",
     packages=find_packages(),
     package_data={
             "customxepr": [
