@@ -95,7 +95,7 @@ html_theme = 'sphinx_rtd_theme'  # previously 'alabaster'
 # documentation.
 
 # html_theme_options = {'page_width': '900pt'}
-html_logo = 'resources/logo.png'
+html_logo = 'screenshots/logo.png'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
