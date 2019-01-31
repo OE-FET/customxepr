@@ -1,5 +1,5 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 """
 This file contains a wrapper to display the SpinBox in scientific way
 
