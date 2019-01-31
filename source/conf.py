@@ -16,8 +16,8 @@ import os
 import sys
 import mock
 
-#MOCK_MODULES = ['matplotlib']
-#sys.modules.update((mod_name, mock.MagicMock()) for mod_name in MOCK_MODULES)
+MOCK_MODULES = ['PyQt5']
+sys.modules.update((mod_name, mock.MagicMock()) for mod_name in MOCK_MODULES)
 
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../..'))
