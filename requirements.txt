@@ -1,5 +1,4 @@
 IPython
-PyQt5
 decorator
 ipykernel
 keithleygui
@@ -9,6 +8,7 @@ mercurygui
 mercuryitc
 numpy
 pygments
+pyqt5
 pyvisa
 pyvisa-py
 queue
