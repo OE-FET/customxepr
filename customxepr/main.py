@@ -15,7 +15,7 @@ import logging.handlers
 import time
 from threading import Event
 import numpy as np
-from qtpy import QtCore
+from PyQt5 import QtCore
 from keithleygui import CONF as K_CONF
 
 # local imports

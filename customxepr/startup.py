@@ -20,7 +20,7 @@ from keithleygui import KeithleyGuiApp
 from mercurygui import CONF as MCONF
 from mercurygui import MercuryFeed, MercuryMonitorApp
 from mercuryitc import MercuryITC
-from qtpy import QtCore, QtWidgets, QtGui
+from PyQt5 import QtCore, QtWidgets, QtGui
 
 # local imports
 from customxepr.utils.misc import patch_excepthook
