@@ -30,7 +30,6 @@ class ExpStatus(Enum):
     """
     Enumeration to hold experiment status.
     """
-    _order_ = 'QUEUED RUNNING ABORTED FAILED FINISHED'
     QUEUED = object()
     RUNNING = object()
     ABORTED = object()
