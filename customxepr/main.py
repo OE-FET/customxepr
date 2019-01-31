@@ -32,8 +32,8 @@ except ImportError:
 
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'
 __year__ = str(time.localtime().tm_year)
-__version__ = 'v2.2.1'
-__url__ = 'https://oe-fet.github.io/customxepr/'
+__version__ = 'v2.2.2'
+__url__ = 'https://customxepr.readthedocs.io/'
 
 PY2 = sys.version[0] == '2'
 
@@ -1326,11 +1326,11 @@ class CustomXepr(QtCore.QObject):
         return sd
 
     @queued_exec(job_queue)
-    def setGateVoltage(self, vg, smu_gate=K_CONF.get('Sweep', 'gate')):
+    def setGateVoltage(self, v, smu_gate=K_CONF.get('Sweep', 'gate')):
         """
         Sets the gate bias of the given keithley, grounds other SMUs.
 
-        :param float vg: Gate voltage in Volts.
+        :param float v: Gate voltage in Volts.
         :param str smu_gate: Name of SMU. Defaults to the SMU saved as gate.
         """
 
@@ -1345,17 +1345,17 @@ class CustomXepr(QtCore.QObject):
             smu = getattr(self.keithley, smu_name)
             smu.source.output = self.keithley.OUTPUT_OFF
 
-        self.keithley.rampToVoltage(gate, targetVolt=vg, delay=0.1, stepSize=1)
+        self.keithley.rampToVoltage(gate, targetVolt=v, delay=0.1, stepSize=1)
 
-        if vg == 0:
+        if v == 0:
             self.keithley.reset()
 
     @queued_exec(job_queue)
-    def applyDrainCurrent(self, id, smu=K_CONF.get('Sweep', 'drain')):
+    def applyDrainCurrent(self, i, smu=K_CONF.get('Sweep', 'drain')):
         """
         Applies a specified current to the selected Keithley SMU.
 
-        :param float id: Drain current in Ampere.
+        :param float i: Drain current in Ampere.
         :param str smu: Name of SMU. Defaults to the SMU saved as drain.
         """
 

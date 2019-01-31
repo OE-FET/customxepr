@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 
-def get_version(relpath):
-    """Read version info from a file without importing it"""
+def get_metadata(relpath, varname):
+    """Read metadata info from a file without importing it."""
     from os.path import dirname, join
 
     if "__file__" not in globals():
@@ -22,18 +22,17 @@ def get_version(relpath):
 
     for line in open(join(root, relpath), "rb"):
         line = line.decode("cp437")
-        if "__version__" in line:
+        if varname in line:
             if '"' in line:
                 return line.split('"')[1]
             elif "'" in line:
                 return line.split("'")[1]
 
-
 setup(
     name="customxepr",
-    version=get_version("customxepr/main.py"),
+    version=get_metadata("customxepr/main.py", "__version__"),
     description="Python interface for for Bruker Xepr.",
-    url="https://oe-fet.github.io/customxepr/",
+    url=get_metadata("customxepr/main.py", "__url__"),
     author="Sam Schott",
     author_email="ss2151@cam.ac.uk",
     license="MIT",
