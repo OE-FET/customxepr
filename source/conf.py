@@ -99,7 +99,7 @@ html_logo = 'resources/logo.png'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+html_theme_path = ['_theme']
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
