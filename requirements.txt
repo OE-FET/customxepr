@@ -12,5 +12,4 @@ pygments
 pyvisa
 pyvisa-py
 qtpy
-queue
 scipy
