@@ -16,7 +16,7 @@ from queue import Queue, Empty
 from threading import RLock
 from decorator import decorator
 from enum import Enum
-from PyQt5 import QtCore
+from qtpy import QtCore
 
 PY2 = sys.version[0] == '2'
 logger = logging.getLogger('customxepr.main')
@@ -96,9 +96,9 @@ class SignalQueue(QtCore.QObject, Queue):
     :cvar pop_signal: Is emitted when an item is removed from the queue.
     """
 
-    put_signal = QtCore.pyqtSignal()
-    pop_signal = QtCore.pyqtSignal()
-    task_done_signal = QtCore.pyqtSignal(str)
+    put_signal = QtCore.Signal()
+    pop_signal = QtCore.Signal()
+    task_done_signal = QtCore.Signal(str)
 
     def __init__(self):
         QtCore.QObject.__init__(self)
@@ -142,9 +142,9 @@ class ExperimentQueue(QtCore.QObject):
         a tuple holding the job index and status.
     """
 
-    added_signal = QtCore.pyqtSignal()
-    removed_signal = QtCore.pyqtSignal(int)
-    status_changed_signal = QtCore.pyqtSignal(tuple)
+    added_signal = QtCore.Signal()
+    removed_signal = QtCore.Signal(int)
+    status_changed_signal = QtCore.Signal(tuple)
 
     _lock = RLock()
 

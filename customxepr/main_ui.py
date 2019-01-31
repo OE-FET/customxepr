@@ -12,7 +12,7 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 from __future__ import division, absolute_import
 import sys
 import os
-from PyQt5 import QtCore, QtWidgets, QtGui, uic
+from qtpy import QtCore, QtWidgets, QtGui, uic
 import logging
 import platform
 import subprocess
@@ -72,7 +72,7 @@ class QStatusLogHandler(logging.Handler, QtCore.QObject):
     logged event. The signal will be connected to "Status" field of the GUI and
     trigger a 30 min time out counter which will be reset by the next signal.
     """
-    status_signal = QtCore.pyqtSignal(str)
+    status_signal = QtCore.Signal(str)
 
     def __init__(self):
         logging.Handler.__init__(self)
@@ -90,7 +90,7 @@ class QErrorLogHandler(logging.Handler, QtCore.QObject):
     Handler which displays a message box with information about occurred errors.
     """
 
-    error_signal = QtCore.pyqtSignal(tuple)
+    error_signal = QtCore.Signal(tuple)
 
     def __init__(self):
         logging.Handler.__init__(self)
