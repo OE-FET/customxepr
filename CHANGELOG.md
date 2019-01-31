@@ -1,7 +1,6 @@
 #### v2.2.1 (2019-01-25)
 _Added_:
-- Job history now remains visible together with icons indicating the job status
-  (e.g., running, finished, aborted, ...)
+- Job history now remains visible together with icons indicating the job status.
 - Documentation is now available at [https://customxepr.readthedocs.io](https://customxepr.readthedocs.io).
 
 _Changed_:
