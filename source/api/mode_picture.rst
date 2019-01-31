@@ -8,3 +8,4 @@ Mode Picture Class
 
 .. automodule:: mode_picture
    :members:
+   :show-inheritance:

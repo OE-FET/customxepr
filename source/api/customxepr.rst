@@ -8,3 +8,4 @@ CustomXepr
 
 .. automodule:: main
    :members:
+   :show-inheritance:
