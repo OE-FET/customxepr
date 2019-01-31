@@ -4,6 +4,7 @@ decorator
 ipykernel
 keithleygui
 lmfit
+m2r
 matplotlib
 mercurygui
 mercuryitc
