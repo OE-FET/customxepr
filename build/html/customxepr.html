@@ -1,0 +1,507 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>CustomXepr &#8212; customxepr 2.2.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Job scheduling" href="manager.html" />
+    <link rel="prev" title="Introduction to CustomXepr" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-main">
+<span id="customxepr"></span><h1>CustomXepr<a class="headerlink" href="#module-main" title="Permalink to this headline">¶</a></h1>
+<p>Created on Tue Aug 23 11:03:57 2016</p>
+<p>&#64;author: Sam Schott  (<a class="reference external" href="mailto:ss2151&#37;&#52;&#48;cam&#46;ac&#46;uk">ss2151<span>&#64;</span>cam<span>&#46;</span>ac<span>&#46;</span>uk</a>)</p>
+<p>(c) Sam Schott; This work is licensed under a Creative Commons
+Attribution-NonCommercial-NoDerivs 2.0 UK: England &amp; Wales License.</p>
+<dl class="class">
+<dt id="main.CustomXepr">
+<em class="property">class </em><code class="descclassname">main.</code><code class="descname">CustomXepr</code><span class="sig-paren">(</span><em>xepr=None</em>, <em>mercuryfeed=None</em>, <em>keithley=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#CustomXepr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr" title="Permalink to this definition">¶</a></dt>
+<dd><p>CustomXepr defines routines to control the Bruker Xepr software and full ESR
+measurement cycles. This includes tuning and setting the temperature,
+applying voltages and recording IV characteristics with attached Keithley
+SMUs.</p>
+<p>All CustomXepr methods are executed in a worker thread in the order of
+their calls. To execute your own function in this thread, you can use
+the <cite>queued_exec</cite> decorator provided by customxepr and query the
+<cite>abort_event</cite> to support CustomXepr’s abort functionality:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">customxepr</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">customxepr</span> <span class="k">import</span> <span class="n">queued_exec</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">customXepr</span> <span class="o">=</span> <span class="n">customxepr</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># create test function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@queued_exec</span><span class="p">(</span><span class="n">customXepr</span><span class="o">.</span><span class="n">job_queue</span><span class="p">)</span> <span class="o">...</span>
+<span class="gp">... </span><span class="k">def</span> <span class="nf">test_func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="c1"># do something</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">customXepr</span><span class="o">.</span><span class="n">abort_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">()</span>
+<span class="gp">... </span>            <span class="k">break</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">args</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># run the function: this will return immediately</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_func</span><span class="p">(</span><span class="s1">&#39;test succeeded&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>All results are added to the result queue and can be retrieved with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">customxepr</span><span class="o">.</span><span class="n">result_queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>  <span class="c1"># blocks until result is available</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>  <span class="c1"># prints &#39;test succeeded&#39;</span>
+</pre></div>
+</div>
+<p>To pause or resume the worker between jobs, run</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">customxepr</span><span class="o">.</span><span class="n">running</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">customxepr</span><span class="o">.</span><span class="n">running</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>To abort a job, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">customxepr</span><span class="o">.</span><span class="n">abort_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>xepr</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">Xepr</span></code> instance from the Bruker Python XeprAPI. Defaults
+to <cite>None</cite> if not provided.</li>
+<li><strong>mercuryfeed</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">MercuryFeed</span></code> instance for live feed from MercuryiTC
+temperature controller. Defaults to <cite>None</cite> if not provided.</li>
+<li><strong>keithley</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">Keithley2600</span></code> instance from keithley2600 driver.
+Defaults to <cite>None</cite> if not provided.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>job_queue</strong> – Queue that holds all experiments / jobs. Must be an instance
+of <code class="xref py py-class docutils literal notranslate"><span class="pre">ExperimentQueue</span></code>.</li>
+<li><strong>result_queue</strong> – Queue that holds job results. Must be an instance
+of <code class="xref py py-class docutils literal notranslate"><span class="pre">SignalQueue</span></code>.</li>
+<li><strong>running</strong> – Instance of <a class="reference external" href="https://docs.python.org/3/library/threading.html#threading.Event" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Event</span></code></a>. If <cite>running.is_set()</cite>,
+jobs will be processed in the background. Otherwise, job execution will
+be paused.</li>
+<li><strong>abort</strong> – Instance of <a class="reference external" href="https://docs.python.org/3/library/threading.html#threading.Event" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Event</span></code></a> to abort currently running
+job. After the job has been aborted, the event will be cleared automatically.</li>
+<li><strong>hidden</strong> – Xepr’s hidden experiment.</li>
+<li><strong>xepr</strong> – Connected Xepr instance.</li>
+<li><strong>keithley</strong> – Connected <code class="xref py py-class docutils literal notranslate"><span class="pre">Keithley2600</span></code> instance.</li>
+<li><strong>feed</strong> – Connected <code class="xref py py-class docutils literal notranslate"><span class="pre">MercuryFeed</span></code> instance.</li>
+<li><strong>wait</strong> – Delay between commands sent to Xepr.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="main.CustomXepr.clear_all_jobs">
+<code class="descname">clear_all_jobs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#CustomXepr.clear_all_jobs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr.clear_all_jobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears all pending jobs in <cite>job_queue</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="main.CustomXepr.sendEmail">
+<code class="descname">sendEmail</code><span class="sig-paren">(</span><em>body</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#CustomXepr.sendEmail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr.sendEmail" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends a text to the default email address.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="main.CustomXepr.pause">
+<code class="descname">pause</code><span class="sig-paren">(</span><em>seconds</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#CustomXepr.pause"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr.pause" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pauses for the specified amount of seconds. This pause function checks
+for an abort signal every minute to prevent permanent blocking.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="main.CustomXepr.temp_wait_time">
+<code class="descname">temp_wait_time</code><a class="headerlink" href="#main.CustomXepr.temp_wait_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait time until temperature is considered stable. Defaults to 120 sec.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="main.CustomXepr.temperature_tolerance">
+<code class="descname">temperature_tolerance</code><a class="headerlink" href="#main.CustomXepr.temperature_tolerance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Temperature fluctuation tolerance. Defaults to 0.1 Kelvin.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="main.CustomXepr.notify_address">
+<code class="descname">notify_address</code><a class="headerlink" href="#main.CustomXepr.notify_address" title="Permalink to this definition">¶</a></dt>
+<dd><p>Address list for email notifications.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="main.CustomXepr.log_file_dir">
+<code class="descname">log_file_dir</code><a class="headerlink" href="#main.CustomXepr.log_file_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Directory for log files. Defaults to ‘~/.CustomXepr’.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="main.CustomXepr.email_handler_level">
+<code class="descname">email_handler_level</code><a class="headerlink" href="#main.CustomXepr.email_handler_level" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logging level for email notifications. Defaults to <code class="xref py py-class docutils literal notranslate"><span class="pre">logging.WARNING</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="main.CustomXepr.tune">
+<code class="descname">tune</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#CustomXepr.tune"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr.tune" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs Xepr’s built-in tuning routine.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="main.CustomXepr.finetune">
+<code class="descname">finetune</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#CustomXepr.finetune"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr.finetune" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs Xepr’s built-in fine-tuning routine.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="main.CustomXepr.customtune">
+<code class="descname">customtune</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#CustomXepr.customtune"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr.customtune" title="Permalink to this definition">¶</a></dt>
+<dd><p>Custom tuning routine with better accuracy. It takes longer than <a class="reference internal" href="#main.CustomXepr.tune" title="main.CustomXepr.tune"><code class="xref py py-func docutils literal notranslate"><span class="pre">tune()</span></code></a>
+and requires the spectrometer to be be already close to tuned.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="main.CustomXepr.getQValueFromXepr">
+<code class="descname">getQValueFromXepr</code><span class="sig-paren">(</span><em>path=None</em>, <em>temperature=298</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#CustomXepr.getQValueFromXepr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr.getQValueFromXepr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets Q-Value determined by Xepr</p>
+<p>Reads out the resonator Q-value, averaged over 20 sec, and saves it
+in the specified file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Directory where Q-Value reading is saved with
+corresponding temperature and time-stamp.</li>
+<li><strong>temperature</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Temperature in Kelvin during Q-Value measurement.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Measured Q-Value.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)">float</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="main.CustomXepr.getQValueCalc">
+<code class="descname">getQValueCalc</code><span class="sig-paren">(</span><em>path=None</em>, <em>temperature=298</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#CustomXepr.getQValueCalc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr.getQValueCalc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates Q-Value from cavity mode pictures</p>
+<p>Calculated Q-Value by fitting the cavity mode picture to a Lorentzian
+dip.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Directory where Q-Value reading is saved with
+corresponding temperature and time-stamp.</li>
+<li><strong>temperature</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Temperature in Kelvin during a Q-value
+measurement. Defaults to room temperature.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModePicture</span></code> instance.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="main.CustomXepr.runXeprExperiment">
+<code class="descname">runXeprExperiment</code><span class="sig-paren">(</span><em>exp</em>, <em>retune=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#CustomXepr.runXeprExperiment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr.runXeprExperiment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs an Xepr experiment</p>
+<p>Runs the Xepr experiment given by “exp”. Keyword arguments (kwargs)
+allow the user to pass experiment parameters. If multiple scans are
+performed, the frequency is tuned between scans.</p>
+<p>If connected to a temperature controller, the temperature during the
+measurements is monitored.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>exp</strong> – Xepr experiment object.</li>
+<li><strong>retune</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Retune iris and freq between scans (default: False).</li>
+<li><strong>kwargs</strong> – Keyword arguments corresponding to measurement
+parameters.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Xepr data set object.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="main.CustomXepr.saveCurrentData">
+<code class="descname">saveCurrentData</code><span class="sig-paren">(</span><em>path</em>, <em>title=None</em>, <em>exp=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#CustomXepr.saveCurrentData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr.saveCurrentData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the data from given experiment in Xepr to the specified path. If
+<cite>exp</cite> is <cite>None</cite> the currently displayed data set is saved.</p>
+<p>Xepr only allows file paths shorter than 128 characters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Absolute path to save data file.</li>
+<li><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Experiment title. Defaults to the file name if not given.</li>
+<li><strong>exp</strong> – Xepr experiment instance associated with data set. Defaults
+to currently selected experiment if not given.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="main.CustomXepr.setStandby">
+<code class="descname">setStandby</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#CustomXepr.setStandby"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr.setStandby" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the magnetic field to zero and the MW bridge to standby.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="main.CustomXepr.setTemperature">
+<code class="descname">setTemperature</code><span class="sig-paren">(</span><em>target</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#CustomXepr.setTemperature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr.setTemperature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the target temperature for the ESR900 cryostat and waits for it to
+stabilize within <cite>temp_wait_time</cite> with fluctuations below
+<cite>temperature_tolerance</cite>.</p>
+<p>Warns the user if this takes too long.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Target temperature in Kelvin.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="main.CustomXepr.heater_target">
+<em class="property">static </em><code class="descname">heater_target</code><span class="sig-paren">(</span><em>temperature</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#CustomXepr.heater_target"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr.heater_target" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the ideal heater voltage for a given temperature.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>temperature</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Temperature in Kelvin.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="main.CustomXepr.setTempRamp">
+<code class="descname">setTempRamp</code><span class="sig-paren">(</span><em>ramp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#CustomXepr.setTempRamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr.setTempRamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the temperature ramp for the ESR900 cryostat in K/min.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ramp</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Ramp in Kelvin per minute.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="main.CustomXepr.transferMeasurement">
+<code class="descname">transferMeasurement</code><span class="sig-paren">(</span><em>smu_gate='smua', smu_drain='smub', vg_start=10.0, vg_stop=-60.0, vg_step=1.0, vd_list=[-5, -60], t_int=0.1, delay=-1.0, pulsed=False, path=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#CustomXepr.transferMeasurement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr.transferMeasurement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Records a transfer curve and saves the results in a TransistorSweepData
+instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>smu_gate</strong> – SMU attached to gate electrode of FET for transfer
+measurement (keithley smu object).</li>
+<li><strong>smu_drain</strong> – SMU attached to drain electrode of FET for transfer
+measurement (keithley smu object).</li>
+<li><strong>vg_start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Start voltage of transfer sweep in Volts.</li>
+<li><strong>vg_stop</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – End voltage of transfer sweep in Volts.</li>
+<li><strong>vg_step</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Voltage step size for transfer sweep in Volts.</li>
+<li><strong>vd_list</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – List of drain voltage steps in Volts.</li>
+<li><strong>t_int</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Integration time in sec for every data point.</li>
+<li><strong>delay</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Settling time in sec before every measurement. Set
+to -1 for for automatic delay.</li>
+<li><strong>pulsed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – True or False for pulsed or continuous measurements.</li>
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – File path to save transfer curve data as .txt file.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="xref py py-class docutils literal notranslate"><span class="pre">TransistorSweepData</span></code> instance.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="main.CustomXepr.outputMeasurement">
+<code class="descname">outputMeasurement</code><span class="sig-paren">(</span><em>smu_gate='smua', smu_drain='smub', vd_start=0.0, vd_stop=-60.0, vd_step=1.0, vg_list=[0, -20, -40, -60], t_int=0.1, delay=-1.0, pulsed=False, path=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#CustomXepr.outputMeasurement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr.outputMeasurement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Records an output curve and saves the results in a TransistorSweepData
+instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>smu_gate</strong> – SMU attached to gate electrode of FET for transfer
+measurement (keithley smu object).</li>
+<li><strong>smu_drain</strong> – SMU attached to drain electrode of FET for transfer
+measurement (keithley smu object).</li>
+<li><strong>vd_start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Start voltage of output sweep in Volts .</li>
+<li><strong>vd_stop</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – End voltage of output sweep in Volts.</li>
+<li><strong>vd_step</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Voltage step size for output sweep in Volts.</li>
+<li><strong>vg_list</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – List of gate voltage steps in Volts.</li>
+<li><strong>t_int</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Integration time in sec for every data point.</li>
+<li><strong>delay</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Settling time in sec before every measurement. Set
+to -1 for for automatic delay.</li>
+<li><strong>pulsed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – True or False for pulsed or continuous measurements.</li>
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – File path to save output curve data as .txt file.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="xref py py-class docutils literal notranslate"><span class="pre">TransistorSweepData</span></code> instance.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="main.CustomXepr.setGateVoltage">
+<code class="descname">setGateVoltage</code><span class="sig-paren">(</span><em>vg</em>, <em>smu_gate='smua'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#CustomXepr.setGateVoltage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr.setGateVoltage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the gate bias of the given keithley, grounds other SMUs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>vg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Gate voltage in Volts.</li>
+<li><strong>smu_gate</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Name of SMU. Defaults to value saved in keithley preferences.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="main.CustomXepr.applyDrainCurrent">
+<code class="descname">applyDrainCurrent</code><span class="sig-paren">(</span><em>i</em>, <em>smu='smub'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#CustomXepr.applyDrainCurrent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr.applyDrainCurrent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies a specified current to the selected Keithley SMU.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">customxepr</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">CustomXepr</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manager.html">Job scheduling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mode_picture.html">Mode Picture Class</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Introduction to CustomXepr</a></li>
+      <li>Next: <a href="manager.html" title="next chapter">Job scheduling</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Sam Schott.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/customxepr.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
