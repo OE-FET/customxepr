@@ -90,7 +90,7 @@ def ping(ip_address, ms_timeout=20):
 
     :param str ip_address: IP address to ping.
     :param int ms_timeout: Timeout of ping in milliseconds.
-    :return: `True` if address is reachable within timeout, `False` otherwise.
+    :returns: `True` if address is reachable within timeout, `False` otherwise.
     :rtype: bool
     """
     # check if fping is installed, otherwise use ping

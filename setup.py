@@ -33,7 +33,7 @@ setup(
     name="customxepr",
     version=get_version("customxepr/main.py"),
     description="Python interface for for Bruker Xepr.",
-    url="https://github.com/OE-FET/CustomXepr",
+    url="https://oe-fet.github.io/customxepr/",
     author="Sam Schott",
     author_email="ss2151@cam.ac.uk",
     license="MIT",

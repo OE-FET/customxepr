@@ -1,5 +1,13 @@
+"""
+@author: Sam Schott  (ss2151@cam.ac.uk)
+
+(c) Sam Schott; This work is licensed under a Creative Commons
+Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
+
+"""
+
 # system imports
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 from ipykernel.connect import connect_qtconsole
 from ipykernel.kernelapp import IPKernelApp
 
@@ -23,7 +31,7 @@ class InternalIPKernel(object):
         self.ipkernel = create_ip_kernel(backend, banner)
         self.consoles = []  # To create and track active qt consoles
 
-        # This application will also act on the shell user namespace
+        # get namespace of kernel
         self.namespace = self.ipkernel.shell.user_ns
 
     def send_to_namespace(self, dictionary):
@@ -42,8 +50,8 @@ class InternalIPKernel(object):
                    '--JupyterWidget.banner=""',
                    '--JupyterWidget.font_family="Menlo"'
                    '--JupyterWidget.font_size=11']
-        return connect_qtconsole(self.ipkernel.abs_connection_file, profile=self.ipkernel.profile,
-                                 argv=arglist)
+        return connect_qtconsole(self.ipkernel.abs_connection_file,
+                                 profile=self.ipkernel.profile, argv=arglist)
 
     def cleanup_consoles(self):
         for c in self.consoles:

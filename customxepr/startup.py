@@ -143,8 +143,8 @@ def run():
     banner = ('Welcome to CustomXepr %s. ' % __version__ +
               'You can access connected instruments through "customXepr" ' +
               'or directly as "xepr", "keithley" and "mercury".\n\n' +
-              'Use "%run path/to/file.py" to run a python script such as a ' +
-              'measurement routine.\n'
+              'Use "%run -i path/to/file.py" to run a python script such ' +
+              'as a measurement routine.\n'
               'Type "exit" to gracefully exit ' +
               'CustomXepr.\n\n(c) 2016 - %s, %s.' % (__year__, __author__))
 

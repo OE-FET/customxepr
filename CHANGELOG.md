@@ -1,4 +1,4 @@
-#### v2.2.1 (2019-01-25):
+#### v2.2.1 (2019-01-25)
 _Added_:
 - Job history now remains visible together with icons indicating the job status
   (e.g., running, finished, aborted, ...)
@@ -7,7 +7,7 @@ _Changed_:
 - Switched from custom TslSMTPHandler to python-bundled SMTPHandler for email
   notifications.
 
-#### v2.2.0 (2019-01-09):
+#### v2.2.0 (2019-01-09)
 _Added:_
 - Added terminal / command line script "CustomXepr".
 - Added confidence interval for Q-value calculation in ModePicture class.
@@ -28,7 +28,7 @@ _Fixed:_
 _Removed:_
 - Removed all ETA estimates for experiments.
 
-#### v2.1.1:
+#### v2.1.1
 _Added:_
 - Included revamped keithleygui with IV sweep functionality.
 - Compatability with Python 3.6 and higher.
@@ -42,7 +42,7 @@ _Fixed:_
   time cannot be estimated. Applies for instance to rapid scan and time domain
   measurements where proper ETA estimates have not yet been implemented.
 
-#### v2.1.0:
+#### v2.1.0
 _Added:_
 - Warnings when invalid file paths are handed to Xepr.
 
@@ -54,7 +54,7 @@ _Removed:_
   such as macOS Mojave's dark mode, may be supported in the future when Qt
   support is added.
 
-#### v2.0.1:
+#### v2.0.1
 _Changed:_
 - Moved default driver backends from NI-VISA to pyvisa-py. It is no longer
   necessary to install NI-VISA from National Instruments on your system.

@@ -17,12 +17,11 @@ import logging
 import platform
 import subprocess
 import re
-import pydoc
 import inspect
 import webbrowser
 
 # local imports
-from customxepr.main import CustomXepr, __version__, __year__, __author__
+from customxepr.main import CustomXepr, __version__, __year__, __author__, __url__
 from customxepr.manager import ExpStatus
 from customxepr.config.main import CONF
 from customxepr.utils.misc import ErrorDialog
@@ -200,7 +199,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         # assign menu bar actions
         self.action_About.triggered.connect(self.aboutWindow.show)
-        self.actionCustomXepr_Help.triggered.connect(self.aboutWindow.show)
+        self.actionCustomXepr_Help.triggered.connect(lambda: webbrowser.open_new(__url__))
         self.actionShow_log_files.triggered.connect(self.on_log_clicked)
         self.action_Exit.triggered.connect(self.exit_)
 
@@ -435,7 +434,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         :param str string: String to truncate.
         :param int max_length: Maximum number of characters in truncated string.
             Must be >= 5.
-        :return: Truncated string of length `max_length`.
+        :returns: Truncated string of length `max_length`.
         :rtype: str
         """
         if max_length < 5:
@@ -454,7 +453,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         :param int max_total_len: Maximum number of characters in truncated
             string list (default = 150).
         :param int min_item_len: Minimum number of characters per string (default = 13).
-        :return: List of truncated strings.
+        :returns: List of truncated strings.
         :rtype: list
         """
         overlength = sum(len(s) for s in string_list) - max_total_len
@@ -721,37 +720,6 @@ class JobStatusApp(QtWidgets.QMainWindow):
 # About / Help Window
 # =============================================================================
 
-def classify_class_attrs(obj):
-    """
-    Patch classify_class_attrs from pydoc to ignore inherited attributes.
-    """
-    results = []
-    for (name, kind, cls, value) in inspect.classify_class_attrs(obj):
-        if inspect.isdatadescriptor(value):
-            kind = 'data descriptor'
-        if cls is obj:  # only append attributes defined in object
-            results.append((name, kind, cls, value))
-    return results
-
-
-pydoc.classify_class_attrs = classify_class_attrs
-
-
-class CustomHtmlDoc(pydoc.TextDoc):
-    """
-    Subclass of TextDoc which overrides string styling to basic HTML styling.
-    """
-
-    def bold(self, text):
-        """Format a string in bold html instead of unicode."""
-        return '<span style="font-weight:bold">%s</span>' % text
-
-    def docclass(self, obj, name=None, mod=None, *ignored):
-        text = pydoc.TextDoc.docclass(self, obj, name, mod, *ignored)
-        wrap_style = '<body style="white-space: pre-wrap;"> %s </body>'
-        return wrap_style % text
-
-
 class AboutWindow(QtWidgets.QWidget, QtCore.QCoreApplication):
     """
     Prints version number, copyright info and help output from CustomXepr to a
@@ -762,14 +730,11 @@ class AboutWindow(QtWidgets.QWidget, QtCore.QCoreApplication):
         # load user interface file
         uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                 'about_window.ui'), self)
-        # set copyright text
-        placeholder = self.labelCopyRight.text()
-        self.labelCopyRight.setText(placeholder.format(__year__, __author__))
-        # get help output in html format
-        textdoc = CustomHtmlDoc()
-        self.help_output = textdoc.docclass(CustomXepr)
-        # print help output to scroll area of window
-        self.textBrowser.setText(self.help_output)
+
         # set title string of window to CustomXepr version
         self.title_string = (CustomXepr.__name__ + ' ' + __version__)
         self.titleText.setText(self.title_string)
+
+        # set copyright text
+        placeholder = self.labelCopyRight.text()
+        self.labelCopyRight.setText(placeholder.format(__year__, __author__))

@@ -1,8 +1,4 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
 """
-Created on Tue Aug 23 11:03:57 2016
-
 @author: Sam Schott  (ss2151@cam.ac.uk)
 
 (c) Sam Schott; This work is licensed under a Creative Commons
@@ -37,6 +33,7 @@ except ImportError:
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'
 __year__ = str(time.localtime().tm_year)
 __version__ = 'v2.2.1'
+__url__ = 'https://oe-fet.github.io/customxepr/'
 
 PY2 = sys.version[0] == '2'
 
@@ -66,27 +63,11 @@ class CustomXepr(QtCore.QObject):
     All CustomXepr methods are executed in a worker thread in the order of
     their calls. To execute your own function in this thread, you can use
     the `queued_exec` decorator provided by customxepr and query the
-    `abort_event` to support CustomXepr's abort functionality:
-
-    >>> import customxepr
-    >>> from customxepr import queued_exec
-    >>> customXepr = customxepr.run()
-    >>> # create test function
-    >>> @queued_exec(customXepr.job_queue) ...
-    ... def test_func(*args):
-    ...     # do something
-    ...     for i in range(0, 10):
-    ...         time.sleep(1)
-    ...         if customXepr.abort_event.is_set()
-    ...             break
-    ...     return args
-    >>> # run the function: this will return immediately
-    >>> test_func('test succeeded')
+    :attr:`abort_event` to support CustomXepr's abort functionality.
 
     All results are added to the result queue and can be retrieved with:
 
     >>> result = customxepr.result_queue.get()  # blocks until result is available
-    >>> print(result)  # prints 'test succeeded'
 
     To pause or resume the worker between jobs, run
 
@@ -100,18 +81,23 @@ class CustomXepr(QtCore.QObject):
 
     >>> customxepr.abort_event.set()
 
-    :param xepr: :class:`Xepr` instance from the Bruker Python XeprAPI. Defaults
+    You can use :class:`CustomXepr` on its own, but it is recommended to start
+    it with the :func:`run` function in the :mod:`startup` module. This will
+    automatically connect to available instruments and start the graphical user
+    interfaces.
+
+    :param xepr: Xepr instance from the Bruker Python XeprAPI. Defaults
         to `None` if not provided.
-    :param mercuryfeed: :class:`MercuryFeed` instance for live feed from MercuryiTC
-        temperature controller. Defaults to `None` if not provided.
-    :param keithley: :class:`Keithley2600` instance from keithley2600 driver.
-        Defaults to `None` if not provided.
+    :param mercuryfeed: :class:`mercurygui.MercuryFeed` instance for live feed from
+        MercuryiTC temperature controller. Defaults to `None` if not provided.
+    :param keithley: :class:`keithley2600.Keithley2600` instance from keithley2600
+        driver. Defaults to `None` if not provided.
 
     :cvar job_queue: Queue that holds all experiments / jobs. Must be an instance
-        of :class:`ExperimentQueue`.
+        of :class:`manager.ExperimentQueue`.
     :cvar result_queue:  Queue that holds job results. Must be an instance
-        of :class:`SignalQueue`.
-    :cvar running: Instance of :class:`threading.Event`. If `running.is_set()`,
+        of :class:`manager.SignalQueue`.
+    :cvar running: Instance of :class:`threading.Event`. If :attr:`running` is set,
         jobs will be processed in the background. Otherwise, job execution will
         be paused.
     :cvar abort: Instance of :class:`threading.Event` to abort currently running
@@ -119,8 +105,8 @@ class CustomXepr(QtCore.QObject):
 
     :ivar hidden: Xepr's hidden experiment.
     :ivar xepr: Connected Xepr instance.
-    :ivar keithley: Connected :class:`Keithley2600` instance.
-    :ivar feed: Connected :class:`MercuryFeed` instance.
+    :ivar keithley: Connected :class:`keithley2600.Keithley2600` instance.
+    :ivar feed: Connected :class:`mercurygui.MercuryFeed` instance.
     :ivar wait: Delay between commands sent to Xepr.
     """
 
@@ -137,7 +123,8 @@ class CustomXepr(QtCore.QObject):
 
         super(CustomXepr, self).__init__()
 
-        self.emailSender = EmailSender('ss2151@cam.ac.uk', 'localhost', displayname='Sam Schott')
+        self.emailSender = EmailSender('ss2151@cam.ac.uk', 'localhost',
+                                       displayname='Sam Schott')
 
         # =====================================================================
         # check if connections to Xepr, MercuryiTC and Keithley are present
@@ -188,7 +175,7 @@ class CustomXepr(QtCore.QObject):
 
     def clear_all_jobs(self):
         """
-        Clears all pending jobs in `job_queue`.
+        Clears all pending jobs in :attr:`job_queue`.
         """
         for item in range(0, self.job_queue.qsize()):
             self.job_queue.get()
@@ -352,7 +339,7 @@ class CustomXepr(QtCore.QObject):
     @queued_exec(job_queue)
     def finetune(self):
         """
-        Runs Xepr's built-in fine-tuning routine.
+        Runs Xepr's built-in finetuning routine.
         """
 
         if not self._check_for_xepr():
@@ -363,7 +350,7 @@ class CustomXepr(QtCore.QObject):
     @queued_exec(job_queue)
     def customtune(self):
         """
-        Custom tuning routine with better accuracy. It takes longer than :func:`tune`
+        Custom tuning routine with better accuracy. It takes longer than :meth:`tune`
         and requires the spectrometer to be be already close to tuned.
         """
 
@@ -386,14 +373,14 @@ class CustomXepr(QtCore.QObject):
         # tune frequency at 30 dB
         self.hidden['PowerAtten'].value = 30
         time.sleep(self.wait)
-        self._tuneFreq()
+        self.tuneFreq()
         time.sleep(self.wait)
 
         # tune bias of reference arm at 50 dB
         # (where diode current is determined by reference arm)
         self.hidden['PowerAtten'].value = 50
         time.sleep(self.wait)
-        self._tuneBias()
+        self.tuneBias()
         time.sleep(self.wait)
 
         # tune iris at 40 dB and 30 dB
@@ -408,7 +395,7 @@ class CustomXepr(QtCore.QObject):
             self.hidden['PowerAtten'].value = atten
             time.sleep(self.wait)
 
-            self._tuneIris()
+            self.tuneIris()
             time.sleep(self.wait)
 
         # tune iris and phase and frequency at 20 dB and 10 dB
@@ -422,46 +409,46 @@ class CustomXepr(QtCore.QObject):
 
             self.hidden['PowerAtten'].value = atten
             time.sleep(self.wait)
-            self._tunePhase()
+            self.tunePhase()
             time.sleep(self.wait)
-            self._tuneIris()
+            self.tuneIris()
             time.sleep(self.wait)
-            self._tuneFreq()
+            self.tuneFreq()
             time.sleep(self.wait)
 
         # tune bias at 50 dB
         self.hidden['PowerAtten'].value = 50
         time.sleep(self.wait)
-        self._tuneBias()
+        self.tuneBias()
         time.sleep(self.wait)
 
         # tune iris at 15 dB
         self.hidden['PowerAtten'].value = 20
         time.sleep(self.wait)
-        self._tuneIris()
+        self.tuneIris()
         time.sleep(self.wait)
 
         # tune bias at 50 dB
         self.hidden['PowerAtten'].value = 50
         time.sleep(self.wait)
-        self._tuneBias()
+        self.tuneBias()
         time.sleep(self.wait)
 
         # tune iris at 10 dB
         self.hidden['PowerAtten'].value = 10
         time.sleep(self.wait)
-        self._tuneIris()
+        self.tuneIris()
         time.sleep(self.wait)
 
         # reset attenuation to original value, tune frequency again
         self.hidden['PowerAtten'].value = atten_start
         time.sleep(self.wait)
-        self._tuneFreq()
+        self.tuneFreq()
         time.sleep(self.wait)
 
         logger.status('Tuning done.')
 
-    def _tuneBias(self):
+    def tuneBias(self):
         """
         Tunes the diode bias. A perfectly tuned bias results in a diode
         current of 200 mA for all microwave powers.
@@ -506,13 +493,13 @@ class CustomXepr(QtCore.QObject):
             diff = self.hidden['DiodeCurrent'].value - 200
             time.sleep(self.wait)
 
-    def _tuneIris(self, tolerance=1):
+    def tuneIris(self, tolerance=1):
         """
         Tunes the cavity's iris. A perfectly tuned iris results in a diode
         current of 200 mA for all microwave powers.
 
         :param int tolerance: Minimum diode current offset that must be achieved
-            before :func:`_tuneIris` returns.
+            before :meth:`tuneIris` returns.
         """
         # check for abort event
         if self.abort.is_set():
@@ -555,12 +542,12 @@ class CustomXepr(QtCore.QObject):
             diff = self.hidden['DiodeCurrent'].value - 200
             time.sleep(self.wait)
 
-    def _tuneFreq(self, tolerance=3):
+    def tuneFreq(self, tolerance=3):
         """
         Tunes the microwave frequency to a lock offset of zero.
 
         :param int tolerance: Minimum frequency offset that must be achieved
-            before :func:`_tuneFreq` returns.
+            before :meth:`tuneFreq` returns.
         """
         # check for abort event
         if self.abort.is_set():
@@ -584,7 +571,7 @@ class CustomXepr(QtCore.QObject):
             fq_offset = self.hidden['LockOffset'].value
             time.sleep(self.wait)
 
-    def _tunePhase(self):
+    def tunePhase(self):
         """
         Tunes the phase of the MW reference arm to maximise the diode current.
         """
@@ -670,7 +657,7 @@ class CustomXepr(QtCore.QObject):
                 return
             # check for limits of diode range, readjust iris if necessary
             if diode_curr_new in [0, 400]:
-                self._tuneIris()
+                self.tuneIris()
 
             # calculate phase after step
             new_phase = new_phase + direction*phase_step
@@ -711,16 +698,15 @@ class CustomXepr(QtCore.QObject):
 
     @queued_exec(job_queue)
     def getQValueFromXepr(self, path=None, temperature=298):
-        """Gets Q-Value determined by Xepr
-
-        Reads out the resonator Q-value, averaged over 20 sec, and saves it
+        """
+        Gets the Q-Value as determined by Xepr, averaged over 20 readouts, and saves it
         in the specified file.
 
         :param str path: Directory where Q-Value reading is saved with
             corresponding temperature and time-stamp.
         :param float temperature: Temperature in Kelvin during Q-Value measurement.
 
-        :return: Measured Q-Value.
+        :returns: Measured Q-Value.
         :rtype: float
         """
 
@@ -761,10 +747,10 @@ class CustomXepr(QtCore.QObject):
 
         time.sleep(3)
 
-        self._tuneFreq()
-        self._tuneFreq()
-        self._tuneBias()
-        self._tuneFreq()
+        self.tuneFreq()
+        self.tuneFreq()
+        self.tuneBias()
+        self.tuneFreq()
 
         self.hidden['PowerAtten'].value = att
         time.sleep(self.wait)
@@ -787,17 +773,17 @@ class CustomXepr(QtCore.QObject):
 
     @queued_exec(job_queue)
     def getQValueCalc(self, path=None, temperature=298):
-        """Calculates Q-Value from cavity mode pictures
-
-        Calculated Q-Value by fitting the cavity mode picture to a Lorentzian
-        dip.
+        """
+        Calculates Q-value by fitting the cavity mode picture to a Lorentzian
+        resonance with a polynomial baseline. It uses all available zoom factors
+        to resolve both sharp and broad resonances (high and low Q-values, respectively).
 
         :param str path: Directory where Q-Value reading is saved with
             corresponding temperature and time-stamp.
         :param float temperature: Temperature in Kelvin during a Q-value
             measurement. Defaults to room temperature.
 
-        :return: :class:`ModePicture` instance.
+        :returns: :class:`mode_picture.ModePicture` instance.
         """
 
         if not self._check_for_xepr():
@@ -851,10 +837,10 @@ class CustomXepr(QtCore.QObject):
 
         time.sleep(2)
 
-        self._tuneFreq()
-        self._tuneFreq()
-        self._tuneBias()
-        self._tuneFreq()
+        self.tuneFreq()
+        self.tuneFreq()
+        self.tuneBias()
+        self.tuneFreq()
 
         self.hidden['PowerAtten'].value = att
         time.sleep(self.wait)
@@ -870,7 +856,7 @@ class CustomXepr(QtCore.QObject):
         elif os.path.isdir(path):
             path = os.path.join(path, 'QValues.txt')
             self._saveQValue2File(temperature, mp.qvalue, mp.qvalue_stderr, path)
-            path = os.path.join(path, 'ModePicture{0:03d}K.txt'.format(temperature))
+            path = os.path.join(path, 'ModePicture{0:03d}K.txt'.format(int(temperature)))
             mp.save(path)
 
         self.wait = wait_old
@@ -898,9 +884,8 @@ class CustomXepr(QtCore.QObject):
 
     @queued_exec(job_queue)
     def runXeprExperiment(self, exp, retune=False, **kwargs):
-        """Runs an Xepr experiment
-
-        Runs the Xepr experiment given by "exp". Keyword arguments (kwargs)
+        """
+        Runs the Xepr experiment given `exp`. Keyword arguments (kwargs)
         allow the user to pass experiment parameters. If multiple scans are
         performed, the frequency is tuned between scans.
 
@@ -912,7 +897,7 @@ class CustomXepr(QtCore.QObject):
         :param kwargs: Keyword arguments corresponding to measurement
             parameters.
 
-        :return: Xepr data set object.
+        :returns: Xepr data set object.
         """
 
         if not self._check_for_xepr():
@@ -962,17 +947,17 @@ class CustomXepr(QtCore.QObject):
             time.sleep(self.wait)
             nb_scans_to_do = exp['NbScansToDo'].value
             time.sleep(self.wait)
-            logger.status('Recording scan %i of %i.' % (nb_scans_done + 1, nb_scans_to_do))
+            logger.status('Recording scan %i/%i.' % (nb_scans_done + 1, nb_scans_to_do))
 
             if retune:
                 # tune frequency and iris when a new slice scan starts
                 if exp.isPaused and not nb_scans_done == nb_scans_to_do:
                     logger.status('Checking tuned.')
-                    self._tuneFreq(tolerance=3)
+                    self.tuneFreq(tolerance=3)
                     time.sleep(self.wait)
-                    self._tuneFreq(tolerance=3)
+                    self.tuneFreq(tolerance=3)
                     time.sleep(self.wait)
-                    self._tuneIris(tolerance=7)
+                    self.tuneIris(tolerance=7)
                     time.sleep(self.wait)
 
                     # start next scan
@@ -1123,8 +1108,8 @@ class CustomXepr(QtCore.QObject):
     def setTemperature(self, target):
         """
         Sets the target temperature for the ESR900 cryostat and waits for it to
-        stabilize within `temp_wait_time` with fluctuations below
-        `temperature_tolerance`.
+        stabilize within :attr:`temp_wait_time` with fluctuations below
+        :attr:`temperature_tolerance`.
 
         Warns the user if this takes too long.
 
@@ -1159,8 +1144,8 @@ class CustomXepr(QtCore.QObject):
     def _waitStable(self):
         """
         Waits for the cryostat temperature to stabilize within the specified
-        tolerance `temperature_tolerance`. Releases after it has been
-        stable for `temp_wait_time` seconds (default of 120 sec).
+        tolerance :attr:`temperature_tolerance`. Releases after it has been
+        stable for :attr:`temp_wait_time` seconds (default of 120 sec).
         """
 
         # time in sec after which a timeout warning is issued
@@ -1228,7 +1213,7 @@ class CustomXepr(QtCore.QObject):
             expected_time = (abs(self._temperature_target - self.feed.readings['Temp']) /
                              self.feed.readings['TempRamp'])  # in min
         else:  # assume ramp of 5 K/min
-            expected_time = (abs(self._temperature_target - self.feed.readings['Temp']) / 5)
+            expected_time = abs(self._temperature_target - self.feed.readings['Temp']) / 5
         return expected_time * 60  # return value in sec
 
     @queued_exec(job_queue)
@@ -1262,13 +1247,11 @@ class CustomXepr(QtCore.QObject):
                             pulsed=K_CONF.get('Sweep', 'pulsed'),
                             path=None):
         """
-        Records a transfer curve and saves the results in a TransistorSweepData
-        instance.
+        Records a transfer curve and saves returns the resulting data. If a valid
+        path is given, the data is also saved as a .txt file.
 
-        :param smu_gate: SMU attached to gate electrode of FET for transfer
-            measurement (keithley smu object).
-        :param smu_drain: SMU attached to drain electrode of FET for transfer
-            measurement (keithley smu object).
+        :param smu_gate: Name of SMU attached to the gate electrode of an FET.
+        :param smu_drain: Name of SMU attached to the drain electrode of an FET.
         :param float vg_start: Start voltage of transfer sweep in Volts.
         :param float vg_stop: End voltage of transfer sweep in Volts.
         :param float vg_step: Voltage step size for transfer sweep in Volts.
@@ -1279,7 +1262,8 @@ class CustomXepr(QtCore.QObject):
         :param bool pulsed: True or False for pulsed or continuous measurements.
         :param str path: File path to save transfer curve data as .txt file.
 
-        :return: A :class:`TransistorSweepData` instance.
+        :returns: Transfer curve data.
+        :rtype: :class:`keithley2600.TransistorSweepData`
         """
 
         if not self._check_for_keithley():
@@ -1308,13 +1292,11 @@ class CustomXepr(QtCore.QObject):
                           pulsed=K_CONF.get('Sweep', 'pulsed'),
                           path=None):
         """
-        Records an output curve and saves the results in a TransistorSweepData
-        instance.
+        Records an output curve and returns the resulting data. If a valid
+        path is given, the data is also saved as a .txt file.
 
-        :param smu_gate: SMU attached to gate electrode of FET for transfer
-            measurement (keithley smu object).
-        :param smu_drain: SMU attached to drain electrode of FET for transfer
-            measurement (keithley smu object).
+        :param smu_gate: Name of SMU attached to the gate electrode of an FET.
+        :param smu_drain: Name of SMU attached to the drain electrode of an FET.
         :param float vd_start: Start voltage of output sweep in Volts .
         :param float vd_stop: End voltage of output sweep in Volts.
         :param float vd_step: Voltage step size for output sweep in Volts.
@@ -1325,7 +1307,8 @@ class CustomXepr(QtCore.QObject):
         :param bool pulsed: True or False for pulsed or continuous measurements.
         :param str path: File path to save output curve data as .txt file.
 
-        :return: A :class:`TransistorSweepData` instance.
+        :returns: Output curve data.
+        :rtype: :class:`keithley2600.TransistorSweepData`
         """
 
         if not self._check_for_keithley():
@@ -1348,7 +1331,7 @@ class CustomXepr(QtCore.QObject):
         Sets the gate bias of the given keithley, grounds other SMUs.
 
         :param float vg: Gate voltage in Volts.
-        :param str smu_gate: Name of SMU. Defaults to value saved in keithley preferences.
+        :param str smu_gate: Name of SMU. Defaults to the SMU saved as gate.
         """
 
         if not self._check_for_keithley():
@@ -1368,8 +1351,13 @@ class CustomXepr(QtCore.QObject):
             self.keithley.reset()
 
     @queued_exec(job_queue)
-    def applyDrainCurrent(self, i, smu=K_CONF.get('Sweep', 'drain')):
-        """Applies a specified current to the selected Keithley SMU."""
+    def applyDrainCurrent(self, id, smu=K_CONF.get('Sweep', 'drain')):
+        """
+        Applies a specified current to the selected Keithley SMU.
+
+        :param float id: Drain current in Ampere.
+        :param str smu: Name of SMU. Defaults to the SMU saved as drain.
+        """
 
         if not self._check_for_keithley():
             return

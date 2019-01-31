@@ -1,9 +1,5 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
 """
-Created on Tue Aug 23 20:19:41 2016
-
-@author: Sam Schott (ss2151@cam.ac.uk)
+@author: Sam Schott  (ss2151@cam.ac.uk)
 
 (c) Sam Schott; This work is licensed under a Creative Commons
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.

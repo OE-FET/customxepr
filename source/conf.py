@@ -17,10 +17,11 @@ import sys
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../customxepr'))
 sys.path.insert(0, os.path.abspath('../screenshots'))
+print(sys.path)
 
 # -- Project information -----------------------------------------------------
 
-project = 'customxepr'
+project = 'CustomXepr'
 copyright = '2019, Sam Schott'
 author = 'Sam Schott'
 
@@ -57,7 +58,7 @@ templates_path = ['_templates']
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-source_suffix = ['.rst', '.md', '.png']
+source_suffix = ['.rst', '.md']
 
 # The master toctree document.
 master_doc = 'index'
@@ -84,12 +85,14 @@ autodoc_member_order = 'bysource'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'  # previously 'alabaster'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-html_theme_options = {'page_width': '900pt'}
+
+# html_theme_options = {'page_width': '900pt'}
+html_logo = 'resources/logo.png'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -137,7 +140,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'customxepr.tex', 'customxepr Documentation',
+    (master_doc, 'CustomXepr.tex', 'CustomXepr Documentation',
      'Sam Schott', 'manual'),
 ]
 
@@ -147,7 +150,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'customxepr', 'customxepr Documentation',
+    (master_doc, 'CustomXepr', 'CustomXepr Documentation',
      [author], 1)
 ]
 
@@ -158,8 +161,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'customxepr', 'customxepr Documentation',
-     author, 'customxepr', 'One line description of project.',
+    (master_doc, 'CustomXepr', 'CustomXepr Documentation',
+     author, 'CustomXepr', 'One line description of project.',
      'Miscellaneous'),
 ]
 

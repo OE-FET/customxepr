@@ -1,9 +1,5 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
 """
-Created on Wed Jan  23 14:03:29 2019
-
-@author: SamSchott
+@author: Sam Schott  (ss2151@cam.ac.uk)
 
 (c) Sam Schott; This work is licensed under a Creative Commons
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
@@ -69,7 +65,7 @@ class Experiment(object):
         """
         Returns the status of the job.
 
-        :return: Experiment status of type :class:`ExpStatus`.
+        :returns: Experiment status of type :class:`ExpStatus`.
         """
         return self._status
 
@@ -134,14 +130,15 @@ class SignalQueue(QtCore.QObject, Queue):
 
 class ExperimentQueue(QtCore.QObject):
     """
-    Queue to hold all jobs: Pending, running and already completed.
+    Queue to hold all jobs: Pending, running and already completed. Items in
+    this queue should be of type :class:`Experiment`.
 
     :cvar added_signal: Emitted when a new job is added to the queue.
     :cvar removed_signal: Emitted when a job is removed from the queue.
         Carriers the index of the job in :class:`ExperimentQueue`.
     :cvar status_changed_signal: Emitted when a job status changes, e.g.,
-        from `ExpStatus.QUEUED` to `ExpStatus.RUNNING`. Carries a tuple
-        holding the job index and status.
+        from :class:`ExpStatus.QUEUED` to :class:`ExpStatus.RUNNING`. Carries
+        a tuple holding the job index and status.
     """
 
     added_signal = QtCore.Signal()
@@ -166,8 +163,8 @@ class ExperimentQueue(QtCore.QObject):
 
     def put(self, exp):
         """
-        Adds item `exp` to the end of the queue. Its status must be `QUEUED`.
-        Emits the `added_signal` signal.
+        Adds item `exp` to the end of the queue. Its status must be
+        :class:`ExpStatus.QUEUED`. Emits the :attr:`added_signal` signal.
         """
         if not exp.status == ExpStatus.QUEUED:
             raise ValueError('Can only append experiments with status "QUEUED".')
@@ -177,9 +174,10 @@ class ExperimentQueue(QtCore.QObject):
 
     def next_job(self):
         """
-        Returns the next item with status `ExpStatus.QUEUED` and flags it as running.
-        If there are no items with status `ExpStatus.QUEUED`, `queue.Empty` is raised.
-        Emits the `status_changed_signal` with the item's index and its new status.
+        Returns the next item with status :class:`ExpStatus.QUEUED` and flags it as
+        running. If there are no items with status :class:`ExpStatus.QUEUED`,
+        :class:`queue.Empty` is raised. Emits the :attr:`status_changed_signal`
+        with the item's index and its new status.
         """
         with self._lock:
             exp = self._queued.get_nowait()
@@ -196,7 +194,7 @@ class ExperimentQueue(QtCore.QObject):
         the corresponding item's status to `exit_status` and its result to `result`.
         Emits the `status_changed_signal` with the item's index and its new status.
 
-        :param exit_status: Status of the completed job, i.e., `ExpStatus.ABORTED`.
+        :param exit_status: Status of the completed job, i.e., :class:`ExpStatus.ABORTED`.
         :param result: Return value of job, if available.
         """
 
@@ -211,9 +209,9 @@ class ExperimentQueue(QtCore.QObject):
 
     def remove_item(self, i):
         """
-        Removes the item with index `i` from the queue. Raises a `ValueError` if
-        the item belongs to a running or already completed job. Emits the
-        `removed_signal` carrying the index.
+        Removes the item with index `i` from the queue. Raises a :class:`ValueError`
+        if the item belongs to a running or already completed job. Emits the
+        :attr:`removed_signal` carrying the index.
 
         :param int i: Index of item to remove.
         """
@@ -270,14 +268,14 @@ class ExperimentQueue(QtCore.QObject):
 
 class Worker(QtCore.QObject):
     """
-    Worker that gets all method calls with args from job_q and executes them.
-    Results are then stored in the `result_q`.
+    Worker that gets all method calls with args from :attr:`job_q` and executes
+    them. Results are then stored in the :attr:`result_q`.
 
     :param job_q: Queue with jobs to be performed.
     :param result_q: Queue with results from completed jobs.
     :param running: Event that causes the worker to pause between jobs if set.
     :param abort: Event that tells a job to abort if set. After a job has
-        been aborted, Worker will clear the `abort` event.
+        been aborted, Worker will clear the :attr:`abort` event.
 
     """
 

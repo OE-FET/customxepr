@@ -1,9 +1,5 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
 """
-Created on Sun Jun  4 14:03:29 2017
-
-@author: SamSchott
+@author: Sam Schott  (ss2151@cam.ac.uk)
 
 (c) Sam Schott; This work is licensed under a Creative Commons
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
@@ -11,7 +7,6 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 """
 from __future__ import division, absolute_import
 import math
-import re
 import numpy as np
 from lmfit import Model
 from lmfit.models import PolynomialModel
@@ -77,7 +72,7 @@ class ModePicture(object):
         :param int zf: Zoom factor, i.e., scaling factor of x-axis. Typically is 1, 2, 4,
             or 8.
         :param int x0: Center of axis corresponding to `freq0`.
-        :return: X-axis of mode picture in MHz.
+        :returns: X-axis of mode picture in MHz.
         :rtype: np.array
         """
         x_axis_points = np.arange(0, n_points)
@@ -282,14 +277,15 @@ class ModePicture(object):
 
             x_axis_points_comb = 2 / 1e-3 * x_axis_mhz_comb
 
-            linestring = None
+            freq = None
             with open(filepath, 'r') as fh:
                 for line in fh:
                     if 'GHz' in line:
-                        linestring = line
-            if linestring:
-                freq = re.findall("\d+\.\d+", linestring)
-            else:
+                        freq = list(filter(lambda x: x in '0123456789.', line))
+                        freq = ''.join(freq)
+                        break
+
+            if freq is None:
                 raise RuntimeError('Could not find frequency information.')
 
             freq0 = float(freq[0])
