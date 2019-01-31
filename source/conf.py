@@ -16,7 +16,17 @@ import os
 import sys
 import mock
 
-MOCK_MODULES = ['PyQt5', 'qtpy']
+MOCK_MODULES = ['qtpy']
+
+class PyQt5:
+    @staticmethod
+    def qVersion():
+        return '5.0.0'
+    class QtCore:
+        class QObject:
+            pass
+
+sys.modules['PyQt5'] = PyQt5
 sys.modules.update((mod_name, mock.MagicMock()) for mod_name in MOCK_MODULES)
 
 sys.path.insert(0, os.path.abspath('.'))
