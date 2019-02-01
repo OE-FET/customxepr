@@ -35,7 +35,7 @@ except ImportError:
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'
 __year__ = str(time.localtime().tm_year)
 __version__ = 'v2.2.1'
-__url__ = 'https://customxepr.readthedocs.io/'
+__url__ = 'https://oe-fet.github.io/customxepr'
 
 PY2 = sys.version[0] == '2'
 
