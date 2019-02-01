@@ -872,7 +872,7 @@ class CustomXepr(QtCore.QObject):
         newline = '\n'
 
         time_str = time.strftime('%Y-%m-%d %H:%M')
-        line = delim.join([time_str, temperature, qvalue, qvalue_stderr, newline])
+        line = delim.join([time_str, str(temperature), qvalue, qvalue_stderr, newline])
 
         if os.path.isfile(path):
             with open(path, 'a') as f:
