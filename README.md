@@ -183,4 +183,5 @@ In this code, all functions belonging to CustomXepr will be added to the job que
 - pyserial (only when using pyvisa-py backend)
 
 ## Acknowledgements
-Config modules are based on the implementation from [Spyder](https://github.com/spyder-ide). Scientific spin boxes to enter values with units are taken from [qudi](https://github.com/Ulm-IQO/qudi).
+- Config modules are based on the implementation from [Spyder](https://github.com/spyder-ide).
+- Scientific spin boxes are taken from [qudi](https://github.com/Ulm-IQO/qudi).
