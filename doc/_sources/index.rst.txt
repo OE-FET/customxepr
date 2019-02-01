@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to CustomXepr' Documentation
-====================================
+Welcome to CustomXepr's Documentation
+=====================================
 
 This documentation provides both a tutorial-like introduction to CustomXepr and
 a detailed reference of the API (currently only non-GUI classes):
