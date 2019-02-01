@@ -1,0 +1,312 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Changelog &mdash; CustomXepr 2.2.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Mode Picture Class" href="api/mode_picture.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> CustomXepr
+          
+
+          
+            
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">Modules</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#v2-2-1-2019-01-25">v2.2.1 (2019-01-25)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#v2-2-0-2019-01-09">v2.2.0 (2019-01-09)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#v2-1-1">v2.1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#v2-1-0">v2.1.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#v2-0-1">v2.0.1</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">CustomXepr</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Changelog</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/changelog.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="changelog">
+<h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="v2-2-1-2019-01-25">
+<h2>v2.2.1 (2019-01-25)<a class="headerlink" href="#v2-2-1-2019-01-25" title="Permalink to this headline">¶</a></h2>
+<p><em>Added</em>:</p>
+<ul class="simple">
+<li>Job history now remains visible together with icons indicating the job status.</li>
+<li>Documentation is now available at <a class="reference external" href="https://customxepr.readthedocs.io">https://customxepr.readthedocs.io</a>.</li>
+</ul>
+<p><em>Changed</em>:</p>
+<ul class="simple">
+<li>Switched from custom TslSMTPHandler to python-bundled SMTPHandler for email
+notifications.</li>
+<li>Improved docstrings.</li>
+</ul>
+</div>
+<div class="section" id="v2-2-0-2019-01-09">
+<h2>v2.2.0 (2019-01-09)<a class="headerlink" href="#v2-2-0-2019-01-09" title="Permalink to this headline">¶</a></h2>
+<p><em>Added:</em></p>
+<ul class="simple">
+<li>Added terminal / command line script “CustomXepr”.</li>
+<li>Added confidence interval for Q-value calculation in ModePicture class.</li>
+<li>Window positions and sizes are saved and restored between sessions.</li>
+<li>Show errors during job excecution in GUI in addition to email notifications.</li>
+<li>Nicely colored tracebacks for error messages.</li>
+</ul>
+<p><em>Changed:</em></p>
+<ul class="simple">
+<li>CustomXepr is now distributed as a python package and can be installed with
+pip.</li>
+</ul>
+<p><em>Fixed:</em></p>
+<ul class="simple">
+<li>Fixed a bug that could result in values inside spin-boxes to be displayed
+without their decimal marker on some systems.</li>
+<li>Fixed a bug that could result in crashes after closing the keithley or
+mercury control windows.</li>
+</ul>
+<p><em>Removed:</em></p>
+<ul class="simple">
+<li>Removed all ETA estimates for experiments.</li>
+</ul>
+</div>
+<div class="section" id="v2-1-1">
+<h2>v2.1.1<a class="headerlink" href="#v2-1-1" title="Permalink to this headline">¶</a></h2>
+<p><em>Added:</em></p>
+<ul class="simple">
+<li>Included revamped keithleygui with IV sweep functionality.</li>
+<li>Compatability with Python 3.6 and higher.</li>
+</ul>
+<p><em>Changed:</em></p>
+<ul class="simple">
+<li>Proper disconnection from instruments when closing windows or shutting down
+the console with “exit” command.</li>
+</ul>
+<p><em>Fixed:</em></p>
+<ul class="simple">
+<li>Fixed a bug that would prevent Xepr experiments to run if the measurement
+time cannot be estimated. Applies for instance to rapid scan and time domain
+measurements where proper ETA estimates have not yet been implemented.</li>
+</ul>
+</div>
+<div class="section" id="v2-1-0">
+<h2>v2.1.0<a class="headerlink" href="#v2-1-0" title="Permalink to this headline">¶</a></h2>
+<p><em>Added:</em></p>
+<ul class="simple">
+<li>Warnings when invalid file paths are handed to Xepr.</li>
+</ul>
+<p><em>Changed:</em></p>
+<ul class="simple">
+<li>Split off mercury_gui and keithley_gui as separate packages.</li>
+</ul>
+<p><em>Removed:</em></p>
+<ul class="simple">
+<li>Removed dark theme: code is easier to maintain. System level dark themes,
+such as macOS Mojave’s dark mode, may be supported in the future when Qt
+support is added.</li>
+</ul>
+</div>
+<div class="section" id="v2-0-1">
+<h2>v2.0.1<a class="headerlink" href="#v2-0-1" title="Permalink to this headline">¶</a></h2>
+<p><em>Changed:</em></p>
+<ul class="simple">
+<li>Moved default driver backends from NI-VISA to pyvisa-py. It is no longer
+necessary to install NI-VISA from National Instruments on your system.</li>
+<li>Moved drivers to external packages. Install with pip before first use.</li>
+<li>Improved data plotting in Mercury user interface:<ul>
+<li>heater output and gasflow are plotted alongside the temperature</li>
+<li>major speedups in plotting framerate by relying on numpy for updating the
+data and redrawing only changed elements of plot widget</li>
+<li>allow real-time panning and zooming of plots</li>
+</ul>
+</li>
+<li>Started working on Python 3 compatability.</li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="api/mode_picture.html" class="btn btn-neutral" title="Mode Picture Class" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Sam Schott
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

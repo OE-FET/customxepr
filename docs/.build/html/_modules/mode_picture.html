@@ -1,0 +1,498 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>mode_picture &mdash; CustomXepr 2.2.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> CustomXepr
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">CustomXepr</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>mode_picture</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for mode_picture</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">@author: Sam Schott  (ss2151@cam.ac.uk)</span>
+
+<span class="sd">(c) Sam Schott; This work is licensed under a Creative Commons</span>
+<span class="sd">Attribution-NonCommercial-NoDerivs 2.0 UK: England &amp; Wales License.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">lmfit</span> <span class="k">import</span> <span class="n">Model</span>
+<span class="kn">from</span> <span class="nn">lmfit.models</span> <span class="k">import</span> <span class="n">PolynomialModel</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+
+<div class="viewcode-block" id="lorentz_peak"><a class="viewcode-back" href="../api/mode_picture.html#mode_picture.lorentz_peak">[docs]</a><span class="k">def</span> <span class="nf">lorentz_peak</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Lorentzian with area `a`, full-width-at-half-maximum `w`, and center `x0`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">numerator</span> <span class="o">=</span> <span class="mi">2</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">w</span>
+    <span class="n">denominator</span> <span class="o">=</span> <span class="mi">4</span><span class="o">*</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">x0</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">w</span><span class="o">**</span><span class="mi">2</span>
+    <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="n">numerator</span> <span class="o">/</span> <span class="n">denominator</span></div>
+
+
+<div class="viewcode-block" id="ModePicture"><a class="viewcode-back" href="../api/mode_picture.html#mode_picture.ModePicture">[docs]</a><span class="k">class</span> <span class="nc">ModePicture</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to store mode pictures. It provides methods to calculate Q-values,</span>
+<span class="sd">    and save and load mode picture data from and to .txt files.</span>
+
+<span class="sd">    If several mode pictures with different zoom factors are given,</span>
+<span class="sd">    :class:`ModePicture` will rescale and combine the data into a single mode</span>
+<span class="sd">    picture.</span>
+
+<span class="sd">    :param dict mode_pic_data: Dict with zoom factors as keys and respective mode picture</span>
+<span class="sd">        curves as values.</span>
+<span class="sd">    :param float freq: Cavity resonance frequency in GHz as float.</span>
+
+<span class="sd">    :ivar x_data_mhz: Numpy array with x-axis data of mode picture in MHz.</span>
+<span class="sd">    :ivar x_data_points: Numpy array with x-axis data of mode picture in pts.</span>
+<span class="sd">    :ivar y_data: Mode picture y-axis data (absorption of cavity).</span>
+<span class="sd">    :ivar freq0: Center frequency of cavity resonance.</span>
+<span class="sd">    :ivar qvalue: Fitted Q-Value.</span>
+<span class="sd">    :ivar qvalue_stderr: Standard error of Q-Value from fitting.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode_pic_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mf">9.385</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">mode_pic_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x_data_mhz</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_data_points</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mode_pic_data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;&quot;mode_pic_data&quot; must be a dictionary containing &#39;</span> <span class="o">+</span>
+                                <span class="s1">&#39;mode pictures for with different zoom factors.&#39;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">mode_pic_data</span> <span class="o">=</span> <span class="n">mode_pic_data</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">freq0</span> <span class="o">=</span> <span class="n">freq</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">zoom_factors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">mode_pic_data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x_data_mhz</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_data_points</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">combine_data</span><span class="p">(</span><span class="n">mode_pic_data</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">qvalue</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_qvalue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data_points</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qvalue_stderr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_qvalue_stderr</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_points_to_mhz</span><span class="p">(</span><span class="n">n_points</span><span class="p">,</span> <span class="n">zf</span><span class="p">,</span> <span class="n">x0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Converts an x-axis from points to MHz according to the mode picture&#39;s zoom factor.</span>
+
+<span class="sd">        :param int n_points: Number of data points in mode picture.</span>
+<span class="sd">        :param int zf: Zoom factor, i.e., scaling factor of x-axis. Typically is 1, 2, 4,</span>
+<span class="sd">            or 8.</span>
+<span class="sd">        :param int x0: Center of axis corresponding to `freq0`.</span>
+<span class="sd">        :returns: X-axis of mode picture in MHz.</span>
+<span class="sd">        :rtype: np.array</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x_axis_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_points</span><span class="p">)</span>
+        <span class="n">x_axis_mhz</span> <span class="o">=</span> <span class="mf">1e-3</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">zf</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x_axis_points</span> <span class="o">-</span> <span class="n">x0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">x_axis_mhz</span>
+
+<div class="viewcode-block" id="ModePicture.combine_data"><a class="viewcode-back" href="../api/mode_picture.html#mode_picture.ModePicture.combine_data">[docs]</a>    <span class="k">def</span> <span class="nf">combine_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode_pic_data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Rescales mode pictures from different zoom factors and combines them to one.</span>
+
+<span class="sd">        :param dict mode_pic_data: Dict with zoom factors as keys and</span>
+<span class="sd">            respective mode picture curves as values.</span>
+<span class="sd">        :returns: `(x_axis_mhz_comb, x_axis_points_comb, mode_pic_comb)` where</span>
+<span class="sd">            `x_axis_mhz_comb` and `x_axis_points_comb` are the combined x-axis</span>
+<span class="sd">            values of all mode pictures in mhz and points, respectively, and</span>
+<span class="sd">            `mode_pic_comb` is the combines y-axis data in a.u..</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n_points</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mode_pic_data</span><span class="o">.</span><span class="n">values</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">x_axis_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_points</span><span class="p">)</span>
+
+        <span class="n">x_axis_mhz</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># rescale x-axes according to zoom factor</span>
+        <span class="k">for</span> <span class="n">zf</span> <span class="ow">in</span> <span class="n">mode_pic_data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">q_value</span><span class="p">,</span> <span class="n">fit_rslt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_qvalue</span><span class="p">(</span><span class="n">x_axis_points</span><span class="p">,</span> <span class="n">mode_pic_data</span><span class="p">[</span><span class="n">zf</span><span class="p">],</span> <span class="n">zf</span><span class="p">)</span>
+            <span class="n">x_axis_mhz</span><span class="p">[</span><span class="n">zf</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points_to_mhz</span><span class="p">(</span><span class="n">n_points</span><span class="p">,</span> <span class="n">zf</span><span class="p">,</span> <span class="n">fit_rslt</span><span class="o">.</span><span class="n">best_values</span><span class="p">[</span><span class="s1">&#39;x0&#39;</span><span class="p">])</span>
+
+        <span class="c1"># combine data from all zoom factors</span>
+        <span class="n">x_axis_mhz_comb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">x_axis_mhz</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">mode_pic_comb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">mode_pic_data</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+        <span class="c1"># sort arrays in order of ascending frequency</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">x_axis_mhz_comb</span><span class="p">)</span>
+        <span class="n">x_axis_mhz_comb</span> <span class="o">=</span> <span class="n">x_axis_mhz_comb</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+        <span class="n">mode_pic_comb</span> <span class="o">=</span> <span class="n">mode_pic_comb</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+        <span class="n">x_axis_points_comb</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">/</span> <span class="mf">1e-3</span> <span class="o">*</span> <span class="n">x_axis_mhz_comb</span>
+
+        <span class="k">return</span> <span class="n">x_axis_mhz_comb</span><span class="p">,</span> <span class="n">x_axis_points_comb</span><span class="p">,</span> <span class="n">mode_pic_comb</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_fit_starting_points</span><span class="p">(</span><span class="n">x_data</span><span class="p">,</span> <span class="n">y_data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns plausible starting points for least square Lorentzian fit.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># find center dip</span>
+        <span class="n">peak_center</span> <span class="o">=</span> <span class="n">x_data</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">y_data</span><span class="p">)]</span>
+
+        <span class="c1"># find baseline height</span>
+        <span class="n">interval</span> <span class="o">=</span> <span class="mf">0.25</span>
+        <span class="n">n_points</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_data</span><span class="p">)</span>
+        <span class="n">bs1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y_data</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="nb">int</span><span class="p">(</span><span class="n">n_points</span> <span class="o">*</span> <span class="n">interval</span><span class="p">)])</span>
+        <span class="n">bs2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y_data</span><span class="p">[</span><span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="n">n_points</span> <span class="o">*</span> <span class="n">interval</span><span class="p">):</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">baseline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">bs1</span><span class="p">,</span> <span class="n">bs2</span><span class="p">])</span>
+
+        <span class="c1"># find peak area</span>
+        <span class="n">peak_height</span> <span class="o">=</span> <span class="n">baseline</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">y_data</span><span class="p">)</span>
+        <span class="n">peak_index</span> <span class="o">=</span> <span class="p">(</span><span class="n">y_data</span> <span class="o">&lt;</span> <span class="n">peak_height</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">y_data</span><span class="p">))</span>
+        <span class="n">fwhm</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">x_data</span><span class="p">[</span><span class="n">peak_index</span><span class="p">])</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">x_data</span><span class="p">[</span><span class="n">peak_index</span><span class="p">]),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">peak_area</span> <span class="o">=</span> <span class="n">peak_height</span> <span class="o">*</span> <span class="n">fwhm</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span>
+
+        <span class="k">return</span> <span class="n">peak_center</span><span class="p">,</span> <span class="n">fwhm</span><span class="p">,</span> <span class="n">peak_area</span>
+
+<div class="viewcode-block" id="ModePicture.fit_qvalue"><a class="viewcode-back" href="../api/mode_picture.html#mode_picture.ModePicture.fit_qvalue">[docs]</a>    <span class="k">def</span> <span class="nf">fit_qvalue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_data</span><span class="p">,</span> <span class="n">y_data</span><span class="p">,</span> <span class="n">zoom_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Least square fit of Lorentzian and polynomial background to mode picture.</span>
+
+<span class="sd">        :param x_data: Iterable containing x-data of mode picture in points.</span>
+<span class="sd">        :param y_data: Iterable containing y-data of mode picture in a.u..</span>
+<span class="sd">        :param zoom_factor: Zoom factor (scaling factor of x-axis).</span>
+<span class="sd">        :returns: (q_value, fit_result) where `fit_result` is a</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get first guess parameters for Lorentzian fit</span>
+        <span class="n">peak_center</span><span class="p">,</span> <span class="n">fwhm</span><span class="p">,</span> <span class="n">peak_area</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_fit_starting_points</span><span class="p">(</span><span class="n">x_data</span><span class="p">,</span> <span class="n">y_data</span><span class="p">)</span>
+
+        <span class="c1"># set up fit models for polynomial background and Lorentzian dip</span>
+        <span class="n">pmod</span> <span class="o">=</span> <span class="n">PolynomialModel</span><span class="p">(</span><span class="n">degree</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+        <span class="n">lmodel</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="n">lorentz_peak</span><span class="p">)</span>
+
+        <span class="n">mode_picture_model</span> <span class="o">=</span> <span class="n">pmod</span> <span class="o">-</span> <span class="n">lmodel</span>
+
+        <span class="c1"># isolate back ground area from resonance dip</span>
+        <span class="n">idx1</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">((</span><span class="n">x_data</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">peak_center</span> <span class="o">-</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">fwhm</span><span class="p">)))</span>
+        <span class="n">idx2</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">((</span><span class="n">x_data</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">peak_center</span> <span class="o">+</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">fwhm</span><span class="p">)))</span>
+
+        <span class="n">x_bg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">x_data</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">idx1</span><span class="p">],</span> <span class="n">x_data</span><span class="p">[</span><span class="o">-</span><span class="n">idx2</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">y_bg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">y_data</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">idx1</span><span class="p">],</span> <span class="n">y_data</span><span class="p">[</span><span class="o">-</span><span class="n">idx2</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="c1"># get first guess parameters for background</span>
+        <span class="n">pars</span> <span class="o">=</span> <span class="n">pmod</span><span class="o">.</span><span class="n">guess</span><span class="p">(</span><span class="n">y_bg</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">x_bg</span><span class="p">)</span>
+
+        <span class="c1"># add fit parameters for Lorentzian resonance dip</span>
+        <span class="n">pars</span><span class="o">.</span><span class="n">add_many</span><span class="p">((</span><span class="s1">&#39;x0&#39;</span><span class="p">,</span> <span class="n">peak_center</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                      <span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">fwhm</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                      <span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">peak_area</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+
+        <span class="c1"># perform full fit</span>
+        <span class="n">fit_result</span> <span class="o">=</span> <span class="n">mode_picture_model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">y_data</span><span class="p">,</span> <span class="n">pars</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">x_data</span><span class="p">)</span>
+
+        <span class="c1"># calculate Q-value from resonance width</span>
+        <span class="n">delta_freq</span> <span class="o">=</span> <span class="n">fit_result</span><span class="o">.</span><span class="n">best_values</span><span class="p">[</span><span class="s1">&#39;w&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mf">1e-3</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">zoom_factor</span><span class="p">)</span>
+        <span class="n">q_value</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">freq0</span> <span class="o">/</span> <span class="n">delta_freq</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">q_value</span><span class="p">,</span> <span class="n">fit_result</span></div>
+
+<div class="viewcode-block" id="ModePicture.get_qvalue_stderr"><a class="viewcode-back" href="../api/mode_picture.html#mode_picture.ModePicture.get_qvalue_stderr">[docs]</a>    <span class="k">def</span> <span class="nf">get_qvalue_stderr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Determines 1 sigma confidence bounds for Q-value.</span>
+
+<span class="sd">        :returns: Standard error of Q-value from fitting.</span>
+<span class="sd">        :rtype: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">delta_freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_result</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;w&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">*</span> <span class="mf">1e-3</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">delta_freq_stderr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_result</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;w&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">stderr</span> <span class="o">*</span> <span class="mf">1e-3</span> <span class="o">/</span> <span class="mi">2</span>
+
+        <span class="n">qvalue_stderr</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">freq0</span> <span class="o">/</span> <span class="n">delta_freq</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">delta_freq_stderr</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">qvalue_stderr</span></div>
+
+<div class="viewcode-block" id="ModePicture.plot"><a class="viewcode-back" href="../api/mode_picture.html#mode_picture.ModePicture.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plots mode picture and the least squares fit used to determine the Q-value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">comps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_result</span><span class="o">.</span><span class="n">eval_components</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data_points</span><span class="p">)</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_result</span><span class="o">.</span><span class="n">best_values</span><span class="p">[</span><span class="s1">&#39;c0&#39;</span><span class="p">]</span>
+
+        <span class="n">yfit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_result</span><span class="o">.</span><span class="n">best_fit</span>
+        <span class="n">lz</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">-</span> <span class="n">comps</span><span class="p">[</span><span class="s1">&#39;lorentz_peak&#39;</span><span class="p">]</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data_mhz</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_data</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#2980B9&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Mode picture&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data_mhz</span><span class="p">,</span> <span class="n">lz</span><span class="p">,</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#000000&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Cavity dip&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data_mhz</span><span class="p">,</span> <span class="n">yfit</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#C70039&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Total fit&#39;</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Microwave frequency [MHz]&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Microwave absorption [a.u.]&#39;</span><span class="p">)</span>
+
+        <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ModePicture.save"><a class="viewcode-back" href="../api/mode_picture.html#mode_picture.ModePicture.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Saves mode picture data as a text file with headers. If no file path</span>
+<span class="sd">        is given, the user is prompted to select a location and name through a</span>
+<span class="sd">        user interface.</span>
+
+<span class="sd">        :param str filepath: Absolute file path.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># create header and title for file</span>
+        <span class="n">time_str</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%H:%M, </span><span class="si">%d</span><span class="s1">/%m/%Y&#39;</span><span class="p">)</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Cavity mode picture, recorded at </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span>
+                 <span class="s1">&#39;Center frequency =  </span><span class="si">%0.3f</span><span class="s1"> GHz</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">time_str</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq0</span><span class="p">))</span>
+
+        <span class="n">header</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;freq [MHz]&#39;</span><span class="p">,</span> <span class="s1">&#39;MW abs. [a.u.]&#39;</span><span class="p">]</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+
+        <span class="n">data_matrix</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data_mhz</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_data</span><span class="p">]</span>
+        <span class="n">data_matrix</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">data_matrix</span><span class="p">)</span>
+
+        <span class="c1"># save to file</span>
+        <span class="k">if</span> <span class="n">filepath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">qtpy</span> <span class="k">import</span> <span class="n">QtWidgets</span>
+            <span class="n">prompt</span> <span class="o">=</span> <span class="s1">&#39;Save as file&#39;</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;untitled.txt&#39;</span>
+            <span class="n">formats</span> <span class="o">=</span> <span class="s1">&#39;Text file (*.txt)&#39;</span>
+            <span class="n">filepath</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">getSaveFileName</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">prompt</span><span class="p">,</span>
+                                                             <span class="n">filename</span><span class="p">,</span> <span class="n">formats</span><span class="p">)</span>
+            <span class="n">filepath</span> <span class="o">=</span> <span class="n">filepath</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="c1"># noinspection PyTypeChecker</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">data_matrix</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%.9E</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span>
+                       <span class="n">header</span><span class="o">=</span><span class="n">title</span><span class="o">+</span><span class="n">header</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">filepath</span></div>
+
+<div class="viewcode-block" id="ModePicture.load"><a class="viewcode-back" href="../api/mode_picture.html#mode_picture.ModePicture.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads mode picture data from text file. If no file path is given, the</span>
+<span class="sd">        user is prompted to select a location and name through a user interface.</span>
+
+<span class="sd">        :param str filepath: Absolute file path.</span>
+<span class="sd">        :returns: `(x_axis_mhz_comb, x_axis_points_comb, mode_pic_comb, freq0)`</span>
+<span class="sd">            where `x_axis_mhz_comb` and `x_axis_points_comb` are the combined</span>
+<span class="sd">            x-axis values of all mode pictures in mhz and points, respectively,</span>
+<span class="sd">            `mode_pic_comb` is the combines y-axis data in a.u. and `freq0` is</span>
+<span class="sd">            the center resonance frequency.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">filepath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">qtpy</span> <span class="k">import</span> <span class="n">QtWidgets</span>
+            <span class="n">prompt</span> <span class="o">=</span> <span class="s1">&#39;Select mode picture file&#39;</span>
+            <span class="n">filepath</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">getOpenFileName</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">prompt</span><span class="p">)</span>
+            <span class="n">filepath</span> <span class="o">=</span> <span class="n">filepath</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">data_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+            <span class="n">x_axis_mhz_comb</span> <span class="o">=</span> <span class="n">data_matrix</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="n">mode_pic_comb</span> <span class="o">=</span> <span class="n">data_matrix</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+
+            <span class="n">x_axis_points_comb</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">/</span> <span class="mf">1e-3</span> <span class="o">*</span> <span class="n">x_axis_mhz_comb</span>
+
+            <span class="n">freq</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fh</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s1">&#39;GHz&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                        <span class="n">freq</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="ow">in</span> <span class="s1">&#39;0123456789.&#39;</span><span class="p">,</span> <span class="n">line</span><span class="p">))</span>
+                        <span class="n">freq</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
+                        <span class="k">break</span>
+
+            <span class="k">if</span> <span class="n">freq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Could not find frequency information.&#39;</span><span class="p">)</span>
+
+            <span class="n">freq0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+            <span class="k">return</span> <span class="n">x_axis_mhz_comb</span><span class="p">,</span> <span class="n">x_axis_points_comb</span><span class="p">,</span> <span class="n">mode_pic_comb</span><span class="p">,</span> <span class="n">freq0</span></div>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;&lt;</span><span class="si">{0}</span><span class="s1">(QValue = </span><span class="si">{1}</span><span class="s1">+/-</span><span class="si">{2}</span><span class="s1">, freq = </span><span class="si">{3}</span><span class="s1">GHz)&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">qvalue</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">qvalue_stderr</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">freq0</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span></div>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Sam Schott
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -11,13 +11,11 @@
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
+#
+# import os
+# import sys
+# sys.path.insert(0, os.path.abspath('.'))
 
-import os
-import sys
-
-sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.abspath('../customxepr'))
-sys.path.insert(0, os.path.abspath('../screenshots'))
 
 # -- Project information -----------------------------------------------------
 
@@ -28,7 +26,7 @@ author = 'Sam Schott'
 # The short X.Y version
 version = ''
 # The full version, including alpha/beta/rc tags
-release = '2.2.1'
+release = 'v2.2.1'
 
 
 # -- General configuration ---------------------------------------------------
@@ -49,7 +47,6 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
-    'm2r'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -58,7 +55,8 @@ templates_path = ['_templates']
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-source_suffix = ['.rst', '.md']
+# source_suffix = ['.rst', '.md']
+source_suffix = '.rst'
 
 # The master toctree document.
 master_doc = 'index'
@@ -73,26 +71,24 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None
 
-# the order of member documentations
-autodoc_member_order = 'bysource'
 
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'sphinx_rtd_theme'  # previously 'alabaster'
+#
+html_theme = 'alabaster'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-
-# html_theme_options = {'page_width': '900pt'}
-html_logo = 'logo.png'
+#
+# html_theme_options = {}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -113,7 +109,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'customxeprdoc'
+htmlhelp_basename = 'CustomXeprdoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -150,7 +146,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'CustomXepr', 'CustomXepr Documentation',
+    (master_doc, 'customxepr', 'CustomXepr Documentation',
      [author], 1)
 ]
 
