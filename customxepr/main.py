@@ -856,10 +856,10 @@ class CustomXepr(QtCore.QObject):
         if path is None:
             pass
         elif os.path.isdir(path):
-            path = os.path.join(path, 'QValues.txt')
-            self._saveQValue2File(temperature, mp.qvalue, mp.qvalue_stderr, path)
-            path = os.path.join(path, 'ModePicture{0:03d}K.txt'.format(int(temperature)))
-            mp.save(path)
+            path1 = os.path.join(path, 'QValues.txt')
+            self._saveQValue2File(temperature, mp.qvalue, mp.qvalue_stderr, path1)
+            path2 = os.path.join(path, 'ModePicture{0:03d}K.txt'.format(int(temperature)))
+            mp.save(path2)
 
         self.wait = wait_old
 
