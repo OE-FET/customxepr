@@ -869,11 +869,11 @@ class CustomXepr(QtCore.QObject):
     def _saveQValue2File(temperature, qvalue, qvalue_stderr, path):
 
         delim = '\t'
-        linebreak = '\n'
+        newline = '\n'
 
         time_str = time.strftime('%Y-%m-%d %H:%M')
         line = delim.join([time_str, str(temperature), str(qvalue),
-                           str(qvalue_stderr), linebreak])
+                           str(qvalue_stderr), newline])
 
         if os.path.isfile(path):
             with open(path, 'a') as f:
