@@ -15,7 +15,7 @@
 import os
 import sys
 
-autodoc_mock_imports = ['PyQt5', 'PyQt5.QtCore', 'PyQt5.QtWidgets', 'PyQt5.QtGui']
+autodoc_mock_imports = ['PySide2', 'PySide2.QtCore', 'PySide2.QtWidgets', 'PySide2.QtGui']
 
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../..'))
