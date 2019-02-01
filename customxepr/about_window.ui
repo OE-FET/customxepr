@@ -2,14 +2,6 @@
 <ui version="4.0">
  <class>About</class>
  <widget class="QWidget" name="About">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>461</width>
-    <height>132</height>
-   </rect>
-  </property>
   <property name="windowTitle">
    <string>About</string>
   </property>
@@ -34,11 +26,13 @@
    <item>
     <widget class="QLabel" name="labelCopyRight">
      <property name="text">
-      <string>© {0}, {1}. This work is licensed under a Creative Commons
-Attribution-NonCommercial-NoDerivs 2.0 UK: England &amp; Wales License.</string>
+      <string>© {0}, {1}. This work is licensed under a Creative Commons Attribution-NonCommercial-NoDerivs 2.0 UK: England &amp; Wales License.</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
