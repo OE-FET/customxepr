@@ -329,9 +329,9 @@ class Worker(QtCore.QObject):
 
 def queued_exec(queue):
     """
-    Wrapper that puts a call to a wrapped function into a queue
-    instead of executing it. Items in the queue will be of
-    type :class:`Experiment`.
+    Decorator that puts a call to a wrapped function into a
+    queue instead of executing it. Items in the queue will be
+    of type :class:`Experiment`.
 
     :param queue: Queue to put function calls.
     """

@@ -64,7 +64,7 @@ class CustomXepr(QtCore.QObject):
 
     All CustomXepr methods are executed in a worker thread in the order of
     their calls. To execute your own function in this thread, you can use
-    the `queued_exec` decorator provided by customxepr and query the
+    the :func:`queued_exec` decorator provided by customxepr and query the
     :attr:`abort_event` to support CustomXepr's abort functionality.
 
     All results are added to the result queue and can be retrieved with:
