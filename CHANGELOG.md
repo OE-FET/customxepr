@@ -1,3 +1,13 @@
+#### master
+_Added_:
+- `runXeprExperiment` now accepts a path parameter. If given, the resulting data
+  will be saved to the specified path, togther with the last-measured Q-value
+  and temperature setpoint.
+
+_Removed:_
+- Removed the option to specify a title when saving an ESR data file. The file
+  name is now always used as title. 
+
 #### v2.2.1 (2019-01-25)
 _Added_:
 - Job history now remains visible together with icons indicating the job status.

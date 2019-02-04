@@ -53,6 +53,7 @@ setup(
         "IPython",
         "decorator",
         "ipykernel",
+        "keithley2600",
         "keithleygui",
         "lmfit",
         "matplotlib",

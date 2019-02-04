@@ -1,0 +1,153 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+@author: Sam Schott  (ss2151@cam.ac.uk)
+
+(c) Sam Schott; This work is licensed under a Creative Commons
+Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
+
+"""
+import sys
+import os
+import re
+import numpy as np
+from enum import Enum
+from collections import OrderedDict
+
+
+class Layers(Enum):
+    """
+    Layers in BES3T file format descriptor.
+    """
+    DESC = 'DESC'  # Descriptor Layer (mandatory)
+    SPL = 'SPL'  # Standard Parameter Layer (optional)
+    DSL = 'DSL'  # Device Specific Layer (optional)
+    MHL = 'MHL'  # Manipulation History Layer (optional)
+
+
+class Param(object):
+
+    def __init__(self, value=None, unit=None):
+
+        self.value = value
+        self.unit = unit
+
+    def __str__(self):
+        return '{0} {1}'.format(str(self.value), str(self.unit))
+
+    def __repr__(self):
+        return '<{0}({1} {2})>'.format(self.__class__.__name__,
+                                       str(self.value), str(self.unit))
+
+
+class ParamGroup(object):
+    """
+    Class to hold an Xepr experiment parameter group associated with a functional unit.
+    """
+
+    HEADER_FMT = '.DVC     {0}, 1.0\n'
+    CELL_LENTH = 19
+
+    def __init__(self, name, header, params=None):
+
+        self.name = name
+        self.params = params
+
+    def print(self):
+        output = self.HEADER_FMT.format(self.name)
+
+        for key, value in self.params.iter():
+            output += '{0}{1}'.format(key.ljust(self.CELL_LENTH), str(value))
+
+        return output
+
+class ParamSection(object):
+
+    HEADER_FMT = '*\n*	{0}:\n*'
+
+    def __init__(self, name, header, groups=None):
+
+        self.name = name
+        self.header = self.HEADER_FMT.format(name)
+        self.groups = groups
+
+
+class ParamLayer(object):
+
+    LAYERS = ['DESC', 'SPL', 'DSL', 'MHL']
+
+    def __init__(self, layer_type, version, groups=None, pars=None):
+
+        if layer_type not in self.LAYERS:
+            ValueError('"%s" must be in %s.' % (type, self.LAYERS))
+        else:
+            self.layer_type = layer_type
+
+        self.groups = groups
+        self.version = version
+        self.pars = pars
+
+class DescriptiveInformation(object):
+
+    STARTSWIH = '#DESC'
+
+
+
+class ParamFile(object):
+
+    LAYER_KEYS = ['DESC', 'SPL', 'DSL', 'MHL']
+    LAYER_SEP = '#'
+
+    def __init__(self, xdata, ydata, ordinate):
+
+        self.desc = None  # Descriptor Layer (mandatory)
+        self.spl = None  # Standard Parameter Layer (optional)
+        self.dsl = None  # Device Specific Layer (optional)
+        self.mhl = None  # Manipulation History Layer (optional)
+
+
+    def load(self, filepath):
+
+        if not os.path.isfile(filepath):
+            raise ValueError('No such file: %s' % filepath)
+
+        path, name = os.path.split(filepath)
+        basename, extension = name.split('.')
+
+        dsc_path = os.path.join(path, basename + '.DSC')
+        dta_path = os.path.join(path, basename + '.DTA')
+
+        with open(dsc_path, 'r') as f:
+            self._dsc = f.read()
+
+        self._dta = np.fromfile(dta_path, '>f8')
+
+    def _is_comment(self, line):
+
+        return len(line) == 0 or not line[0].isalpha()
+
+    @property
+    def pars(self):
+        lines = self._dsc.split('\n')
+        par_lines = [l for l in lines if not self._is_comment(l)]
+
+        pars = OrderedDict()
+
+        for line in par_lines:
+            content = line.split()
+            param = Param(0)
+            if len(content) > 2:
+                param = Param(content[1], content[2])
+            elif len(content) > 1:
+                param = Param(content[1])
+            else:
+                param = Param()
+            pars[content[0]] = param
+
+        return pars
+
+    def get_par(self, name):
+        idx = self._dsc.find(name)
+
+
+

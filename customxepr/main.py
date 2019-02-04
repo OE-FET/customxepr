@@ -57,8 +57,8 @@ def cmp(a, b):
 # noinspection PyUnresolvedReferences
 class CustomXepr(QtCore.QObject):
     """
-    CustomXepr defines routines to control the Bruker Xepr software and full ESR
-    measurement cycles. This includes tuning and setting the temperature,
+    CustomXepr defines routines to control the Bruker Xepr software and run
+    full ESR measurement cycles. This includes tuning and setting the temperature,
     applying voltages and recording IV characteristics with attached Keithley
     SMUs.
 
@@ -165,6 +165,8 @@ class CustomXepr(QtCore.QObject):
 
         # waiting time for Xepr to process commands, prevent memory error
         self.wait = 0.5
+        # last measured Q-value
+        self._last_qvalue = None
         # settling time for cryostat temperature
         self._temp_wait_time = CONF.get('CustomXepr', 'temp_wait_time')
         # temperature stability tolerance
@@ -828,6 +830,7 @@ class CustomXepr(QtCore.QObject):
             mode_pic_data[mode_zoom] = y_data
 
         mp = ModePicture(mode_pic_data, freq)
+        self._last_qvalue = mp.qvalue
 
         self.hidden['PowerAtten'].value = 30
         time.sleep(self.wait)
@@ -857,8 +860,9 @@ class CustomXepr(QtCore.QObject):
             pass
         elif os.path.isdir(path):
             path1 = os.path.join(path, 'QValues.txt')
-            self._saveQValue2File(temperature, mp.qvalue, mp.qvalue_stderr, path1)
             path2 = os.path.join(path, 'ModePicture{0:03d}K.txt'.format(int(temperature)))
+
+            self._saveQValue2File(temperature, mp.qvalue, mp.qvalue_stderr, path1)
             mp.save(path2)
 
         self.wait = wait_old
@@ -866,27 +870,26 @@ class CustomXepr(QtCore.QObject):
         return mp
 
     @staticmethod
-    def _saveQValue2File(temperature, qvalue, qvalue_stderr, path):
+    def _saveQValue2File(tmpr, qval, qval_stderr, path):
 
         delim = '\t'
         newline = '\n'
 
-        time_str = time.strftime('%Y-%m-%d %H:%M')
-        line = delim.join([time_str, str(temperature), str(qvalue),
-                           str(qvalue_stderr), newline])
+        column_titles = ['Time stamp', 'Temperature [K]', 'QValue', 'Standard error']
+        header = delim.join(column_titles + [newline])
 
-        if os.path.isfile(path):
-            with open(path, 'a') as f:
-                f.write(line)
-        else:
-            header = delim.join(['Time stamp', 'Temperature [K]', 'QValue',
-                                 'Standard error', newline])
-            with open(path, 'a') as f:
+        time_str = time.strftime('%Y-%m-%d %H:%M')
+        line = delim.join([time_str, str(tmpr), str(qval), str(qval_stderr), newline])
+
+        is_newfile = not os.path.isfile(path)
+
+        with open(path, 'a') as f:
+            if is_newfile:
                 f.write(header)
-                f.write(line)
+            f.write(line)
 
     @queued_exec(job_queue)
-    def runXeprExperiment(self, exp, retune=False, **kwargs):
+    def runXeprExperiment(self, exp, retune=False, path=None, **kwargs):
         """
         Runs the Xepr experiment given `exp`. Keyword arguments (kwargs)
         allow the user to pass experiment parameters. If multiple scans are
@@ -897,10 +900,10 @@ class CustomXepr(QtCore.QObject):
 
         :param exp: Xepr experiment object.
         :param bool retune: Retune iris and freq between scans (default: False).
+        :param str path: Path to file. If given, the data set will be saved to this path,
+            otherwise, it will just be kept in memory.
         :param kwargs: Keyword arguments corresponding to measurement
             parameters.
-
-        :returns: Xepr data set object.
         """
 
         if not self._check_for_xepr():
@@ -1007,7 +1010,7 @@ class CustomXepr(QtCore.QObject):
 
         logger.info('All scans complete.')
 
-        # -----------------get acquired data set from Xepr and return----------
+        # -----------------show and save data----------
         # switch viewpoint to experiment which just finished running
         time.sleep(self.wait)
         exp_title = exp.aqGetExpName()
@@ -1015,14 +1018,67 @@ class CustomXepr(QtCore.QObject):
         self.XeprCmds.aqExpSelect(1, exp_title)
         time.sleep(self.wait)
 
-        # get data set
-        dset = self.xepr.XeprDataset()
-        time.sleep(self.wait)
+        # save the data if path is given
+        # add temperature data and Q-value if available
+        if path is not None:
+            self.saveCurrentData(path, exp)
+            time.sleep(self.wait)
 
-        return dset
+            direct, name = os.path.split(path)
+            basename = name.split('.')[0]
+            # noinspection PyTypeChecker
+            dsc_path = os.path.join(direct, basename + '.DSC')
+
+            with open(dsc_path, 'r') as f:
+                dsc = f.read()
+
+            if self._last_qvalue is not None:
+                dsc = self._replace_qval(dsc, self._last_qvalue)
+
+            if temperature_history is not None:
+                dsc = self._append_temperature(
+                    dsc, self.feed.control.t_setpoint, temperature_var)
+
+            with open(dsc_path, 'w') as f:
+                f.write(dsc)
+
+    def _replace_qval(self, dsc, qvalue):
+        lines = dsc.split('\n')
+        new_line = 'QValue'.ljust(19, ' ') + str(qvalue)
+
+        if 'QValue' in dsc:
+            for i in range(len(lines)):
+                if line[i].startswith('QValue'):
+                    line[i] = new_line
+        elif 'PowerAtten' in dsc:
+            for i in range(len(lines)):
+                if lines[i].startswith('PowerAtten'):
+                    lines.insert(i+1, new_line)
+
+        return '\n'.join(lines)
+
+    def _append_temperature(self, dsc, temperature, variation):
+
+        end = """*
+        ************************************************************
+        """
+
+        string = """
+
+        .DVC     tempCtrl, 1.0
+
+        AcqWaitTime        {0} s
+        Temperature        {0:.2f} K
+        Tolerance          {0:.2f} K
+        Stability          {0:.2f} K
+
+        """.format(self._temp_wait_time, temperature,
+                   self.temperature_tolerance, variation)
+
+        return dsc.strip(end) + string + end
 
     @queued_exec(job_queue)
-    def saveCurrentData(self, path, title=None, exp=None):
+    def saveCurrentData(self, path, exp=None):
         """
         Saves the data from given experiment in Xepr to the specified path. If
         `exp` is `None` the currently displayed data set is saved.
@@ -1030,7 +1086,6 @@ class CustomXepr(QtCore.QObject):
         Xepr only allows file paths shorter than 128 characters.
 
         :param str path: Absolute path to save data file.
-        :param str title: Experiment title. Defaults to the file name if not given.
         :param exp: Xepr experiment instance associated with data set. Defaults
             to currently selected experiment if not given.
         """
@@ -1060,14 +1115,10 @@ class CustomXepr(QtCore.QObject):
             self.XeprCmds.aqExpSelect(1, exp_title)
             time.sleep(self.wait)
 
-        # title = filename if no title given
-        if title is None:
-            title = filename
-
-        # save data
+        # tell Xepr to save data
         self.XeprCmds.ddPath(path)
         time.sleep(self.wait)
-        self.XeprCmds.vpSave('Current Primary', title,  path)
+        self.XeprCmds.vpSave('Current Primary', filename,  path)
         time.sleep(self.wait)
         logger.info('Data saved to %s.' % path)
 
@@ -1443,15 +1494,22 @@ def setup_root_logger(to_address):
     # noinspection PyUnresolvedReferences
     root_logger.setLevel(logging.STATUS)
 
-    # find all email handlers (there should be none)
+    # find all email handlers
     eh = [x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler]
-    # find all file handlers (there should be none)
+    # find all file handlers
     fh = [x for x in root_logger.handlers if type(x) == logging.FileHandler]
+    # find all stream handlers
+    sh = [x for x in root_logger.handlers if type(x) == logging.StreamHandler]
 
     # define standard format of logging messages
     f = logging.Formatter(fmt='%(asctime)s %(name)s %(levelname)s: ' +
                           '%(message)s', datefmt='%H:%M')
 
+    # remove stream handlers
+    for handler in sh:
+        root_logger.handlers.remove(handler)
+
+    # add email handler if not present
     if len(eh) == 0:
         # create and add email handler
 
@@ -1462,9 +1520,7 @@ def setup_root_logger(to_address):
 
         root_logger.addHandler(email_handler)
 
-    # =========================================================================
-    # Set up logging to file
-    # =========================================================================
+    # add file handler if not present
     if len(fh) == 0:
         home_path = os.path.expanduser('~')
         logging_path = os.path.join(home_path, '.CustomXepr', 'LOG_FILES')
