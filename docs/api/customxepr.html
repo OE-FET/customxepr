@@ -91,6 +91,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">customxepr.main</a></li>
 <li class="toctree-l2"><a class="reference internal" href="manager.html">customxepr.manager</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mode_picture.html">customxepr.mode_picture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="xepr_dataset.html">customxepr.xepr_dataset</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
@@ -169,13 +170,13 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England &amp; Wales License.</p>
 <dt id="main.CustomXepr">
 <em class="property">class </em><code class="descclassname">main.</code><code class="descname">CustomXepr</code><span class="sig-paren">(</span><em>xepr=None</em>, <em>mercuryfeed=None</em>, <em>keithley=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/main.html#CustomXepr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtCore.QObject</span></code></p>
-<p>CustomXepr defines routines to control the Bruker Xepr software and full ESR
-measurement cycles. This includes tuning and setting the temperature,
+<p>CustomXepr defines routines to control the Bruker Xepr software and run
+full ESR measurement cycles. This includes tuning and setting the temperature,
 applying voltages and recording IV characteristics with attached Keithley
 SMUs.</p>
 <p>All CustomXepr methods are executed in a worker thread in the order of
 their calls. To execute your own function in this thread, you can use
-the <cite>queued_exec</cite> decorator provided by customxepr and query the
+the <code class="xref py py-func docutils literal notranslate"><span class="pre">queued_exec()</span></code> decorator provided by customxepr and query the
 <code class="xref py py-attr docutils literal notranslate"><span class="pre">abort_event</span></code> to support CustomXepr’s abort functionality.</p>
 <p>All results are added to the result queue and can be retrieved with:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">customxepr</span><span class="o">.</span><span class="n">result_queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>  <span class="c1"># blocks until result is available</span>
@@ -396,7 +397,7 @@ measurement. Defaults to room temperature.</li>
 
 <dl class="method">
 <dt id="main.CustomXepr.runXeprExperiment">
-<code class="descname">runXeprExperiment</code><span class="sig-paren">(</span><em>exp</em>, <em>retune=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/main.html#CustomXepr.runXeprExperiment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr.runXeprExperiment" title="Permalink to this definition">¶</a></dt>
+<code class="descname">runXeprExperiment</code><span class="sig-paren">(</span><em>exp</em>, <em>retune=False</em>, <em>path=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/main.html#CustomXepr.runXeprExperiment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr.runXeprExperiment" title="Permalink to this definition">¶</a></dt>
 <dd><p>Runs the Xepr experiment given <cite>exp</cite>. Keyword arguments (kwargs)
 allow the user to pass experiment parameters. If multiple scans are
 performed, the frequency is tuned between scans.</p>
@@ -406,15 +407,14 @@ measurements is monitored.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>exp</strong> – Xepr experiment object.</li>
 <li><strong>retune</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Retune iris and freq between scans (default: False).</li>
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Path to file. If given, the data set will be saved to this path,
+otherwise, it will just be kept in memory.</li>
 <li><strong>kwargs</strong> – Keyword arguments corresponding to measurement
 parameters.</li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Xepr data set object.</p>
 </td>
 </tr>
 </tbody>
@@ -423,7 +423,7 @@ parameters.</li>
 
 <dl class="method">
 <dt id="main.CustomXepr.saveCurrentData">
-<code class="descname">saveCurrentData</code><span class="sig-paren">(</span><em>path</em>, <em>title=None</em>, <em>exp=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/main.html#CustomXepr.saveCurrentData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr.saveCurrentData" title="Permalink to this definition">¶</a></dt>
+<code class="descname">saveCurrentData</code><span class="sig-paren">(</span><em>path</em>, <em>exp=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/main.html#CustomXepr.saveCurrentData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#main.CustomXepr.saveCurrentData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Saves the data from given experiment in Xepr to the specified path. If
 <cite>exp</cite> is <cite>None</cite> the currently displayed data set is saved.</p>
 <p>Xepr only allows file paths shorter than 128 characters.</p>
@@ -433,7 +433,6 @@ parameters.</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Absolute path to save data file.</li>
-<li><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Experiment title. Defaults to the file name if not given.</li>
 <li><strong>exp</strong> – Xepr experiment instance associated with data set. Defaults
 to currently selected experiment if not given.</li>
 </ul>
@@ -665,7 +664,7 @@ to -1 for for automatic delay.</li>
     }
     /* Sidebar */
     .wy-nav-side {
-      background: #31363B;
+      background: #41474e;
     }
   </style>
 

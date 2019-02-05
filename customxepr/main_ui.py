@@ -219,9 +219,10 @@ class JobStatusApp(QtWidgets.QMainWindow):
         # check status of worker thread (Paused or Running) and adjust buttons
         self.check_paused()
 
-        # get email list and notification level
+        # get states of checkboxes, text edits, etc
         self.get_email_list()
         self.get_notification_level()
+        self.plotCheckBox.setChecked(CONF.get('Window', 'auto_plot_results'))
 
         # get temperature control settings
         self.lineEditT_tolerance.setValue(self.customxepr.temperature_tolerance)
@@ -288,6 +289,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.lineEditT_settling.valueChanged.connect(self.set_t_settling)
 
         self.bG.buttonClicked['int'].connect(self.on_bg_clicked)
+        self.plotCheckBox.toggled.connect(self.on_plot_checkbox_toggeled)
 
         # Universal timeout:
         # Send an email notification if there is no status update for 30 min.
@@ -636,6 +638,10 @@ class JobStatusApp(QtWidgets.QMainWindow):
             subprocess.Popen(['open', path])
         else:
             subprocess.Popen(['xdg-open', path])
+
+    def on_plot_checkbox_toggeled(self, checked):
+        # update config file
+        CONF.set('Window', 'auto_plot_results', checked)
 
     # =========================================================================
     # Callbacks and functions for CustomXepr settings adjustments

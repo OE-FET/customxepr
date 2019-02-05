@@ -3,6 +3,10 @@ _Added_:
 - `runXeprExperiment` now accepts a path parameter. If given, the resulting data
   will be saved to the specified path, togther with the last-measured Q-value
   and temperature setpoint.
+- Added `XeprData` class to hold, read and save Xepr measurement data files. `XeprData`
+  provides methods to access and modifiy measurement parameters and to plot the data.
+  It is compalitble with all Xepr Experiment types, saved in the Bruker BES3T file format
+  up to version 1.2 (currently used by Xepr).
 
 _Removed:_
 - Removed the option to specify a title when saving an ESR data file. The file

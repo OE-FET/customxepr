@@ -21,15 +21,14 @@ from keithleygui import CONF as K_CONF
 # local imports
 from customxepr.utils.mail import EmailSender
 from customxepr.mode_picture import ModePicture
+from customxepr.xepr_dataset import XeprParam, ParamGroupDSL, XeprData
 from customxepr.manager import ExperimentQueue, SignalQueue, Worker, queued_exec
 from customxepr.config.main import CONF
 
 try:
-    from XeprAPI import ParameterError, ExperimentError
+    from XeprAPI import ExperimentError
 except ImportError:
-    ParameterError = ExperimentError = RuntimeError
-    logging.info('XeprAPI could not be located. Please make sure that ' +
-                 'is installed on your system.')
+    ExperimentError = RuntimeError
 
 
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'
@@ -164,7 +163,7 @@ class CustomXepr(QtCore.QObject):
         # =====================================================================
 
         # waiting time for Xepr to process commands, prevent memory error
-        self.wait = 0.5
+        self.wait = 0.1
         # last measured Q-value
         self._last_qvalue = None
         # settling time for cryostat temperature
@@ -941,11 +940,19 @@ class CustomXepr(QtCore.QObject):
         # count the number of temperature stability violations
         n_out = 0  # start at n_out = 0
 
-        while exp.isRunning or exp.isPaused:
+        def is_running_or_paused():
+            running = exp.isRunning
+            time.sleep(self.wait)
+            paused = exp.isPaused
+            time.sleep(self.wait)
+            return running or paused
+
+        while is_running_or_paused():
 
             # check for abort event
             if self.abort.is_set():
                 exp.aqExpPause()
+                time.sleep(self.wait)
                 logger.info('Aborted by user.')
                 return
 
@@ -960,11 +967,8 @@ class CustomXepr(QtCore.QObject):
                 if exp.isPaused and not nb_scans_done == nb_scans_to_do:
                     logger.status('Checking tuned.')
                     self.tuneFreq(tolerance=3)
-                    time.sleep(self.wait)
                     self.tuneFreq(tolerance=3)
-                    time.sleep(self.wait)
                     self.tuneIris(tolerance=7)
-                    time.sleep(self.wait)
 
                     # start next scan
                     exp.aqExpRun()
@@ -1024,58 +1028,27 @@ class CustomXepr(QtCore.QObject):
             self.saveCurrentData(path, exp)
             time.sleep(self.wait)
 
-            direct, name = os.path.split(path)
-            basename = name.split('.')[0]
-            # noinspection PyTypeChecker
-            dsc_path = os.path.join(direct, basename + '.DSC')
+            basename = path.split('.')[0]
+            dsc_path = basename + '.DSC'
 
-            with open(dsc_path, 'r') as f:
-                dsc = f.read()
+            data = XeprData(dsc_path)
 
             if self._last_qvalue is not None:
-                dsc = self._replace_qval(dsc, self._last_qvalue)
+                try:
+                    data.pars['QValue'] = self._last_qvalue
+                except ValueError:
+                    data.dsl.groups['mwBridge'].pars['QValue'] = XeprParam(self._last_qvalue)
 
             if temperature_history is not None:
-                dsc = self._append_temperature(
-                    dsc, self.feed.control.t_setpoint, temperature_var)
+                param_list = dict()
+                param_list['AcqWaitTime'] = XeprParam(self._temp_wait_time, 's')
+                param_list['Temperature'] = XeprParam(self.feed.control.t_setpoint, 'K')
+                param_list['Tolerance'] = XeprParam(self._temperature_tolerance, 'K')
+                param_list['Stability'] = XeprParam(temperature_mean, 'K')
+                tg = ParamGroupDSL(name='tempCtrl', pars=param_list)
+                data.dsl.groups['tempCtrl'] = tg
 
-            with open(dsc_path, 'w') as f:
-                f.write(dsc)
-
-    def _replace_qval(self, dsc, qvalue):
-        lines = dsc.split('\n')
-        new_line = 'QValue'.ljust(19, ' ') + str(qvalue)
-
-        if 'QValue' in dsc:
-            for i in range(len(lines)):
-                if line[i].startswith('QValue'):
-                    line[i] = new_line
-        elif 'PowerAtten' in dsc:
-            for i in range(len(lines)):
-                if lines[i].startswith('PowerAtten'):
-                    lines.insert(i+1, new_line)
-
-        return '\n'.join(lines)
-
-    def _append_temperature(self, dsc, temperature, variation):
-
-        end = """*
-        ************************************************************
-        """
-
-        string = """
-
-        .DVC     tempCtrl, 1.0
-
-        AcqWaitTime        {0} s
-        Temperature        {0:.2f} K
-        Tolerance          {0:.2f} K
-        Stability          {0:.2f} K
-
-        """.format(self._temp_wait_time, temperature,
-                   self.temperature_tolerance, variation)
-
-        return dsc.strip(end) + string + end
+            return data
 
     @queued_exec(job_queue)
     def saveCurrentData(self, path, exp=None):

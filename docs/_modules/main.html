@@ -173,15 +173,14 @@
 <span class="c1"># local imports</span>
 <span class="kn">from</span> <span class="nn">customxepr.utils.mail</span> <span class="k">import</span> <span class="n">EmailSender</span>
 <span class="kn">from</span> <span class="nn">customxepr.mode_picture</span> <span class="k">import</span> <span class="n">ModePicture</span>
+<span class="kn">from</span> <span class="nn">customxepr.xepr_dataset</span> <span class="k">import</span> <span class="n">XeprParam</span><span class="p">,</span> <span class="n">ParamGroupDSL</span><span class="p">,</span> <span class="n">XeprData</span>
 <span class="kn">from</span> <span class="nn">customxepr.manager</span> <span class="k">import</span> <span class="n">ExperimentQueue</span><span class="p">,</span> <span class="n">SignalQueue</span><span class="p">,</span> <span class="n">Worker</span><span class="p">,</span> <span class="n">queued_exec</span>
 <span class="kn">from</span> <span class="nn">customxepr.config.main</span> <span class="k">import</span> <span class="n">CONF</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">XeprAPI</span> <span class="k">import</span> <span class="n">ParameterError</span><span class="p">,</span> <span class="n">ExperimentError</span>
+    <span class="kn">from</span> <span class="nn">XeprAPI</span> <span class="k">import</span> <span class="n">ExperimentError</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="n">ParameterError</span> <span class="o">=</span> <span class="n">ExperimentError</span> <span class="o">=</span> <span class="ne">RuntimeError</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;XeprAPI could not be located. Please make sure that &#39;</span> <span class="o">+</span>
-                 <span class="s1">&#39;is installed on your system.&#39;</span><span class="p">)</span>
+    <span class="n">ExperimentError</span> <span class="o">=</span> <span class="ne">RuntimeError</span>
 
 
 <span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Sam Schott &lt;ss2151@cam.ac.uk&gt;&#39;</span>
@@ -209,14 +208,14 @@
 <span class="c1"># noinspection PyUnresolvedReferences</span>
 <div class="viewcode-block" id="CustomXepr"><a class="viewcode-back" href="../api/customxepr.html#main.CustomXepr">[docs]</a><span class="k">class</span> <span class="nc">CustomXepr</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CustomXepr defines routines to control the Bruker Xepr software and full ESR</span>
-<span class="sd">    measurement cycles. This includes tuning and setting the temperature,</span>
+<span class="sd">    CustomXepr defines routines to control the Bruker Xepr software and run</span>
+<span class="sd">    full ESR measurement cycles. This includes tuning and setting the temperature,</span>
 <span class="sd">    applying voltages and recording IV characteristics with attached Keithley</span>
 <span class="sd">    SMUs.</span>
 
 <span class="sd">    All CustomXepr methods are executed in a worker thread in the order of</span>
 <span class="sd">    their calls. To execute your own function in this thread, you can use</span>
-<span class="sd">    the `queued_exec` decorator provided by customxepr and query the</span>
+<span class="sd">    the :func:`queued_exec` decorator provided by customxepr and query the</span>
 <span class="sd">    :attr:`abort_event` to support CustomXepr&#39;s abort functionality.</span>
 
 <span class="sd">    All results are added to the result queue and can be retrieved with:</span>
@@ -316,7 +315,9 @@
         <span class="c1"># =====================================================================</span>
 
         <span class="c1"># waiting time for Xepr to process commands, prevent memory error</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">wait</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wait</span> <span class="o">=</span> <span class="mf">0.1</span>
+        <span class="c1"># last measured Q-value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_qvalue</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="c1"># settling time for cryostat temperature</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_temp_wait_time</span> <span class="o">=</span> <span class="n">CONF</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;CustomXepr&#39;</span><span class="p">,</span> <span class="s1">&#39;temp_wait_time&#39;</span><span class="p">)</span>
         <span class="c1"># temperature stability tolerance</span>
@@ -980,6 +981,7 @@
             <span class="n">mode_pic_data</span><span class="p">[</span><span class="n">mode_zoom</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_data</span>
 
         <span class="n">mp</span> <span class="o">=</span> <span class="n">ModePicture</span><span class="p">(</span><span class="n">mode_pic_data</span><span class="p">,</span> <span class="n">freq</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_qvalue</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">qvalue</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">hidden</span><span class="p">[</span><span class="s1">&#39;PowerAtten&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mi">30</span>
         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">)</span>
@@ -1008,36 +1010,37 @@
         <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">pass</span>
         <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-            <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;QValues.txt&#39;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_saveQValue2File</span><span class="p">(</span><span class="n">temperature</span><span class="p">,</span> <span class="n">mp</span><span class="o">.</span><span class="n">qvalue</span><span class="p">,</span> <span class="n">mp</span><span class="o">.</span><span class="n">qvalue_stderr</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
-            <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;ModePicture</span><span class="si">{0:03d}</span><span class="s1">K.txt&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">temperature</span><span class="p">)))</span>
-            <span class="n">mp</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="n">path1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;QValues.txt&#39;</span><span class="p">)</span>
+            <span class="n">path2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;ModePicture</span><span class="si">{0:03d}</span><span class="s1">K.txt&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">temperature</span><span class="p">)))</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_saveQValue2File</span><span class="p">(</span><span class="n">temperature</span><span class="p">,</span> <span class="n">mp</span><span class="o">.</span><span class="n">qvalue</span><span class="p">,</span> <span class="n">mp</span><span class="o">.</span><span class="n">qvalue_stderr</span><span class="p">,</span> <span class="n">path1</span><span class="p">)</span>
+            <span class="n">mp</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">path2</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">wait</span> <span class="o">=</span> <span class="n">wait_old</span>
 
         <span class="k">return</span> <span class="n">mp</span></div>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_saveQValue2File</span><span class="p">(</span><span class="n">temperature</span><span class="p">,</span> <span class="n">qvalue</span><span class="p">,</span> <span class="n">qvalue_stderr</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_saveQValue2File</span><span class="p">(</span><span class="n">tmpr</span><span class="p">,</span> <span class="n">qval</span><span class="p">,</span> <span class="n">qval_stderr</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
 
         <span class="n">delim</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span>
         <span class="n">newline</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
 
-        <span class="n">time_str</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M&#39;</span><span class="p">)</span>
-        <span class="n">line</span> <span class="o">=</span> <span class="n">delim</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">time_str</span><span class="p">,</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">qvalue</span><span class="p">,</span> <span class="n">qvalue_stderr</span><span class="p">,</span> <span class="n">newline</span><span class="p">])</span>
+        <span class="n">column_titles</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Time stamp&#39;</span><span class="p">,</span> <span class="s1">&#39;Temperature [K]&#39;</span><span class="p">,</span> <span class="s1">&#39;QValue&#39;</span><span class="p">,</span> <span class="s1">&#39;Standard error&#39;</span><span class="p">]</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">delim</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">column_titles</span> <span class="o">+</span> <span class="p">[</span><span class="n">newline</span><span class="p">])</span>
 
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">header</span> <span class="o">=</span> <span class="n">delim</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;Time stamp&#39;</span><span class="p">,</span> <span class="s1">&#39;Temperature [K]&#39;</span><span class="p">,</span> <span class="s1">&#39;QValue&#39;</span><span class="p">,</span>
-                                 <span class="s1">&#39;Standard error&#39;</span><span class="p">,</span> <span class="n">newline</span><span class="p">])</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">time_str</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M&#39;</span><span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">delim</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">time_str</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">tmpr</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">qval</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">qval_stderr</span><span class="p">),</span> <span class="n">newline</span><span class="p">])</span>
+
+        <span class="n">is_newfile</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_newfile</span><span class="p">:</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
-                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
 
 <div class="viewcode-block" id="CustomXepr.runXeprExperiment"><a class="viewcode-back" href="../api/customxepr.html#main.CustomXepr.runXeprExperiment">[docs]</a>    <span class="nd">@queued_exec</span><span class="p">(</span><span class="n">job_queue</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">runXeprExperiment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp</span><span class="p">,</span> <span class="n">retune</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">runXeprExperiment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp</span><span class="p">,</span> <span class="n">retune</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Runs the Xepr experiment given `exp`. Keyword arguments (kwargs)</span>
 <span class="sd">        allow the user to pass experiment parameters. If multiple scans are</span>
@@ -1048,10 +1051,10 @@
 
 <span class="sd">        :param exp: Xepr experiment object.</span>
 <span class="sd">        :param bool retune: Retune iris and freq between scans (default: False).</span>
+<span class="sd">        :param str path: Path to file. If given, the data set will be saved to this path,</span>
+<span class="sd">            otherwise, it will just be kept in memory.</span>
 <span class="sd">        :param kwargs: Keyword arguments corresponding to measurement</span>
 <span class="sd">            parameters.</span>
-
-<span class="sd">        :returns: Xepr data set object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_for_xepr</span><span class="p">():</span>
@@ -1089,11 +1092,19 @@
         <span class="c1"># count the number of temperature stability violations</span>
         <span class="n">n_out</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># start at n_out = 0</span>
 
-        <span class="k">while</span> <span class="n">exp</span><span class="o">.</span><span class="n">isRunning</span> <span class="ow">or</span> <span class="n">exp</span><span class="o">.</span><span class="n">isPaused</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">is_running_or_paused</span><span class="p">():</span>
+            <span class="n">running</span> <span class="o">=</span> <span class="n">exp</span><span class="o">.</span><span class="n">isRunning</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">)</span>
+            <span class="n">paused</span> <span class="o">=</span> <span class="n">exp</span><span class="o">.</span><span class="n">isPaused</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">running</span> <span class="ow">or</span> <span class="n">paused</span>
+
+        <span class="k">while</span> <span class="n">is_running_or_paused</span><span class="p">():</span>
 
             <span class="c1"># check for abort event</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">abort</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
                 <span class="n">exp</span><span class="o">.</span><span class="n">aqExpPause</span><span class="p">()</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">)</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Aborted by user.&#39;</span><span class="p">)</span>
                 <span class="k">return</span>
 
@@ -1108,11 +1119,8 @@
                 <span class="k">if</span> <span class="n">exp</span><span class="o">.</span><span class="n">isPaused</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">nb_scans_done</span> <span class="o">==</span> <span class="n">nb_scans_to_do</span><span class="p">:</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s1">&#39;Checking tuned.&#39;</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">tuneFreq</span><span class="p">(</span><span class="n">tolerance</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">tuneFreq</span><span class="p">(</span><span class="n">tolerance</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">tuneIris</span><span class="p">(</span><span class="n">tolerance</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
-                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">)</span>
 
                     <span class="c1"># start next scan</span>
                     <span class="n">exp</span><span class="o">.</span><span class="n">aqExpRun</span><span class="p">()</span>
@@ -1158,7 +1166,7 @@
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;All scans complete.&#39;</span><span class="p">)</span>
 
-        <span class="c1"># -----------------get acquired data set from Xepr and return----------</span>
+        <span class="c1"># -----------------show and save data----------</span>
         <span class="c1"># switch viewpoint to experiment which just finished running</span>
         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">)</span>
         <span class="n">exp_title</span> <span class="o">=</span> <span class="n">exp</span><span class="o">.</span><span class="n">aqGetExpName</span><span class="p">()</span>
@@ -1166,14 +1174,36 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">XeprCmds</span><span class="o">.</span><span class="n">aqExpSelect</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">exp_title</span><span class="p">)</span>
         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">)</span>
 
-        <span class="c1"># get data set</span>
-        <span class="n">dset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xepr</span><span class="o">.</span><span class="n">XeprDataset</span><span class="p">()</span>
-        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">)</span>
+        <span class="c1"># save the data if path is given</span>
+        <span class="c1"># add temperature data and Q-value if available</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">saveCurrentData</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">exp</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">dset</span></div>
+            <span class="n">basename</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">dsc_path</span> <span class="o">=</span> <span class="n">basename</span> <span class="o">+</span> <span class="s1">&#39;.DSC&#39;</span>
+
+            <span class="n">data</span> <span class="o">=</span> <span class="n">XeprData</span><span class="p">(</span><span class="n">dsc_path</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_qvalue</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">data</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;QValue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_qvalue</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="n">data</span><span class="o">.</span><span class="n">dsl</span><span class="o">.</span><span class="n">groups</span><span class="p">[</span><span class="s1">&#39;mwBridge&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;QValue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">XeprParam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_last_qvalue</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">temperature_history</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">param_list</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+                <span class="n">param_list</span><span class="p">[</span><span class="s1">&#39;AcqWaitTime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">XeprParam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_temp_wait_time</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">)</span>
+                <span class="n">param_list</span><span class="p">[</span><span class="s1">&#39;Temperature&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">XeprParam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">feed</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">t_setpoint</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">)</span>
+                <span class="n">param_list</span><span class="p">[</span><span class="s1">&#39;Tolerance&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">XeprParam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_temperature_tolerance</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">)</span>
+                <span class="n">param_list</span><span class="p">[</span><span class="s1">&#39;Stability&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">XeprParam</span><span class="p">(</span><span class="n">temperature_mean</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">)</span>
+                <span class="n">tg</span> <span class="o">=</span> <span class="n">ParamGroupDSL</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;tempCtrl&#39;</span><span class="p">,</span> <span class="n">pars</span><span class="o">=</span><span class="n">param_list</span><span class="p">)</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">dsl</span><span class="o">.</span><span class="n">groups</span><span class="p">[</span><span class="s1">&#39;tempCtrl&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tg</span>
+
+            <span class="k">return</span> <span class="n">data</span></div>
 
 <div class="viewcode-block" id="CustomXepr.saveCurrentData"><a class="viewcode-back" href="../api/customxepr.html#main.CustomXepr.saveCurrentData">[docs]</a>    <span class="nd">@queued_exec</span><span class="p">(</span><span class="n">job_queue</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">saveCurrentData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">saveCurrentData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Saves the data from given experiment in Xepr to the specified path. If</span>
 <span class="sd">        `exp` is `None` the currently displayed data set is saved.</span>
@@ -1181,7 +1211,6 @@
 <span class="sd">        Xepr only allows file paths shorter than 128 characters.</span>
 
 <span class="sd">        :param str path: Absolute path to save data file.</span>
-<span class="sd">        :param str title: Experiment title. Defaults to the file name if not given.</span>
 <span class="sd">        :param exp: Xepr experiment instance associated with data set. Defaults</span>
 <span class="sd">            to currently selected experiment if not given.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1211,14 +1240,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">XeprCmds</span><span class="o">.</span><span class="n">aqExpSelect</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">exp_title</span><span class="p">)</span>
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">)</span>
 
-        <span class="c1"># title = filename if no title given</span>
-        <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">title</span> <span class="o">=</span> <span class="n">filename</span>
-
-        <span class="c1"># save data</span>
+        <span class="c1"># tell Xepr to save data</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">XeprCmds</span><span class="o">.</span><span class="n">ddPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">XeprCmds</span><span class="o">.</span><span class="n">vpSave</span><span class="p">(</span><span class="s1">&#39;Current Primary&#39;</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span>  <span class="n">path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">XeprCmds</span><span class="o">.</span><span class="n">vpSave</span><span class="p">(</span><span class="s1">&#39;Current Primary&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span>  <span class="n">path</span><span class="p">)</span>
         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Data saved to </span><span class="si">%s</span><span class="s1">.&#39;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span></div>
 
@@ -1594,15 +1619,22 @@
     <span class="c1"># noinspection PyUnresolvedReferences</span>
     <span class="n">root_logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">STATUS</span><span class="p">)</span>
 
-    <span class="c1"># find all email handlers (there should be none)</span>
+    <span class="c1"># find all email handlers</span>
     <span class="n">eh</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">root_logger</span><span class="o">.</span><span class="n">handlers</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="n">logging</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">SMTPHandler</span><span class="p">]</span>
-    <span class="c1"># find all file handlers (there should be none)</span>
+    <span class="c1"># find all file handlers</span>
     <span class="n">fh</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">root_logger</span><span class="o">.</span><span class="n">handlers</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">]</span>
+    <span class="c1"># find all stream handlers</span>
+    <span class="n">sh</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">root_logger</span><span class="o">.</span><span class="n">handlers</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">]</span>
 
     <span class="c1"># define standard format of logging messages</span>
     <span class="n">f</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(name)s</span><span class="s1"> </span><span class="si">%(levelname)s</span><span class="s1">: &#39;</span> <span class="o">+</span>
                           <span class="s1">&#39;</span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">datefmt</span><span class="o">=</span><span class="s1">&#39;%H:%M&#39;</span><span class="p">)</span>
 
+    <span class="c1"># remove stream handlers</span>
+    <span class="k">for</span> <span class="n">handler</span> <span class="ow">in</span> <span class="n">sh</span><span class="p">:</span>
+        <span class="n">root_logger</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+
+    <span class="c1"># add email handler if not present</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">eh</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="c1"># create and add email handler</span>
 
@@ -1613,9 +1645,7 @@
 
         <span class="n">root_logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">email_handler</span><span class="p">)</span>
 
-    <span class="c1"># =========================================================================</span>
-    <span class="c1"># Set up logging to file</span>
-    <span class="c1"># =========================================================================</span>
+    <span class="c1"># add file handler if not present</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">home_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">)</span>
         <span class="n">logging_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">home_path</span><span class="p">,</span> <span class="s1">&#39;.CustomXepr&#39;</span><span class="p">,</span> <span class="s1">&#39;LOG_FILES&#39;</span><span class="p">)</span>
@@ -1687,7 +1717,7 @@
     }
     /* Sidebar */
     .wy-nav-side {
-      background: #31363B;
+      background: #41474e;
     }
   </style>
 

@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Mode Picture Class" href="api/mode_picture.html" /> 
+    <link rel="prev" title="Mode Picture Class" href="api/xepr_dataset.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -88,6 +88,7 @@
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">Modules</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#master">master</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#v2-2-1-2019-01-25">v2.2.1 (2019-01-25)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#v2-2-0-2019-01-09">v2.2.0 (2019-01-09)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#v2-1-1">v2.1.1</a></li>
@@ -161,6 +162,24 @@
             
   <div class="section" id="changelog">
 <h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="master">
+<h2>master<a class="headerlink" href="#master" title="Permalink to this headline">¶</a></h2>
+<p><em>Added</em>:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">runXeprExperiment</span></code> now accepts a path parameter. If given, the resulting data
+will be saved to the specified path, togther with the last-measured Q-value
+and temperature setpoint.</li>
+<li>Added <code class="docutils literal notranslate"><span class="pre">XeprData</span></code> class to hold, read and save Xepr measurement data files. <code class="docutils literal notranslate"><span class="pre">XeprData</span></code>
+provides methods to access and modifiy measurement parameters and to plot the data.
+It is compalitble with all Xepr Experiment types, saved in the Bruker BES3T file format
+up to version 1.2 (currently used by Xepr).</li>
+</ul>
+<p><em>Removed:</em></p>
+<ul class="simple">
+<li>Removed the option to specify a title when saving an ESR data file. The file
+name is now always used as title.</li>
+</ul>
+</div>
 <div class="section" id="v2-2-1-2019-01-25">
 <h2>v2.2.1 (2019-01-25)<a class="headerlink" href="#v2-2-1-2019-01-25" title="Permalink to this headline">¶</a></h2>
 <p><em>Added</em>:</p>
@@ -266,7 +285,7 @@ data and redrawing only changed elements of plot widget</li>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
       
-        <a href="api/mode_picture.html" class="btn btn-neutral" title="Mode Picture Class" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="api/xepr_dataset.html" class="btn btn-neutral" title="Mode Picture Class" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -318,7 +337,7 @@ data and redrawing only changed elements of plot widget</li>
     }
     /* Sidebar */
     .wy-nav-side {
-      background: #31363B;
+      background: #41474e;
     }
   </style>
 

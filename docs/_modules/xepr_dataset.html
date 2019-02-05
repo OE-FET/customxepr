@@ -1,0 +1,853 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>xepr_dataset &mdash; CustomXepr v2.2.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> CustomXepr
+          
+
+          
+            
+            <img src="../_static/logo@2x.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                v2.2.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">CustomXepr</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>xepr_dataset</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for xepr_dataset</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">@author: Sam Schott  (ss2151@cam.ac.uk)</span>
+
+<span class="sd">(c) Sam Schott; This work is licensed under a Creative Commons</span>
+<span class="sd">Attribution-NonCommercial-NoDerivs 2.0 UK: England &amp; Wales License.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="k">import</span> <span class="n">Axes3D</span>
+
+
+<span class="k">def</span> <span class="nf">is_metadata</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+    <span class="c1"># metadata lines are either empty or start with a non-alphabetic character</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">isalpha</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="XeprParam"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.XeprParam">[docs]</a><span class="k">class</span> <span class="nc">XeprParam</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Holds a Bruker measurement parameter in the BES3T file format.</span>
+
+<span class="sd">    :ivar value: The parameter value. Should be of type :class:`int`, :class:`float`,</span>
+<span class="sd">        :class:`bool`, :class:`str`, or :class:`numpy.array`.</span>
+<span class="sd">    :ivar str unit: String containing the unit. Defaults to an empty string.</span>
+<span class="sd">    :ivar str comment: Defaults to an empty string. If not empty,</span>
+<span class="sd">        :attr:`comment` must start with &quot;\*&quot;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">UNITS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="s1">&#39;Hz&#39;</span><span class="p">,</span> <span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">,</span> <span class="s1">&#39;dB&#39;</span><span class="p">,</span> <span class="s1">&#39;W&#39;</span><span class="p">]</span>
+    <span class="n">PREFIXES</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s1">&#39;u&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;p&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">]</span>
+
+    <span class="n">ALL_UNITS</span> <span class="o">=</span> <span class="p">[</span> <span class="n">p</span> <span class="o">+</span> <span class="n">u</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span><span class="n">u</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">PREFIXES</span><span class="p">,</span> <span class="n">UNITS</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">unit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comment</span> <span class="o">=</span> <span class="n">comment</span>
+
+<div class="viewcode-block" id="XeprParam.print"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.XeprParam.print">[docs]</a>    <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Prints a parameter as string in the Bruker BES3T format.</span>
+
+<span class="sd">        :return: Parsed parameter.</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">value_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">flatten</span><span class="p">()])</span>
+            <span class="n">shape_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="s1">&#39;{{</span><span class="si">{0}</span><span class="s1">;</span><span class="si">{1}</span><span class="s1">;</span><span class="si">{2}</span><span class="s1">}}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="n">shape_str</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">return_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">:</span>
+            <span class="n">return_str</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">header</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">),</span> <span class="n">value_str</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">:</span>
+            <span class="n">return_str</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">header</span><span class="p">,</span> <span class="n">value_str</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">:</span>
+            <span class="n">return_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">return_str</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">)])</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">comment</span><span class="p">:</span>
+            <span class="n">return_str</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">return_str</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">comment</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">return_str</span></div>
+
+<div class="viewcode-block" id="XeprParam.from_string"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.XeprParam.from_string">[docs]</a>    <span class="k">def</span> <span class="nf">from_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parses a parameter from string given in the Bruker BES3T format.</span>
+
+<span class="sd">        :param str string: String to parse.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comment</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="n">contents</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">contents</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">contents</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">comment</span> <span class="o">=</span> <span class="n">contents</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">del</span> <span class="n">contents</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">par_header</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">par_value</span> <span class="o">=</span> <span class="n">contents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\{.*\}&#39;</span><span class="p">,</span> <span class="n">contents</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="n">par_header</span> <span class="o">=</span> <span class="n">contents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">par_value</span> <span class="o">=</span> <span class="n">contents</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">contents</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ALL_UNITS</span><span class="p">:</span>
+                <span class="n">par_value</span> <span class="o">=</span> <span class="n">contents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">contents</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">par_value</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\{.*\}&#39;</span><span class="p">,</span> <span class="n">contents</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="n">par_header</span> <span class="o">=</span> <span class="n">contents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">contents</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">par_value</span> <span class="o">=</span> <span class="n">contents</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">par_value</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">par_header</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">par_value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)])</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">par_header</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)]</span>
+            <span class="n">shape</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">par_value</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">par_value</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">par_value</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">par_value</span> <span class="o">==</span> <span class="s1">&#39;True&#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">elif</span> <span class="n">par_value</span> <span class="o">==</span> <span class="s1">&#39;False&#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">par_value</span></div>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&lt;</span><span class="si">{0}</span><span class="s1">(</span><span class="si">{1}</span><span class="s1"> </span><span class="si">{2}</span><span class="s1">)&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+                                           <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&lt;</span><span class="si">{0}</span><span class="s1">(</span><span class="si">{1}</span><span class="s1">)&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="ParamGroup"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.ParamGroup">[docs]</a><span class="k">class</span> <span class="nc">ParamGroup</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to hold an Xepr experiment parameter group, which is part of a layer.</span>
+
+<span class="sd">    :cvar HEADER_FMT: Format of parameter group header.</span>
+<span class="sd">    :cvar CELL_LENGTH: Length of cell containing the parameter name.</span>
+<span class="sd">    :cvar DELIM: Delimiter between parameter name and value.</span>
+
+<span class="sd">    :ivar str name: The parameter group&#39;s name.</span>
+<span class="sd">    :ivar dict pars: Dictionary containing all :class:`XeprParam` instances belonging</span>
+<span class="sd">        to the group.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">HEADER_FMT</span> <span class="o">=</span> <span class="s1">&#39;* </span><span class="si">{0}</span><span class="s1">&#39;</span>
+    <span class="n">CELL_LENGTH</span> <span class="o">=</span> <span class="mi">19</span>
+    <span class="n">DELIM</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="k">if</span> <span class="n">pars</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">pars</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ParamGroup.print"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.ParamGroup.print">[docs]</a>    <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Prints a parameter group as string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">HEADER_FMT</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)]</span>
+
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">new_line</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{0}{1}{2}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CELL_LENGTH</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">DELIM</span><span class="p">,</span>
+                                          <span class="n">param</span><span class="o">.</span><span class="n">print</span><span class="p">())</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_line</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ParamGroup.from_string"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.ParamGroup.from_string">[docs]</a>    <span class="k">def</span> <span class="nf">from_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parses a parameter group from given string.</span>
+
+<span class="sd">        :param str string: Parameter group string from Bruker .DSC file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_metadata</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+                <span class="n">contents</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="n">par_name</span> <span class="o">=</span> <span class="n">contents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">par_string</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">contents</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+                <span class="n">new_param</span> <span class="o">=</span> <span class="n">XeprParam</span><span class="p">()</span>
+                <span class="n">new_param</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">par_string</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="n">par_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_param</span></div>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;&lt;</span><span class="si">{0}</span><span class="s1">(</span><span class="si">{1}</span><span class="s1">)&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ParamGroupDESC"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.ParamGroupDESC">[docs]</a><span class="k">class</span> <span class="nc">ParamGroupDESC</span><span class="p">(</span><span class="n">ParamGroup</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to hold an Xepr experiment parameter group which forms a section</span>
+<span class="sd">    of the Descriptor Layer (DESC).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">HEADER_FMT</span> <span class="o">=</span> <span class="s1">&#39;*</span><span class="se">\n</span><span class="s1">*	</span><span class="si">{0}</span><span class="s1">:</span><span class="se">\n</span><span class="s1">*&#39;</span>
+    <span class="n">CELL_LENGTH</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">DELIM</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span></div>
+
+
+<div class="viewcode-block" id="ParamGroupSPL"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.ParamGroupSPL">[docs]</a><span class="k">class</span> <span class="nc">ParamGroupSPL</span><span class="p">(</span><span class="n">ParamGroup</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to hold an Xepr experiment parameter group associated with a functional unit,</span>
+<span class="sd">    part of the Standard Parameter Layer (SPL).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">HEADER_FMT</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{0}</span><span class="s1">&#39;</span>
+    <span class="n">CELL_LENGTH</span> <span class="o">=</span> <span class="mi">8</span>
+    <span class="n">DELIM</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span></div>
+
+
+<div class="viewcode-block" id="ParamGroupDSL"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.ParamGroupDSL">[docs]</a><span class="k">class</span> <span class="nc">ParamGroupDSL</span><span class="p">(</span><span class="n">ParamGroup</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to hold an Xepr experiment parameter group associated with a functional unit,</span>
+<span class="sd">    part of the Device Specific Layer (DSL).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">HEADER_FMT</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">.DVC     </span><span class="si">{0}</span><span class="s1">, 1.0</span><span class="se">\n</span><span class="s1">&#39;</span>
+    <span class="n">CELL_LENGTH</span> <span class="o">=</span> <span class="mi">19</span>
+    <span class="n">DELIM</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span></div>
+
+
+<div class="viewcode-block" id="ParamGroupMHL"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.ParamGroupMHL">[docs]</a><span class="k">class</span> <span class="nc">ParamGroupMHL</span><span class="p">(</span><span class="n">ParamGroup</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to hold an Xepr experiment parameter group which forms a section</span>
+<span class="sd">    of the Manipulation History Layer (MHL).</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+    <span class="c1"># TODO: to be implemented</span>
+
+
+<div class="viewcode-block" id="ParamLayer"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.ParamLayer">[docs]</a><span class="k">class</span> <span class="nc">ParamLayer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parameter layer object. Contains a top level parameter section of a</span>
+<span class="sd">    Bruker BES3T file. This should be subclassed, depending on the actual</span>
+<span class="sd">    parameter layer type.</span>
+
+<span class="sd">    :cvar TYPE: Parameter layer type. Can be &#39;DESC&#39; for a Descriptor Layer, &#39;SPL&#39; for a</span>
+<span class="sd">        Standard Parameter Layer, &#39;DSL&#39; for a Device Specific Layer or &#39;MHL&#39; for a</span>
+<span class="sd">        Manipulation History Layer.</span>
+<span class="sd">    :cvar NAME: Parameter layer name.</span>
+<span class="sd">    :cvar VERSION: Parameter layer version. This identifies the implemented BES3T file</span>
+<span class="sd">        format specification used when parsing the information.</span>
+<span class="sd">    :cvar HEADER_FMT: Header format for the parameter layer.</span>
+<span class="sd">    :cvar END: Characters to indicate the end of layer in &#39;.DSC&#39; file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span> <span class="o">=</span> <span class="s1">&#39;TEMP&#39;</span>
+    <span class="n">NAME</span> <span class="o">=</span> <span class="s1">&#39;TEMPLATE LAYER&#39;</span>
+    <span class="n">VERSION</span> <span class="o">=</span> <span class="s1">&#39;1.0&#39;</span>
+
+    <span class="n">HEADER_FMT</span> <span class="o">=</span> <span class="s1">&#39;#</span><span class="si">{0}</span><span class="s1">	</span><span class="si">{1}</span><span class="s1"> * </span><span class="si">{2}</span><span class="se">\n</span><span class="s1">*&#39;</span>
+    <span class="n">LB</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+    <span class="n">END</span> <span class="o">=</span> <span class="s1">&#39;*</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="s1">&#39;*&#39;</span><span class="o">*</span><span class="mi">60</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">*&#39;</span>
+
+    <span class="n">GROUP_CLASS</span> <span class="o">=</span> <span class="n">ParamGroup</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span> <span class="k">if</span> <span class="n">groups</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">groups</span>
+
+<div class="viewcode-block" id="ParamLayer.print"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.ParamLayer.print">[docs]</a>    <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Prints the parameter layer as string.</span>
+
+<span class="sd">        :return: Parameter layer string in as found in &#39;.DSC&#39; file.</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">HEADER_FMT</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">TYPE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">VERSION</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">NAME</span><span class="p">)]</span>
+
+        <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">print</span><span class="p">())</span>
+
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">END</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ParamLayer.from_string"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.ParamLayer.from_string">[docs]</a>    <span class="k">def</span> <span class="nf">from_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parses parameter layer string to contained parameters</span>
+
+<span class="sd">        :param str string: Parameter layer string in as found in &#39;.DSC&#39; file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="n">unique</span> <span class="o">=</span> <span class="s1">&#39;_UNIQUE_STRING_&#39;</span>
+        <span class="n">fmt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GROUP_CLASS</span><span class="o">.</span><span class="n">HEADER_FMT</span>
+        <span class="k">assert</span> <span class="n">unique</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fmt</span>
+
+        <span class="n">regexp1</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">unique</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">unique</span><span class="p">,</span> <span class="s1">&#39;(.*)&#39;</span><span class="p">)</span>
+        <span class="n">regexp2</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">unique</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">unique</span><span class="p">,</span> <span class="s1">&#39;.*&#39;</span><span class="p">)</span>
+
+        <span class="n">group_names</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">regexp1</span><span class="p">,</span> <span class="n">string</span><span class="p">)</span>
+        <span class="n">group_contents</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">regexp2</span><span class="p">,</span> <span class="n">string</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]</span>
+
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">content</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">group_names</span><span class="p">,</span> <span class="n">group_contents</span><span class="p">):</span>
+            <span class="n">new_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GROUP_CLASS</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">new_group</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_group</span></div></div>
+
+
+<div class="viewcode-block" id="DescriptorLayer"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.DescriptorLayer">[docs]</a><span class="k">class</span> <span class="nc">DescriptorLayer</span><span class="p">(</span><span class="n">ParamLayer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Descriptor Layer class.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span> <span class="o">=</span> <span class="s1">&#39;DESC&#39;</span>
+    <span class="n">NAME</span> <span class="o">=</span> <span class="s1">&#39;DESCRIPTOR INFORMATION&#39;</span>
+    <span class="n">VERSION</span> <span class="o">=</span> <span class="s1">&#39;1.2&#39;</span>
+
+    <span class="n">HEADER_FMT</span> <span class="o">=</span> <span class="s1">&#39;#</span><span class="si">{0}</span><span class="s1">	</span><span class="si">{1}</span><span class="s1"> * </span><span class="si">{2}</span><span class="s1"> ***********************&#39;</span>
+
+    <span class="n">GROUP_CLASS</span> <span class="o">=</span> <span class="n">ParamGroupDESC</span></div>
+
+
+<div class="viewcode-block" id="StandardParameterLayer"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.StandardParameterLayer">[docs]</a><span class="k">class</span> <span class="nc">StandardParameterLayer</span><span class="p">(</span><span class="n">ParamLayer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Standard Parameter Layer class.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span> <span class="o">=</span> <span class="s1">&#39;SPL&#39;</span>
+    <span class="n">NAME</span> <span class="o">=</span> <span class="s1">&#39;STANDARD PARAMETER LAYER&#39;</span>
+    <span class="n">VERSION</span> <span class="o">=</span> <span class="s1">&#39;1.2&#39;</span>
+
+    <span class="n">GROUP_CLASS</span> <span class="o">=</span> <span class="n">ParamGroupSPL</span>
+
+<div class="viewcode-block" id="StandardParameterLayer.from_string"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.StandardParameterLayer.from_string">[docs]</a>    <span class="k">def</span> <span class="nf">from_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="n">new_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GROUP_CLASS</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">new_group</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_group</span></div></div>
+
+
+<div class="viewcode-block" id="DeviceSpecificLayer"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.DeviceSpecificLayer">[docs]</a><span class="k">class</span> <span class="nc">DeviceSpecificLayer</span><span class="p">(</span><span class="n">ParamLayer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Device Specific Parameter Layer class.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span> <span class="o">=</span> <span class="s1">&#39;DSL&#39;</span>
+    <span class="n">NAME</span> <span class="o">=</span> <span class="s1">&#39;DEVICE SPECIFIC LAYER&#39;</span>
+    <span class="n">VERSION</span> <span class="o">=</span> <span class="s1">&#39;1.0&#39;</span>
+
+    <span class="n">GROUP_CLASS</span> <span class="o">=</span> <span class="n">ParamGroupDSL</span></div>
+
+
+<div class="viewcode-block" id="ManipulationHistoryLayer"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.ManipulationHistoryLayer">[docs]</a><span class="k">class</span> <span class="nc">ManipulationHistoryLayer</span><span class="p">(</span><span class="n">ParamLayer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Manipulation History Parameter Layer class.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">TYPE</span> <span class="o">=</span> <span class="s1">&#39;MHL&#39;</span>
+    <span class="n">NAME</span> <span class="o">=</span> <span class="s1">&#39;MANIPULATION HISTORY LAYER&#39;</span>
+    <span class="n">VERSION</span> <span class="o">=</span> <span class="s1">&#39;1.0&#39;</span>
+
+    <span class="n">GROUP_CLASS</span> <span class="o">=</span> <span class="n">ParamGroupMHL</span></div>
+
+
+<span class="c1"># noinspection PyTypeChecker</span>
+<div class="viewcode-block" id="XeprData"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.XeprData">[docs]</a><span class="k">class</span> <span class="nc">XeprData</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Holds a Bruker EPR measurement result, including all measurement parameters.</span>
+<span class="sd">    Supports importing and exporting to the Bruker BES3T file format (&#39;.DSC&#39;,</span>
+<span class="sd">    &#39;.DTA&#39; and possible associated &#39;XGF&#39;, &#39;YGF&#39; and &#39;ZGF&#39; files) in the 1.2</span>
+<span class="sd">    specification currently used by Xepr. Parameters are stored in the following</span>
+<span class="sd">    attributes and are grouped after the associated functional unit (e.g., &#39;mwBridge&#39;,</span>
+<span class="sd">    &#39;fieldCtrl&#39;) or type (e.g., &#39;Documentational Text&#39;).</span>
+
+<span class="sd">    :ivar desc: :class:`DescriptorLayer` instance holding the parameters from the &#39;.DSC&#39;</span>
+<span class="sd">        file that describe content and parsing corresponding data files (&#39;.DTA&#39; etc).</span>
+<span class="sd">    :ivar spl: :class:`StandardParameterLayer` instance holding all mandatory EPR</span>
+<span class="sd">        parameters, such as the microwave power.</span>
+<span class="sd">    :ivar dsl: :class:`DeviceSpecificLayer` instance holding the EPR measurement</span>
+<span class="sd">        parameters specific to the instrument and type of measurement, i.e., the</span>
+<span class="sd">        measurement temperature, sample angles, integration time, etc.</span>
+<span class="sd">    :ivar mhl: :class:`ManipulationHistoryLayer` instance holding all parameters that</span>
+<span class="sd">        describe manipulations performed on the data set (e.g., baseline correction,</span>
+<span class="sd">        scaling, ...).</span>
+
+<span class="sd">    The actual data is stored as numpy arrays:</span>
+
+<span class="sd">    :ivar x: X-axis data, for instance the external magnetic field.</span>
+<span class="sd">    :ivar y: If present, y-axis data. Can be any parameter which is swept during an EPR</span>
+<span class="sd">        experiment, for instance sample angles or microwave powers.</span>
+<span class="sd">    :ivar z: If present, z-axis data. Can be any parameter which is swept during an EPR</span>
+<span class="sd">        experiment, for instance sample angles or microwave powers.</span>
+<span class="sd">    :ivar o: Ordinate. Contains the measured EPR signal.</span>
+
+<span class="sd">    *Examples*:</span>
+
+<span class="sd">    Read a data file and get some information:</span>
+
+<span class="sd">    &gt;&gt;&gt; data_set = XeprData(&#39;/path/to/file.DSC&#39;)  # loads data set from file</span>
+<span class="sd">    &gt;&gt;&gt; data_set.pars  # returns dictionary with all parameters in order of occurrence</span>
+<span class="sd">    &gt;&gt;&gt; data_set.dsl.groups  # returns list of all functional units of setup</span>
+<span class="sd">    &gt;&gt;&gt; data_set.dsl.groups[&#39;mwBridge&#39;].pars[&#39;Power&#39;]  # returns microwave power</span>
+<span class="sd">    &gt;&gt;&gt; data_set.dsl.groups[&#39;signalChannel&#39;].pars[&#39;ModAmp&#39;]  # returns mod amplitude</span>
+
+<span class="sd">    Update an existing parameter:</span>
+
+<span class="sd">    &gt;&gt;&gt; data_set.set_par(&#39;ModAmp&#39;, value=2, unit=&#39;G&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; data_set.dsl.groups[&#39;signalChannel&#39;].pars[&#39;ModAmp&#39;] = XeprParam(2, &#39;G&#39;)</span>
+
+<span class="sd">    Add a new parameter:</span>
+
+<span class="sd">    &gt;&gt;&gt; data_set.dsl.groups[&#39;mwBridge&#39;].pars[&#39;QValue&#39;]  = XeprParam(2, &#39;G&#39;)</span>
+
+<span class="sd">    Add a new parameter group:</span>
+
+<span class="sd">    &gt;&gt;&gt; pars = {&#39;Temperature&#39;: XeprParam(290, &#39;K&#39;), &#39;AcqWaitTime&#39;: XeprParam(120, &#39;s&#39;)}</span>
+<span class="sd">    &gt;&gt;&gt; param_group = ParamGroupDSL(&#39;tempCtrl&#39;, pars)</span>
+<span class="sd">    &gt;&gt;&gt; data_set.dsl.groups[&#39;tempCtrl&#39;] = param_group</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param str path: If given, the data file will be loaded from ``path``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">desc</span> <span class="o">=</span> <span class="n">DescriptorLayer</span><span class="p">()</span>  <span class="c1"># Descriptor Layer (mandatory)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spl</span> <span class="o">=</span> <span class="n">StandardParameterLayer</span><span class="p">()</span>  <span class="c1"># Standard Parameter Layer (optional)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dsl</span> <span class="o">=</span> <span class="n">DeviceSpecificLayer</span><span class="p">()</span>  <span class="c1"># Device Specific Layer (optional)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mhl</span> <span class="o">=</span> <span class="n">ManipulationHistoryLayer</span><span class="p">()</span>  <span class="c1"># Manipulation History Layer (optional)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dsc</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">o</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">path</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+<div class="viewcode-block" id="XeprData.load"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.XeprData.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads data and parameters from a &#39;.DSC&#39; file and accompanying data files.</span>
+
+<span class="sd">        :param str path: Path to &#39;.DSC&#39; file or accompanying data files to load. Any of</span>
+<span class="sd">            those file paths can be given, the other files belonging to the same data set</span>
+<span class="sd">            will be found automatically if in the same directory.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;No such file: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
+
+        <span class="n">base_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_load_dsc</span><span class="p">(</span><span class="n">base_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_load_dta</span><span class="p">(</span><span class="n">base_path</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_load_dsc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_path</span><span class="p">):</span>
+
+        <span class="n">dsc_path</span> <span class="o">=</span> <span class="n">base_path</span> <span class="o">+</span> <span class="s1">&#39;.DSC&#39;</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dsc_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dsc</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+        <span class="n">layers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dsc</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
+            <span class="n">head</span><span class="p">,</span> <span class="n">sep</span><span class="p">,</span> <span class="n">tail</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">head</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;DESC&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">tail</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">head</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;SPL&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">spl</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">tail</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">head</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;DSL&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dsl</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">tail</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">head</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;MHL&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mhl</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">tail</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_load_dta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_path</span><span class="p">):</span>
+
+        <span class="n">dta_path</span> <span class="o">=</span> <span class="n">base_path</span> <span class="o">+</span> <span class="s1">&#39;.DTA&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">dta_path</span><span class="p">,</span> <span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;XTYP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;IDX&#39;</span><span class="p">:</span>
+            <span class="n">x_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;XWID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;XPTS&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">x_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;XMIN&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">x_max</span> <span class="o">=</span> <span class="n">x_min</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;XWID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="n">x_step</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">x_min</span><span class="p">,</span> <span class="n">x_max</span><span class="p">,</span> <span class="n">x_step</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;XTYP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;IGD&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">base_path</span> <span class="o">+</span> <span class="s1">&#39;.XGF&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;YTYP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;IDX&#39;</span><span class="p">:</span>
+            <span class="n">y_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;YWID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;YPTS&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">y_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;YMIN&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">y_max</span> <span class="o">=</span> <span class="n">y_min</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;YWID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="n">y_step</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span><span class="p">,</span> <span class="n">y_step</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;YTYP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;IGD&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">base_path</span> <span class="o">+</span> <span class="s1">&#39;.YGF&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;ZTYP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;IDX&#39;</span><span class="p">:</span>
+            <span class="n">z_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;ZWID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;ZPTS&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">z_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;ZMIN&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">z_max</span> <span class="o">=</span> <span class="n">z_min</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;ZWID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="n">z_step</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">z_min</span><span class="p">,</span> <span class="n">z_max</span><span class="p">,</span> <span class="n">z_step</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;ZTYP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;IGD&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">base_path</span> <span class="o">+</span> <span class="s1">&#39;.ZGF&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">o</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dta</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">o</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dta</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+
+<div class="viewcode-block" id="XeprData.save"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.XeprData.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Saves data and parameters to a &#39;.DSC&#39; file and accompanying data files.</span>
+
+<span class="sd">        :param str path: Path to &#39;.DSC&#39; file or accompanying data files to save. Any of</span>
+<span class="sd">            those file paths can be given, the other file names will be generated as</span>
+<span class="sd">            necessary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">base_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">dsc_path</span> <span class="o">=</span> <span class="n">base_path</span> <span class="o">+</span> <span class="s1">&#39;.DSC&#39;</span>
+        <span class="n">dta_path</span> <span class="o">=</span> <span class="n">base_path</span> <span class="o">+</span> <span class="s1">&#39;.DTA&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dsc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">print_dsc</span><span class="p">()</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dsc_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dsc</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dta</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">dta_path</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;XTYP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;IGD&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">base_path</span> <span class="o">+</span> <span class="s1">&#39;.XGF&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;YTYP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;IGD&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">base_path</span> <span class="o">+</span> <span class="s1">&#39;.YGF&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;ZTYP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;IGD&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">base_path</span> <span class="o">+</span> <span class="s1">&#39;.YGF&#39;</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pars</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Dictionary containing all measurement parameters. This property is read-only</span>
+<span class="sd">        and will be created on-demand. Use :meth:`set_par` to set a parameter instead.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">all_pars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spl</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsl</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mhl</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">layer</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">all_pars</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">pars</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">all_pars</span>
+
+<div class="viewcode-block" id="XeprData.set_par"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.XeprData.set_par">[docs]</a>    <span class="k">def</span> <span class="nf">set_par</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the specified parameter. The parameter must already exist in one of the</span>
+<span class="sd">        parameter layers. New parameters must be created and assigned directly to a</span>
+<span class="sd">        subgroup of a parameter layer.</span>
+
+<span class="sd">        :param str name: Name of parameter to set.</span>
+<span class="sd">        :param value: Parameter value to set.</span>
+<span class="sd">        :param str unit: Parameter unit to set (default: &#39;&#39;).</span>
+<span class="sd">        :param str comment: Parameter comment to set (default: &#39;&#39;).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">is_set</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spl</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsl</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mhl</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">layer</span><span class="o">.</span><span class="n">groups</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">group</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">group</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">XeprParam</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">comment</span><span class="p">)</span>
+                    <span class="n">is_set</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_set</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Parameter &quot;</span><span class="si">%s</span><span class="s1">&quot; does not exist.&#39;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="XeprData.print_dsc"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.XeprData.print_dsc">[docs]</a>    <span class="k">def</span> <span class="nf">print_dsc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parses all parameters as &#39;.DSC&#39; file content and returns the result as a string.</span>
+
+<span class="sd">        :return: String containing all parameters in &#39;.DSC&#39; file format.</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spl</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsl</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mhl</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">groups</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">print</span><span class="p">())</span>
+
+        <span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="XeprData.plot"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.XeprData.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plots all recorded spectra / sweeps as 2D or 3D plots.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+
+        <span class="n">x_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;XNAM&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">+</span> <span class="s1">&#39; [</span><span class="si">%s</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;XUNI&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">autoscale</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">tight</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">)</span>
+
+            <span class="n">y_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;IRNAM&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">x_label</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">y_label</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">autoscale</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">tight</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">y_point</span><span class="p">,</span> <span class="n">z_data</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">):</span>
+                <span class="n">y_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">y_point</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">y_data</span><span class="p">,</span> <span class="n">z_data</span><span class="p">)</span>
+
+            <span class="n">y_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;YNAM&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">+</span> <span class="s1">&#39; [</span><span class="si">%s</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;YUNI&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">z_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;IRNAM&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">x_label</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">y_label</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_zlabel</span><span class="p">(</span><span class="n">z_label</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+
+        <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Sam Schott
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #511D43;
+    }
+    /* Sidebar */
+    .wy-nav-side {
+      background: #41474e;
+    }
+  </style>
+
+
+</body>
+</html>
