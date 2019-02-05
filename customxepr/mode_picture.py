@@ -12,7 +12,6 @@ import math
 import numpy as np
 from lmfit import Model
 from lmfit.models import PolynomialModel
-import matplotlib.pyplot as plt
 import time
 
 
@@ -199,6 +198,9 @@ class ModePicture(object):
         """
         Plots mode picture and the least squares fit used to determine the Q-value.
         """
+
+        import matplotlib.pyplot as plt
+
         comps = self.fit_result.eval_components(x=self.x_data_points)
         offset = self.fit_result.best_values['c0']
 

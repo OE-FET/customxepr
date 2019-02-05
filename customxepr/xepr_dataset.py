@@ -12,8 +12,6 @@ import os
 import re
 import numpy as np
 import itertools
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
 
 def is_metadata(line):
@@ -239,7 +237,9 @@ class ParamGroupMHL(ParamGroup):
     of the Manipulation History Layer (MHL).
     """
 
-    # TODO: to be implemented
+    HEADER_FMT = '*\n*	{0}:\n*'
+    CELL_LENGTH = 8
+    DELIM = ''
 
 
 class ParamLayer(object):
@@ -361,7 +361,7 @@ class ManipulationHistoryLayer(ParamLayer):
     Manipulation History Parameter Layer class.
     """
     TYPE = 'MHL'
-    NAME = 'MANIPULATION HISTORY LAYER'
+    NAME = 'MANIPULATION HISTORY LAYER by BRUKER'
     VERSION = '1.0'
 
     GROUP_CLASS = ParamGroupMHL
@@ -491,26 +491,26 @@ class XeprData(object):
         self._dta = np.fromfile(dta_path, '>f8')
 
         if self.pars['XTYP'].value == 'IDX':
-            x_step = self.pars['XWID'].value / self.pars['XPTS'].value
             x_min = self.pars['XMIN'].value
-            x_max = x_min + self.pars['XWID'].value - x_step
-            self.x = np.arange(x_min, x_max, x_step, dtype='>f8')
+            x_max = x_min + self.pars['XWID'].value
+            x_pts = self.pars['XPTS'].value
+            self.x = np.linspace(x_min, x_max, x_pts, dtype='>f8')
         elif self.pars['XTYP'].value == 'IGD':
             self.x = np.fromfile(base_path + '.XGF', '>f8')
 
         if self.pars['YTYP'].value == 'IDX':
-            y_step = self.pars['YWID'].value / self.pars['YPTS'].value
             y_min = self.pars['YMIN'].value
-            y_max = y_min + self.pars['YWID'].value - y_step
-            self.y = np.arange(y_min, y_max, y_step, dtype='>f8')
+            y_max = y_min + self.pars['YWID'].value
+            y_pts = self.pars['YPTS'].value
+            self.x = np.linspace(y_min, y_max, y_pts, dtype='>f8')
         elif self.pars['YTYP'].value == 'IGD':
             self.y = np.fromfile(base_path + '.YGF', '>f8')
 
         if self.pars['ZTYP'].value == 'IDX':
-            z_step = self.pars['ZWID'].value / self.pars['ZPTS'].value
             z_min = self.pars['ZMIN'].value
-            z_max = z_min + self.pars['ZWID'].value - z_step
-            self.z = np.arange(z_min, z_max, z_step, dtype='>f8')
+            z_max = z_min + self.pars['ZWID'].value
+            z_pts = self.pars['ZPTS'].value
+            self.x = np.linspace(z_min, z_max, z_pts, dtype='>f8')
         elif self.pars['ZTYP'].value == 'IGD':
             self.z = np.fromfile(base_path + '.ZGF', '>f8')
 
@@ -607,6 +607,9 @@ class XeprData(object):
         """
         Plots all recorded spectra / sweeps as 2D or 3D plots.
         """
+
+        import matplotlib.pyplot as plt
+        from mpl_toolkits.mplot3d import Axes3D
 
         fig = plt.figure()
 
