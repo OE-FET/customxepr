@@ -27,7 +27,7 @@ CustomXepr can be run interactively from a Jupyter console, or as a standalone p
 You can start CustomXepr from a Python command prompt as follows:
 ```python
 >>> from customxepr import run
->>> customXepr, xepr, mercury, mercuryfeed, keithley, _ = run()
+>>> customXepr, xepr, mercury, mercuryfeed, keithley, *_ = run()
 ```
 If executed from an Jupyter console, this will automatically start the integrated Qt event loop and run in interactive mode. To start CustomXepr from the console / terminal, run `CustomXepr`.
 
@@ -47,10 +47,10 @@ In addition, the queuing system can be used to manually schedule any user-specif
 be done with the `queued_exec` decorator from `customxepr.manager`:
 
 ```python
-    >>> # assume we alrady have a CustomXepr instance `customXepr`
+    >>> # assume we already have a CustomXepr instance `customXepr`
     >>> from customxepr.manager import queued_exec
     >>> # create test function
-    >>> @queued_exec(customXepr.job_queue) ...
+    >>> @queued_exec(customXepr.job_queue)
     ... def test_func(*args):
     ...     # do something
     ...     for i in range(0, 10):
@@ -127,22 +127,19 @@ for T in [5, 50, 100, 150, 200, 250, 300]:
 	# Perform FET measurements
 	# =================================================================
 	# generate file name for transfer curve
-	transferFile = folder + title + '_' + str(T) + 'K_transfer.txt'
+	transfer_file = folder + title + '_' + str(T) + 'K_transfer.txt'
 	# record default transfer curve and save to file
-	customXepr.transferMeasurement(filePath=transferFile)
+	customXepr.transferMeasurement(path=transfer_file)
 
 	# =================================================================
 	# Perform EPR measurements at Vg = -70V and Vg = 0V
 	# =================================================================
 	for Vg in [0, -70]:
         customXepr.biasGate(Vg)  # bias gate
-        # perform preconfigured EPR measurement
-        customXepr.runXeprExperiment(exp, ModAmp=modAmp[T])
+        # perform preconfigured EPR measurement, save to 'esr_path'
+        esr_file = folder + title + '_' + str(T) + 'K_Vg_' + str(Vg)
+        customXepr.runXeprExperiment(exp, path=esr_file, ModAmp=modAmp[T])
         customXepr.biasGate(0)  # set gate voltage to zero
-
-        # save EPR spectrum to file
-        esrDataFile = folder + title + '_' + str(T) + 'K_Vg_' + str(Vg)
-        customXepr.saveCurrentData(esrDataFile)
 
 customXepr.setStandby()  # ramp down field and set MW bridge to standby
 ```

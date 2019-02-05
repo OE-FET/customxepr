@@ -192,7 +192,7 @@
 <p>CustomXepr can be run interactively from a Jupyter console, or as a standalone program. In the latter case, it will create its own internal Jupyter console for the user to run commands.</p>
 <p>You can start CustomXepr from a Python command prompt as follows:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">customxepr</span> <span class="kn">import</span> <span class="n">run</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">customXepr</span><span class="p">,</span> <span class="n">xepr</span><span class="p">,</span> <span class="n">mercury</span><span class="p">,</span> <span class="n">mercuryfeed</span><span class="p">,</span> <span class="n">keithley</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">run</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">customXepr</span><span class="p">,</span> <span class="n">xepr</span><span class="p">,</span> <span class="n">mercury</span><span class="p">,</span> <span class="n">mercuryfeed</span><span class="p">,</span> <span class="n">keithley</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="o">=</span> <span class="n">run</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>If executed from an Jupyter console, this will automatically start the integrated Qt event loop and run in interactive mode. To start CustomXepr from the console / terminal, run <code class="docutils literal notranslate"><span class="pre">CustomXepr</span></code>.</p>
@@ -207,10 +207,10 @@ For instance, <code class="docutils literal notranslate"><span class="pre">custo
 <a class="reference external image-reference" href="/screenshots/CustomXepr_jobs.png"><img alt="Screenshot of CustomXepr GUI" src="_images/CustomXepr_jobs.png" /></a>
 <p>In addition, the queuing system can be used to manually schedule any user-specified jobs, related or unrelated to the EPR setup and its ancillary equipment. This can
 be done with the <code class="docutils literal notranslate"><span class="pre">queued_exec</span></code> decorator from <code class="docutils literal notranslate"><span class="pre">customxepr.manager</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># assume we alrady have a CustomXepr instance `customXepr`</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># assume we already have a CustomXepr instance `customXepr`</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">customxepr.manager</span> <span class="kn">import</span> <span class="n">queued_exec</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># create test function</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nd">@queued_exec</span><span class="p">(</span><span class="n">customXepr</span><span class="o">.</span><span class="n">job_queue</span><span class="p">)</span> <span class="o">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@queued_exec</span><span class="p">(</span><span class="n">customXepr</span><span class="o">.</span><span class="n">job_queue</span><span class="p">)</span>
 <span class="gp">... </span><span class="k">def</span> <span class="nf">test_func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="c1"># do something</span>
 <span class="gp">... </span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
@@ -276,22 +276,19 @@ be done with the <code class="docutils literal notranslate"><span class="pre">qu
     <span class="c1"># Perform FET measurements</span>
     <span class="c1"># =================================================================</span>
     <span class="c1"># generate file name for transfer curve</span>
-    <span class="n">transferFile</span> <span class="o">=</span> <span class="n">folder</span> <span class="o">+</span> <span class="n">title</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;K_transfer.txt&#39;</span>
+    <span class="n">transfer_file</span> <span class="o">=</span> <span class="n">folder</span> <span class="o">+</span> <span class="n">title</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;K_transfer.txt&#39;</span>
     <span class="c1"># record default transfer curve and save to file</span>
-    <span class="n">customXepr</span><span class="o">.</span><span class="n">transferMeasurement</span><span class="p">(</span><span class="n">filePath</span><span class="o">=</span><span class="n">transferFile</span><span class="p">)</span>
+    <span class="n">customXepr</span><span class="o">.</span><span class="n">transferMeasurement</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">transfer_file</span><span class="p">)</span>
 
     <span class="c1"># =================================================================</span>
     <span class="c1"># Perform EPR measurements at Vg = -70V and Vg = 0V</span>
     <span class="c1"># =================================================================</span>
     <span class="k">for</span> <span class="n">Vg</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">70</span><span class="p">]:</span>
         <span class="n">customXepr</span><span class="o">.</span><span class="n">biasGate</span><span class="p">(</span><span class="n">Vg</span><span class="p">)</span>  <span class="c1"># bias gate</span>
-        <span class="c1"># perform preconfigured EPR measurement</span>
-        <span class="n">customXepr</span><span class="o">.</span><span class="n">runXeprExperiment</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">ModAmp</span><span class="o">=</span><span class="n">modAmp</span><span class="p">[</span><span class="n">T</span><span class="p">])</span>
+        <span class="c1"># perform preconfigured EPR measurement, save to &#39;esr_path&#39;</span>
+        <span class="n">esr_file</span> <span class="o">=</span> <span class="n">folder</span> <span class="o">+</span> <span class="n">title</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;K_Vg_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">Vg</span><span class="p">)</span>
+        <span class="n">customXepr</span><span class="o">.</span><span class="n">runXeprExperiment</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">esr_file</span><span class="p">,</span> <span class="n">ModAmp</span><span class="o">=</span><span class="n">modAmp</span><span class="p">[</span><span class="n">T</span><span class="p">])</span>
         <span class="n">customXepr</span><span class="o">.</span><span class="n">biasGate</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># set gate voltage to zero</span>
-
-        <span class="c1"># save EPR spectrum to file</span>
-        <span class="n">esrDataFile</span> <span class="o">=</span> <span class="n">folder</span> <span class="o">+</span> <span class="n">title</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;K_Vg_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">Vg</span><span class="p">)</span>
-        <span class="n">customXepr</span><span class="o">.</span><span class="n">saveCurrentData</span><span class="p">(</span><span class="n">esrDataFile</span><span class="p">)</span>
 
 <span class="n">customXepr</span><span class="o">.</span><span class="n">setStandby</span><span class="p">()</span>  <span class="c1"># ramp down field and set MW bridge to standby</span>
 </pre></div>

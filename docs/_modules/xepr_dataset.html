@@ -164,8 +164,6 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="k">import</span> <span class="n">Axes3D</span>
 
 
 <span class="k">def</span> <span class="nf">is_metadata</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
@@ -389,12 +387,14 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class to hold an Xepr experiment parameter group which forms a section</span>
 <span class="sd">    of the Manipulation History Layer (MHL).</span>
-<span class="sd">    &quot;&quot;&quot;</span></div>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c1"># TODO: to be implemented</span>
+    <span class="n">HEADER_FMT</span> <span class="o">=</span> <span class="s1">&#39;*</span><span class="se">\n</span><span class="s1">*	</span><span class="si">{0}</span><span class="s1">:</span><span class="se">\n</span><span class="s1">*&#39;</span>
+    <span class="n">CELL_LENGTH</span> <span class="o">=</span> <span class="mi">8</span>
+    <span class="n">DELIM</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span></div>
 
 
-<div class="viewcode-block" id="ParamLayer"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.ParamLayer">[docs]</a><span class="k">class</span> <span class="nc">ParamLayer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">ParamLayer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parameter layer object. Contains a top level parameter section of a</span>
 <span class="sd">    Bruker BES3T file. This should be subclassed, depending on the actual</span>
@@ -423,7 +423,7 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span> <span class="k">if</span> <span class="n">groups</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">groups</span>
 
-<div class="viewcode-block" id="ParamLayer.print"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.ParamLayer.print">[docs]</a>    <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Prints the parameter layer as string.</span>
 
@@ -437,9 +437,9 @@
 
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">END</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
 
-<div class="viewcode-block" id="ParamLayer.from_string"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.ParamLayer.from_string">[docs]</a>    <span class="k">def</span> <span class="nf">from_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parses parameter layer string to contained parameters</span>
 
@@ -460,7 +460,7 @@
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">content</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">group_names</span><span class="p">,</span> <span class="n">group_contents</span><span class="p">):</span>
             <span class="n">new_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GROUP_CLASS</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
             <span class="n">new_group</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_group</span></div></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_group</span>
 
 
 <div class="viewcode-block" id="DescriptorLayer"><a class="viewcode-back" href="../api/xepr_dataset.html#xepr_dataset.DescriptorLayer">[docs]</a><span class="k">class</span> <span class="nc">DescriptorLayer</span><span class="p">(</span><span class="n">ParamLayer</span><span class="p">):</span>
@@ -513,7 +513,7 @@
 <span class="sd">    Manipulation History Parameter Layer class.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">TYPE</span> <span class="o">=</span> <span class="s1">&#39;MHL&#39;</span>
-    <span class="n">NAME</span> <span class="o">=</span> <span class="s1">&#39;MANIPULATION HISTORY LAYER&#39;</span>
+    <span class="n">NAME</span> <span class="o">=</span> <span class="s1">&#39;MANIPULATION HISTORY LAYER by BRUKER&#39;</span>
     <span class="n">VERSION</span> <span class="o">=</span> <span class="s1">&#39;1.0&#39;</span>
 
     <span class="n">GROUP_CLASS</span> <span class="o">=</span> <span class="n">ParamGroupMHL</span></div>
@@ -643,26 +643,26 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_dta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">dta_path</span><span class="p">,</span> <span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;XTYP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;IDX&#39;</span><span class="p">:</span>
-            <span class="n">x_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;XWID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;XPTS&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
             <span class="n">x_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;XMIN&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
-            <span class="n">x_max</span> <span class="o">=</span> <span class="n">x_min</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;XWID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="n">x_step</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">x_min</span><span class="p">,</span> <span class="n">x_max</span><span class="p">,</span> <span class="n">x_step</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
+            <span class="n">x_max</span> <span class="o">=</span> <span class="n">x_min</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;XWID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">x_pts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;XPTS&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">x_min</span><span class="p">,</span> <span class="n">x_max</span><span class="p">,</span> <span class="n">x_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;XTYP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;IGD&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">base_path</span> <span class="o">+</span> <span class="s1">&#39;.XGF&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;YTYP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;IDX&#39;</span><span class="p">:</span>
-            <span class="n">y_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;YWID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;YPTS&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
             <span class="n">y_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;YMIN&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
-            <span class="n">y_max</span> <span class="o">=</span> <span class="n">y_min</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;YWID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="n">y_step</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span><span class="p">,</span> <span class="n">y_step</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
+            <span class="n">y_max</span> <span class="o">=</span> <span class="n">y_min</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;YWID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">y_pts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;YPTS&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span><span class="p">,</span> <span class="n">y_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;YTYP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;IGD&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">base_path</span> <span class="o">+</span> <span class="s1">&#39;.YGF&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;ZTYP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;IDX&#39;</span><span class="p">:</span>
-            <span class="n">z_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;ZWID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;ZPTS&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
             <span class="n">z_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;ZMIN&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
-            <span class="n">z_max</span> <span class="o">=</span> <span class="n">z_min</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;ZWID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="n">z_step</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">z_min</span><span class="p">,</span> <span class="n">z_max</span><span class="p">,</span> <span class="n">z_step</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
+            <span class="n">z_max</span> <span class="o">=</span> <span class="n">z_min</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;ZWID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">z_pts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;ZPTS&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">z_min</span><span class="p">,</span> <span class="n">z_max</span><span class="p">,</span> <span class="n">z_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;ZTYP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;IGD&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">base_path</span> <span class="o">+</span> <span class="s1">&#39;.ZGF&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
 
@@ -759,6 +759,9 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plots all recorded spectra / sweeps as 2D or 3D plots.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+        <span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="k">import</span> <span class="n">Axes3D</span>
 
         <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
 
