@@ -52,6 +52,7 @@ setup(
     install_requires=[
         "IPython",
         "decorator",
+        "future",
         "ipykernel",
         "keithley2600",
         "keithleygui",
