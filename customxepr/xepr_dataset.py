@@ -41,7 +41,7 @@ class XeprParam(object):
         self.unit = unit
         self.comment = comment
 
-    def print(self):
+    def to_string(self):
         """
         Prints a parameter as string in the Bruker BES3T format.
 
@@ -163,7 +163,7 @@ class ParamGroup(object):
         else:
             self.pars = dict(pars)
 
-    def print(self):
+    def to_string(self):
         """
         Prints a parameter group as string.
         """
@@ -171,7 +171,7 @@ class ParamGroup(object):
 
         for name, param in self.pars.items():
             new_line = '{0}{1}{2}'.format(name.ljust(self.CELL_LENGTH), self.DELIM,
-                                          param.print())
+                                          param.to_string())
             lines.append(new_line)
 
         return '\n'.join(lines)
@@ -271,7 +271,7 @@ class ParamLayer(object):
     def __init__(self, groups=None):
         self.groups = dict() if groups is None else groups
 
-    def print(self):
+    def to_string(self):
         """
         Prints the parameter layer as string.
 
@@ -281,7 +281,7 @@ class ParamLayer(object):
         lines = [self.HEADER_FMT.format(self.TYPE, self.VERSION, self.NAME)]
 
         for group in self.groups.values():
-            lines.append(group.print())
+            lines.append(group.to_string())
 
         lines.append(self.END)
 
@@ -597,7 +597,7 @@ class XeprData(object):
 
         for layer in [self.desc, self.spl, self.dsl, self.mhl]:
             if len(layer.groups) > 0:
-                lines.append(layer.print())
+                lines.append(layer.to_string())
 
         lines[-1] = lines[-1].strip('*')
 
