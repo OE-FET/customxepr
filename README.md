@@ -1,3 +1,5 @@
+[![Documentation Status](https://readthedocs.org/projects/customxepr/badge/?version=latest)](https://customxepr.readthedocs.io/en/latest/?badge=latest)
+
 # CustomXepr
 
 A Python instrument controller and GUI for Bruker E500 EPR spectrometers, MercuryiTC temperature controllers and Keithley 2600 series source measurement units. CustomXepr relies on the python drivers [keithley2600](https://github.com/OE-FET/keithley2600) and [mercuryitc](https://github.com/OE-FET/mercuryitc) and the respective user interfaces [keithleygui](https://github.com/OE-FET/keithleygui) and [mercurygui](https://github.com/OE-FET/mercurygui) for functionality regarding the Keithley 2600 and MercuryiTC instruments.
