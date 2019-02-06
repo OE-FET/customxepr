@@ -16,7 +16,7 @@ import os
 import sys
 import time
 
-autodoc_mock_imports = ['PySide2', 'PySide2.QtGui', 'PySide2.QtCore', 'PySide2.QtWidgets']
+autodoc_mock_imports = ['PySide', 'PySide.QtGui', 'PySide.QtCore', 'PySide.QtWidgets']
 
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../customxepr'))
