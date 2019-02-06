@@ -22,18 +22,34 @@ sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../customxepr'))
 sys.path.insert(0, os.path.abspath('../screenshots'))
 
-from customxepr.main import __version__
-
 # -- Project information -----------------------------------------------------
+
+def get_metadata(relpath, varname):
+    """Read metadata info from a file without importing it."""
+    from os.path import dirname, join
+
+    if "__file__" not in globals():
+        root = ".."
+    else:
+        root = dirname(__file__)
+
+    for line in open(join(root, relpath), "rb"):
+        line = line.decode("cp437")
+        if varname in line:
+            if '"' in line:
+                return line.split('"')[1]
+            elif "'" in line:
+                return line.split("'")[1]
+
 
 project = 'CustomXepr'
 copyright = '{}, Sam Schott'.format(time.localtime().tm_year)
 author = 'Sam Schott'
 
 # The short X.Y version
-version = __version__
+version = get_metadata("customxepr/main.py", "__version__")
 # The full version, including alpha/beta/rc tags
-release = __version__
+release = get_metadata("customxepr/main.py", "__version__")
 
 
 # -- General configuration ---------------------------------------------------
