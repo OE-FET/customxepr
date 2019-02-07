@@ -15,50 +15,21 @@
 import os
 import sys
 import time
-from unittest.mock import MagicMock
 
-# autodoc_mock_imports = ['qtpy', 'PyQt5', 'PyQt5.QtCore', 'PyQt5.QtWidgets', 'PyQt5.QtGui', 'matplotlib.backends.backend_qt5agg']
+autodoc_mock_imports = ['qtpy', 'PyQt5', 'PyQt5.QtCore', 'PyQt5.QtWidgets', 'PyQt5.QtGui', 'matplotlib.backends.backend_qt5agg'
 
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../customxepr'))
 sys.path.insert(0, os.path.abspath('../screenshots'))
 
 
-class Mock(MagicMock):
-    """
-    Mock class that gives whatever attribute it's asked for, as per
-    https://docs.readthedocs.io/en/latest/faq.html. Intended to be used when
-    you can't genuinely install/import a module because ReadTheDocs (RTD)
-    doesn't allow the installation of modules with C (rather than pure Python)
-    code.
-    """
-    @classmethod
-    def __getattr__(cls, name):
-        return MagicMock()
-
-
-class SimpleClass(object):
+class queue(object):
     """
     Dummy base class to replace a :class:`Mock` version.
     """
     pass
 
-
-MOCK_MODULES = [
-    # Things that ReadTheDocs won't install, but we want:
-    'qtpy',
-    'PyQt5',
-    'PyQt5.QtCore',
-    'PyQt5.QtGui',
-    'PyQt5.QtWidgets',
-    'matplotlib.backends.backend_qt5agg',
-    'queue',
-]
-
-ON_READTHEDOCS = os.environ.get('READTHEDOCS') == 'True'  # the normal test
-if ON_READTHEDOCS:
-    # Insert copies of our Mock class for modules we want to fake.
-    sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+sys.modules.update('queue', queue)
 
 
 # MODULE_MEMBERS_TO_MAKE_SIMPLE_CLASS = (
