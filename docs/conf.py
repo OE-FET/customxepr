@@ -16,20 +16,20 @@ import os
 import sys
 import time
 
-autodoc_mock_imports = ['qtpy', 'PyQt5', 'PyQt5.QtCore', 'PyQt5.QtWidgets', 'PyQt5.QtGui', 'matplotlib.backends.backend_qt5agg'
+autodoc_mock_imports = ['qtpy', 'PyQt5', 'PyQt5.QtCore', 'PyQt5.QtWidgets', 'PyQt5.QtGui', 'matplotlib.backends.backend_qt5agg']
 
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../customxepr'))
 sys.path.insert(0, os.path.abspath('../screenshots'))
 
 
-class queue(object):
+class Queue(object):
     """
     Dummy base class to replace a :class:`Mock` version.
     """
     pass
 
-sys.modules.update('queue', queue)
+sys.modules.update('Queue', Queue)
 
 
 # MODULE_MEMBERS_TO_MAKE_SIMPLE_CLASS = (
