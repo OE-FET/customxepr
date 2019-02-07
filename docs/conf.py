@@ -22,6 +22,22 @@ sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../customxepr'))
 sys.path.insert(0, os.path.abspath('../screenshots'))
 
+
+class SimpleClass(object):
+    """
+    Dummy base class to replace a :class:`Mock` version; see
+    ``FIX_THE_PROBLEM`` below.
+    """
+    pass
+    
+
+MODULE_MEMBERS_TO_MAKE_SIMPLE_CLASS = (
+    ('PyQt5.QtCore', 'QObject'),
+)
+
+for module_name, class_name in MODULE_MEMBERS_TO_MAKE_SIMPLE_CLASS:
+        setattr(sys.modules[module_name], class_name, SimpleClass)
+
 # -- Project information -----------------------------------------------------
 
 def get_metadata(relpath, varname):
