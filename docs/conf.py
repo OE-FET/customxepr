@@ -16,11 +16,24 @@ import os
 import sys
 import time
 
-autodoc_mock_imports = ['qtpy', 'PyQt5', 'PyQt5.QtCore', 'PyQt5.QtWidgets', 'PyQt5.QtGui', 'matplotlib.backends.backend_qt5agg']
+# autodoc_mock_imports = ['qtpy', 'PyQt5', 'PyQt5.QtCore', 'PyQt5.QtWidgets', 'PyQt5.QtGui', 'matplotlib.backends.backend_qt5agg']
 
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../customxepr'))
 sys.path.insert(0, os.path.abspath('../screenshots'))
+
+
+class Mock(MagicMock):
+    """
+    Mock class that gives whatever attribute it's asked for, as per
+    https://docs.readthedocs.io/en/latest/faq.html. Intended to be used when
+    you can't genuinely install/import a module because ReadTheDocs (RTD)
+    doesn't allow the installation of modules with C (rather than pure Python)
+    code.
+    """
+    @classmethod
+    def __getattr__(cls, name: str):
+        return MagicMock()
 
 
 class SimpleClass(object):
@@ -29,14 +42,37 @@ class SimpleClass(object):
     ``FIX_THE_PROBLEM`` below.
     """
     pass
-    
+
+
+MOCK_MODULES = [
+    # Things that ReadTheDocs won't install, but we want:
+    'qtpy',
+    'PyQt5',
+    'PyQt5.QtCore',
+    'PyQt5.QtGui',
+    'PyQt5.QtWidgets',
+    'matplotlib.backends.backend_qt5agg',
+]
+
+ON_READTHEDOCS = os.environ.get('READTHEDOCS') == 'True'  # the normal test
+ON_READTHEDOCS = True  # for testing!
+if ON_READTHEDOCS:
+    # Insert copies of our Mock class for modules we want to fake.
+    sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
 
 MODULE_MEMBERS_TO_MAKE_SIMPLE_CLASS = (
-    ('PyQt5.QtCore', 'QObject'),
+    ('PyQt5.QtCore', 'QAbstractListModel'),
+    ('PyQt5.QtCore', 'QAbstractTableModel'),
+    # etc.
 )
 
-for module_name, class_name in MODULE_MEMBERS_TO_MAKE_SIMPLE_CLASS:
+
+FIX_THE_PROBLEM = False  # to see the problem, or True to fix it!
+if FIX_THE_PROBLEM:
+    for module_name, class_name in MODULE_MEMBERS_TO_MAKE_SIMPLE_CLASS:
         setattr(sys.modules[module_name], class_name, SimpleClass)
+
 
 # -- Project information -----------------------------------------------------
 
