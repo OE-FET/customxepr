@@ -23,27 +23,14 @@ sys.path.insert(0, os.path.abspath('../customxepr'))
 sys.path.insert(0, os.path.abspath('../screenshots'))
 
 
-class Queue(object):
-    """
-    Dummy base class to replace a :class:`Mock` version.
-    """
-    pass
-
-
-sys.modules.update({'Queue': Queue})
-
-
-# MODULE_MEMBERS_TO_MAKE_SIMPLE_CLASS = (
-#     ('PyQt5.QtCore', 'QtObject'),
-#     # etc.
-# )
+# class Queue(object):
+#     """
+#     Dummy base class to replace a :class:`Mock` version.
+#     """
+#     pass
 #
 #
-# FIX_THE_PROBLEM = False  # to see the problem, or True to fix it!
-# if FIX_THE_PROBLEM:
-#     for module_name, class_name in MODULE_MEMBERS_TO_MAKE_SIMPLE_CLASS:
-#         setattr(sys.modules[module_name], class_name, SimpleClass)
-
+# sys.modules.update({'Queue': Queue})
 
 # -- Project information -----------------------------------------------------
 
