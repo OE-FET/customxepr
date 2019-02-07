@@ -15,6 +15,7 @@
 import os
 import sys
 import time
+from unittest.mock import MagicMock
 
 # autodoc_mock_imports = ['qtpy', 'PyQt5', 'PyQt5.QtCore', 'PyQt5.QtWidgets', 'PyQt5.QtGui', 'matplotlib.backends.backend_qt5agg']
 
