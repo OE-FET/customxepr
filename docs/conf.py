@@ -63,8 +63,7 @@ if ON_READTHEDOCS:
 
 
 MODULE_MEMBERS_TO_MAKE_SIMPLE_CLASS = (
-    ('PyQt5.QtCore', 'QAbstractListModel'),
-    ('PyQt5.QtCore', 'QAbstractTableModel'),
+    ('PyQt5.QtCore', 'QtObject'),
     # etc.
 )
 
