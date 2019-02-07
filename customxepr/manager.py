@@ -89,8 +89,9 @@ class Experiment(object):
 
 class SignalQueue(QtCore.QObject, Queue):
     """
-    Custom queue that emits Qt signals if an item is added or removed and if
-    :func:`task_done` is called.
+    Custom queue that emits Qt signals if an item is added or removed. Inherits
+    from :class:`queue.Queue` and provides a thread-safe method to remove items
+    from the center of the queue.
 
     :cvar put_signal: Is emitted when an item is put into the queue.
     :cvar pop_signal: Is emitted when an item is removed from the queue.
@@ -98,7 +99,6 @@ class SignalQueue(QtCore.QObject, Queue):
 
     put_signal = QtCore.Signal()
     pop_signal = QtCore.Signal()
-    task_done_signal = QtCore.Signal(str)
 
     def __init__(self):
         QtCore.QObject.__init__(self)

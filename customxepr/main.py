@@ -64,7 +64,8 @@ class CustomXepr(QtCore.QObject):
     All CustomXepr methods are executed in a worker thread in the order of
     their calls. To execute your own function in this thread, you can use
     the :func:`queued_exec` decorator provided by customxepr and query the
-    :attr:`abort_event` to support CustomXepr's abort functionality.
+    :attr:`abort_event` to support CustomXepr's abort functionality (see
+    :class:`manager.queued_exec`).
 
     All results are added to the result queue and can be retrieved with:
 
@@ -187,6 +188,8 @@ class CustomXepr(QtCore.QObject):
     def sendEmail(self, body):
         """
         Sends a text to the default email address.
+
+        :param str body: Text to send.
         """
         self.emailSender.sendmail(self.notify_address,
                                   'CustomXepr Notification', body)
@@ -196,6 +199,8 @@ class CustomXepr(QtCore.QObject):
         """
         Pauses for the specified amount of seconds. This pause function checks
         for an abort signal every minute to prevent permanent blocking.
+
+        :param int seconds: Number of seconds to pause.
         """
         eta = time.time() + seconds
         eta_string = time.strftime('%H:%M', time.localtime(eta))
@@ -241,7 +246,7 @@ class CustomXepr(QtCore.QObject):
 
     @property
     def notify_address(self):
-        """Address list for email notifications."""
+        """ List of addresses for email notifications."""
         # get root logger
         root_logger = logging.getLogger()
         # find all email handlers (there should be only one)
@@ -353,8 +358,8 @@ class CustomXepr(QtCore.QObject):
     @queued_exec(job_queue)
     def customtune(self):
         """
-        Custom tuning routine with better accuracy. It takes longer than :meth:`tune`
-        and requires the spectrometer to be be already close to tuned.
+        Custom tuning routine with higher accuracy. It takes longer than :meth:`tune`
+        and requires the spectrometer to be already close to tuned.
         """
 
         if not self._check_for_xepr():
@@ -451,6 +456,7 @@ class CustomXepr(QtCore.QObject):
 
         logger.status('Tuning done.')
 
+    @queued_exec(job_queue)
     def tuneBias(self):
         """
         Tunes the diode bias. A perfectly tuned bias results in a diode
@@ -496,6 +502,7 @@ class CustomXepr(QtCore.QObject):
             diff = self.hidden['DiodeCurrent'].value - 200
             time.sleep(self.wait)
 
+    @queued_exec(job_queue)
     def tuneIris(self, tolerance=1):
         """
         Tunes the cavity's iris. A perfectly tuned iris results in a diode
@@ -545,11 +552,12 @@ class CustomXepr(QtCore.QObject):
             diff = self.hidden['DiodeCurrent'].value - 200
             time.sleep(self.wait)
 
+    @queued_exec(job_queue)
     def tuneFreq(self, tolerance=3):
         """
-        Tunes the microwave frequency to a lock offset of zero.
+        Tunes the microwave frequency to a lock offset close to zero.
 
-        :param int tolerance: Minimum frequency offset that must be achieved
+        :param int tolerance: Minimum lock offset that must be achieved
             before :meth:`tuneFreq` returns.
         """
         # check for abort event
@@ -574,6 +582,7 @@ class CustomXepr(QtCore.QObject):
             fq_offset = self.hidden['LockOffset'].value
             time.sleep(self.wait)
 
+    @queued_exec(job_queue)
     def tunePhase(self):
         """
         Tunes the phase of the MW reference arm to maximise the diode current.
@@ -777,9 +786,10 @@ class CustomXepr(QtCore.QObject):
     @queued_exec(job_queue)
     def getQValueCalc(self, path=None, temperature=298):
         """
-        Calculates Q-value by fitting the cavity mode picture to a Lorentzian
+        Calculates the Q-value by fitting the cavity mode picture to a Lorentzian
         resonance with a polynomial baseline. It uses all available zoom factors
-        to resolve both sharp and broad resonances (high and low Q-values, respectively).
+        to resolve both sharp and broad resonances (high and low Q-values, respectively)
+        and is therefore more accurate than :meth:`getQValueFromXepr`.
 
         :param str path: Directory where Q-Value reading is saved with
             corresponding temperature and time-stamp.
@@ -890,19 +900,24 @@ class CustomXepr(QtCore.QObject):
     @queued_exec(job_queue)
     def runXeprExperiment(self, exp, retune=False, path=None, **kwargs):
         """
-        Runs the Xepr experiment given `exp`. Keyword arguments (kwargs)
-        allow the user to pass experiment parameters. If multiple scans are
-        performed, the frequency is tuned between scans.
+        Runs the Xepr experiment ``exp`. Keyword arguments (kwargs)
+        allow the user to pass experiment setting to Xepr. If multiple scans
+        are performed, frequency and iris can be tuned between scans.
 
         If connected to a temperature controller, the temperature during the
         measurements is monitored.
 
+        If the ``path`` argument is given, the resulting data set is saved
+        to the drive and the last-measured Q-value and the measurement
+        temperature (if available) are stored in the Bruker '.DSC' file.
+
         :param exp: Xepr experiment object.
         :param bool retune: Retune iris and freq between scans (default: False).
         :param str path: Path to file. If given, the data set will be saved to this path,
-            otherwise, it will just be kept in memory.
-        :param kwargs: Keyword arguments corresponding to measurement
-            parameters.
+            otherwise, it will just be kept in memory. Xepr only allows file paths
+            shorter than 128 characters.
+        :param kwargs: Keyword arguments corresponding to measurement Xepr
+            parameters (e.g., modulation amplitude).
         """
 
         if not self._check_for_xepr():
@@ -1005,7 +1020,7 @@ class CustomXepr(QtCore.QObject):
 
             time.sleep(1)
 
-        # get temperature stability over scan if mercury was connected
+        # get temperature stability during scan if mercury was connected
         if temperature_history is not None:
             temperature_var = max(temperature_history) - min(temperature_history)
             temperature_mean = float(np.mean(temperature_history))
@@ -1053,12 +1068,13 @@ class CustomXepr(QtCore.QObject):
     @queued_exec(job_queue)
     def saveCurrentData(self, path, exp=None):
         """
-        Saves the data from given experiment in Xepr to the specified path. If
-        `exp` is `None` the currently displayed data set is saved.
+        Saves the data from a given experiment in Xepr to the specified path. If
+       ``exp`` is `None` the currently displayed data set is saved.
 
         Xepr only allows file paths shorter than 128 characters.
 
-        :param str path: Absolute path to save data file.
+        :param str path: Absolute path to save data file. Must be shorter than 128
+            characters.
         :param exp: Xepr experiment instance associated with data set. Defaults
             to currently selected experiment if not given.
         """
