@@ -23,15 +23,6 @@ sys.path.insert(0, os.path.abspath('../customxepr'))
 sys.path.insert(0, os.path.abspath('../screenshots'))
 
 
-# class Queue(object):
-#     """
-#     Dummy base class to replace a :class:`Mock` version.
-#     """
-#     pass
-#
-#
-# sys.modules.update({'Queue': Queue})
-
 # -- Project information -----------------------------------------------------
 
 def get_metadata(relpath, varname):
