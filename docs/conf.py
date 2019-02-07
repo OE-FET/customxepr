@@ -15,7 +15,6 @@
 import os
 import sys
 import time
-from keithley2600 import __version__
 
 autodoc_mock_imports = ['qtpy', 'PyQt5', 'PyQt5.QtCore', 'PyQt5.QtWidgets', 'PyQt5.QtGui', 'matplotlib.backends.backend_qt5agg']
 
