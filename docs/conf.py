@@ -29,7 +29,8 @@ class Queue(object):
     """
     pass
 
-sys.modules.update('Queue', Queue)
+
+sys.modules.update({'Queue': Queue})
 
 
 # MODULE_MEMBERS_TO_MAKE_SIMPLE_CLASS = (
