@@ -33,14 +33,13 @@ class Mock(MagicMock):
     code.
     """
     @classmethod
-    def __getattr__(cls, name: str):
+    def __getattr__(cls, name):
         return MagicMock()
 
 
 class SimpleClass(object):
     """
-    Dummy base class to replace a :class:`Mock` version; see
-    ``FIX_THE_PROBLEM`` below.
+    Dummy base class to replace a :class:`Mock` version.
     """
     pass
 
@@ -57,7 +56,6 @@ MOCK_MODULES = [
 ]
 
 ON_READTHEDOCS = os.environ.get('READTHEDOCS') == 'True'  # the normal test
-ON_READTHEDOCS = True  # for testing!
 if ON_READTHEDOCS:
     # Insert copies of our Mock class for modules we want to fake.
     sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
