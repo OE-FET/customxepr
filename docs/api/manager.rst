@@ -8,4 +8,3 @@ Job scheduling
 
 .. automodule:: manager
    :members:
-   :show-inheritance:
