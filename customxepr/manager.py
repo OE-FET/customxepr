@@ -277,7 +277,6 @@ class Worker(QtCore.QObject):
     :param running: Event that causes the worker to pause between jobs if set.
     :param abort: Event that tells a job to abort if set. After a job has
         been aborted, Worker will clear the :attr:`abort` event.
-
     """
 
     def __init__(self, job_q, result_q, running, abort):
