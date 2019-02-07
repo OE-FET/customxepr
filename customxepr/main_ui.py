@@ -744,3 +744,4 @@ class AboutWindow(QtWidgets.QWidget, QtCore.QCoreApplication):
         # set copyright text
         placeholder = self.labelCopyRight.text()
         self.labelCopyRight.setText(placeholder.format(__year__, __author__))
+        self.labelWebsite.setText(self.labelWebsite.text().format(__url__))
