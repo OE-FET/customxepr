@@ -53,6 +53,7 @@ MOCK_MODULES = [
     'PyQt5.QtGui',
     'PyQt5.QtWidgets',
     'matplotlib.backends.backend_qt5agg',
+    'queue',
 ]
 
 ON_READTHEDOCS = os.environ.get('READTHEDOCS') == 'True'  # the normal test
@@ -62,16 +63,16 @@ if ON_READTHEDOCS:
     sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 
-MODULE_MEMBERS_TO_MAKE_SIMPLE_CLASS = (
-    ('PyQt5.QtCore', 'QtObject'),
-    # etc.
-)
-
-
-FIX_THE_PROBLEM = False  # to see the problem, or True to fix it!
-if FIX_THE_PROBLEM:
-    for module_name, class_name in MODULE_MEMBERS_TO_MAKE_SIMPLE_CLASS:
-        setattr(sys.modules[module_name], class_name, SimpleClass)
+# MODULE_MEMBERS_TO_MAKE_SIMPLE_CLASS = (
+#     ('PyQt5.QtCore', 'QtObject'),
+#     # etc.
+# )
+#
+#
+# FIX_THE_PROBLEM = False  # to see the problem, or True to fix it!
+# if FIX_THE_PROBLEM:
+#     for module_name, class_name in MODULE_MEMBERS_TO_MAKE_SIMPLE_CLASS:
+#         setattr(sys.modules[module_name], class_name, SimpleClass)
 
 
 # -- Project information -----------------------------------------------------
