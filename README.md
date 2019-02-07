@@ -110,7 +110,7 @@ A measurement script which cycles through different temperatures and records EPR
 ```python
 # get preconfigured experiment from Xepr
 exp = xepr.XeprExperiment('Experiment')
-# set-up modulation amplitudes in Gauss for different temperatures
+# set up different modulation amplitudes in Gauss for different temperatures
 modAmp = {5: 3, 50: 2, 100: 1, 150: 1, 200: 1, 250: 1.5, 300: 2}
 
 # specify folder to save data

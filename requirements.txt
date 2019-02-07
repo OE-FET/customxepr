@@ -1,12 +1,10 @@
 IPython
-configparser
 decorator
 future
 ipykernel
 keithley2600
 keithleygui
 lmfit
-m2r
 matplotlib
 mercurygui
 mercuryitc

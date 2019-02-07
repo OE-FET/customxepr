@@ -796,7 +796,8 @@ class CustomXepr(QtCore.QObject):
         :param float temperature: Temperature in Kelvin during a Q-value
             measurement. Defaults to room temperature.
 
-        :returns: :class:`mode_picture.ModePicture` instance.
+        :returns: Mode picture instance.
+        :rtype: :class:`mode_picture.ModePicture`
         """
 
         if not self._check_for_xepr():
@@ -1078,6 +1079,10 @@ class CustomXepr(QtCore.QObject):
         :param exp: Xepr experiment instance associated with data set. Defaults
             to currently selected experiment if not given.
         """
+
+        print('To save a just completed measurement, please use the "path" argument ' +
+              'of "runXeprExperiment". This will automatically add temperature ' +
+              'stability and Q-value information to your data files.')
 
         if not self._check_for_xepr():
             return

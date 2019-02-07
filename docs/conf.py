@@ -15,6 +15,7 @@
 import os
 import sys
 import time
+from keithley2600 import __version__
 
 autodoc_mock_imports = ['qtpy', 'PyQt5', 'PyQt5.QtCore', 'PyQt5.QtWidgets', 'PyQt5.QtGui', 'matplotlib.backends.backend_qt5agg']
 
@@ -48,9 +49,9 @@ copyright = '{}, Sam Schott'.format(time.localtime().tm_year)
 author = 'Sam Schott'
 
 # The short X.Y version
-version = get_metadata("../customxepr/main.py", "__version__")
+version = __version__
 # The full version, including alpha/beta/rc tags
-release = get_metadata("../customxepr/main.py", "__version__")
+release = __version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -95,7 +96,7 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None

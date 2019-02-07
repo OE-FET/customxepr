@@ -51,7 +51,6 @@ setup(
             },
     install_requires=[
         "IPython",
-        "configparser",
         "decorator",
         "future",
         "ipykernel",
