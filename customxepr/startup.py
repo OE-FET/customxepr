@@ -14,13 +14,16 @@ import logging
 import os
 import sys
 from IPython import get_ipython
-from keithley2600 import Keithley2600
-from keithleygui import CONF as KCONF
-from keithleygui import KeithleyGuiApp
-from mercurygui import CONF as MCONF
-from mercurygui import MercuryFeed, MercuryMonitorApp
-from mercuryitc import MercuryITC
+from IPython.display import clear_output
 from qtpy import QtCore, QtWidgets, QtGui
+
+from keithley2600 import Keithley2600
+from keithleygui import KeithleyGuiApp
+from keithleygui import CONF as KCONF
+
+from mercuryitc import MercuryITC
+from mercurygui import MercuryFeed, MercuryMonitorApp
+from mercurygui import CONF as MCONF
 
 # local imports
 from customxepr.utils.misc import patch_excepthook
@@ -49,32 +52,40 @@ MERCURY_ADDRESS = MCONF.get('Connection', 'VISA_ADDRESS')
 MERCURY_VISA_LIB = MCONF.get('Connection', 'VISA_LIBRARY')
 
 
-# =============================================================================
-# Set up Qt event loop and console if necessary
-# =============================================================================
+# ========================================================================================
+# Get or start Qt application instance
+# ========================================================================================
 
-def get_qt_app(*args, **kwargs):
+def get_qt_app():
     """
-    Create a new Qt app or return an existing one.
+    Creates a new Qt application or returns an existing one (for instance if run
+    from an IPython console with Qt backend).
+
+    :returns: Tuple ``(app, created)`` where ``created`` is `True` if a new application
+        has been created and `False` if an existing one is returned.
+    :rtype: (:class:`qtpy.QtWidgets.QApplication`, bool)
     """
     created = False
     app = QtCore.QCoreApplication.instance()
 
     if not app:
-        if not args:
-            args = ([''],)
-        app = QtWidgets.QApplication(*args, **kwargs)
+        app = QtWidgets.QApplication([''],)
         created = True
 
     return app, created
 
 
-# =============================================================================
+# ========================================================================================
 # Create splash screen
-# =============================================================================
+# ========================================================================================
 
 def show_splash_screen(app):
-    """ Shows a splash screen from file."""
+    """
+    Shows the CustomXepr splash screen.
+
+    :param app: :class:`qtpy.QtWidgets.QApplication` instance.
+    :returns: :class:`qtpy.QtWidgets.QSplashScreen` instance.
+    """
     direct = os.path.dirname(os.path.realpath(__file__))
     image = QtGui.QPixmap(os.path.join(direct, 'resources', 'splash.png'))
     image.setDevicePixelRatio(3)
@@ -85,16 +96,19 @@ def show_splash_screen(app):
     return splash
 
 
-# =============================================================================
+# ========================================================================================
 # Connect to instruments: Bruker Xepr, Keithley and MercuryiTC.
-# =============================================================================
+# ========================================================================================
 
 def connect_to_instruments():
-    """Tries to connect to Keithley, Mercury and Xepr."""
+    """
+    Tries to connect to Keithley, Mercury and Xepr. Uses the visa
+    addresses saved in the respective configuration files.
 
-    keithley = Keithley2600(KEITHLEY_ADDRESS, KEITHLEY_VISA_LIB)
-    mercury = MercuryITC(MERCURY_ADDRESS, MERCURY_VISA_LIB)
-    mercuryfeed = MercuryFeed(mercury)
+    :returns: (xepr, mercury, keithley)
+    :rtype: (:class:`XeprAPI.Xepr`, :class:`mercuryitc.MercuryITC`,
+        :class:`keithley2600.Keithley2600`)
+    """
 
     try:
         xepr = XeprAPI.Xepr()
@@ -104,30 +118,55 @@ def connect_to_instruments():
         logging.info('No running Xepr instance could be found.')
         xepr = None
 
-    customxepr = CustomXepr(xepr, mercuryfeed, keithley)
+    mercury = MercuryITC(MERCURY_ADDRESS, MERCURY_VISA_LIB)
+    keithley = Keithley2600(KEITHLEY_ADDRESS, KEITHLEY_VISA_LIB)
 
-    return customxepr, xepr, keithley, mercury, mercuryfeed
+    return xepr, mercury, keithley
 
 
-# =============================================================================
+# ========================================================================================
 # Start CustomXepr and user interfaces
-# =============================================================================
+# ========================================================================================
 
-def start_gui(customxepr, mercuryfeed, keithley):
-    """Starts GUIs for Keithley, Mercury and CustomXepr."""
+def start_gui(xepr, mercury, keithley):
+    """
+    Starts GUIs for Keithley, Mercury and CustomXepr.
 
-    customxepr_gui = JobStatusApp(customxepr)
+    :returns: (customxepr, customxepr_gui, mercuryfeed, mercury_gui, keithley_gui)
+    :rtype: (:class:`customxepr.CustomXepr`, :class:`customxepr.JobStatusApp`,
+        :class:`mercurygui.MercuryFeed`, :class:`mercurygui.MercuryMonitorApp`,
+        :class:`keithleygui.KeithleyGuiApp`)
+    """
+
+    mercuryfeed = MercuryFeed(mercury)
     mercury_gui = MercuryMonitorApp(mercuryfeed)
     keithley_gui = KeithleyGuiApp(keithley)
 
-    customxepr_gui.show()
+    customXepr = CustomXepr(xepr, mercuryfeed, keithley)
+    customXepr_gui = JobStatusApp(customXepr)
+
+    customXepr_gui.show()
     mercury_gui.show()
     keithley_gui.show()
 
-    return customxepr_gui, keithley_gui, mercury_gui
+    return customXepr, customXepr_gui, mercuryfeed, mercury_gui, keithley_gui
 
 
 def run():
+    """
+    Runs CustomXepr -- this is the main entry point. Calling ``run`` will first
+    create or retrieve an existing Qt application, then aim to connect to Xepr,
+    a Keithley 2600 instrument and a MercuryiTC temperature controller and finally
+    create user interfaces to control all three instruments.
+
+    If run from an interactive Jupyter or IPython console with Qt backend, ``run``
+    will start an interactive session and return instances of the above instrument
+    controllers. Otherwise, it will create its own Jupyter console to receive user input.
+
+    :returns: (customXepr, xepr, mercury, mercuryfeed, keithley)
+    :rtype: (:class:`customXepr.CustomXepr`, :class:`XeprAPI.Xepr`,
+        :class:`keithley2600.Keithley2600`, :class:`mercuryitc.MercuryITC`)
+        """
 
     # create a new Qt app or return an existing one
     app, created = get_qt_app()
@@ -136,11 +175,9 @@ def run():
     splash = show_splash_screen(app)
 
     # connect to instruments
-    customXepr, xepr, keithley, mercury, mercuryfeed = connect_to_instruments()
+    xepr, mercury, keithley = connect_to_instruments()
     # start user interfaces
-    customXepr_gui, keithley_gui, mercury_gui = start_gui(customXepr,
-                                                          mercuryfeed,
-                                                          keithley)
+    customXepr, customXepr_gui, mercuryfeed, mercury_gui, keithley_gui = start_gui(xepr, mercury, keithley)
 
     banner = ('Welcome to CustomXepr %s. ' % __version__ +
               'You can access connected instruments through "customXepr" ' +
@@ -158,16 +195,14 @@ def run():
         kernel_window = InternalIPKernel(banner=banner)
         kernel_window.new_qt_console()
 
-        var_dict = {'customXepr': customXepr, 'xepr': xepr,
-                    'customXepr_gui': customXepr_gui, 'mercury': mercury,
-                    'mercuryfeed': mercuryfeed, 'mercury_gui': mercury_gui,
-                    'keithley': keithley, 'keithley_gui': keithley_gui}
+        var_dict = {'customXepr': customXepr, 'xepr': xepr, 'mercury': mercury,
+                    'mercuryfeed': mercuryfeed, 'keithley': keithley}
 
         kernel_window.send_to_namespace(var_dict)
         # noinspection PyUnresolvedReferences
         app.aboutToQuit.connect(kernel_window.cleanup_consoles)
         # remove splash screen
-        splash.finish(keithley_gui)
+        splash.finish(customXepr_gui)
         # patch exception hook to display errors from Qt event loop
         patch_excepthook()
         # start event loop
@@ -175,17 +210,16 @@ def run():
 
     else:
         # print banner
+        clear_output()
         print(banner)
         # remove splash screen
         splash.finish(customXepr_gui)
         # patch exception hook to display errors from Qt event loop
         patch_excepthook()
 
-        return (customXepr, xepr, mercury, mercuryfeed, keithley,
-                customXepr_gui, keithley_gui, mercury_gui)
+        return customXepr, xepr, mercury, mercuryfeed, keithley
 
 
 if __name__ == '__main__':
     import customxepr
-    customXepr, xepr, mercury, mercuryfeed, keithley,\
-        customXepr_gui, keithley_gui, mercury_gui = customxepr.run()
+    customXepr, xepr, mercury, mercuryfeed, keithley = customxepr.run()

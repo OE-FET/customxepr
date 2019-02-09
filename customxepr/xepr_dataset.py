@@ -24,7 +24,7 @@ class XeprParam(object):
     Holds a Bruker measurement parameter in the BES3T file format.
 
     :ivar value: The parameter value. Should be of type :class:`int`, :class:`float`,
-        :class:`bool`, :class:`str`, or :class:`numpy.array`.
+        :class:`bool`, :class:`str`, or :class:`numpy.ndarray`.
     :ivar str unit: String containing the unit. Defaults to an empty string.
     :ivar str comment: Defaults to an empty string. If not empty,
         :attr:`comment` must start with "\*".
@@ -48,17 +48,18 @@ class XeprParam(object):
         :return: Parsed parameter.
         :rtype: str
         """
+        is_array = isinstance(self.value, np.ndarray)
 
-        if isinstance(self.value, np.ndarray):
+        if is_array:
             value_str = ','.join([str(x) for x in self.value.flatten()])
             shape_str = str(self.value.shape).lstrip('(').strip(')').replace(' ', '')
             header = '{{{0};{1};{2}}}'.format(self.value.ndim, shape_str, 0)
 
         if self.value is None:
             return_str = ''
-        elif isinstance(self.value, np.ndarray) and self.unit:
+        elif is_array and self.unit:
             return_str = ' '.join([header, str(self.unit), value_str])
-        elif isinstance(self.value, np.ndarray) and not self.unit:
+        elif is_array and not self.unit:
             return_str = ' '.join([header, value_str])
         elif not self.unit:
             return_str = str(self.value)
@@ -608,8 +609,12 @@ class XeprData(object):
         Plots all recorded spectra / sweeps as 2D or 3D plots.
         """
 
-        import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D
+        try:
+            import matplotlib.pyplot as plt
+            from mpl_toolkits.mplot3d import Axes3D
+        except ImportError:
+            print('Warning: Install matplotlib to support plotting.')
+            return
 
         fig = plt.figure()
 

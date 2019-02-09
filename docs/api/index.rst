@@ -15,3 +15,4 @@ This section gives an overview of CustmoXepr's modules:
    customxepr.manager <manager>
    customxepr.mode_picture <mode_picture>
    customxepr.xepr_dataset <xepr_dataset>
+   customxepr.startup <startup>

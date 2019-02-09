@@ -165,6 +165,8 @@ class CustomXepr(QtCore.QObject):
 
         # waiting time for Xepr to process commands, prevent memory error
         self.wait = 0.1
+        # timeout for phase tuning
+        self._tuning_timeout = 60
         # last measured Q-value
         self._last_qvalue = None
         # settling time for cryostat temperature
@@ -587,8 +589,6 @@ class CustomXepr(QtCore.QObject):
         """
         Tunes the phase of the MW reference arm to maximise the diode current.
         """
-        # timeout for phase tuning
-        self._tuning_timeout = 60
         # check for abort event
         if self.abort.is_set():
                 return
@@ -1053,7 +1053,8 @@ class CustomXepr(QtCore.QObject):
                 try:
                     data.pars['QValue'] = self._last_qvalue
                 except ValueError:
-                    data.dsl.groups['mwBridge'].pars['QValue'] = XeprParam(self._last_qvalue)
+                    mw_bridge_layer = data.dsl.groups['mwBridge']
+                    mw_bridge_layer.pars['QValue'] = XeprParam(self._last_qvalue)
 
             if temperature_history is not None:
                 param_list = dict()

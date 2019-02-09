@@ -12,13 +12,13 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 from __future__ import division, absolute_import
 import sys
 import os
-from qtpy import QtCore, QtWidgets, QtGui, uic
 import logging
 import platform
 import subprocess
 import re
 import inspect
 import webbrowser
+from qtpy import QtCore, QtWidgets, QtGui, uic
 
 # local imports
 from customxepr.main import CustomXepr, __version__, __year__, __author__, __url__
@@ -69,8 +69,7 @@ class QInfoLogHandler(logging.Handler, QtCore.QObject):
 class QStatusLogHandler(logging.Handler, QtCore.QObject):
     """
     Handler which emits a signal containing the logging message for every
-    logged event. The signal will be connected to "Status" field of the GUI and
-    trigger a 30 min time out counter which will be reset by the next signal.
+    logged event. The signal will be connected to "Status" field of the GUI.
     """
     status_signal = QtCore.Signal(str)
 
@@ -116,12 +115,10 @@ status_handler.setLevel(logging.STATUS)
 error_handler = QErrorLogHandler()
 error_handler.setLevel(logging.ERROR)
 
-# add handlers
-root_logger = logging.getLogger()
+# add handlers to customxepr logger
 logger = logging.getLogger('customxepr.main')
-
-root_logger.addHandler(status_handler)
-root_logger.addHandler(info_handler)
+logger.addHandler(status_handler)
+logger.addHandler(info_handler)
 logger.addHandler(error_handler)
 
 
@@ -148,7 +145,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
            UI to specify email addresses for notifications and the desired
            notification level (Status, Info, Warning or Error).
 
-    This class requires a :class:`CustomXepr` instance as input.
+    This class requires a :class:`aain.CustomXepr` instance as input.
 
     """
 
@@ -384,8 +381,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         elif action == save_action:
             prompt = 'Save as file'
             filename = 'untitled.txt'
-            formats = 'Text file (*.txt)'
-            filepath = QtWidgets.QFileDialog.getSaveFileName(self, prompt, filename, formats)
+            filepath = QtWidgets.QFileDialog.getSaveFileName(self, prompt, filename)
             if len(filepath[0]) < 4:
                 return
             self.result_queue.queue[i0].save(filepath[0])
@@ -421,7 +417,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         specified in self.t_timeout.
         """
         if self.job_queue.has_running() > 0:
-            logger.warning('No status update for %s min.' % self.t_timeout +
+            logger.warning('No status update for %i min.' % self.t_timeout +
                            ' Please check on experiment')
 
 # =============================================================================
@@ -523,8 +519,8 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
     def add_result(self, index=-1):
         """
-        Adds new result to the resultQueueDisplay, tries to plot the result.
-        The new result is added to the end of the resultQueueDisplay.
+        Adds new result to the :attr:`resultQueueDisplay` and tries to plot the result.
+        The new result is added to the end of :attr:`resultQueueDisplay`.
         """
         result = self.result_queue.queue[index]
 
@@ -547,13 +543,14 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
     def on_result_pop(self, index=0):
         """
-        Removes entry with index `i` from resultQueueDisplay (default: i = 1).
+        Removes entry with index ``i`` from :attr:`resultQueueDisplay` (default: i = 1).
         """
         self.resultQueueModel.removeRow(index)
 
     def populate_jobs(self):
         """
-        Gets all current items of job_queue and adds them to jobQueueDisplay.
+        Gets all current items of :attr:`job_queue` and adds them to
+        :attr:`jobQueueDisplay`.
         """
         for i in range(0, self.job_queue.qsize()):
             self.on_job_added(i)
@@ -728,8 +725,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
 class AboutWindow(QtWidgets.QWidget, QtCore.QCoreApplication):
     """
-    Prints version number, copyright info and help output from CustomXepr to a
-    PyQt window.
+    Shows version number, copyright info and url for CustomXepr in a new window.
     """
     def __init__(self):
         super(self.__class__, self).__init__()
