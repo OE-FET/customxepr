@@ -723,7 +723,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
 # About / Help Window
 # =============================================================================
 
-class AboutWindow(QtWidgets.QWidget, QtCore.QCoreApplication):
+class AboutWindow(QtWidgets.QWidget):
     """
     Shows version number, copyright info and url for CustomXepr in a new window.
     """
