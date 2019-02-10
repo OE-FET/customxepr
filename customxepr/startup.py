@@ -61,7 +61,7 @@ def get_qt_app():
     Creates a new Qt application or returns an existing one (for instance if run
     from an IPython console with Qt backend).
 
-    :returns: Tuple ``(app, created)`` where ``created`` is `True` if a new application
+    :returns: Tuple (``app``, ``created``) where ``created `` is `True` if a new application
         has been created and `False` if an existing one is returned.
     :rtype: (:class:`qtpy.QtWidgets.QApplication`, bool)
     """
@@ -83,8 +83,8 @@ def show_splash_screen(app):
     """
     Shows the CustomXepr splash screen.
 
-    :param app: :class:`qtpy.QtWidgets.QApplication` instance.
-    :returns: :class:`qtpy.QtWidgets.QSplashScreen` instance.
+    :param app: Qt application instance.
+    :returns: :class:`qtpy.QtWidgets.QSplashScreen`.
     """
     direct = os.path.dirname(os.path.realpath(__file__))
     image = QtGui.QPixmap(os.path.join(direct, 'resources', 'splash.png'))
@@ -105,7 +105,7 @@ def connect_to_instruments():
     Tries to connect to Keithley, Mercury and Xepr. Uses the visa
     addresses saved in the respective configuration files.
 
-    :returns: (xepr, mercury, keithley)
+    :returns: Tuple containing instrument instances.
     :rtype: (:class:`XeprAPI.Xepr`, :class:`mercuryitc.MercuryITC`,
         :class:`keithley2600.Keithley2600`)
     """
@@ -132,7 +132,7 @@ def start_gui(xepr, mercury, keithley):
     """
     Starts GUIs for Keithley, Mercury and CustomXepr.
 
-    :returns: (customxepr, customxepr_gui, mercuryfeed, mercury_gui, keithley_gui)
+    :returns: Tuple containing GUI instances.
     :rtype: (:class:`customxepr.CustomXepr`, :class:`customxepr.JobStatusApp`,
         :class:`mercurygui.MercuryFeed`, :class:`mercurygui.MercuryMonitorApp`,
         :class:`keithleygui.KeithleyGuiApp`)
@@ -163,7 +163,7 @@ def run():
     will start an interactive session and return instances of the above instrument
     controllers. Otherwise, it will create its own Jupyter console to receive user input.
 
-    :returns: (customXepr, xepr, mercury, mercuryfeed, keithley)
+    :returns: Tuple containing instrument instances.
     :rtype: (:class:`customXepr.CustomXepr`, :class:`XeprAPI.Xepr`,
         :class:`keithley2600.Keithley2600`, :class:`mercuryitc.MercuryITC`)
         """
