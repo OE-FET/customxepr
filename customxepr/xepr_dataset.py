@@ -400,38 +400,42 @@ class XeprData(object):
 
     :Example:
 
-    Read a data file and get some information:
+        Read a data file and get some information:
 
-    >>> data_set = XeprData('/path/to/file.DSC')
-    >>> data_set.dsl.groups
-    {'fieldCtrl': <ParamGroupDSL(fieldCtrl)>,
-     'fieldSweep': <ParamGroupDSL(fieldSweep)>,
-     'freqCounter': <ParamGroupDSL(freqCounter)>,
-     'mwBridge': <ParamGroupDSL(mwBridge)>,
-     'recorder': <ParamGroupDSL(recorder)>,
-     'signalChannel': <ParamGroupDSL(signalChannel)>}
-    >>> data_set.dsl.groups['mwBridge'].pars['Power']
-     <XeprParam(0.002 mW)>
-    >>> data_set.dsl.groups['signalChannel'].pars['ModAmp']
-    <XeprParam(1.5 G)>
+        >>> data_set = XeprData('/path/to/file.DSC')
+        >>> data_set.dsl.groups
+        {'fieldCtrl': <ParamGroupDSL(fieldCtrl)>,
+         'fieldSweep': <ParamGroupDSL(fieldSweep)>,
+         'freqCounter': <ParamGroupDSL(freqCounter)>,
+         'mwBridge': <ParamGroupDSL(mwBridge)>,
+         'recorder': <ParamGroupDSL(recorder)>,
+         'signalChannel': <ParamGroupDSL(signalChannel)>}
+        >>> data_set.dsl.groups['mwBridge'].pars['Power']
+        <XeprParam(0.002 mW)>
+        >>> data_set.dsl.groups['signalChannel'].pars['ModAmp']
+        <XeprParam(1.5 G)>
 
-    Update an existing parameter:
+        Update an existing parameter:
 
-    >>> data_set.set_par('ModAmp', value=2, unit='G')
-    >>> s_ch = data_set.dsl.groups['signalChannel']
-    >>> s_ch.pars['ModAmp'] = XeprParam(2, 'G')
+        >>> data_set.set_par('ModAmp', value=2, unit='G')
+        >>> s_ch = data_set.dsl.groups['signalChannel']
+        >>> s_ch.pars['ModAmp'] = XeprParam(2, 'G')
 
-    Add a new parameter:
+        Add a new parameter:
 
-    >>> mw_bridge = data_set.dsl.groups['mwBridge']
-    >>> mw_bridge.pars['QValue']  = XeprParam(2, 'G')
+        >>> mw_bridge = data_set.dsl.groups['mwBridge']
+        >>> mw_bridge.pars['QValue']  = XeprParam(2, 'G')
 
-    Add a new parameter group:
+        Add a new temperature controller parameter group:
 
-    >>> pars = {'Temperature': XeprParam(290, 'K'),
-    ...         'AcqWaitTime': XeprParam(120, 's')}
-    >>> param_group = ParamGroupDSL('tempCtrl', pars)
-    >>> data_set.dsl.groups['tempCtrl'] = param_group
+        >>> pars = {'Temperature': XeprParam(290, 'K'),
+        ...         'AcqWaitTime': XeprParam(120, 's')}
+        >>> param_group = ParamGroupDSL('tempCtrl', pars)
+        >>> data_set.dsl.groups['tempCtrl'] = param_group
+
+        Save the modified data set:
+
+        >>> data_set.save('/path/to/file.DSC')
 
     """
 
