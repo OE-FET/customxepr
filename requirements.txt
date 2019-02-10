@@ -1,16 +1,17 @@
 IPython
+PyQt5 >= 5.9
 decorator
 future
 ipykernel
-keithley2600
-keithleygui
+keithley2600 >= 1.0.0
+keithleygui >= 1.0.0
 lmfit
-matplotlib
+matplotlib >= 2.0
 mercurygui
-mercuryitc
+mercuryitc > 0.2.0
 numpy
 pygments
-pyvisa
-pyvisa-py
+pyvisa >= 1.9.0
+pyvisa-py >= 0.3.1
 qtpy
 scipy
