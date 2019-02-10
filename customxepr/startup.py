@@ -61,7 +61,7 @@ def get_qt_app():
     Creates a new Qt application or returns an existing one (for instance if run
     from an IPython console with Qt backend).
 
-    :returns: Tuple (``app``, ``created``) where ``created `` is `True` if a new application
+    :returns: Tuple (``app``, ``created``) where ``created`` is `True` if a new application
         has been created and `False` if an existing one is returned.
     :rtype: (:class:`qtpy.QtWidgets.QApplication`, bool)
     """
