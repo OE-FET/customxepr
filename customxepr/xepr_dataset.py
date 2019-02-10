@@ -398,28 +398,38 @@ class XeprData(object):
         experiment, for instance sample angles or microwave powers.
     :ivar o: Ordinate. Contains the measured EPR signal.
 
-    *Examples*:
+    :Example:
 
     Read a data file and get some information:
 
-    >>> data_set = XeprData('/path/to/file.DSC')  # loads data set from file
-    >>> data_set.pars  # returns dictionary with all parameters in order of occurrence
-    >>> data_set.dsl.groups  # returns list of all functional units of setup
-    >>> data_set.dsl.groups['mwBridge'].pars['Power']  # returns microwave power
-    >>> data_set.dsl.groups['signalChannel'].pars['ModAmp']  # returns mod amplitude
+    >>> data_set = XeprData('/path/to/file.DSC')
+    >>> data_set.dsl.groups
+    {'fieldCtrl': <ParamGroupDSL(fieldCtrl)>,
+     'fieldSweep': <ParamGroupDSL(fieldSweep)>,
+     'freqCounter': <ParamGroupDSL(freqCounter)>,
+     'mwBridge': <ParamGroupDSL(mwBridge)>,
+     'recorder': <ParamGroupDSL(recorder)>,
+     'signalChannel': <ParamGroupDSL(signalChannel)>}
+    >>> data_set.dsl.groups['mwBridge'].pars['Power']
+     <XeprParam(0.002 mW)>
+    >>> data_set.dsl.groups['signalChannel'].pars['ModAmp']
+    <XeprParam(1.5 G)>
 
     Update an existing parameter:
 
     >>> data_set.set_par('ModAmp', value=2, unit='G')
-    >>> data_set.dsl.groups['signalChannel'].pars['ModAmp'] = XeprParam(2, 'G')
+    >>> s_ch = data_set.dsl.groups['signalChannel']
+    >>> s_ch.pars['ModAmp'] = XeprParam(2, 'G')
 
     Add a new parameter:
 
-    >>> data_set.dsl.groups['mwBridge'].pars['QValue']  = XeprParam(2, 'G')
+    >>> mw_bridge = data_set.dsl.groups['mwBridge']
+    >>> mw_bridge.pars['QValue']  = XeprParam(2, 'G')
 
     Add a new parameter group:
 
-    >>> pars = {'Temperature': XeprParam(290, 'K'), 'AcqWaitTime': XeprParam(120, 's')}
+    >>> pars = {'Temperature': XeprParam(290, 'K'),
+    ...         'AcqWaitTime': XeprParam(120, 's')}
     >>> param_group = ParamGroupDSL('tempCtrl', pars)
     >>> data_set.dsl.groups['tempCtrl'] = param_group
 
