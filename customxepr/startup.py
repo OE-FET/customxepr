@@ -163,9 +163,11 @@ def run():
     will start an interactive session and return instances of the above instrument
     controllers. Otherwise, it will create its own Jupyter console to receive user input.
 
-    :returns: Tuple containing instrument instances.
+    :returns: Tuple containing instrument and GUI instances.
     :rtype: (:class:`customXepr.CustomXepr`, :class:`XeprAPI.Xepr`,
-        :class:`keithley2600.Keithley2600`, :class:`mercuryitc.MercuryITC`)
+        :class:`keithley2600.Keithley2600`, :class:`mercuryitc.MercuryITC`,
+        :class:`customxepr.JobStatusApp`, :class:`mercurygui.MercuryMonitorApp`,
+        :class:`keithleygui.KeithleyGuiApp`)
         """
 
     # create a new Qt app or return an existing one
