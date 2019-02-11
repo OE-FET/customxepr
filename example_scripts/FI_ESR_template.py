@@ -1,5 +1,5 @@
 from customxepr import run
-customxepr, xepr, _ = run()
+customxepr, xepr, *_ = run()
 
 
 def sign(x):

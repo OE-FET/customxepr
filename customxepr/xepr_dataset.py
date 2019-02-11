@@ -379,7 +379,7 @@ class XeprData(object):
     'fieldCtrl') or type (e.g., 'Documentational Text').
 
     :ivar desc: :class:`DescriptorLayer` instance holding the parameters from the '.DSC'
-        file that describe content and parsing corresponding data files ('.DTA' etc).
+        file that describe content and parsing of corresponding data files ('.DTA' etc).
     :ivar spl: :class:`StandardParameterLayer` instance holding all mandatory EPR
         parameters, such as the microwave power.
     :ivar dsl: :class:`DeviceSpecificLayer` instance holding the EPR measurement

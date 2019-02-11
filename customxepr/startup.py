@@ -217,9 +217,11 @@ def run():
         # patch exception hook to display errors from Qt event loop
         patch_excepthook()
 
-        return customXepr, xepr, mercury, mercuryfeed, keithley
+        return (customXepr, xepr, mercury, mercuryfeed, keithley,
+                customXepr_gui, mercury_gui, keithley_gui)
 
 
 if __name__ == '__main__':
     import customxepr
-    customXepr, xepr, mercury, mercuryfeed, keithley = customxepr.run()
+    customXepr, xepr, mercury, mercuryfeed, keithley, customXepr_gui, \
+        mercury_gui, keithley_gui = customxepr.run()
