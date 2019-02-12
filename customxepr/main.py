@@ -458,7 +458,6 @@ class CustomXepr(QtCore.QObject):
 
         logger.status('Tuning done.')
 
-    @queued_exec(job_queue)
     def tuneBias(self):
         """
         Tunes the diode bias. A perfectly tuned bias results in a diode
@@ -504,7 +503,6 @@ class CustomXepr(QtCore.QObject):
             diff = self.hidden['DiodeCurrent'].value - 200
             time.sleep(self.wait)
 
-    @queued_exec(job_queue)
     def tuneIris(self, tolerance=1):
         """
         Tunes the cavity's iris. A perfectly tuned iris results in a diode
@@ -554,7 +552,6 @@ class CustomXepr(QtCore.QObject):
             diff = self.hidden['DiodeCurrent'].value - 200
             time.sleep(self.wait)
 
-    @queued_exec(job_queue)
     def tuneFreq(self, tolerance=3):
         """
         Tunes the microwave frequency to a lock offset close to zero.
@@ -584,7 +581,6 @@ class CustomXepr(QtCore.QObject):
             fq_offset = self.hidden['LockOffset'].value
             time.sleep(self.wait)
 
-    @queued_exec(job_queue)
     def tunePhase(self):
         """
         Tunes the phase of the MW reference arm to maximise the diode current.
@@ -879,8 +875,7 @@ class CustomXepr(QtCore.QObject):
 
         return mp
 
-    @staticmethod
-    def _saveQValue2File(tmpr, qval, qval_stderr, path):
+    def _saveQValue2File(self, tmpr, qval, qval_stderr, path):
 
         delim = '\t'
         newline = '\n'
