@@ -474,7 +474,7 @@ class CustomXepr(QtCore.QObject):
         current of 200 mA for all microwave powers.
 
         :param int tolerance: Minimum diode current offset that must be achieved
-            before :meth:`_tuneIris` returns.
+            before :meth:`tuneIris` returns.
         """
         self._tuneIris(tolerance)
 
@@ -484,7 +484,7 @@ class CustomXepr(QtCore.QObject):
         Tunes the microwave frequency to a lock offset close to zero.
 
         :param int tolerance: Minimum lock offset that must be achieved
-            before :meth:`_tuneFreq` returns.
+            before :meth:`tuneFreq` returns.
         """
         self._tuneFreq(tolerance)
 
