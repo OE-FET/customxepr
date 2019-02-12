@@ -296,7 +296,9 @@ class ParamLayer(object):
         """
         self.groups = dict()
 
-        unique = '_UNIQUE_STRING_'
+        # use only alphabetic characters in `unique`
+        # otherwise `re.escape` may inadvertently escape them in Python < 3.7
+        unique = 'UNIQUESTRING'
         fmt = self.GROUP_CLASS.HEADER_FMT
         assert unique not in fmt
 
