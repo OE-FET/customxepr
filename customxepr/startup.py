@@ -133,7 +133,7 @@ def start_gui(xepr, mercury, keithley):
     Starts GUIs for Keithley, Mercury and CustomXepr.
 
     :returns: Tuple containing GUI instances.
-    :rtype: (:class:`customxepr.CustomXepr`, :class:`customxepr.JobStatusApp`,
+    :rtype: (:class:`main.CustomXepr`, :class:`main_ui.JobStatusApp`,
         :class:`mercurygui.MercuryFeed`, :class:`mercurygui.MercuryMonitorApp`,
         :class:`keithleygui.KeithleyGuiApp`)
     """
@@ -164,9 +164,9 @@ def run():
     controllers. Otherwise, it will create its own Jupyter console to receive user input.
 
     :returns: Tuple containing instrument and GUI instances.
-    :rtype: (:class:`customXepr.CustomXepr`, :class:`XeprAPI.Xepr`,
+    :rtype: (:class:`main.CustomXepr`, :class:`XeprAPI.Xepr`,
         :class:`keithley2600.Keithley2600`, :class:`mercuryitc.MercuryITC`,
-        :class:`customxepr.JobStatusApp`, :class:`mercurygui.MercuryMonitorApp`,
+        :class:`main_ui.JobStatusApp`, :class:`mercurygui.MercuryMonitorApp`,
         :class:`keithleygui.KeithleyGuiApp`)
         """
 
