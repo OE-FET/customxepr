@@ -923,18 +923,12 @@ class CustomXepr(QtCore.QObject):
 
         directory, filename = os.path.split(path)
 
-        # check if path is valid
+        # check if directory is valid, create otherwise
         if not os.path.isdir(directory):
-            logger.error('The directory "%s" does not exist.' % directory)
-            self.running.clear()
-            return
+            os.makedirs(directory)
 
-        # check if path is valid
-        if len(path) > 128:
-            logger.error('Invalid path. Full path must be shorter than 110 ' +
-                         'characters.')
-            self.running.clear()
-            return
+        # path must be shorter than 129 characters to be accepted by Xepr
+        assert len(path) < 129
 
         # switch viewpoint to experiment if given
         if exp is not None:
