@@ -7,7 +7,7 @@
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
-from __future__ import division, absolute_import
+from __future__ import division, absolute_import, unicode_literals
 import os
 import re
 import numpy as np
@@ -533,6 +533,8 @@ class XeprData(object):
             self.o = self._dta.reshape(self.z.size, self.y.size, self.x.size)
         elif self.y.size > 0:
             self.o = self._dta.reshape(self.y.size, self.x.size)
+        else:
+            self.o = self._dta
 
     def save(self, path):
         """
