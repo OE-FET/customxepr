@@ -921,14 +921,15 @@ class CustomXepr(QtCore.QObject):
         if not self._check_for_xepr():
             return
 
+        if len(path) > 128:
+            raise ValueError('Only paths with with 128 characters or less are ' +
+                             'by Xepr.')
+
         directory, filename = os.path.split(path)
 
         # check if directory is valid, create otherwise
         if not os.path.isdir(directory):
             os.makedirs(directory)
-
-        # path must be shorter than 129 characters to be accepted by Xepr
-        assert len(path) < 129
 
         # switch viewpoint to experiment if given
         if exp is not None:
