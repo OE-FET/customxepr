@@ -187,11 +187,11 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.aboutWindow = AboutWindow()
 
         # load resources
-        self.icon_queued = QtGui.QIcon(_root + '/resources/queued@2x.png')
-        self.icon_running = QtGui.QIcon(_root + '/resources/running@2x.png')
-        self.icon_aborted = QtGui.QIcon(_root + '/resources/aborted@2x.png')
-        self.icon_failed = QtGui.QIcon(_root + '/resources/failed@2x.png')
-        self.icon_finished = QtGui.QIcon(_root + '/resources/finished@2x.png')
+        self.icon_queued = QtGui.QIcon(_root + '/resources/queued@2x.icns')
+        self.icon_running = QtGui.QIcon(_root + '/resources/running@2x.icns')
+        self.icon_aborted = QtGui.QIcon(_root + '/resources/aborted@2x.icns')
+        self.icon_failed = QtGui.QIcon(_root + '/resources/failed@2x.icns')
+        self.icon_finished = QtGui.QIcon(_root + '/resources/finished@2x.icns')
 
         # assign menu bar actions
         self.action_About.triggered.connect(self.aboutWindow.show)
