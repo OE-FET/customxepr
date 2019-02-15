@@ -122,9 +122,9 @@ logger.addHandler(info_handler)
 logger.addHandler(error_handler)
 
 
-# =============================================================================
+# ==================================================================================================
 # Define JobStatusApp class
-# =============================================================================
+# ==================================================================================================
 
 
 class JobStatusApp(QtWidgets.QMainWindow):
@@ -162,9 +162,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.abort_event = customxepr.abort
         self.abort_event_keithley = customxepr.keithley.abort_event
 
-        # =====================================================================
+        # ==========================================================================================
         # Set-up the UI
-        # =====================================================================
+        # ==========================================================================================
 
         # load layout file, setup toolbar on macOS
         if platform.system() == 'Darwin':
@@ -189,7 +189,6 @@ class JobStatusApp(QtWidgets.QMainWindow):
         # load resources
         self.icon_queued = QtGui.QIcon(_root + '/resources/queued@2x.png')
         self.icon_running = QtGui.QIcon(_root + '/resources/running@2x.png')
-        self.icon_paused = QtGui.QIcon(_root + '/resources/pause@2x.png')
         self.icon_aborted = QtGui.QIcon(_root + '/resources/aborted@2x.png')
         self.icon_failed = QtGui.QIcon(_root + '/resources/failed@2x.png')
         self.icon_finished = QtGui.QIcon(_root + '/resources/finished@2x.png')
@@ -209,9 +208,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
         # restore last position and size
         self.restore_geometry()
 
-        # =====================================================================
+        # ==========================================================================================
         # Connect UI to CustomXepr functionality
-        # =====================================================================
+        # ==========================================================================================
 
         # check status of worker thread (Paused or Running) and adjust buttons
         self.check_paused()
@@ -270,9 +269,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.resultQueueDisplay.customContextMenuRequested.connect(self.open_result_context_menu)
         self.jobQueueDisplay.customContextMenuRequested.connect(self.open_job_context_menu)
 
-        # =====================================================================
+        # ==========================================================================================
         # Connect signals, slots, and callbacks
-        # =====================================================================
+        # ==========================================================================================
 
         self.qValueButton.clicked.connect(self.on_qvalue_clicked)
         self.tuneButton.clicked.connect(self.on_tune_clicked)
@@ -301,9 +300,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         status_handler.status_signal.connect(self.timeout_timer.start)
 
-    # =========================================================================
+    # ==============================================================================================
     # User interface setup
-    # =========================================================================
+    # ==============================================================================================
 
     def create_toolbar(self):
         self.toolbar.setFloatable(False)
@@ -420,9 +419,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
             logger.warning('No status update for %i min.' % self.t_timeout +
                            ' Please check on experiment')
 
-# =============================================================================
+# ==================================================================================================
 # Functions to handle communication with job and result queues
-# =============================================================================
+# ==================================================================================================
 
     @staticmethod
     def _trunc_str(string, max_length=13):
@@ -573,9 +572,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
         else:
             self.pauseButton.setText('Resume')
 
-    # =========================================================================
+    # ==============================================================================================
     # Button callbacks
-    # =========================================================================
+    # ==============================================================================================
 
     def on_tune_clicked(self):
         """
@@ -640,9 +639,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
         # update config file
         CONF.set('Window', 'auto_plot_results', checked)
 
-    # =========================================================================
+    # ==============================================================================================
     # Callbacks and functions for CustomXepr settings adjustments
-    # =========================================================================
+    # ==============================================================================================
 
     def set_email_list(self):
         """
@@ -704,9 +703,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
     def set_t_settling(self, value):
         self.customxepr.temp_wait_time = value
 
-    # =========================================================================
+    # ==============================================================================================
     # Properties
-    # =========================================================================
+    # ==============================================================================================
 
     @property
     def t_timeout(self):
@@ -719,9 +718,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.timeout_timer.setInterval(time_in_min * self.min2msec)
 
 
-# =============================================================================
+# ==================================================================================================
 # About / Help Window
-# =============================================================================
+# ==================================================================================================
 
 class AboutWindow(QtWidgets.QWidget):
     """
