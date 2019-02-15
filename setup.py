@@ -45,7 +45,7 @@ setup(
     packages=find_packages(),
     package_data={
             "customxepr": [
-                    "resources/*.png",
+                    "resources/*.icns",
                     "*.ui",
                     ],
             },
