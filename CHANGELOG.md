@@ -7,6 +7,9 @@ _Added_:
   provides methods to access and modifiy measurement parameters and to plot the data.
   It is compalitble with all Xepr Experiment types, saved in the Bruker BES3T file format
   up to version 1.2 (currently used by Xepr).
+  
+_Changed_:
+- Tweaked icons showing a job status.
 
 _Removed:_
 - Removed the option to specify a title when saving an ESR data file. The file
