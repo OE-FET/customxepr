@@ -143,9 +143,7 @@ ESR measurement scripts/*
 .idea/workspace.xml
 *.xml
 *.iml
-resources/splash.key
-resources/splash.pdf
-resources/splash_old.png
+*.key
 make.bat
 Makefile
 customxepr/xepr_dataset
