@@ -3,7 +3,7 @@ _Added:_
 
 - Added `XeprData` class to hold, read and save Xepr measurement data files. `XeprData`
   provides methods to access and modifiy measurement parameters and to plot the data.
-  It is compalitble with all Xepr Experiment types, saved in the Bruker BES3T file format
+  It is compalitble with all Xepr experiment types, saved in the Bruker BES3T file format
   up to version 1.2 (currently used by Xepr).
   
 _Changed:_
