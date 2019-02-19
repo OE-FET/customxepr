@@ -921,6 +921,8 @@ class CustomXepr(QtCore.QObject):
         if not self._check_for_xepr():
             return
 
+        path = os.path.expanduser(path)
+
         if len(path) > 128:
             raise ValueError('Only paths with with 128 characters or less are ' +
                              'by Xepr.')
