@@ -596,7 +596,7 @@ class XeprData(object):
         is_set = False
 
         for layer in [self.desc, self.spl, self.dsl, self.mhl]:
-            for group in layer.groups:
+            for group in layer.groups.values():
                 if name in group.pars.keys():
                     group.pars[name] = XeprParam(value, unit, comment)
                     is_set = True

@@ -833,13 +833,13 @@ class CustomXepr(QtCore.QObject):
             basename = path.split('.')[0]
             dsc_path = basename + '.DSC'
 
-            data = XeprData(dsc_path)
+            dset = XeprData(dsc_path)
 
             if self._last_qvalue is not None:
                 try:
-                    data.pars['QValue'] = self._last_qvalue
+                    dset.set_par('QValue', self._last_qvalue)
                 except ValueError:
-                    mw_bridge_layer = data.dsl.groups['mwBridge']
+                    mw_bridge_layer = dset.dsl.groups['mwBridge']
                     mw_bridge_layer.pars['QValue'] = XeprParam(self._last_qvalue)
 
             if temperature_history is not None:
@@ -849,9 +849,11 @@ class CustomXepr(QtCore.QObject):
                 param_list['Tolerance'] = XeprParam(self._temperature_tolerance, 'K')
                 param_list['Stability'] = XeprParam(temperature_mean, 'K')
                 tg = ParamGroupDSL(name='tempCtrl', pars=param_list)
-                data.dsl.groups['tempCtrl'] = tg
+                dset.dsl.groups['tempCtrl'] = tg
 
-            return data
+            dset.save(path)
+
+            return dset
 
     @queued_exec(job_queue)
     def saveCurrentData(self, path, exp=None):
