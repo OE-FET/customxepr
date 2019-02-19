@@ -720,7 +720,7 @@ class CustomXepr(QtCore.QObject):
         logger.info(message)
 
         # -------------------start experiment----------------------------------
-        if self.feed is not None and self.feed.mercury is not None:
+        if self._check_for_mercury():
             temperature_history = np.array([])
         else:
             temperature_history = None
@@ -783,7 +783,7 @@ class CustomXepr(QtCore.QObject):
                     time.sleep(self.wait)
 
             # record temperature and warn if fluctuations exceed the tolerance
-            if temperature_history is not None:
+            if temperature_history is not None and self._check_for_mercury():
                 temperature_curr = self.feed.readings['Temp']
                 temperature_history = np.append(temperature_history, temperature_curr)
                 # increment the number of violations n_out if temperature unstable
