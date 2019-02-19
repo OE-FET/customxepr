@@ -127,6 +127,7 @@ logger.addHandler(error_handler)
 # ========================================================================================
 
 
+# noinspection PyArgumentList
 class JobStatusApp(QtWidgets.QMainWindow):
 
     """
@@ -152,6 +153,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
     MAX_JOB_HISTORY_LENGTH = 1
 
     def __init__(self, customxepr):
+        # noinspection PyArgumentList
         super(self.__class__, self).__init__()
 
         # get input arguments
@@ -306,7 +308,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         if self.is_updated():
             self.updateWindow = UpdateWindow()
-            self.updateWindow.show()
+            QtCore.QTimer.singleShot(5000, self.updateWindow.exec_)
 
     # ====================================================================================
     # User interface setup
@@ -739,6 +741,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
 # About / Help Window
 # ========================================================================================
 
+# noinspection PyArgumentList
 class AboutWindow(QtWidgets.QWidget):
     """
     Shows version number, copyright info and url for CustomXepr in a new window.
@@ -759,7 +762,8 @@ class AboutWindow(QtWidgets.QWidget):
         self.labelWebsite.setText(self.labelWebsite.text().format(__url__))
 
 
-class UpdateWindow(QtWidgets.QWidget):
+# noinspection PyArgumentList
+class UpdateWindow(QtWidgets.QDialog):
     """
     Show new version number, link to changes.
     """

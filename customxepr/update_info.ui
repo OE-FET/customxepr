@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>CustomXepr Info</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="1" column="0">
@@ -28,6 +28,9 @@
     <widget class="QLabel" name="label">
      <property name="text">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;CustomXepr has been updated to {}. Click &lt;a href=&quot;{}&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#2874e1;&quot;&gt;here&lt;/span&gt;&lt;/a&gt; to see changes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="openExternalLinks">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
