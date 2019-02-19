@@ -38,6 +38,9 @@ DEFAULTS = [
               'temp_wait_time': 120,
               'temperature_tolerance': 0.1
               }),
+            ('Version',
+             {'old_version': 'v2.2.1',
+              }),
             ]
 
 

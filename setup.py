@@ -49,6 +49,7 @@ setup(
                     "*.ui",
                     ],
             },
+    data_files=[('info', ['README.md', 'CHANGELOG.md'])],
     install_requires=[
         "IPython",
         "decorator",

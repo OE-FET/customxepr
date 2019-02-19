@@ -922,6 +922,11 @@ QTabWidget::pane
     <string>CustomXepr Help...</string>
    </property>
   </action>
+  <action name="actionCustomXepr_Changes">
+   <property name="text">
+    <string>CustomXepr Changes...</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

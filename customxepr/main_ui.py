@@ -31,9 +31,9 @@ PY2 = sys.version[0] == '2'
 _root = QtCore.QFileInfo(__file__).absolutePath()
 
 
-# =============================================================================
+# ========================================================================================
 # Set up logging handlers for STATUS, INFO and ERROR messages
-# =============================================================================
+# ========================================================================================
 
 
 class QInfoLogHandler(logging.Handler, QtCore.QObject):
@@ -122,9 +122,9 @@ logger.addHandler(info_handler)
 logger.addHandler(error_handler)
 
 
-# ==================================================================================================
+# ========================================================================================
 # Define JobStatusApp class
-# ==================================================================================================
+# ========================================================================================
 
 
 class JobStatusApp(QtWidgets.QMainWindow):
@@ -162,9 +162,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.abort_event = customxepr.abort
         self.abort_event_keithley = customxepr.keithley.abort_event
 
-        # ==========================================================================================
+        # ================================================================================
         # Set-up the UI
-        # ==========================================================================================
+        # ================================================================================
 
         # load layout file, setup toolbar on macOS
         if platform.system() == 'Darwin':
@@ -183,7 +183,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.labelCopyRight.setText('© {0}, {1}.'.format(
                 __year__, __author__))
 
-        # create about window
+        # create about window and update window
         self.aboutWindow = AboutWindow()
 
         # load resources
@@ -208,9 +208,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
         # restore last position and size
         self.restore_geometry()
 
-        # ==========================================================================================
+        # ================================================================================
         # Connect UI to CustomXepr functionality
-        # ==========================================================================================
+        # ================================================================================
 
         # check status of worker thread (Paused or Running) and adjust buttons
         self.check_paused()
@@ -269,9 +269,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.resultQueueDisplay.customContextMenuRequested.connect(self.open_result_context_menu)
         self.jobQueueDisplay.customContextMenuRequested.connect(self.open_job_context_menu)
 
-        # ==========================================================================================
+        # ================================================================================
         # Connect signals, slots, and callbacks
-        # ==========================================================================================
+        # ================================================================================
 
         self.qValueButton.clicked.connect(self.on_qvalue_clicked)
         self.tuneButton.clicked.connect(self.on_tune_clicked)
@@ -300,9 +300,17 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         status_handler.status_signal.connect(self.timeout_timer.start)
 
-    # ==============================================================================================
+        # ================================================================================
+        # Inform user of changes
+        # ================================================================================
+
+        if self.is_updated():
+            self.updateWindow = UpdateWindow()
+            self.updateWindow.show()
+
+    # ====================================================================================
     # User interface setup
-    # ==============================================================================================
+    # ====================================================================================
 
     def create_toolbar(self):
         self.toolbar.setFloatable(False)
@@ -419,9 +427,18 @@ class JobStatusApp(QtWidgets.QMainWindow):
             logger.warning('No status update for %i min.' % self.t_timeout +
                            ' Please check on experiment')
 
-# ==================================================================================================
+    def is_updated(self):
+        old_version = CONF.get('Version', 'old_version')
+
+        if old_version in [__version__, None]:
+            return False
+        else:
+            CONF.set('Version', 'old_version', __version__)
+            return True
+
+# ========================================================================================
 # Functions to handle communication with job and result queues
-# ==================================================================================================
+# ========================================================================================
 
     @staticmethod
     def _trunc_str(string, max_length=13):
@@ -572,9 +589,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
         else:
             self.pauseButton.setText('Resume')
 
-    # ==============================================================================================
+    # ====================================================================================
     # Button callbacks
-    # ==============================================================================================
+    # ====================================================================================
 
     def on_tune_clicked(self):
         """
@@ -639,9 +656,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
         # update config file
         CONF.set('Window', 'auto_plot_results', checked)
 
-    # ==============================================================================================
+    # ====================================================================================
     # Callbacks and functions for CustomXepr settings adjustments
-    # ==============================================================================================
+    # ====================================================================================
 
     def set_email_list(self):
         """
@@ -703,9 +720,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
     def set_t_settling(self, value):
         self.customxepr.temp_wait_time = value
 
-    # ==============================================================================================
+    # ====================================================================================
     # Properties
-    # ==============================================================================================
+    # ====================================================================================
 
     @property
     def t_timeout(self):
@@ -718,9 +735,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.timeout_timer.setInterval(time_in_min * self.min2msec)
 
 
-# ==================================================================================================
+# ========================================================================================
 # About / Help Window
-# ==================================================================================================
+# ========================================================================================
 
 class AboutWindow(QtWidgets.QWidget):
     """
@@ -740,3 +757,19 @@ class AboutWindow(QtWidgets.QWidget):
         placeholder = self.labelCopyRight.text()
         self.labelCopyRight.setText(placeholder.format(__year__, __author__))
         self.labelWebsite.setText(self.labelWebsite.text().format(__url__))
+
+
+class UpdateWindow(QtWidgets.QWidget):
+    """
+    Show new version number, link to changes.
+    """
+    def __init__(self):
+        super(self.__class__, self).__init__()
+        # load user interface file
+        uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                'update_info.ui'), self)
+
+        # set copyright text
+        placeholder = self.label.text()
+        self.label.setText(placeholder.format(__version__, __url__ +
+                                              '/en/latest/changelog.html'))
