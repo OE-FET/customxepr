@@ -80,26 +80,3 @@ def patch_excepthook():
     TIMER.setSingleShot(True)
     TIMER.timeout.connect(_patch_excepthook)
     TIMER.start()
-
-
-def ping(ip_address, ms_timeout=20):
-    """
-    Ping command for UNIX based systems. Millisecond timeout will only work if
-    fping is installed. Returns `True` if IP address is reachable within
-    timeout, `False` otherwise.
-
-    :param str ip_address: IP address to ping.
-    :param int ms_timeout: Timeout of ping in milliseconds.
-    :returns: `True` if address is reachable within timeout, `False` otherwise.
-    :rtype: bool
-    """
-    # check if fping is installed, otherwise use ping
-    if os.system('which fping 2>&1 >/dev/null') == 0:
-        command = 'fping'
-        options = '-c 1 -t %i' % round(ms_timeout)
-    else:
-        sec_timeout = max([1, ms_timeout/1000])
-        command = 'ping'
-        options = '-c 1 -t %i ' % int(sec_timeout)
-
-    return subprocess.call([command, options, ip_address]) == 0
