@@ -1,6 +1,6 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from __future__ import division, absolute_import
+
+from __future__ import division, absolute_import, print_function
 from qtpy import QtGui, QtCore, QtWidgets
 
 
@@ -12,6 +12,7 @@ class LedIndicator(QtWidgets.QAbstractButton):
 
         self.setMinimumSize(12, 12)
         self.setCheckable(True)
+        self.setDisabled(True)  # Make the led non clickable
         self._checked = False
 
         # Green
