@@ -35,7 +35,7 @@ class ModePicture(object):
     picture.
 
     :param dict mode_pic_data: Dict with zoom factors as keys and respective mode picture
-        curves as values.
+        data sets as values.
     :param float freq: Cavity resonance frequency in GHz as float.
 
     :ivar x_data_mhz: Numpy array with x-axis data of mode picture in MHz.
@@ -47,10 +47,10 @@ class ModePicture(object):
     """
 
     def __init__(self, mode_pic_data=None, freq=9.385):
+
         if mode_pic_data is None:
             self.x_data_mhz, self.x_data_points, self.y_data, self.freq0 = self.load()
         else:
-
             if not isinstance(mode_pic_data, dict):
                 raise TypeError('"mode_pic_data" must be a dictionary containing ' +
                                 'mode pictures for with different zoom factors.')
@@ -92,7 +92,7 @@ class ModePicture(object):
             values of all mode pictures in mhz and points, respectively, and
             `mode_pic_comb` is the combines y-axis data in a.u..
         """
-        n_points = len(mode_pic_data.values()[0])
+        n_points = len(next(iter(mode_pic_data.values())))
         x_axis_points = np.arange(0, n_points)
 
         x_axis_mhz = {}
@@ -201,7 +201,7 @@ class ModePicture(object):
         try:
             import matplotlib.pyplot as plt
         except ImportError:
-            print('Warning: Install matplotlib to support plotting.')
+            raise ImportError('matplotlib is required for plotting.')
 
         comps = self.fit_result.eval_components(x=self.x_data_points)
         offset = self.fit_result.best_values['c0']
@@ -300,4 +300,3 @@ class ModePicture(object):
     def __repr__(self):
         return '<{0}(QValue = {1}+/-{2}, freq = {3}GHz)>'.format(
             self.__class__.__name__, self.qvalue, self.qvalue_stderr, round(self.freq0, 4))
-
