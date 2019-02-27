@@ -6,14 +6,12 @@ Created on Sun Jul 22 13:11:20 2018
 @author: Sam Schott
 """
 from __future__ import division, absolute_import
-import os
 import sys
 from qtpy import QtCore, QtWidgets
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import PythonTracebackLexer
 from traceback import format_exception
-import subprocess
 
 from customxepr.main import __author__
 
