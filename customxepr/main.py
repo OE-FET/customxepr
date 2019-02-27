@@ -112,9 +112,9 @@ class CustomXepr(QtCore.QObject):
     :ivar wait: Delay between commands sent to Xepr.
     """
 
-# =============================================================================
+# ========================================================================================
 # Set up basic CustomXepr functionality
-# =============================================================================
+# ========================================================================================
 
     job_queue = ExperimentQueue()
     result_queue = SignalQueue()
@@ -175,9 +175,9 @@ class CustomXepr(QtCore.QObject):
         self._temperature_tolerance = CONF.get('CustomXepr',
                                                'temperature_tolerance')
 
-# =============================================================================
+# ========================================================================================
 # define basic functions for email notifications, pausing, etc.
-# =============================================================================
+# ========================================================================================
 
     def clear_all_jobs(self):
         """
@@ -330,9 +330,9 @@ class CustomXepr(QtCore.QObject):
         # update conf file
         CONF.set('CustomXepr', 'email_handler_level', level)
 
-# =============================================================================
+# ========================================================================================
 # set up Xepr functions
-# =============================================================================
+# ========================================================================================
 
     @queued_exec(job_queue)
     def tune(self):
@@ -720,6 +720,7 @@ class CustomXepr(QtCore.QObject):
         logger.info(message)
 
         # -------------------start experiment----------------------------------
+        temperature_mean = None
         if self._check_for_mercury():
             temperature_history = np.array([])
         else:
@@ -1174,9 +1175,9 @@ class CustomXepr(QtCore.QObject):
         self.hidden['SignalPhase'].value = phase_max
         time.sleep(self.wait)
 
-# =============================================================================
+# ========================================================================================
 # set up cryostat functions
-# =============================================================================
+# ========================================================================================
 
     @queued_exec(job_queue)
     def setTemperature(self, target):
@@ -1271,7 +1272,9 @@ class CustomXepr(QtCore.QObject):
 
     def heater_target(self, temperature):
         """
-        Calculates the ideal heater voltage for a given temperature.
+        Calculates the ideal heater voltage for a given temperature. This function
+        can be used to check the current gas flow: If the heater voltage exceeds its
+        target value, the gas flow likely too high (and vice versa).
 
         :param float temperature: Temperature in Kelvin.
         """
@@ -1304,9 +1307,9 @@ class CustomXepr(QtCore.QObject):
         self.feed.control.ramp = ramp
         logger.info('Setting temperature ramp to %s K/min.' % ramp)
 
-# =============================================================================
+# ========================================================================================
 # set up Keithley functions
-# =============================================================================
+# ========================================================================================
 
     @queued_exec(job_queue)
     def transferMeasurement(self, smu_gate=K_CONF.get('Sweep', 'gate'),
@@ -1440,9 +1443,9 @@ class CustomXepr(QtCore.QObject):
         self.keithley.applyCurrent(smu, i)
         self.keithley.beep(0.3, 2400)
 
-# =============================================================================
+# ========================================================================================
 # Helper methods
-# =============================================================================
+# ========================================================================================
 
     def _check_for_mercury(self):
         """
@@ -1502,9 +1505,9 @@ class CustomXepr(QtCore.QObject):
             return True
 
 
-# =============================================================================
+# ========================================================================================
 # Set up loggers to send emails and write to log files
-# =============================================================================
+# ========================================================================================
 
 def setup_root_logger(to_address):
 

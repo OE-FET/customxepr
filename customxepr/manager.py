@@ -22,9 +22,9 @@ PY2 = sys.version[0] == '2'
 logger = logging.getLogger('customxepr.main')
 
 
-# =============================================================================
+# ========================================================================================
 # class to wrap queued function calls ("experiments") and provide metadata
-# =============================================================================
+# ========================================================================================
 
 class ExpStatus(Enum):
     """
@@ -125,9 +125,9 @@ class SignalQueue(QtCore.QObject, Queue):
         self.task_done()
 
 
-# =============================================================================
+# ========================================================================================
 # custom queue for experiments where all history is kept
-# =============================================================================
+# ========================================================================================
 
 class ExperimentQueue(QtCore.QObject):
     """
@@ -160,7 +160,8 @@ class ExperimentQueue(QtCore.QObject):
         Returns list of all items in queue (queued, running, and in history).
         """
         with self._lock:
-            return list(self._history.queue) + list(self._running.queue) + list(self._queued.queue)
+            return (list(self._history.queue) + list(self._running.queue) +
+                    list(self._queued.queue))
 
     def put(self, exp):
         """
@@ -220,7 +221,9 @@ class ExperimentQueue(QtCore.QObject):
             if i < 0:
                 # convert to positive index if negative
                 i = self.qsize() + i
-            index = i - self.first_queued_index()  # convert to index of self._queued.queue
+
+            # convert to index of self._queued.queue
+            index = i - self.first_queued_index()
 
             if index < 0:
                 raise ValueError('Only queued experiments can be removed.')
@@ -246,8 +249,8 @@ class ExperimentQueue(QtCore.QObject):
         """
         Return the approximate number of jobs with given status (not reliable!).
 
-        :param status: Can be 'queued', 'running', 'history' or `None`. If `None`, the full
-            queue size will be returned.
+        :param status: Can be 'queued', 'running', 'history' or `None`. If `None`, the
+            full queue size will be returned.
         """
         with self._lock:
             return self._qsize(status)
@@ -263,9 +266,9 @@ class ExperimentQueue(QtCore.QObject):
             return self._history.qsize() + self._running.qsize() + self._queued.qsize()
 
 
-# =============================================================================
+# ========================================================================================
 # worker that gets function / method calls from queue and carriers them out
-# =============================================================================
+# ========================================================================================
 
 class Worker(QtCore.QObject):
     """
@@ -322,9 +325,9 @@ class Worker(QtCore.QObject):
                     logger.status('IDLE')
 
 
-# =============================================================================
+# ========================================================================================
 # queued execution decorator which dumps a function / method call into a queue
-# =============================================================================
+# ========================================================================================
 
 def queued_exec(queue):
     """
