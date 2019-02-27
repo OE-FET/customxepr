@@ -31,9 +31,10 @@ class XeprParam(object):
     """
 
     UNITS = ['s', 'Hz', 'G', 'T', 'K', 'dB', 'W']
-    PREFIXES = ['', 'E', 'P', 'T', 'G', 'M', 'k', 'h', 'D', 'd', 'c', 'm', 'u', 'n', 'p', 'f', 'a']
+    PREFIXES = ['', 'E', 'P', 'T', 'G', 'M', 'k', 'h',
+                'D', 'd', 'c', 'm', 'u', 'n', 'p', 'f', 'a']
 
-    ALL_UNITS = [ p + u for p,u in itertools.product(PREFIXES, UNITS)]
+    ALL_UNITS = [p + u for p, u in itertools.product(PREFIXES, UNITS)]
 
     def __init__(self, value=None, unit='', comment=''):
 
@@ -582,13 +583,32 @@ class XeprData(object):
 
         return all_pars
 
+    def get_par(self, name):
+        """
+        Gets the specified parameter. The parameter must exist in one of the parameter
+        layers. If multiple parameters with the same name exist, the first match will
+        be returned.
+
+        :param str name: Parameter name.
+        :returns: Xepr data set parameter.
+        :rtype: :class:`XeprParam`
+        """
+
+        for layer in [self.desc, self.spl, self.dsl, self.mhl]:
+            for group in layer.groups.values():
+                if name in group.pars.keys():
+                    return group.pars[name]
+
+        raise ValueError('Parameter "%s" does not exist.' % name)
+
     def set_par(self, name, value, unit='', comment=''):
         """
         Sets the specified parameter. The parameter must already exist in one of the
-        parameter layers. New parameters must be created and assigned directly to a
+        parameter layers. If multiple parameters exist with the same name, all of their
+        values will be set. New parameters must be created and assigned directly to a
         subgroup of a parameter layer.
 
-        :param str name: Name of parameter to set.
+        :param str name: Parameter name.
         :param value: Parameter value to set.
         :param str unit: Parameter unit to set (default: '').
         :param str comment: Parameter comment to set (default: '').
@@ -631,8 +651,7 @@ class XeprData(object):
             import matplotlib.pyplot as plt
             from mpl_toolkits.mplot3d import Axes3D
         except ImportError:
-            print('Warning: Install matplotlib to support plotting.')
-            return
+            raise ImportError('Install matplotlib to support plotting.')
 
         fig = plt.figure()
 
