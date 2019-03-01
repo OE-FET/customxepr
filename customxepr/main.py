@@ -26,7 +26,7 @@ from customxepr.manager import ExperimentQueue, SignalQueue, Worker, queued_exec
 from customxepr.config.main import CONF
 
 try:
-    sys.path.insert(0, os.popen('Xepr --apipath').read())
+    sys.path.insert(0, os.popen('Xepr --apipath', stderr=subprocess.PIPE).read())
     from XeprAPI import ExperimentError
 except ImportError:
     ExperimentError = RuntimeError
