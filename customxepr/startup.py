@@ -198,7 +198,10 @@ def run():
         kernel_window.new_qt_console()
 
         var_dict = {'customXepr': customXepr, 'xepr': xepr, 'mercury': mercury,
-                    'mercuryfeed': mercuryfeed, 'keithley': keithley}
+                    'mercuryfeed': mercuryfeed, 'keithley': keithley,
+                    'customXepr_gui': customXepr_gui,
+                    'mercury_gui': mercury_gui, 'keithley_gui': keithley_gui,
+                    }
 
         kernel_window.send_to_namespace(var_dict)
         # noinspection PyUnresolvedReferences
