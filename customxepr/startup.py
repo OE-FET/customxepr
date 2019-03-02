@@ -31,7 +31,7 @@ from customxepr.main import CustomXepr, __version__, __author__, __year__
 from customxepr.main_ui import JobStatusApp
 
 try:
-    sys.path.insert(0, os.popen('Xepr --apipath', stderr=subprocess.PIPE).read())
+    sys.path.insert(0, os.popen('Xepr --apipath').read())
     import XeprAPI
 except ImportError:
     XeprAPI = None
