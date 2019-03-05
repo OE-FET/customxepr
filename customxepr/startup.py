@@ -65,11 +65,18 @@ def get_qt_app():
         has been created and `False` if an existing one is returned.
     :rtype: (:class:`qtpy.QtWidgets.QApplication`, bool)
     """
-    created = False
-    app = QtCore.QCoreApplication.instance()
 
-    if not app:
-        app = QtWidgets.QApplication([''],)
+    created = False
+
+    app = QtWidgets.QApplication.instance()
+    if app is None:
+        # Set Application name for Gnome 3
+        # https://groups.google.com/forum/#!topic/pyside/24qxvwfrRDs
+        app = QtWidgets.QApplication(['CustomXepr'])
+
+        # Set application name for KDE (See issue 2207)
+        app.setApplicationName('CustomXepr')
+
         created = True
 
     return app, created
@@ -90,10 +97,24 @@ def show_splash_screen(app):
     image = QtGui.QPixmap(os.path.join(direct, 'resources', 'splash.png'))
     image.setDevicePixelRatio(3)
     splash = QtWidgets.QSplashScreen(image)
+    splash_font = splash.font()
+    splash_font.setPixelSize(10)
+    splash.setFont(splash_font)
     splash.show()
-    app.processEvents()
+    splash.showMessage("Initializing...", QtCore.Qt.AlignBottom |
+                       QtCore.Qt.AlignLeft | QtCore.Qt.AlignAbsolute,
+                       QtGui.QColor(QtCore.Qt.white))
+    QtWidgets.QApplication.processEvents()
 
     return splash
+
+
+def show_splash_message(splash, message):
+    splash.showMessage(message, QtCore.Qt.AlignBottom |
+                       QtCore.Qt.AlignLeft | QtCore.Qt.AlignAbsolute,
+                       QtGui.QColor(QtCore.Qt.white))
+    splash.show()
+    QtWidgets.QApplication.processEvents()
 
 
 # ========================================================================================
@@ -177,8 +198,10 @@ def run():
     splash = show_splash_screen(app)
 
     # connect to instruments
+    show_splash_message(splash, "Connecting to instruments...")
     xepr, mercury, keithley = connect_to_instruments()
     # start user interfaces
+    show_splash_message(splash, "Loading user interface...")
     customXepr, customXepr_gui, mercuryfeed, mercury_gui, keithley_gui = start_gui(xepr, mercury, keithley)
 
     banner = ('Welcome to CustomXepr %s. ' % __version__ +
@@ -190,6 +213,8 @@ def run():
               'CustomXepr.\n\n(c) 2016 - %s, %s.' % (__year__, __author__))
 
     if created:
+
+        show_splash_message(splash, "Loading console...")
 
         from customxepr.utils.internal_ipkernel import InternalIPKernel
 
@@ -207,7 +232,7 @@ def run():
         # noinspection PyUnresolvedReferences
         app.aboutToQuit.connect(kernel_window.cleanup_consoles)
         # remove splash screen
-        splash.finish(customXepr_gui)
+        splash.hide()
         # patch exception hook to display errors from Qt event loop
         patch_excepthook()
         # start event loop
@@ -218,7 +243,7 @@ def run():
         clear_output()
         print(banner)
         # remove splash screen
-        splash.finish(customXepr_gui)
+        splash.hide()
         # patch exception hook to display errors from Qt event loop
         patch_excepthook()
 
