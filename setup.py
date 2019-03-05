@@ -46,6 +46,7 @@ setup(
     package_data={
             "customxepr": [
                     "resources/*.icns",
+                    "resources/*.png",
                     "*.ui",
                     ],
             },

@@ -14,7 +14,6 @@ import logging
 import os
 import sys
 from IPython import get_ipython
-from IPython.display import clear_output
 from qtpy import QtCore, QtWidgets, QtGui
 
 from keithley2600 import Keithley2600
@@ -95,16 +94,16 @@ def show_splash_screen(app):
     """
     direct = os.path.dirname(os.path.realpath(__file__))
     image = QtGui.QPixmap(os.path.join(direct, 'resources', 'splash.png'))
-    image.setDevicePixelRatio(3)
+    image.setDevicePixelRatio(6)
     splash = QtWidgets.QSplashScreen(image)
     splash_font = splash.font()
-    splash_font.setPixelSize(10)
+    splash_font.setPixelSize(11)
     splash.setFont(splash_font)
     splash.show()
+    QtWidgets.QApplication.processEvents()
     splash.showMessage("Initializing...", QtCore.Qt.AlignBottom |
                        QtCore.Qt.AlignLeft | QtCore.Qt.AlignAbsolute,
                        QtGui.QColor(QtCore.Qt.white))
-    QtWidgets.QApplication.processEvents()
 
     return splash
 
@@ -219,8 +218,8 @@ def run():
         from customxepr.utils.internal_ipkernel import InternalIPKernel
 
         # start event loop and console if run as a standalone app
-        kernel_window = InternalIPKernel(banner=banner)
-        kernel_window.new_qt_console()
+        internal_kernel = InternalIPKernel(banner=banner)
+        internal_kernel.new_qt_console()
 
         var_dict = {'customXepr': customXepr, 'xepr': xepr, 'mercury': mercury,
                     'mercuryfeed': mercuryfeed, 'keithley': keithley,
@@ -228,22 +227,23 @@ def run():
                     'mercury_gui': mercury_gui, 'keithley_gui': keithley_gui,
                     }
 
-        kernel_window.send_to_namespace(var_dict)
+        internal_kernel.send_to_namespace(var_dict)
         # noinspection PyUnresolvedReferences
-        app.aboutToQuit.connect(kernel_window.cleanup_consoles)
+        app.aboutToQuit.connect(internal_kernel.cleanup_consoles)
         # remove splash screen
-        splash.hide()
+        splash.finish(customXepr_gui)
         # patch exception hook to display errors from Qt event loop
         patch_excepthook()
         # start event loop
-        kernel_window.ipkernel.start()
+        return internal_kernel.ipkernel.start()
 
     else:
         # print banner
-        clear_output()
+        if ipython:
+            ipython.magic('%clear')
         print(banner)
         # remove splash screen
-        splash.hide()
+        splash.finish(customXepr_gui)
         # patch exception hook to display errors from Qt event loop
         patch_excepthook()
 
