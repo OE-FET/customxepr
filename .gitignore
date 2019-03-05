@@ -147,3 +147,4 @@ ESR measurement scripts/*
 make.bat
 Makefile
 customxepr/xepr_dataset
+customxepr/resources/splash.pdf
