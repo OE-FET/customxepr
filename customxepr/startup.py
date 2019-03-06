@@ -10,45 +10,16 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
 from __future__ import division, absolute_import
-import logging
 import os
-import sys
-from IPython import get_ipython
+import logging
 from qtpy import QtCore, QtWidgets, QtGui
+from IPython import get_ipython
 
-from keithley2600 import Keithley2600
-from keithleygui import KeithleyGuiApp
-from keithleygui import CONF as KCONF
-
-from mercuryitc import MercuryITC
-from mercurygui import MercuryFeed, MercuryMonitorApp
-from mercurygui import CONF as MCONF
-
-# local imports
-from customxepr.utils.misc import patch_excepthook
-from customxepr.main import CustomXepr, __version__, __author__, __year__
-from customxepr.main_ui import JobStatusApp
-
-try:
-    sys.path.insert(0, os.popen('Xepr --apipath').read())
-    import XeprAPI
-except ImportError:
-    XeprAPI = None
-    logging.info('XeprAPI could not be located.')
-
-# if we are running from IPython:
-# start integrated Qt event loop, disable autoreload
 ipython = get_ipython()
 if ipython:
+    # if we are running from IPython start integrated Qt event loop
     ipython.magic('%gui qt')
-    ipython.magic('%load_ext autoreload')
-    ipython.magic('%autoreload 0')
-    app = QtWidgets.QApplication([' '])
-
-KEITHLEY_ADDRESS = KCONF.get('Connection', 'VISA_ADDRESS')
-KEITHLEY_VISA_LIB = KCONF.get('Connection', 'VISA_LIBRARY')
-MERCURY_ADDRESS = MCONF.get('Connection', 'VISA_ADDRESS')
-MERCURY_VISA_LIB = MCONF.get('Connection', 'VISA_LIBRARY')
+    app = QtWidgets.QApplication(['CustomXepr'])
 
 
 # ========================================================================================
@@ -60,25 +31,27 @@ def get_qt_app():
     Creates a new Qt application or returns an existing one (for instance if run
     from an IPython console with Qt backend).
 
-    :returns: Tuple (``app``, ``created``) where ``created`` is `True` if a new application
-        has been created and `False` if an existing one is returned.
+    :returns: Tuple (``app``, ``interactive``) where ``interactive`` is `True`
+        if run from an interactive jupyter console and `False` otherwise.
     :rtype: (:class:`qtpy.QtWidgets.QApplication`, bool)
     """
 
-    created = False
+    from IPython import get_ipython
 
-    app = QtWidgets.QApplication.instance()
-    if app is None:
-        # Set Application name for Gnome 3
-        # https://groups.google.com/forum/#!topic/pyside/24qxvwfrRDs
+    ipython = get_ipython()
+    if ipython:
+        interactive = True
+        # disable autoreload
+        ipython.magic('%load_ext autoreload')
+        ipython.magic('%autoreload 0')
+        # get app instance
+        app = QtWidgets.QApplication.instance()
+    else:
+        interactive = False
         app = QtWidgets.QApplication(['CustomXepr'])
-
-        # Set application name for KDE (See issue 2207)
         app.setApplicationName('CustomXepr')
 
-        created = True
-
-    return app, created
+    return app, interactive
 
 
 # ========================================================================================
@@ -94,7 +67,7 @@ def show_splash_screen(app):
     """
     direct = os.path.dirname(os.path.realpath(__file__))
     image = QtGui.QPixmap(os.path.join(direct, 'resources', 'splash.png'))
-    image.setDevicePixelRatio(6)
+    image.setDevicePixelRatio(3)
     splash = QtWidgets.QSplashScreen(image)
     splash_font = splash.font()
     splash_font.setPixelSize(11)
@@ -130,6 +103,24 @@ def connect_to_instruments():
         :class:`keithley2600.Keithley2600`)
     """
 
+    import sys
+    from keithley2600 import Keithley2600
+    from keithleygui import CONF as KCONF
+    from mercuryitc import MercuryITC
+    from mercurygui import CONF as MCONF
+
+    KEITHLEY_ADDRESS = KCONF.get('Connection', 'VISA_ADDRESS')
+    KEITHLEY_VISA_LIB = KCONF.get('Connection', 'VISA_LIBRARY')
+    MERCURY_ADDRESS = MCONF.get('Connection', 'VISA_ADDRESS')
+    MERCURY_VISA_LIB = MCONF.get('Connection', 'VISA_LIBRARY')
+
+    try:
+        sys.path.insert(0, os.popen('Xepr --apipath').read())
+        import XeprAPI
+    except ImportError:
+        XeprAPI = None
+        logging.info('XeprAPI could not be located.')
+
     try:
         xepr = XeprAPI.Xepr()
     except AttributeError:
@@ -157,6 +148,10 @@ def start_gui(xepr, mercury, keithley):
         :class:`mercurygui.MercuryFeed`, :class:`mercurygui.MercuryMonitorApp`,
         :class:`keithleygui.KeithleyGuiApp`)
     """
+    from keithleygui import KeithleyGuiApp
+    from mercurygui import MercuryFeed, MercuryMonitorApp
+    from customxepr.main import CustomXepr
+    from customxepr.main_ui import JobStatusApp
 
     mercuryfeed = MercuryFeed(mercury)
     mercury_gui = MercuryMonitorApp(mercuryfeed)
@@ -188,10 +183,13 @@ def run():
         :class:`keithley2600.Keithley2600`, :class:`mercuryitc.MercuryITC`,
         :class:`main_ui.JobStatusApp`, :class:`mercurygui.MercuryMonitorApp`,
         :class:`keithleygui.KeithleyGuiApp`)
-        """
+    """
+
+    from customxepr.main import __version__, __author__, __year__
+    from customxepr.utils.misc import patch_excepthook
 
     # create a new Qt app or return an existing one
-    app, created = get_qt_app()
+    app, interactive = get_qt_app()
 
     # create and show splash screen
     splash = show_splash_screen(app)
@@ -211,8 +209,22 @@ def run():
               'Type "exit" to gracefully exit ' +
               'CustomXepr.\n\n(c) 2016 - %s, %s.' % (__year__, __author__))
 
-    if created:
+    if interactive:
+        # print banner
+        from IPython import get_ipython
+        ipython = get_ipython()
+        if ipython:
+            ipython.magic('%clear')
+        print(banner)
+        # remove splash screen
+        splash.finish(customXepr_gui)
+        # patch exception hook to display errors from Qt event loop
+        patch_excepthook()
 
+        return (customXepr, xepr, mercury, mercuryfeed, keithley,
+                customXepr_gui, mercury_gui, keithley_gui)
+
+    else:
         show_splash_message(splash, "Loading console...")
 
         from customxepr.utils.internal_ipkernel import InternalIPKernel
@@ -236,19 +248,6 @@ def run():
         patch_excepthook()
         # start event loop
         return internal_kernel.ipkernel.start()
-
-    else:
-        # print banner
-        if ipython:
-            ipython.magic('%clear')
-        print(banner)
-        # remove splash screen
-        splash.finish(customXepr_gui)
-        # patch exception hook to display errors from Qt event loop
-        patch_excepthook()
-
-        return (customXepr, xepr, mercury, mercuryfeed, keithley,
-                customXepr_gui, mercury_gui, keithley_gui)
 
 
 if __name__ == '__main__':
