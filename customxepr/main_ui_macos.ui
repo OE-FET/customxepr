@@ -767,14 +767,14 @@ QTabWidget::pane
    <widget class="QMenu" name="menu_CustomXepr">
     <property name="geometry">
      <rect>
-      <x>194</x>
+      <x>188</x>
       <y>131</y>
       <width>168</width>
       <height>96</height>
      </rect>
     </property>
     <property name="title">
-     <string>&amp;CustomXepr</string>
+     <string>CustomXepr</string>
     </property>
     <addaction name="action_About"/>
     <addaction name="separator"/>
@@ -782,7 +782,7 @@ QTabWidget::pane
    </widget>
    <widget class="QMenu" name="menu_Files">
     <property name="title">
-     <string>&amp;File</string>
+     <string>File</string>
     </property>
     <addaction name="actionShow_log_files"/>
    </widget>
@@ -932,7 +932,7 @@ QTabWidget::pane
   <customwidget>
    <class>ScienDSpinBox</class>
    <extends>QDoubleSpinBox</extends>
-   <header>customxepr.utils.scientific_spinbox.h</header>
+   <header>keithleygui.utils.scientific_spinbox.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

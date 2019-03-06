@@ -677,7 +677,7 @@
      </rect>
     </property>
     <property name="title">
-     <string>&amp;CustomXepr</string>
+     <string>CustomXepr</string>
     </property>
     <addaction name="action_About"/>
     <addaction name="separator"/>
@@ -685,7 +685,7 @@
    </widget>
    <widget class="QMenu" name="menu_Files">
     <property name="title">
-     <string>&amp;File</string>
+     <string>File</string>
     </property>
     <addaction name="actionShow_log_files"/>
    </widget>
@@ -772,7 +772,7 @@
   <customwidget>
    <class>ScienDSpinBox</class>
    <extends>QDoubleSpinBox</extends>
-   <header>customxepr.utils.scientific_spinbox.h</header>
+   <header>keithleygui.utils.scientific_spinbox.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
