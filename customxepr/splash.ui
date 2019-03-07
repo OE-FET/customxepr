@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>590</width>
+    <height>280</height>
+   </rect>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">color: #eff0f1;
+background-color: #31363b;</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="minimumSize">
+    <size>
+     <width>590</width>
+     <height>280</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>590</width>
+     <height>280</height>
+    </size>
+   </property>
+   <property name="baseSize">
+    <size>
+     <width>590</width>
+     <height>280</height>
+    </size>
+   </property>
+   <layout class="QGridLayout" name="gridLayout">
+    <property name="leftMargin">
+     <number>20</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item row="0" column="0">
+     <widget class="QLabel" name="titleLabel">
+      <property name="font">
+       <font>
+        <family>Helvetica Neue</family>
+        <pointsize>30</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>CustomXepr</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="infoLabel">
+      <property name="font">
+       <font>
+        <family>Helvetica Neue</family>
+        <pointsize>14</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>2019 Release
+
+© 2016 - 2019, Sam Schott,
+University of Cambridge.
+CC BY-NC-ND 2.0 UK
+
+
+Artwork by Shayan Hemmatiyan</string>
+      </property>
+      <property name="wordWrap">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="statusLabel">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>60</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>60</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <family>Helvetica Neue</family>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Initializing...</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1" rowspan="3">
+     <widget class="QLabel" name="splah_image">
+      <property name="minimumSize">
+       <size>
+        <width>344</width>
+        <height>280</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>344</width>
+        <height>280</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background: #EAF2F8</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

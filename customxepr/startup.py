@@ -12,7 +12,7 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 from __future__ import division, absolute_import
 import os
 import logging
-from qtpy import QtCore, QtWidgets, QtGui
+from qtpy import QtCore, QtWidgets, QtGui, uic
 from IPython import get_ipython
 
 ipython = get_ipython()
@@ -58,35 +58,35 @@ def get_qt_app():
 # Create splash screen
 # ========================================================================================
 
-def show_splash_screen(app):
+SPLASH_UI_PATH = os.path.join(os.path.dirname(__file__), "splash.ui")
+LOGO_PATH = os.path.join(os.path.dirname(__file__), "resources/logo@2x.png")
+
+
+class SplashScreen(QtWidgets.QMainWindow):
+    def __init__(self, parent=None):
+        super(self.__class__, self).__init__()
+        uic.loadUi(SPLASH_UI_PATH, self)
+        pixmap = QtGui.QPixmap(LOGO_PATH)
+        self.splah_image.setPixmap(pixmap.scaledToHeight(460))
+        self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.FramelessWindowHint)
+
+    def showMessage(self, text):
+        self.statusLabel.setText(text)
+        QtWidgets.QApplication.processEvents()
+
+
+def show_splash_screen():
     """
     Shows the CustomXepr splash screen.
 
     :param app: Qt application instance.
     :returns: :class:`qtpy.QtWidgets.QSplashScreen`.
     """
-    direct = os.path.dirname(os.path.realpath(__file__))
-    image = QtGui.QPixmap(os.path.join(direct, 'resources', 'splash.png'))
-    image.setDevicePixelRatio(3)
-    splash = QtWidgets.QSplashScreen(image)
-    splash_font = splash.font()
-    splash_font.setPixelSize(11)
-    splash.setFont(splash_font)
+    splash = SplashScreen()
     splash.show()
-    QtWidgets.QApplication.processEvents()
-    splash.showMessage("Initializing...", QtCore.Qt.AlignBottom |
-                       QtCore.Qt.AlignLeft | QtCore.Qt.AlignAbsolute,
-                       QtGui.QColor(QtCore.Qt.white))
+    splash.showMessage("Initializing...")
 
     return splash
-
-
-def show_splash_message(splash, message):
-    splash.showMessage(message, QtCore.Qt.AlignBottom |
-                       QtCore.Qt.AlignLeft | QtCore.Qt.AlignAbsolute,
-                       QtGui.QColor(QtCore.Qt.white))
-    splash.show()
-    QtWidgets.QApplication.processEvents()
 
 
 # ========================================================================================
@@ -192,20 +192,20 @@ def run():
     app, interactive = get_qt_app()
 
     # create and show splash screen
-    splash = show_splash_screen(app)
+    splash = show_splash_screen()
 
     # connect to instruments
-    show_splash_message(splash, "Connecting to instruments...")
+    splash.showMessage("Connecting to instruments...")
     xepr, mercury, keithley = connect_to_instruments()
     # start user interfaces
-    show_splash_message(splash, "Loading user interface...")
+    splash.showMessage("Loading user interface...")
     customXepr, customXepr_gui, mercuryfeed, mercury_gui, keithley_gui = start_gui(xepr, mercury, keithley)
 
     banner = ('Welcome to CustomXepr %s. ' % __version__ +
               'You can access connected instruments through "customXepr" ' +
               'or directly as "xepr", "keithley" and "mercury".\n\n' +
               'Use "%run -i path/to/file.py" to run a python script such ' +
-              'as a measurement routine.\n'
+              'as a measurement routine. '
               'Type "exit" to gracefully exit ' +
               'CustomXepr.\n\n(c) 2016 - %s, %s.' % (__year__, __author__))
 
@@ -216,16 +216,18 @@ def run():
         if ipython:
             ipython.magic('%clear')
         print(banner)
-        # remove splash screen
-        splash.finish(customXepr_gui)
+
         # patch exception hook to display errors from Qt event loop
         patch_excepthook()
+
+        # remove splash screen
+        splash.hide()
 
         return (customXepr, xepr, mercury, mercuryfeed, keithley,
                 customXepr_gui, mercury_gui, keithley_gui)
 
     else:
-        show_splash_message(splash, "Loading console...")
+        splash.showMessage("Loading console...")
 
         from customxepr.utils.internal_ipkernel import InternalIPKernel
 
@@ -242,10 +244,10 @@ def run():
         internal_kernel.send_to_namespace(var_dict)
         # noinspection PyUnresolvedReferences
         app.aboutToQuit.connect(internal_kernel.cleanup_consoles)
-        # remove splash screen
-        splash.finish(customXepr_gui)
         # patch exception hook to display errors from Qt event loop
         patch_excepthook()
+        # remove splash screen
+        splash.hide()
         # start event loop
         return internal_kernel.ipkernel.start()
 

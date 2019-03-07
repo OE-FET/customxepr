@@ -174,8 +174,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         else:
             layout_file = 'main_ui_linux.ui'
 
-        uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                layout_file), self)
+        uic.loadUi(os.path.join(_root, layout_file), self)
 
         if platform.system() == 'Darwin':
             # create unified toolbar
