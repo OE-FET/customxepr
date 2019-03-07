@@ -92,8 +92,16 @@ class SplashScreen(QtWidgets.QMainWindow):
         font.setPointSize(fs_status)
         self.statusLabel.setFont(font)
 
+        # move to screen center
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+        fg = self.frameGeometry()
+        fg.moveCenter(cp)
+        self.move(fg.topLeft())
+
     def showMessage(self, text):
         self.statusLabel.setText(text)
+        self.show()
+        self.raise_()
         QtWidgets.QApplication.processEvents()
 
 
@@ -106,6 +114,7 @@ def show_splash_screen():
     """
     splash = SplashScreen()
     splash.show()
+    splash.raise_()
     QtWidgets.QApplication.processEvents()
     splash.showMessage("Initializing...")
 
@@ -182,6 +191,10 @@ def start_gui(xepr, mercury, keithley):
 
     customXepr = CustomXepr(xepr, mercuryfeed, keithley)
     customXepr_gui = JobStatusApp(customXepr)
+
+    mercury_gui.QUIT_ON_CLOSE = False
+    keithley_gui.QUIT_ON_CLOSE = False
+    customXepr_gui.QUIT_ON_CLOSE = False
 
     customXepr_gui.show()
     mercury_gui.show()
@@ -272,7 +285,7 @@ def run():
         # remove splash screen
         splash.hide()
         # start event loop
-        return internal_kernel.ipkernel.start()
+        internal_kernel.ipkernel.start()
 
 
 if __name__ == '__main__':

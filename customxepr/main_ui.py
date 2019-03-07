@@ -151,6 +151,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
     """
 
     MAX_JOB_HISTORY_LENGTH = 1
+    QUIT_ON_CLOSE = False
 
     def __init__(self, customxepr):
         # noinspection PyArgumentList
@@ -343,7 +344,10 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.deleteLater()
 
     def closeEvent(self, event):
-        self.exit_()
+        if self.QUIT_ON_CLOSE:
+            self.exit_()
+        else:
+            self.hide()
 
     def show_error(self, exc_info):
         title = 'CustomXepr Job Error'
