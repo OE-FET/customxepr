@@ -1422,7 +1422,7 @@ class CustomXepr(QtCore.QObject):
             smu = getattr(self.keithley, smu_name)
             smu.source.output = self.keithley.OUTPUT_OFF
 
-        self.keithley.rampToVoltage(gate, targetVolt=v, delay=0.1, stepSize=1)
+        self.keithley.rampToVoltage(gate, target_volt=v, delay=0.1, step_size=1)
 
         if v == 0:
             self.keithley.reset()

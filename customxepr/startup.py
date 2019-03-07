@@ -15,6 +15,12 @@ import logging
 from qtpy import QtCore, QtWidgets, QtGui, uic
 from IPython import get_ipython
 
+try:
+    # import pyqtgraph before creating QApplication to avoid bugs
+    import pyqtgraph
+except ImportError:
+    pass
+
 ipython = get_ipython()
 if ipython:
     # if we are running from IPython start integrated Qt event loop
@@ -44,6 +50,7 @@ def get_qt_app():
         # disable autoreload
         ipython.magic('%load_ext autoreload')
         ipython.magic('%autoreload 0')
+        os.environ.update(SPY_UMR_ENABLED='False')
         # get app instance
         app = QtWidgets.QApplication.instance()
     else:
