@@ -51,7 +51,7 @@ class InternalIPKernel(object):
                    '--style', style,
                    '--JupyterWidget.banner=""',
                    '--JupyterWidget.font_family="SF Mono"',
-                  ]
+                   ]
         return connect_qtconsole(self.ipkernel.abs_connection_file,
                                  profile=self.ipkernel.profile, argv=arglist)
 

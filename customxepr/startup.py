@@ -77,6 +77,21 @@ class SplashScreen(QtWidgets.QMainWindow):
         self.splah_image.setPixmap(pixmap.scaledToHeight(460))
         self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.FramelessWindowHint)
 
+        # adjust font sizes according to os defaults
+        font = QtWidgets.QLabel('test').font()
+        font_size = font.pointSize()
+
+        fs_title = int(font_size * 2.31)
+        fs_info = int(font_size * 1.05)
+        fs_status = int(font_size * 0.92)
+
+        font.setPointSize(fs_title)
+        self.titleLabel.setFont(font)
+        font.setPointSize(fs_info)
+        self.infoLabel.setFont(font)
+        font.setPointSize(fs_status)
+        self.statusLabel.setFont(font)
+
     def showMessage(self, text):
         self.statusLabel.setText(text)
         QtWidgets.QApplication.processEvents()
@@ -91,6 +106,7 @@ def show_splash_screen():
     """
     splash = SplashScreen()
     splash.show()
+    QtWidgets.QApplication.processEvents()
     splash.showMessage("Initializing...")
 
     return splash
