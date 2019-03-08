@@ -8,12 +8,6 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
 from __future__ import division, absolute_import
-
-__author__ = 'Sam Schott <ss2151@cam.ac.uk>'
-__year__ = str(time.localtime().tm_year)
-__version__ = 'v2.2.2'
-__url__ = 'https://customxepr.readthedocs.io'
-
 import sys
 import os
 import logging
@@ -30,6 +24,11 @@ from customxepr.mode_picture import ModePicture
 from customxepr.xepr_dataset import XeprParam, ParamGroupDSL, XeprData
 from customxepr.manager import ExperimentQueue, SignalQueue, Worker, queued_exec
 from customxepr.config.main import CONF
+
+__author__ = 'Sam Schott <ss2151@cam.ac.uk>'
+__year__ = str(time.localtime().tm_year)
+__version__ = 'v2.2.2'
+__url__ = 'https://customxepr.readthedocs.io'
 
 try:
     sys.path.insert(0, os.popen('Xepr --apipath').read())
