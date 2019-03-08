@@ -10,9 +10,10 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 from __future__ import division, absolute_import
 import math
 import numpy as np
+import time
+
 from lmfit import Model
 from lmfit.models import PolynomialModel
-import time
 
 
 def lorentz_peak(x, x0, w, a):

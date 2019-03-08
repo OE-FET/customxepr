@@ -12,6 +12,7 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 from __future__ import division, absolute_import
 import os
 import logging
+
 from qtpy import QtCore, QtWidgets, QtGui, uic
 from IPython import get_ipython
 
@@ -289,6 +290,5 @@ def run():
 
 
 if __name__ == '__main__':
-    import customxepr
     customXepr, xepr, mercury, mercuryfeed, keithley, customXepr_gui, \
-        mercury_gui, keithley_gui = customxepr.run()
+        mercury_gui, keithley_gui = run()

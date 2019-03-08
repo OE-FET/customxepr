@@ -14,8 +14,9 @@ import logging
 # noinspection PyCompatibility
 from queue import Queue, Empty
 from threading import RLock
-from decorator import decorator
 from enum import Enum
+
+from decorator import decorator
 from qtpy import QtCore
 
 PY2 = sys.version[0] == '2'

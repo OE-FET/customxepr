@@ -8,6 +8,12 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
 from __future__ import division, absolute_import
+
+__author__ = 'Sam Schott <ss2151@cam.ac.uk>'
+__year__ = str(time.localtime().tm_year)
+__version__ = 'v2.2.2'
+__url__ = 'https://customxepr.readthedocs.io'
+
 import sys
 import os
 import logging
@@ -15,10 +21,10 @@ import logging.handlers
 import time
 from threading import Event
 import numpy as np
+
 from qtpy import QtCore
 from keithleygui import CONF as K_CONF
 
-# local imports
 from customxepr.utils.mail import EmailSender
 from customxepr.mode_picture import ModePicture
 from customxepr.xepr_dataset import XeprParam, ParamGroupDSL, XeprData
@@ -30,12 +36,6 @@ try:
     from XeprAPI import ExperimentError
 except ImportError:
     ExperimentError = RuntimeError
-
-
-__author__ = 'Sam Schott <ss2151@cam.ac.uk>'
-__year__ = str(time.localtime().tm_year)
-__version__ = 'v2.2.2'
-__url__ = 'https://customxepr.readthedocs.io'
 
 PY2 = sys.version[0] == '2'
 
