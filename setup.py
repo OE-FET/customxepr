@@ -1,7 +1,32 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+import sys
 from setuptools import setup, find_packages
+
+PY2 = sys.version_info[0] == 2
+
+dependencies = [
+        "IPython",
+        "decorator",
+        "future",
+        "ipykernel",
+        "keithley2600",
+        "keithleygui",
+        "lmfit",
+        "matplotlib",
+        "mercurygui",
+        "mercuryitc",
+        "numpy",
+        "pygments",
+        "pyvisa",
+        "pyvisa-py",
+        "qtpy",
+        "qtconsole",
+        "scipy",
+        ]
+
+if PY2:
+    dependencies.append("configparser")
 
 
 def get_metadata(relpath, varname):
@@ -9,19 +34,9 @@ def get_metadata(relpath, varname):
     from os.path import dirname, join
 
     if "__file__" not in globals():
-        # Allow to use function interactively
         root = "."
     else:
         root = dirname(__file__)
-
-    # The code below reads text file with unknown encoding in
-    # in Python2/3 compatible way. Reading this text file
-    # without specifying encoding will fail in Python 3 on some
-    # systems (see http://goo.gl/5XmOH). Specifying encoding as
-    # open() parameter is incompatible with Python 2
-
-    # cp437 is the encoding without missing points, safe against:
-    #   UnicodeDecodeError: 'charmap' codec can't decode byte...
 
     for line in open(join(root, relpath), "rb"):
         line = line.decode("cp437")
@@ -51,24 +66,7 @@ setup(
                     ],
             },
     data_files=[('info', ['README.md', 'CHANGELOG.md'])],
-    install_requires=[
-        "IPython",
-        "decorator",
-        "future",
-        "ipykernel",
-        "keithley2600",
-        "keithleygui",
-        "lmfit",
-        "matplotlib",
-        "mercurygui",
-        "mercuryitc",
-        "numpy",
-        "pygments",
-        "pyvisa",
-        "pyvisa-py",
-        "qtpy",
-        "scipy",
-        ],
+    install_requires=dependencies,
     zip_safe=False,
     entry_points={
       "console_scripts": ["CustomXepr=customxepr.startup:run"],
