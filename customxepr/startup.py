@@ -16,12 +16,6 @@ import logging
 from qtpy import QtCore, QtWidgets, QtGui, uic
 from IPython import get_ipython
 
-try:
-    # import pyqtgraph before creating QApplication to avoid bugs
-    import pyqtgraph
-except ImportError:
-    pass
-
 ipython = get_ipython()
 if ipython:
     # if we are running from IPython start integrated Qt event loop
