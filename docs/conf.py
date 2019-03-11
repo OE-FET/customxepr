@@ -18,15 +18,13 @@ import time
 
 autodoc_mock_imports = [
     'pyvisa',
+    'qtpy',
     'PyQt5',
     'PyQt5.QtCore',
-    'PyQt5.QtCore.pyqtSignal',
-    'PyQt5.QtCore.pyqtSlot',
-    'PyQt5.QtCore.pyqtProperty',
-    'PyQt5.QtCore.QT_VERSION_STR'
     'PyQt5.QtWidgets',
     'PyQt5.QtGui',
     'matplotlib.backends.backend_qt5agg']
+
 
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../customxepr'))
