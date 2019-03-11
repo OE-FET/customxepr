@@ -16,15 +16,17 @@ import os
 import sys
 import time
 
-autodoc_mock_imports = ['pyvisa', 'PyQt5', 'PyQt5.QtCore', 'PyQt5.QtWidgets', 'PyQt5.QtGui', 'matplotlib.backends.backend_qt5agg']
-
-import PyQt5
-
-
-PyQt5.pyqtSignal = True
-PyQt5.pyqtSlot = True
-PyQt5.pyqtProperty = True
-PyQt5.QT_VERSION_STR = True
+autodoc_mock_imports = [
+    'pyvisa',
+    'PyQt5',
+    'PyQt5.QtCore',
+    'PyQt5.QtCore.pyqtSignal',
+    'PyQt5.QtCore.pyqtSlot',
+    'PyQt5.QtCore.pyqtProperty',
+    'PyQt5.QtCore.QT_VERSION_STR'
+    'PyQt5.QtWidgets',
+    'PyQt5.QtGui',
+    'matplotlib.backends.backend_qt5agg']
 
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../customxepr'))
@@ -64,8 +66,8 @@ release = get_metadata('../customxepr/main.py', '__version__')
 # -- General configuration ---------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-#
-# needs_sphinx = '1.0'
+
+needs_sphinx = '1.8.4'
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
