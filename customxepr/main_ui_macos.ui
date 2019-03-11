@@ -932,7 +932,7 @@ QTabWidget::pane
   <customwidget>
    <class>ScienDSpinBox</class>
    <extends>QDoubleSpinBox</extends>
-   <header>keithleygui.utils.scientific_spinbox.h</header>
+   <header>customxepr.utils.scientific_spinbox.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

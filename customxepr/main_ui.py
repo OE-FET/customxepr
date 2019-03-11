@@ -225,6 +225,8 @@ class JobStatusApp(QtWidgets.QMainWindow):
         # get temperature control settings
         self.lineEditT_tolerance.setValue(self.customxepr.temperature_tolerance)
         self.lineEditT_settling.setValue(self.customxepr.temp_wait_time)
+        self.lineEditT_tolerance.setMinimum(0)
+        self.lineEditT_settling.setMinimum(0)
 
         # perform various UI updates after status change
         status_handler.status_signal.connect(self.statusField.setText)
