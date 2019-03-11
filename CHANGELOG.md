@@ -1,4 +1,13 @@
+#### master (2019-03-11)
+
+_Changed:_
+
+- Reduced startup time when no instruments can be found by reducing connection timeout.
+- Added info messages to splash screen.
+- Swtiched graphics backend for Mercury ITC and Keithley 2600 from Matplotlib to pyqtgraph. This allows for smoother user interactions with plots.
+
 #### v2.2.2 (2019-02-19)
+
 _Added:_
 
 - Added `XeprData` class to hold, read and save Xepr measurement data files. `XeprData`
@@ -21,6 +30,7 @@ _Removed:_
   keyword of `runXeprExperiment` to save the measurement data instead.
 
 #### v2.2.1 (2019-01-25)
+
 _Added:_
 
 - Job history now remains visible together with icons indicating the job status.
@@ -33,6 +43,7 @@ _Changed:_
 - Improved docstrings.
 
 #### v2.2.0 (2019-01-09)
+
 _Added:_
 
 - Added terminal / command line script "CustomXepr".
@@ -58,6 +69,7 @@ _Removed:_
 - Removed all ETA estimates for experiments.
 
 #### v2.1.1
+
 _Added:_
 
 - Included revamped keithleygui with IV sweep functionality.
@@ -75,6 +87,7 @@ _Fixed:_
   measurements where proper ETA estimates have not yet been implemented.
 
 #### v2.1.0
+
 _Added:_
 
 - Warnings when invalid file paths are handed to Xepr.
@@ -90,6 +103,7 @@ _Removed:_
   support is added.
 
 #### v2.0.1
+
 _Changed:_
 
 - Moved default driver backends from NI-VISA to pyvisa-py. It is no longer
