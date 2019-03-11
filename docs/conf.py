@@ -60,7 +60,7 @@ release = get_metadata('../customxepr/main.py', '__version__')
 
 # If your documentation needs a minimal Sphinx version, state it here.
 
-needs_sphinx = '1.8.4'
+needs_sphinx = '1.7.5'
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
