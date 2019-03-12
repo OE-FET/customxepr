@@ -77,8 +77,8 @@ class SplashScreen(QtWidgets.QMainWindow):
         font_size = font.pointSize()
 
         fs_title = int(font_size * 2.31)
-        fs_info = int(font_size * 1.05)
-        fs_status = int(font_size * 0.92)
+        fs_info = int(font_size * 1.0)
+        fs_status = int(font_size * 0.90)
 
         font.setPointSize(fs_title)
         self.titleLabel.setFont(font)
