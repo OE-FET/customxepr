@@ -1,30 +1,5 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import sys
 from setuptools import setup, find_packages
-
-PY2 = sys.version_info[0] == 2
-
-dependencies = [
-        "IPython",
-        "decorator",
-        "future",
-        "ipykernel",
-        "pyqtgraph@git+https://github.com/OE-FET/pyqtgraph",
-        "keithley2600",
-        "keithleygui@git+https://github.com/OE-FET/keithleygui",
-        "lmfit",
-        "matplotlib",
-        "mercurygui@git+https://github.com/OE-FET/mercurygui",
-        "mercuryitc@git+https://github.com/OE-FET/mercuryitc",
-        "numpy",
-        "pygments",
-        "pyvisa",
-        "pyvisa-py",
-        "qtpy",
-        "qtconsole",
-        "scipy",
-        ]
 
 if PY2:
     dependencies.append("configparser")
@@ -67,7 +42,27 @@ setup(
                     ],
             },
     data_files=[('info', ['README.md', 'CHANGELOG.md'])],
-    install_requires=dependencies,
+    install_requires=["IPython",
+                "decorator",
+                "future",
+                "ipykernel",
+                "pyqtgraph@git+https://github.com/OE-FET/pyqtgraph",
+                "keithley2600",
+                "keithleygui@git+https://github.com/OE-FET/keithleygui",
+                "lmfit",
+                "matplotlib",
+                "mercurygui@git+https://github.com/OE-FET/mercurygui",
+                "mercuryitc@git+https://github.com/OE-FET/mercuryitc",
+                "numpy",
+                "pygments",
+                "pyvisa",
+                "pyvisa-py",
+                "qtpy",
+                "qtconsole",
+                "queue;python_version<='2.7'",
+                "configparser;python_version<='2.7'",
+                "scipy",
+                ],
     zip_safe=False,
     entry_points={
       "console_scripts": ["CustomXepr=customxepr.startup:run"],
