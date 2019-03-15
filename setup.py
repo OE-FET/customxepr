@@ -12,7 +12,7 @@ dependencies = [
         "ipykernel",
         "pyqtgraph@git+https://github.com/OE-FET/pyqtgraph",
         "keithley2600",
-        "keithleygui",
+        "keithleygui@git+https://github.com/OE-FET/keithleygui",
         "lmfit",
         "matplotlib",
         "mercurygui@git+https://github.com/OE-FET/mercurygui",
