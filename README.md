@@ -15,7 +15,7 @@ The aim of CustomXepr is twofold: First and foremost, it enables the user to aut
 ## Installation
 Install the Keithle2600 and MercuryiTC drivers first, then install CustomXepr by running
 ```
-$ pip install https+git://github.com/OE-FET/customxepr
+$ pip install git+https://github.com/OE-FET/customxepr
 ```
 in you terminal / command prompt.
 
