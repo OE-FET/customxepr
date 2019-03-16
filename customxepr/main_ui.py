@@ -588,7 +588,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         Checks if worker thread is running and updates the Run/Pause button
         accordingly.
         """
-        if self.customxepr.running.is_set():
+        if self.customxepr.worker.running.is_set():
             self.pauseButton.setText('Pause')
         else:
             self.pauseButton.setText('Resume')

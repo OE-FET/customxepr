@@ -53,6 +53,8 @@ def get_qt_app():
         app = QtWidgets.QApplication(['CustomXepr'])
         app.setApplicationName('CustomXepr')
 
+    QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps)
+
     return app, interactive
 
 
@@ -66,7 +68,7 @@ LOGO_PATH = os.path.join(os.path.dirname(__file__), "resources/logo@2x.png")
 
 class SplashScreen(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
-        super(self.__class__, self).__init__()
+        super(self.__class__, self).__init__(parent)
         uic.loadUi(SPLASH_UI_PATH, self)
         pixmap = QtGui.QPixmap(LOGO_PATH)
         self.splah_image.setPixmap(pixmap.scaledToHeight(460))
@@ -104,7 +106,6 @@ def show_splash_screen():
     """
     Shows the CustomXepr splash screen.
 
-    :param app: Qt application instance.
     :returns: :class:`qtpy.QtWidgets.QSplashScreen`.
     """
     splash = SplashScreen()
@@ -136,28 +137,25 @@ def connect_to_instruments():
     from mercuryitc import MercuryITC
     from mercurygui import CONF as MCONF
 
-    KEITHLEY_ADDRESS = KCONF.get('Connection', 'VISA_ADDRESS')
-    KEITHLEY_VISA_LIB = KCONF.get('Connection', 'VISA_LIBRARY')
-    MERCURY_ADDRESS = MCONF.get('Connection', 'VISA_ADDRESS')
-    MERCURY_VISA_LIB = MCONF.get('Connection', 'VISA_LIBRARY')
+    keithley_address = KCONF.get('Connection', 'VISA_ADDRESS')
+    keithley_visa_lib = KCONF.get('Connection', 'VISA_LIBRARY')
+    mercury_address = MCONF.get('Connection', 'VISA_ADDRESS')
+    mercury_visa_lib = MCONF.get('Connection', 'VISA_LIBRARY')
 
     try:
         sys.path.insert(0, os.popen('Xepr --apipath').read())
+        # noinspection PyUnresolvedReferences
         import XeprAPI
-    except ImportError:
-        XeprAPI = None
-        logging.info('XeprAPI could not be located.')
-
-    try:
         xepr = XeprAPI.Xepr()
-    except AttributeError:
+    except ImportError:
+        logging.info('XeprAPI could not be located.')
         xepr = None
     except IOError:
         logging.info('No running Xepr instance could be found.')
         xepr = None
 
-    mercury = MercuryITC(MERCURY_ADDRESS, MERCURY_VISA_LIB, open_timeout=1)
-    keithley = Keithley2600(KEITHLEY_ADDRESS, KEITHLEY_VISA_LIB, open_timeout=1)
+    mercury = MercuryITC(mercury_address, mercury_visa_lib, open_timeout=1)
+    keithley = Keithley2600(keithley_address, keithley_visa_lib, open_timeout=1)
 
     return xepr, mercury, keithley
 

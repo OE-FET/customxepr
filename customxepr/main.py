@@ -73,15 +73,15 @@ class CustomXepr(QtCore.QObject):
 
     To pause or resume the worker between jobs, run
 
-    >>> customxepr.running.clear()
+    >>> customxepr.pause_worker()
 
     or
 
-    >>> customxepr.running.set()
+    >>> customxepr.resume_worker()
 
     To abort a job, run:
 
-    >>> customxepr.abort_event.set()
+    >>> customxepr.abort_job()
 
     You can use :class:`CustomXepr` on its own, but it is recommended to start
     it with the :func:`run` function in the :mod:`startup` module. This will
@@ -95,9 +95,9 @@ class CustomXepr(QtCore.QObject):
     :param keithley: :class:`keithley2600.Keithley2600` instance from keithley2600
         driver. Defaults to `None` if not provided.
 
-    :cvar job_queue: Queue that holds all experiments / jobs. Must be an instance
+    :cvar job_queue: Queue that holds all experiments / jobs. Is an instance
         of :class:`manager.ExperimentQueue`.
-    :cvar result_queue:  Queue that holds job results. Must be an instance
+    :cvar result_queue:  Queue that holds job results. Is an instance
         of :class:`manager.SignalQueue`.
 
     :ivar hidden: Xepr's hidden experiment.
@@ -361,7 +361,7 @@ class CustomXepr(QtCore.QObject):
         """
 
         if not self._check_for_xepr():
-            return
+            raise RuntimeError('Not connected to Xepr.')
 
         self.XeprCmds.aqParSet('AcqHidden', '*cwBridge.OpMode', 'Tune')
         self.XeprCmds.aqParSet('AcqHidden', '*cwBridge.Tune', 'Up')
@@ -373,7 +373,7 @@ class CustomXepr(QtCore.QObject):
         """
 
         if not self._check_for_xepr():
-            return
+            raise RuntimeError('Not connected to Xepr.')
 
         self.XeprCmds.aqParSet('AcqHidden', '*cwBridge.Tune', 'Fine')
 
@@ -385,7 +385,7 @@ class CustomXepr(QtCore.QObject):
         """
 
         if not self._check_for_xepr():
-            return
+            raise RuntimeError('Not connected to Xepr.')
 
         logger.info('Tuning.')
 
@@ -530,7 +530,7 @@ class CustomXepr(QtCore.QObject):
         """
 
         if not self._check_for_xepr():
-            return
+            raise RuntimeError('Not connected to Xepr.')
 
         wait_old = self.wait
         self.wait = 1
@@ -608,7 +608,7 @@ class CustomXepr(QtCore.QObject):
         """
 
         if not self._check_for_xepr():
-            return
+            raise RuntimeError('Not connected to Xepr.')
 
         wait_old = self.wait
         self.wait = 1
@@ -729,7 +729,7 @@ class CustomXepr(QtCore.QObject):
         """
 
         if not self._check_for_xepr():
-            return
+            raise RuntimeError('Not connected to Xepr.')
 
         # -----------set experiment parameters if given in kwargs--------------
         for key in kwargs:
@@ -904,7 +904,7 @@ class CustomXepr(QtCore.QObject):
         """
 
         if not self._check_for_xepr():
-            return
+            raise RuntimeError('Not connected to Xepr.')
 
         # check if WindDown experiment already exists, otherwise create
         try:
@@ -943,7 +943,7 @@ class CustomXepr(QtCore.QObject):
         """
 
         if not self._check_for_xepr():
-            return
+            raise RuntimeError('Not connected to Xepr.')
 
         path = os.path.expanduser(path)
 
@@ -1079,7 +1079,7 @@ class CustomXepr(QtCore.QObject):
     def _tunePhase(self):
         # check for abort event
         if self.worker.abort.is_set():
-                return
+            return
 
         logger.status('Tuning (Phase).')
         time.sleep(self.wait)
@@ -1213,7 +1213,7 @@ class CustomXepr(QtCore.QObject):
         """
 
         if not self._check_for_mercury():
-            return
+            raise RuntimeError('Not connected to MercuryITC.')
 
         # create instance variable here to allow outside access
         self._temperature_target = target
@@ -1323,7 +1323,7 @@ class CustomXepr(QtCore.QObject):
         """
 
         if not self._check_for_mercury():
-            return
+            raise RuntimeError('Not connected to MercuryITC.')
 
         # set temperature and wait to stabilize
         self.feed.control.ramp = ramp
@@ -1365,7 +1365,7 @@ class CustomXepr(QtCore.QObject):
         """
 
         if not self._check_for_keithley():
-            return
+            raise RuntimeError('Not connected to Keithley.')
 
         smu_gate = getattr(self.keithley, smu_gate)
         smu_drain = getattr(self.keithley, smu_drain)
@@ -1410,7 +1410,7 @@ class CustomXepr(QtCore.QObject):
         """
 
         if not self._check_for_keithley():
-            return
+            raise RuntimeError('Not connected to Keithley.')
 
         smu_gate = getattr(self.keithley, smu_gate)
         smu_drain = getattr(self.keithley, smu_drain)
@@ -1433,7 +1433,7 @@ class CustomXepr(QtCore.QObject):
         """
 
         if not self._check_for_keithley():
-            return
+            raise RuntimeError('Not connected to Keithley.')
 
         gate = getattr(self.keithley, smu_gate)
 
@@ -1458,7 +1458,7 @@ class CustomXepr(QtCore.QObject):
         """
 
         if not self._check_for_keithley():
-            return
+            raise RuntimeError('Not connected to Keithley.')
 
         smu = getattr(self.keithley, smu)
 
