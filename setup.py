@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 from setuptools import setup, find_packages
 
-if PY2:
-    dependencies.append("configparser")
-
 
 def get_metadata(relpath, varname):
     """Read metadata info from a file without importing it."""
