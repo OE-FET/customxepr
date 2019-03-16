@@ -99,11 +99,6 @@ class CustomXepr(QtCore.QObject):
         of :class:`manager.ExperimentQueue`.
     :cvar result_queue:  Queue that holds job results. Must be an instance
         of :class:`manager.SignalQueue`.
-    :cvar running: Instance of :class:`threading.Event`. If :attr:`running` is set,
-        jobs will be processed in the background. Otherwise, job execution will
-        be paused.
-    :cvar abort: Instance of :class:`threading.Event` to abort currently running
-        job. After the job has been aborted, the event will be cleared automatically.
 
     :ivar hidden: Xepr's hidden experiment.
     :ivar xepr: Connected Xepr instance.
@@ -151,12 +146,12 @@ class CustomXepr(QtCore.QObject):
 
         self.worker_thread = QtCore.QThread()
         self.worker_thread.setObjectName('CustomXeprWorker')
-        self.worker = Worker(self.job_queue, self.result_queue, self.running, self.abort)
+        self.worker = Worker(self.job_queue, self.result_queue)
         self.worker.moveToThread(self.worker_thread)
 
         self.worker_thread.started.connect(self.worker.process)
         self.worker_thread.start()
-        self.running.set()
+        self.worker.running.set()
         logger.status('IDLE')
 
         # =====================================================================
@@ -179,12 +174,37 @@ class CustomXepr(QtCore.QObject):
 # define basic functions for email notifications, pausing, etc.
 # ========================================================================================
 
+    def pause_worker(self):
+        """
+        Pauses the execution of jobs after the current job has been completed.
+        """
+        self.worker.running.clear()
+        logger.status('PAUSED')
+
+    def resume_worker(self):
+        """
+        Resumes the execution of jobs.
+        """
+        self.worker.running.set()
+        logger.status('IDLE')
+
+    def abort_job(self):
+        """
+        Aborts the current job and continues with the next.
+        """
+        if self.job_queue.has_running() > 0:
+            self.worker.abort.set()
+
+        if self.keithley is not None:
+            # this will be cleared on beginning of next measurement
+            self.keithley.abort_event.set()
+
     def clear_all_jobs(self):
         """
         Clears all pending jobs in :attr:`job_queue`.
         """
-        for item in range(0, self.job_queue.qsize()):
-            self.job_queue.get()
+        while self.job_queue.has_queued():
+            self.job_queue.remove_item(-1)
 
     @queued_exec(job_queue)
     def sendEmail(self, body):
@@ -197,9 +217,9 @@ class CustomXepr(QtCore.QObject):
                                   'CustomXepr Notification', body)
 
     @queued_exec(job_queue)
-    def pause(self, seconds):
+    def sleep(self, seconds):
         """
-        Pauses for the specified amount of seconds. This pause function checks
+        Pauses for the specified amount of seconds. This sleep function checks
         for an abort signal every minute to prevent permanent blocking.
 
         :param int seconds: Number of seconds to pause.
@@ -215,7 +235,7 @@ class CustomXepr(QtCore.QObject):
                 time.sleep(1)
                 logger.status('Waiting %s/%s.' % (i+1, seconds))
                 # check for abort event
-                if self.abort.is_set():
+                if self.worker.abort.is_set():
                     logger.info('Aborted by user.')
                     return
         # use a single sleep command for less than one second pause
@@ -396,7 +416,7 @@ class CustomXepr(QtCore.QObject):
         # tune iris at 40 dB and 30 dB
         for atten in [40, 30]:
             # check for abort event
-            if self.abort.is_set():
+            if self.worker.abort.is_set():
                 self.hidden['PowerAtten'].value = atten_start
                 time.sleep(self.wait)
                 logger.info('Aborted by user.')
@@ -411,7 +431,7 @@ class CustomXepr(QtCore.QObject):
         # tune iris and phase and frequency at 20 dB and 10 dB
         for atten in [20, 10]:
             # check for abort event, clear event
-            if self.abort.is_set():
+            if self.worker.abort.is_set():
                 self.hidden['PowerAtten'].value = atten_start
                 time.sleep(self.wait)
                 logger.info('Aborted by user.')
@@ -666,7 +686,8 @@ class CustomXepr(QtCore.QObject):
 
         return mp
 
-    def _saveQValue2File(self, tmpr, qval, qval_stderr, path):
+    @staticmethod
+    def _saveQValue2File(tmpr, qval, qval_stderr, path):
 
         delim = '\t'
         newline = '\n'
@@ -753,7 +774,7 @@ class CustomXepr(QtCore.QObject):
         while is_running_or_paused():
 
             # check for abort event
-            if self.abort.is_set():
+            if self.worker.abort.is_set():
                 exp.aqExpPause()
                 time.sleep(self.wait)
                 logger.info('Aborted by user.')
@@ -803,7 +824,7 @@ class CustomXepr(QtCore.QObject):
                                    '15 min. Pausing current measurement and ' +
                                    'all pending jobs.')
                     exp.aqExpPause()
-                    self.running.clear()
+                    self.worker.running.clear()
                     return
 
             time.sleep(1)
@@ -952,7 +973,7 @@ class CustomXepr(QtCore.QObject):
 
     def _tuneBias(self):
         # check for abort event
-        if self.abort.is_set():
+        if self.worker.abort.is_set():
             return
 
         logger.status('Tuning (Bias).')
@@ -967,7 +988,7 @@ class CustomXepr(QtCore.QObject):
         # rapid tuning with high tolerance and large steps
         while abs(diff) > tolerance1:
             # check for abort event
-            if self.abort.is_set():
+            if self.worker.abort.is_set():
                 return
 
             step = 1*cmp(0, diff)  # coarse step of 1
@@ -980,7 +1001,7 @@ class CustomXepr(QtCore.QObject):
         # fine tuning with low tolerance and small steps
         while abs(diff) > tolerance2:
             # check for abort event
-            if self.abort.is_set():
+            if self.worker.abort.is_set():
                 return
 
             step = 5*cmp(0, diff)  # fine step of 5
@@ -992,7 +1013,7 @@ class CustomXepr(QtCore.QObject):
 
     def _tuneIris(self, tolerance=1):
         # check for abort event
-        if self.abort.is_set():
+        if self.worker.abort.is_set():
             return
 
         logger.status('Tuning (Iris).')
@@ -1002,7 +1023,7 @@ class CustomXepr(QtCore.QObject):
 
         while abs(diff) > tolerance:
             # check for abort event
-            if self.abort.is_set():
+            if self.worker.abort.is_set():
                 return
 
             if diff < 0:
@@ -1034,7 +1055,7 @@ class CustomXepr(QtCore.QObject):
 
     def _tuneFreq(self, tolerance=3):
         # check for abort event
-        if self.abort.is_set():
+        if self.worker.abort.is_set():
             return
 
         logger.status('Tuning (Freq).')
@@ -1045,7 +1066,7 @@ class CustomXepr(QtCore.QObject):
 
         while abs(fq_offset) > tolerance:
             # check for abort event
-            if self.abort.is_set():
+            if self.worker.abort.is_set():
                 return
 
             step = 1 * cmp(0, fq_offset) * max(abs(int(fq_offset/10)), 1)
@@ -1057,7 +1078,7 @@ class CustomXepr(QtCore.QObject):
 
     def _tunePhase(self):
         # check for abort event
-        if self.abort.is_set():
+        if self.worker.abort.is_set():
                 return
 
         logger.status('Tuning (Phase).')
@@ -1083,7 +1104,7 @@ class CustomXepr(QtCore.QObject):
 
         for phase in phase_array:
             # check for abort event
-            if self.abort.is_set():
+            if self.worker.abort.is_set():
                 return
             self.hidden['SignalPhase'].value = phase
             time.sleep(self.wait)
@@ -1132,7 +1153,7 @@ class CustomXepr(QtCore.QObject):
 
         while diode_curr_new > np.max(diode_curr_array) - 5:
             # check for abort event
-            if self.abort.is_set():
+            if self.worker.abort.is_set():
                 return
             # check for limits of diode range, readjust iris if necessary
             if diode_curr_new in [0, 400]:
@@ -1236,7 +1257,7 @@ class CustomXepr(QtCore.QObject):
 
         while stable_counter < self.temp_wait_time:
             # check for abort command
-            if self.abort.is_set():
+            if self.worker.abort.is_set():
                 logger.info('Aborted by user.')
                 return
 
@@ -1270,7 +1291,8 @@ class CustomXepr(QtCore.QObject):
         message = 'Mercury iTC: Temperature is stable at %sK.' % self._temperature_target
         logger.info(message)
 
-    def heater_target(self, temperature):
+    @staticmethod
+    def heater_target(temperature):
         """
         Calculates the ideal heater voltage for a given temperature. This function
         can be used to check the current gas flow: If the heater voltage exceeds its

@@ -13,7 +13,7 @@ import time
 import logging
 # noinspection PyCompatibility
 from queue import Queue, Empty
-from threading import RLock
+from threading import RLock, Event
 from enum import Enum
 
 from decorator import decorator
@@ -278,17 +278,19 @@ class Worker(QtCore.QObject):
 
     :param job_q: Queue with jobs to be performed.
     :param result_q: Queue with results from completed jobs.
-    :param running: Event that causes the worker to pause between jobs if set.
-    :param abort: Event that tells a job to abort if set. After a job has
+
+    :cvar running: Event that causes the worker to pause between jobs if set.
+    :cvar abort: Event that tells a job to abort if set. After a job has
         been aborted, Worker will clear the :attr:`abort` event.
     """
 
-    def __init__(self, job_q, result_q, running, abort):
+    running = Event()
+    abort = Event()
+
+    def __init__(self, job_q, result_q):
         super(self.__class__, self).__init__(None)
         self.job_q = job_q
         self.result_q = result_q
-        self.running = running
-        self.abort = abort
 
     def process(self):
         while True:

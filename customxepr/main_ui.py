@@ -146,7 +146,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
            UI to specify email addresses for notifications and the desired
            notification level (Status, Info, Warning or Error).
 
-    This class requires a :class:`aain.CustomXepr` instance as input.
+    This class requires a :class:`main.CustomXepr` instance as input.
 
     """
 
@@ -161,9 +161,6 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.customxepr = customxepr
         self.job_queue = customxepr.job_queue
         self.result_queue = customxepr.result_queue
-        self.running = customxepr.running
-        self.abort_event = customxepr.abort
-        self.abort_event_keithley = customxepr.keithley.abort_event
 
         # ================================================================================
         # Set-up the UI
@@ -281,8 +278,8 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.tuneButton.clicked.connect(self.on_tune_clicked)
 
         self.pauseButton.clicked.connect(self.on_pause_clicked)
-        self.abortButton.clicked.connect(self.on_abort_clicked)
-        self.clearButton.clicked.connect(self.on_clear_clicked)
+        self.abortButton.clicked.connect(self.customxepr.abort_job)
+        self.clearButton.clicked.connect(self.customxepr.clear_all_jobs)
 
         self.lineEditEmailList.returnPressed.connect(self.set_email_list)
         self.lineEditT_tolerance.valueChanged.connect(self.set_temperature_tolerance)
@@ -338,8 +335,8 @@ class JobStatusApp(QtWidgets.QMainWindow):
         CONF.set('Window', 'y', geo.y())
 
     def exit_(self):
-        self.on_abort_clicked()
-        self.on_clear_clicked()
+        self.customxepr.clear_all_jobs()
+        self.customxepr.abort_job()
         self.save_geometry()
         if self.customxepr.xepr is not None:
             self.customxepr.xepr.XeprClose()
@@ -591,7 +588,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         Checks if worker thread is running and updates the Run/Pause button
         accordingly.
         """
-        if self.running.is_set():
+        if self.customxepr.running.is_set():
             self.pauseButton.setText('Pause')
         else:
             self.pauseButton.setText('Resume')
@@ -620,33 +617,14 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         self.customxepr.getQValueCalc()
 
-    def on_clear_clicked(self):
-        """
-        Clears all pending jobs in job_queue.
-        """
-        while self.job_queue.has_queued():
-            self.job_queue.remove_item(-1)
-
     def on_pause_clicked(self):
         """
         Pauses or resumes worker thread on button click.
         """
-        if self.running.is_set():
-            self.running.clear()
-            self.pauseButton.setText('Resume')
-            logger.status('PAUSED')
+        if self.customxepr.worker.running.is_set():
+            self.customxepr.pause_worker()
         else:
-            self.running.set()
-            self.pauseButton.setText('Pause')
-            logger.status('IDLE')
-
-    def on_abort_clicked(self):
-        """
-        Aborts a running job.
-        """
-        if self.job_queue.has_running() > 0:
-            self.abort_event.set()
-            self.abort_event_keithley.set()
+            self.customxepr.resume_worker()
 
     def on_log_clicked(self):
         """
@@ -659,8 +637,8 @@ class JobStatusApp(QtWidgets.QMainWindow):
         else:
             subprocess.Popen(['xdg-open', path])
 
-    def on_plot_checkbox_toggeled(self, checked):
-        # update config file
+    @staticmethod
+    def on_plot_checkbox_toggeled(checked):
         CONF.set('Window', 'auto_plot_results', checked)
 
     # ====================================================================================
