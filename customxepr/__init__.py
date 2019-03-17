@@ -20,5 +20,5 @@ QtCore.qInstallMessageHandler(handler)
 try:
     # import pyqtgraph before creating QApplication to avoid bugs
     import pyqtgraph
-except ImportError:
+except Exception:
     pass
