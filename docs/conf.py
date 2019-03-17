@@ -19,6 +19,7 @@ import time
 autodoc_mock_imports = [
     'pyvisa',
     'qtpy',
+    'PySide',
     'matplotlib.backends.backend_qt5agg']
 
 sys.path.insert(0, os.path.abspath('.'))
