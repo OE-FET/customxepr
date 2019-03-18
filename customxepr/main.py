@@ -203,8 +203,7 @@ class CustomXepr(QtCore.QObject):
         """
         Clears all pending jobs in :attr:`job_queue`.
         """
-        while self.job_queue.has_queued():
-            self.job_queue.remove_item(-1)
+        self.job_queue.clear()
 
     @queued_exec(job_queue)
     def sendEmail(self, body):

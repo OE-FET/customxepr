@@ -256,12 +256,13 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.populate_jobs()
 
         # update views when items are added to or removed from queues
-        self.customxepr.result_queue.put_signal.connect(self.add_result)
-        self.customxepr.result_queue.pop_signal.connect(self.on_result_pop)
+        self.result_queue.put_signal.connect(self.add_result)
+        self.result_queue.pop_signal.connect(self.on_result_pop)
+        self.result_queue.removed_signal.connect(self.resultQueueModel.removeRows)
 
-        self.customxepr.job_queue.added_signal.connect(self.on_job_added)
-        self.customxepr.job_queue.removed_signal.connect(self.on_job_removed)
-        self.customxepr.job_queue.status_changed_signal.connect(self.on_job_status_changed)
+        self.job_queue.added_signal.connect(self.on_job_added)
+        self.job_queue.removed_signal.connect(self.jobQueueModel.removeRows)
+        self.job_queue.status_changed_signal.connect(self.on_job_status_changed)
 
         # set context menus for job_queue and result_queue items
         self.resultQueueDisplay.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -386,13 +387,11 @@ class JobStatusApp(QtWidgets.QMainWindow):
         if action == 0:
             return
         elif action == delete_action:
-            for i in range(i1, i0-1, -1):
-                self.result_queue.remove_item(i)
-                self.resultQueueModel.removeRow(i)
+            self.result_queue.remove_items(i0, i1)
         elif action == save_action:
             prompt = 'Save as file'
             filename = 'untitled.txt'
-            filepath = QtWidgets.QFileDialog.getSaveFileName(self, prompt, filename)
+            filepath = QtWidgets.QFileDialog.getSaveFileName(None, prompt, filename)
             if len(filepath[0]) < 4:
                 return
             self.result_queue.queue[i0].save(filepath[0])
@@ -419,8 +418,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         action = popup_menu.exec_(QtGui.QCursor.pos())
 
         if action == delete_action:
-            for i in range(i1, i0-1, -1):
-                self.job_queue.remove_item(i)
+            self.job_queue.remove_items(i0, i1)
 
     def timeout_warning(self):
         """
@@ -431,7 +429,8 @@ class JobStatusApp(QtWidgets.QMainWindow):
             logger.warning('No status update for %i min.' % self.t_timeout +
                            ' Please check on experiment')
 
-    def is_updated(self):
+    @staticmethod
+    def is_updated():
         old_version = CONF.get('Version', 'old_version')
 
         if old_version in [__version__, None]:
@@ -514,11 +513,10 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         self.jobQueueModel.appendRow([func_item, args_item])
 
-    def on_job_status_changed(self, index_status_tuple):
+    def on_job_status_changed(self, index, status):
         """
         Updates status of top item in jobQueueDisplay.
         """
-        index, status = index_status_tuple
 
         if status is ExpStatus.RUNNING:
             self.jobQueueModel.item(index).setIcon(self.icon_running)
@@ -533,9 +531,6 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         self.jobQueueDisplay.scrollTo(self.jobQueueModel.createIndex(index-3, 1),
                                       self.jobQueueDisplay.PositionAtTop)
-
-    def on_job_removed(self, i):
-        self.jobQueueModel.removeRow(i)
 
     def add_result(self, index=-1):
         """

@@ -15,6 +15,7 @@ import logging
 from queue import Queue, Empty
 from threading import RLock, Event
 from enum import Enum
+import collections
 
 from decorator import decorator
 from qtpy import QtCore
@@ -95,11 +96,13 @@ class SignalQueue(QtCore.QObject, Queue):
     from the center of the queue.
 
     :cvar put_signal: Is emitted when an item is put into the queue.
-    :cvar pop_signal: Is emitted when an item is removed from the queue.
+    :cvar pop_signal: Is emitted when an item is popped from the queue.
+    :cvar removed_signal: Is emitted when items are removed from the queue.
     """
 
     put_signal = QtCore.Signal()
     pop_signal = QtCore.Signal()
+    removed_signal = QtCore.Signal(int, int)
 
     def __init__(self):
         QtCore.QObject.__init__(self)
@@ -116,15 +119,47 @@ class SignalQueue(QtCore.QObject, Queue):
 
     def remove_item(self, i):
         """
-        Removed item from the queue in thread safe manner. Calls
+        Removes item from the queue in a thread safe manner. Calls
         :func:`task_done` when done.
 
         :param int i: Index of item to remove.
         """
-        with self.mutex:
-            del self.queue[i]
-        self.task_done()
+        self.remove_items(i)
 
+    def remove_items(self, i_start, i_end=None):
+        """
+        Removes the items from index `i_start` to `i_end` from the queue.
+        Raises a :class:`ValueError` if the item belongs to a running or
+        already completed job. Emits the :attr:`removed_signal` for
+        every removed item. Calls :func:`task_done` for every item removed.
+
+        This call has O(n) performance with regards to the queue length and
+        number of items to be removed.
+
+        :param int i_start: Index of first item to remove.
+        :param int i_end: Index of last item to remove (defaults to i_end = i_start).
+        """
+
+        with self.mutex:
+            if i_end is None:
+                i_end = i_start
+
+            # convert negative indices to positive
+            i0 = self.qsize() + i_start if i_start < 0 else i_start
+            i1 = self.qsize() + i_end if i_end < 0 else i_end
+
+            if not i0 <= i1:
+                raise ValueError("'i_end' must be larger than or equal to 'i_start'.")
+            else:
+                new_items = [x for i, x in enumerate(self.queue) if i < i0 or i > i1]
+                self.queue = collections.deque(new_items)
+
+            n_items = i1 - i0 + 1
+
+            self.removed_signal.emit(i0, n_items)
+
+        for i in range(n_items):
+            self.task_done()
 
 # ========================================================================================
 # custom queue for experiments where all history is kept
@@ -144,8 +179,8 @@ class ExperimentQueue(QtCore.QObject):
     """
 
     added_signal = QtCore.Signal()
-    removed_signal = QtCore.Signal(int)
-    status_changed_signal = QtCore.Signal(tuple)
+    removed_signal = QtCore.Signal(int, int)
+    status_changed_signal = QtCore.Signal(int, object)
 
     _lock = RLock()
 
@@ -173,7 +208,7 @@ class ExperimentQueue(QtCore.QObject):
             raise ValueError('Can only append experiments with status "QUEUED".')
         with self._lock:
             self._queued.put(exp)
-        self.added_signal.emit()
+            self.added_signal.emit()
 
     def next_job(self):
         """
@@ -188,7 +223,8 @@ class ExperimentQueue(QtCore.QObject):
             self._running.put(exp)
             index = self.first_queued_index() - 1
 
-        self.status_changed_signal.emit((index, exp.status))
+            self.status_changed_signal.emit(index, exp.status)
+
         return exp
 
     def task_done(self, exit_status, result=None):
@@ -208,7 +244,7 @@ class ExperimentQueue(QtCore.QObject):
             self._history.put(exp)
             index = self._history.qsize() - 1
 
-        self.status_changed_signal.emit((index, exit_status))
+            self.status_changed_signal.emit(index, exit_status)
 
     def remove_item(self, i):
         """
@@ -218,20 +254,52 @@ class ExperimentQueue(QtCore.QObject):
 
         :param int i: Index of item to remove.
         """
+        self.remove_items(i)
+
+    def remove_items(self, i_start, i_end=None):
+        """
+        Removes the items from index `i_start` to `i_end` from the queue.
+        Raises a :class:`ValueError` if the item belongs to a running or
+        already completed job. Emits the :attr:`removed_signal` for
+        every removed item.
+
+        This call has O(n) performance with regards to the queue length and
+        number of items to be removed.
+
+        :param int i_start: Index of first item to remove.
+        :param int i_end: Index of last item to remove (defaults to i_end = i_start).
+        """
+
+        if i_end is None:
+            i_end = i_start
+
         with self._lock:
-            if i < 0:
-                # convert to positive index if negative
-                i = self.qsize() + i
+            # convert negative indices to positive
+            i_start = self.qsize() + i_start if i_start < 0 else i_start
+            i_end = self.qsize() + i_end if i_end < 0 else i_end
 
             # convert to index of self._queued.queue
-            index = i - self.first_queued_index()
+            i0 = i_start - self.first_queued_index()
+            i1 = i_end - self.first_queued_index()
 
-            if index < 0:
+            if i0 < 0:
                 raise ValueError('Only queued experiments can be removed.')
+            elif not i0 <= i1:
+                raise ValueError("'i_end' must be larger than or equal to 'i_start'.")
             else:
-                del self._queued.queue[index]
+                new_items = [x for i, x in enumerate(self._queued.queue) if i < i0 or i > i1]
+                self._queued.queue = collections.deque(new_items)
 
-        self.removed_signal.emit(i)
+            n_items = i_end - i_start + 1
+            self.removed_signal.emit(i_start, n_items)
+
+    def clear(self):
+        """
+        Removes all queued experiments at once.
+        """
+        with self._lock:
+            self.removed_signal.emit(self.first_queued_index(), self._queued.qsize())
+            self._queued.queue.clear()
 
     def has_running(self):
         return self._running.qsize() > 0

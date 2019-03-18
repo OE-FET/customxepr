@@ -1,12 +1,18 @@
-#### master (2019-03-11)
+#### master (2019-03-18)
+
+This release provides significant performance improvements to the user interface.
 
 _Changed:_
 
-- Reduced startup time when no instruments can be found by reducing connection timeout.
+- Reduced startup time when no instruments can be found by reducing the connection timeout.
 - Added info messages to splash screen.
 - Swtiched graphics backend for Mercury ITC and Keithley 2600 from Matplotlib to pyqtgraph. This allows for smoother user interactions with plots.
+- Small fixes for PyQt 5.12.
+- Performance improvements when deleting a large number of results or pending jobs: previously _O(n^2)_, now _O(n)_ performance.
 
 #### v2.2.2 (2019-02-19)
+
+This release adds support for reading and writing Bruker Xepr data files in the BES3T format.
 
 _Added:_
 
@@ -14,7 +20,7 @@ _Added:_
   provides methods to access and modifiy measurement parameters and to plot the data.
   It is compalitble with all Xepr experiment types, saved in the Bruker BES3T file format
   up to version 1.2 (currently used by Xepr).
-  
+
 _Changed:_
 
 - `runXeprExperiment` now accepts a path parameter. If given, the resulting data
@@ -25,11 +31,13 @@ _Changed:_
 _Removed:_
 
 - Removed the option to specify a title when saving an ESR data file. The file
-  name is now always used as title. 
+  name is now always used as title.
 - `saveCurrentData` will be removed in a future version of CustomXepr. Use the `path`
   keyword of `runXeprExperiment` to save the measurement data instead.
 
 #### v2.2.1 (2019-01-25)
+
+This release introduces online documentation for CustomXepr and user interface improvements.
 
 _Added:_
 
