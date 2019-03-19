@@ -56,7 +56,6 @@ setup(
                 "pyvisa-py",
                 "qtpy",
                 "qtconsole",
-                "queue;python_version<='2.7'",
                 "configparser;python_version<='2.7'",
                 "scipy",
                 ],
