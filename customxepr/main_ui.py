@@ -24,7 +24,7 @@ from qtpy import QtCore, QtWidgets, QtGui, uic
 from customxepr.main import CustomXepr, __version__, __year__, __author__, __url__
 from customxepr.manager import ExpStatus
 from customxepr.config.main import CONF
-from customxepr.error_dialog import ErrorDialog
+from customxepr.utils.misc import ErrorDialog
 from customxepr.utils.notify import Notipy
 
 PY2 = sys.version[0] == '2'
@@ -116,7 +116,7 @@ error_handler = QErrorLogHandler()
 error_handler.setLevel(logging.ERROR)
 
 # add handlers to customxepr logger
-logger = logging.getLogger('customxepr')
+logger = logging.getLogger('customxepr.main')
 logger.addHandler(status_handler)
 logger.addHandler(info_handler)
 logger.addHandler(error_handler)
@@ -126,8 +126,9 @@ logger.addHandler(error_handler)
 # Define JobStatusApp class
 # ========================================================================================
 
+
 # noinspection PyArgumentList
-class ManagerApp(QtWidgets.QMainWindow):
+class JobStatusApp(QtWidgets.QMainWindow):
 
     """
     A GUI for CustomXepr, composed of three panels:
@@ -152,14 +153,14 @@ class ManagerApp(QtWidgets.QMainWindow):
     MAX_JOB_HISTORY_LENGTH = 1
     QUIT_ON_CLOSE = False
 
-    def __init__(self, manager):
+    def __init__(self, customxepr):
         # noinspection PyArgumentList
-        QtWidgets.QMainWindow.__init__(self)
+        super(self.__class__, self).__init__()
 
         # get input arguments
-        self.manager = manager
-        self.job_queue = self.manager.job_queue
-        self.result_queue = self.manager.result_queue
+        self.customxepr = customxepr
+        self.job_queue = customxepr.job_queue
+        self.result_queue = customxepr.result_queue
 
         # ================================================================================
         # Set-up the UI
@@ -167,9 +168,9 @@ class ManagerApp(QtWidgets.QMainWindow):
 
         # load layout file, setup toolbar on macOS
         if platform.system() == 'Darwin':
-            layout_file = 'manager_ui_macos.ui'
+            layout_file = 'main_ui_macos.ui'
         else:
-            layout_file = 'manager_ui_linux.ui'
+            layout_file = 'main_ui_linux.ui'
 
         uic.loadUi(os.path.join(_root, layout_file), self)
 
@@ -207,7 +208,7 @@ class ManagerApp(QtWidgets.QMainWindow):
         self.restore_geometry()
 
         # ================================================================================
-        # Updated UI to reflect Manager status
+        # Connect UI to CustomXepr functionality
         # ================================================================================
 
         # check status of worker thread (Paused or Running) and adjust buttons
@@ -217,6 +218,20 @@ class ManagerApp(QtWidgets.QMainWindow):
         self.get_email_list()
         self.get_notification_level()
         self.plotCheckBox.setChecked(CONF.get('Window', 'auto_plot_results'))
+
+        # get temperature control settings
+        self.lineEditT_tolerance.setValue(self.customxepr.temperature_tolerance)
+        self.lineEditT_settling.setValue(self.customxepr.temp_wait_time)
+        self.lineEditT_tolerance.setMinimum(0)
+        self.lineEditT_settling.setMinimum(0)
+
+        # perform various UI updates after status change
+        status_handler.status_signal.connect(self.statusField.setText)
+        status_handler.status_signal.connect(self.check_paused)
+        status_handler.status_signal.connect(self.get_email_list)
+
+        # notify user of any errors in job execution with a message box
+        error_handler.error_signal.connect(self.show_error)
 
         # create data models for message log, job queue and result queue
         self.messageLogModel = info_handler.model
@@ -240,14 +255,6 @@ class ManagerApp(QtWidgets.QMainWindow):
         self.populate_results()
         self.populate_jobs()
 
-        # set context menus for job_queue and result_queue items
-        self.resultQueueDisplay.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.jobQueueDisplay.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-
-        # ================================================================================
-        # Connect signals, slots, and callbacks
-        # ================================================================================
-
         # update views when items are added to or removed from queues
         self.result_queue.put_signal.connect(self.add_result)
         self.result_queue.pop_signal.connect(self.on_result_pop)
@@ -257,35 +264,39 @@ class ManagerApp(QtWidgets.QMainWindow):
         self.job_queue.removed_signal.connect(self.jobQueueModel.removeRows)
         self.job_queue.status_changed_signal.connect(self.on_job_status_changed)
 
-        # perform various UI updates after status change
-        status_handler.status_signal.connect(self.statusField.setText)
-        status_handler.status_signal.connect(self.check_paused)
-        status_handler.status_signal.connect(self.get_email_list)
+        # set context menus for job_queue and result_queue items
+        self.resultQueueDisplay.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.jobQueueDisplay.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
 
-        # notify user of any errors in job execution with a message box
-        error_handler.error_signal.connect(self.show_error)
-
-        # connect context menu callbacks
         self.resultQueueDisplay.customContextMenuRequested.connect(self.open_result_context_menu)
         self.jobQueueDisplay.customContextMenuRequested.connect(self.open_job_context_menu)
 
-        # connect job control buttons
-        self.pauseButton.clicked.connect(self.on_pause_clicked)
-        self.abortButton.clicked.connect(self.manager.abort_job)
-        self.clearButton.clicked.connect(self.manager.clear_all_jobs)
+        # ================================================================================
+        # Connect signals, slots, and callbacks
+        # ================================================================================
 
-        # connect log control settings
+        self.qValueButton.clicked.connect(self.on_qvalue_clicked)
+        self.tuneButton.clicked.connect(self.on_tune_clicked)
+
+        self.pauseButton.clicked.connect(self.on_pause_clicked)
+        self.abortButton.clicked.connect(self.customxepr.abort_job)
+        self.clearButton.clicked.connect(self.customxepr.clear_all_jobs)
+
         self.lineEditEmailList.returnPressed.connect(self.set_email_list)
+        self.lineEditT_tolerance.valueChanged.connect(self.set_temperature_tolerance)
+        self.lineEditT_settling.valueChanged.connect(self.set_t_settling)
+
         self.bG.buttonClicked['int'].connect(self.on_bg_clicked)
         self.plotCheckBox.toggled.connect(self.on_plot_checkbox_toggeled)
 
         # Universal timeout:
         # Send an email notification if there is no status update for 30 min.
-        _timeout_min = 30
-        self._min2msec = 60 * 1000
+
+        _timeout_min = 30  # time in minutes before timeout warning
+        self.min2msec = 60*1000  # conversion factor for min to msec
 
         self.timeout_timer = QtCore.QTimer()
-        self.timeout_timer.setInterval(_timeout_min * self._min2msec)
+        self.timeout_timer.setInterval(_timeout_min * self.min2msec)
         self.timeout_timer.setSingleShot(True)
         self.timeout_timer.timeout.connect(self.timeout_warning)
 
@@ -325,8 +336,8 @@ class ManagerApp(QtWidgets.QMainWindow):
         CONF.set('Window', 'y', geo.y())
 
     def exit_(self):
-        self.manager.clear_all_jobs()
-        self.manager.abort_job()
+        self.customxepr.clear_all_jobs()
+        self.customxepr.abort_job()
         self.save_geometry()
         if self.customxepr.xepr is not None:
             self.customxepr.xepr.XeprClose()
@@ -572,7 +583,7 @@ class ManagerApp(QtWidgets.QMainWindow):
         Checks if worker thread is running and updates the Run/Pause button
         accordingly.
         """
-        if self.manager.worker.running.is_set():
+        if self.customxepr.worker.running.is_set():
             self.pauseButton.setText('Pause')
         else:
             self.pauseButton.setText('Resume')
@@ -581,20 +592,40 @@ class ManagerApp(QtWidgets.QMainWindow):
     # Button callbacks
     # ====================================================================================
 
+    def on_tune_clicked(self):
+        """
+        Schedules a tuning job if the ESR is connected.
+        """
+
+        if self.job_queue.has_queued():
+            logger.info('Tuning job added to the job queue.')
+
+        self.customxepr.customtune()
+
+    def on_qvalue_clicked(self):
+        """
+        Schedules a Q-Value readout if the ESR is connected.
+        """
+
+        if self.job_queue.has_queued():
+            logger.info('Q-Value readout added to the job queue.')
+
+        self.customxepr.getQValueCalc()
+
     def on_pause_clicked(self):
         """
         Pauses or resumes worker thread on button click.
         """
-        if self.manager.worker.running.is_set():
-            self.manager.pause_worker()
+        if self.customxepr.worker.running.is_set():
+            self.customxepr.pause_worker()
         else:
-            self.manager.resume_worker()
+            self.customxepr.resume_worker()
 
     def on_log_clicked(self):
         """
         Opens directory with log files with current log file selected.
         """
-        path = self.manager.log_file_dir
+        path = self.customxepr.log_file_dir
 
         if platform.system() == 'Darwin':
             subprocess.Popen(['open', path])
@@ -626,13 +657,13 @@ class ManagerApp(QtWidgets.QMainWindow):
                 address_list = [x for x in address_list if (x is not email)]
 
         # send list to CustomXepr
-        self.manager.notify_address = address_list
+        self.customxepr.notify_address = address_list
 
     def get_email_list(self):
         """
         Gets the email list from CustomXepr and updates it in the UI.
         """
-        address_list = self.manager.notify_address
+        address_list = self.customxepr.notify_address
         if not self.lineEditEmailList.hasFocus():
             self.lineEditEmailList.setText(', '.join(address_list))
 
@@ -641,7 +672,7 @@ class ManagerApp(QtWidgets.QMainWindow):
         Checks the notification level for email handler and sets the respective
         checkButton to checked.
         """
-        level = self.manager.email_handler_level
+        level = self.customxepr.email_handler_level
         if level == 40:
             self.radioButtonErrorMail.setChecked(True)
         elif level == 30:
@@ -655,13 +686,19 @@ class ManagerApp(QtWidgets.QMainWindow):
         """ Sets the email notification level to the selected level."""
         clicked_button = self.bG.checkedButton()
         if clicked_button == self.radioButtonErrorMail:
-            self.manager.email_handler_level = 40
+            self.customxepr.email_handler_level = 40
         elif clicked_button == self.radioButtonWarningMail:
-            self.manager.email_handler_level = 30
+            self.customxepr.email_handler_level = 30
         elif clicked_button == self.radioButtonInfoMail:
-            self.manager.email_handler_level = 20
+            self.customxepr.email_handler_level = 20
         elif clicked_button == self.radioButtonNoMail:
-            self.manager.email_handler_level = 50
+            self.customxepr.email_handler_level = 50
+
+    def set_temperature_tolerance(self, value):
+        self.customxepr.temperature_tolerance = value
+
+    def set_t_settling(self, value):
+        self.customxepr.temp_wait_time = value
 
     # ====================================================================================
     # Properties
@@ -670,12 +707,12 @@ class ManagerApp(QtWidgets.QMainWindow):
     @property
     def t_timeout(self):
         """Gets the timeout limit in minutes from timeout_timer."""
-        return self.timeout_timer.interval()/self._min2msec
+        return self.timeout_timer.interval()/self.min2msec
 
     @t_timeout.setter
     def t_timeout(self, time_in_min):
         """ Sets the timeout limit in minutes in timeout_timer."""
-        self.timeout_timer.setInterval(time_in_min * self._min2msec)
+        self.timeout_timer.setInterval(time_in_min * self.min2msec)
 
 
 # ========================================================================================
@@ -718,82 +755,3 @@ class UpdateWindow(QtWidgets.QDialog):
         placeholder = self.label.text()
         self.label.setText(placeholder.format(__version__, __url__ +
                                               '/en/latest/changelog.html'))
-
-
-# ========================================================================================
-# Subclass of JobStatusApp exposing certain CustomXepr settings
-# ========================================================================================
-
-
-class GridLayoutShortcuts(QtWidgets.QWidget):
-
-    def __init__(self, parent=None):
-        QtWidgets.QWidget.__init__(self, parent=parent)
-        layout_file = 'customxepr_settings.ui'
-        uic.loadUi(os.path.join(_root, layout_file), self)
-
-        if platform.system() == 'Darwin':
-            self.layout.setContentsMargins(20, 0, 20, 0)
-        else:
-            self.layout.setContentsMargins(20, 15, 20, 10)
-
-
-# noinspection PyArgumentList
-class CustomXeprGuiApp(ManagerApp):
-
-    """
-    Subclass of :class:`ManagerApp` which adds controls for select CustomXepr settings.
-    """
-
-    def __init__(self, customxepr):
-        ManagerApp.__init__(self, customxepr.manager)
-        self.customxepr = customxepr
-
-        self.gridLayoutShortcuts = GridLayoutShortcuts()
-        self.tabJobs.layout().addWidget(self.gridLayoutShortcuts)
-
-        # get temperature control settings
-        self.gridLayoutShortcuts.lineEditT_tolerance.setValue(self.customxepr.temperature_tolerance)
-        self.gridLayoutShortcuts.lineEditT_settling.setValue(self.customxepr.temp_wait_time)
-        self.gridLayoutShortcuts.lineEditT_tolerance.setMinimum(0)
-        self.gridLayoutShortcuts.lineEditT_settling.setMinimum(0)
-
-        # connect quick settings
-        self.gridLayoutShortcuts.qValueButton.clicked.connect(self.on_qvalue_clicked)
-        self.gridLayoutShortcuts.tuneButton.clicked.connect(self.on_tune_clicked)
-        self.gridLayoutShortcuts.lineEditT_tolerance.valueChanged.connect(self.set_temperature_tolerance)
-        self.gridLayoutShortcuts.lineEditT_settling.valueChanged.connect(self.set_t_settling)
-
-    # ====================================================================================
-    # Button callbacks
-    # ====================================================================================
-
-    def on_tune_clicked(self):
-        """
-        Schedules a tuning job if the ESR is connected.
-        """
-
-        if self.job_queue.has_queued():
-            logger.info('Tuning job added to the job queue.')
-
-        self.customxepr.customtune()
-
-    def on_qvalue_clicked(self):
-        """
-        Schedules a Q-Value readout if the ESR is connected.
-        """
-
-        if self.job_queue.has_queued():
-            logger.info('Q-Value readout added to the job queue.')
-
-        self.customxepr.getQValueCalc()
-
-    # ====================================================================================
-    # Callbacks and functions for CustomXepr settings adjustments
-    # ====================================================================================
-
-    def set_temperature_tolerance(self, value):
-        self.customxepr.temperature_tolerance = value
-
-    def set_t_settling(self, value):
-        self.customxepr.temp_wait_time = value

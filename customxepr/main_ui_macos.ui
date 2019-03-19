@@ -71,7 +71,7 @@
      <number>0</number>
     </property>
     <item row="3" column="0" rowspan="3" colspan="4">
-     <layout class="QGridLayout" name="gridLayoutStatusBar">
+     <layout class="QGridLayout" name="gridLayout_8">
       <property name="leftMargin">
        <number>20</number>
       </property>
@@ -107,7 +107,7 @@
       <property name="currentIndex">
        <number>0</number>
       </property>
-      <widget class="QWidget" name="tabJobs">
+      <widget class="QWidget" name="page">
        <layout class="QGridLayout" name="gridLayout_2">
         <property name="leftMargin">
          <number>0</number>
@@ -144,7 +144,7 @@
          </widget>
         </item>
         <item row="3" column="0" colspan="2">
-         <layout class="QGridLayout" name="gridLayoutJobControl">
+         <layout class="QGridLayout" name="gridLayout_12">
           <property name="leftMargin">
            <number>20</number>
           </property>
@@ -248,9 +248,203 @@
           </property>
          </widget>
         </item>
+        <item row="5" column="0" rowspan="3" colspan="2">
+         <layout class="QGridLayout" name="gridLayout_11" columnstretch="1,2">
+          <property name="leftMargin">
+           <number>20</number>
+          </property>
+          <property name="rightMargin">
+           <number>20</number>
+          </property>
+          <item row="4" column="0">
+           <widget class="QLabel" name="labelT_tolerance">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum fluctuations allowed for the temperature to be considered stable.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Temperature stability tolerance:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="labelT_settling">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Settling time for the temperature after fluctuations are within the tolerance.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Temperature settling time:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1" alignment="Qt::AlignLeft">
+           <widget class="ScienDSpinBox" name="lineEditT_settling">
+            <property name="minimumSize">
+             <size>
+              <width>110</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>110</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Settling time for the temperature after fluctuations are within the tolerance.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+            <property name="suffix">
+             <string>s</string>
+            </property>
+            <property name="decimals">
+             <number>0</number>
+            </property>
+            <property name="maximum">
+             <double>99999.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>120.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Schedule a Q-Value determination job:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1" alignment="Qt::AlignLeft">
+           <widget class="ScienDSpinBox" name="lineEditT_tolerance">
+            <property name="minimumSize">
+             <size>
+              <width>110</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>110</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum fluctuations allowed for the temperature to be considered stable.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+            <property name="suffix">
+             <string>K</string>
+            </property>
+            <property name="value">
+             <double>0.100000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Schedule a cavity tuning job:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="labelCustomXeprControl">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>CustomXepr shortcuts</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0" colspan="2">
+           <widget class="QLabel" name="labelTempControl">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Temperature control settings</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1" alignment="Qt::AlignLeft">
+           <widget class="QPushButton" name="qValueButton">
+            <property name="minimumSize">
+             <size>
+              <width>120</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>120</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Get Q-Value</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1" alignment="Qt::AlignLeft">
+           <widget class="QPushButton" name="tuneButton">
+            <property name="minimumSize">
+             <size>
+              <width>120</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>120</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Tune cavity</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tabResults">
+      <widget class="QWidget" name="page_2">
        <layout class="QGridLayout" name="gridLayout_3">
         <property name="leftMargin">
          <number>0</number>
@@ -294,7 +488,7 @@
          </widget>
         </item>
         <item row="6" column="0">
-         <layout class="QGridLayout" name="gridLayoutResultControl">
+         <layout class="QGridLayout" name="gridLayout_10">
           <property name="leftMargin">
            <number>20</number>
           </property>
@@ -321,7 +515,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tabLog">
+      <widget class="QWidget" name="page_3">
        <layout class="QGridLayout" name="gridLayout_7">
         <property name="leftMargin">
          <number>0</number>
@@ -336,7 +530,7 @@
          <number>0</number>
         </property>
         <item row="5" column="0" colspan="2">
-         <layout class="QGridLayout" name="gridLayoutLogControl" columnstretch="1,2">
+         <layout class="QGridLayout" name="gridLayout_9" columnstretch="1,2">
           <property name="leftMargin">
            <number>20</number>
           </property>
@@ -515,7 +709,7 @@ QTabWidget::pane
       <property name="currentIndex">
        <number>0</number>
       </property>
-      <widget class="QWidget" name="tab_1">
+      <widget class="QWidget" name="tab">
        <attribute name="title">
         <string>Pending jobs</string>
        </attribute>
@@ -734,12 +928,23 @@ QTabWidget::pane
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ScienDSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>customxepr.utils.scientific_spinbox.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>tabWidget</tabstop>
   <tabstop>jobQueueDisplay</tabstop>
   <tabstop>pauseButton</tabstop>
   <tabstop>clearButton</tabstop>
   <tabstop>abortButton</tabstop>
+  <tabstop>qValueButton</tabstop>
+  <tabstop>tuneButton</tabstop>
+  <tabstop>lineEditT_tolerance</tabstop>
+  <tabstop>lineEditT_settling</tabstop>
   <tabstop>resultQueueDisplay</tabstop>
   <tabstop>messageLogDisplay</tabstop>
   <tabstop>lineEditEmailList</tabstop>

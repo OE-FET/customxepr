@@ -1,4 +1,5 @@
 from __future__ import division, absolute_import, unicode_literals
+import os
 from customxepr.startup import run
 from customxepr.main import CustomXepr
 from customxepr.xepr_dataset import XeprData, XeprParam
@@ -13,7 +14,6 @@ from qtpy import QtCore
 
 def handler(msg_type, msg_log_context, msg_string):
     pass
-
 
 QtCore.qInstallMessageHandler(handler)
 
