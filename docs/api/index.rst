@@ -9,6 +9,6 @@ This section gives an overview of CustmoXepr's modules:
 
    customxepr.main <customxepr>
    customxepr.manager <manager>
-   customxepr.experiment.mode_picture <mode_picture>
+   customxepr.experiment.mode_picture_dataset <mode_picture>
    customxepr.experiment.xepr_dataset <xepr_dataset>
    customxepr.startup <startup>
