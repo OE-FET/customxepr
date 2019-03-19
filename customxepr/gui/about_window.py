@@ -2,8 +2,7 @@
 import os
 from qtpy import QtWidgets, uic
 
-from customxepr import CustomXepr
-from customxepr.main import __version__, __year__, __author__, __url__
+from customxepr.main import CustomXepr, __version__, __year__, __author__, __url__
 
 
 # noinspection PyArgumentList

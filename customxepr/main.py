@@ -28,6 +28,7 @@ try:
 except ImportError:
     ExperimentError = RuntimeError
 
+
 PY2 = sys.version[0] == '2'
 
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'

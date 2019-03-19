@@ -9,6 +9,7 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
 from __future__ import division, absolute_import
+import sys
 import os
 import logging
 import platform
@@ -22,11 +23,13 @@ from qtpy import QtCore, QtWidgets, QtGui, uic
 from customxepr.gui.about_window import AboutWindow
 from customxepr.gui.help_window import UpdateWindow
 from customxepr.gui.error_dialog import ErrorDialog
-from customxepr.main import PY2, __version__, __year__, __author__, __url__
+from customxepr.main import __version__, __year__, __author__, __url__
 from customxepr.manager import ExpStatus
 from customxepr.config.main import CONF
 from customxepr.gui.notify import Notipy
 
+
+PY2 = sys.version[0] == '2'
 _root = QtCore.QFileInfo(__file__).absolutePath()
 
 

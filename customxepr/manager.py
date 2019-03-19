@@ -6,6 +6,7 @@
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
+import sys
 import os
 import time
 import logging
@@ -23,10 +24,10 @@ import collections
 from decorator import decorator
 from qtpy import QtCore
 
-from customxepr.main import PY2
 from customxepr.config import CONF
 
 
+PY2 = sys.version[0] == '2'
 logger = logging.getLogger('customxepr')
 
 

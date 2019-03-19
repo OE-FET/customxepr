@@ -33,9 +33,9 @@ setup(
     packages=find_packages(),
     package_data={
             "customxepr": [
-                    "resources/*.icns",
-                    "resources/*.png",
-                    "*.ui",
+                    "gui/resources/*.icns",
+                    "gui/resources/*.png",
+                    "gui/*.ui",
                     ],
             },
     data_files=[('info', ['README.md', 'CHANGELOG.md'])],

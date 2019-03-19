@@ -96,6 +96,7 @@ def connect_to_instruments():
     from mercuryitc import MercuryITC
     from mercurygui import CONF as MCONF
     from mercurygui import MercuryFeed
+    from customxepr.main import CustomXepr
 
     keithley_address = KCONF.get('Connection', 'VISA_ADDRESS')
     keithley_visa_lib = KCONF.get('Connection', 'VISA_LIBRARY')
@@ -117,6 +118,7 @@ def connect_to_instruments():
     mercury = MercuryITC(mercury_address, mercury_visa_lib, open_timeout=1)
     mercury_feed = MercuryFeed(mercury)
     keithley = Keithley2600(keithley_address, keithley_visa_lib, open_timeout=1)
+    customXepr = CustomXepr(xepr, mercury_feed, keithley)
 
     return xepr, customXepr, mercury, mercury_feed, keithley
 
@@ -125,7 +127,7 @@ def connect_to_instruments():
 # Start CustomXepr and user interfaces
 # ========================================================================================
 
-def start_gui(xepr, mercury_feed, keithley):
+def start_gui(customXepr, mercury_feed, keithley):
     """
     Starts GUIs for Keithley, Mercury and CustomXepr.
 
@@ -133,13 +135,10 @@ def start_gui(xepr, mercury_feed, keithley):
     """
     from keithleygui import KeithleyGuiApp
     from mercurygui import MercuryMonitorApp
-    from customxepr.main import CustomXepr
     from customxepr.gui import CustomXeprGuiApp
 
     mercury_gui = MercuryMonitorApp(mercury_feed)
     keithley_gui = KeithleyGuiApp(keithley)
-
-    customXepr = CustomXepr(xepr, mercury_feed, keithley)
     customXepr_gui = CustomXeprGuiApp(customXepr)
 
     mercury_gui.QUIT_ON_CLOSE = False
@@ -181,7 +180,7 @@ def run():
     xepr, customXepr, mercury, mercury_feed, keithley = connect_to_instruments()
     # start user interfaces
     splash.showMessage("Loading user interface...")
-    customXepr_gui, mercury_gui, keithley_gui = start_gui(xepr, mercury_feed, keithley)
+    customXepr_gui, mercury_gui, keithley_gui = start_gui(customXepr, mercury_feed, keithley)
 
     banner = ('Welcome to CustomXepr %s. ' % __version__ +
               'You can access connected instruments through "customXepr" ' +
