@@ -176,14 +176,14 @@ def start_gui(xepr, mercury, keithley):
     from keithleygui import KeithleyGuiApp
     from mercurygui import MercuryFeed, MercuryMonitorApp
     from customxepr.main import CustomXepr
-    from customxepr.main_ui import JobStatusApp
+    from customxepr.main_ui import CustomXeprGuiApp
 
     mercuryfeed = MercuryFeed(mercury)
     mercury_gui = MercuryMonitorApp(mercuryfeed)
     keithley_gui = KeithleyGuiApp(keithley)
 
     customXepr = CustomXepr(xepr, mercuryfeed, keithley)
-    customXepr_gui = JobStatusApp(customXepr)
+    customXepr_gui = CustomXeprGuiApp(customXepr)
 
     mercury_gui.QUIT_ON_CLOSE = False
     keithley_gui.QUIT_ON_CLOSE = False
@@ -215,7 +215,7 @@ def run():
     """
 
     from customxepr.main import __version__, __author__, __year__
-    from customxepr.utils.misc import patch_excepthook
+    from customxepr.error_dialog import patch_excepthook
 
     # create a new Qt app or return an existing one
     app, interactive = get_qt_app()

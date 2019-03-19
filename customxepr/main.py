@@ -11,9 +11,7 @@ from __future__ import division, absolute_import
 import sys
 import os
 import logging
-import logging.handlers
 import time
-from threading import Event
 import numpy as np
 
 from qtpy import QtCore
@@ -22,13 +20,8 @@ from keithleygui import CONF as K_CONF
 from customxepr.utils.mail import EmailSender
 from customxepr.mode_picture import ModePicture
 from customxepr.xepr_dataset import XeprParam, ParamGroupDSL, XeprData
-from customxepr.manager import ExperimentQueue, SignalQueue, Worker, queued_exec
+from customxepr.manager import Manager, queued_exec
 from customxepr.config.main import CONF
-
-__author__ = 'Sam Schott <ss2151@cam.ac.uk>'
-__year__ = str(time.localtime().tm_year)
-__version__ = 'v2.2.2'
-__url__ = 'https://customxepr.readthedocs.io'
 
 try:
     sys.path.insert(0, os.popen('Xepr --apipath').read())
@@ -36,17 +29,14 @@ try:
 except ImportError:
     ExperimentError = RuntimeError
 
-PY2 = sys.version[0] == '2'
 
-# add logging level for status updates between DEBUG (10) and INFO (20)
-logging.STATUS = 15
-logging.addLevelName(logging.STATUS, 'STATUS')
-# noinspection PyProtectedMember
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.STATUS)
-# noinspection PyUnresolvedReferences
-setattr(logger, 'status', lambda message,
-        *args: logger._log(logging.STATUS, message, args))
+__author__ = 'Sam Schott <ss2151@cam.ac.uk>'
+__year__ = str(time.localtime().tm_year)
+__version__ = 'v2.2.2'
+__url__ = 'https://customxepr.readthedocs.io'
+
+
+logger = logging.getLogger('customxepr')
 
 
 def cmp(a, b):
@@ -65,23 +55,24 @@ class CustomXepr(QtCore.QObject):
     their calls. To execute your own function in this thread, you can use
     the :func:`queued_exec` decorator provided by customxepr and query the
     :attr:`abort_event` to support CustomXepr's abort functionality (see
-    :class:`manager.queued_exec`).
+    :class:`manager.Manager`).
 
     All results are added to the result queue and can be retrieved with:
 
-    >>> result = customxepr.result_queue.get()  # blocks until result is available
+    >>> manager = customxepr.manager
+    >>> result = manager.result_queue.get()  # blocks until result is available
 
     To pause or resume the worker between jobs, run
 
-    >>> customxepr.pause_worker()
+    >>> manager.pause_worker()
 
     or
 
-    >>> customxepr.resume_worker()
+    >>> manager.resume_worker()
 
     To abort a job, run:
 
-    >>> customxepr.abort_job()
+    >>> manager.abort_job()
 
     You can use :class:`CustomXepr` on its own, but it is recommended to start
     it with the :func:`run` function in the :mod:`startup` module. This will
@@ -95,10 +86,7 @@ class CustomXepr(QtCore.QObject):
     :param keithley: :class:`keithley2600.Keithley2600` instance from keithley2600
         driver. Defaults to `None` if not provided.
 
-    :cvar job_queue: Queue that holds all experiments / jobs. Is an instance
-        of :class:`manager.ExperimentQueue`.
-    :cvar result_queue:  Queue that holds job results. Is an instance
-        of :class:`manager.SignalQueue`.
+    :cvar manager: Manages execution of queued experiments.
 
     :ivar hidden: Xepr's hidden experiment.
     :ivar xepr: Connected Xepr instance.
@@ -107,19 +95,15 @@ class CustomXepr(QtCore.QObject):
     :ivar wait: Delay between commands sent to Xepr.
     """
 
+    manager = Manager()
+
 # ========================================================================================
 # Set up basic CustomXepr functionality
 # ========================================================================================
 
-    job_queue = ExperimentQueue()
-    result_queue = SignalQueue()
-    running = Event()
-    abort = Event()
-
     def __init__(self, xepr=None, mercuryfeed=None, keithley=None):
 
-        super(CustomXepr, self).__init__()
-
+        super(self.__class__, self).__init__()
         self.emailSender = EmailSender('ss2151@cam.ac.uk', 'localhost',
                                        displayname='Sam Schott')
 
@@ -141,20 +125,6 @@ class CustomXepr(QtCore.QObject):
         self._check_for_keithley()
 
         # =====================================================================
-        # create background thread to process all executions in queue
-        # =====================================================================
-
-        self.worker_thread = QtCore.QThread()
-        self.worker_thread.setObjectName('CustomXeprWorker')
-        self.worker = Worker(self.job_queue, self.result_queue)
-        self.worker.moveToThread(self.worker_thread)
-
-        self.worker_thread.started.connect(self.worker.process)
-        self.worker_thread.start()
-        self.worker.running.set()
-        logger.status('IDLE')
-
-        # =====================================================================
         # define / load certain settings for customxepr functions
         # =====================================================================
 
@@ -170,42 +140,19 @@ class CustomXepr(QtCore.QObject):
         self._temperature_tolerance = CONF.get('CustomXepr',
                                                'temperature_tolerance')
 
+        # =====================================================================
+        # interaction with manager
+        # =====================================================================
+        self.abort = self.manager.abort
+
+        if keithley is not None:
+            self.manager.abort_events = [self.keithley.abort_event]
+
 # ========================================================================================
 # define basic functions for email notifications, pausing, etc.
 # ========================================================================================
 
-    def pause_worker(self):
-        """
-        Pauses the execution of jobs after the current job has been completed.
-        """
-        self.worker.running.clear()
-        logger.status('PAUSED')
-
-    def resume_worker(self):
-        """
-        Resumes the execution of jobs.
-        """
-        self.worker.running.set()
-        logger.status('IDLE')
-
-    def abort_job(self):
-        """
-        Aborts the current job and continues with the next.
-        """
-        if self.job_queue.has_running() > 0:
-            self.worker.abort.set()
-
-        if self.keithley is not None:
-            # this will be cleared on beginning of next measurement
-            self.keithley.abort_event.set()
-
-    def clear_all_jobs(self):
-        """
-        Clears all pending jobs in :attr:`job_queue`.
-        """
-        self.job_queue.clear()
-
-    @queued_exec(job_queue)
+    @queued_exec(manager.job_queue)
     def sendEmail(self, body):
         """
         Sends a text to the default email address.
@@ -215,7 +162,7 @@ class CustomXepr(QtCore.QObject):
         self.emailSender.sendmail(self.notify_address,
                                   'CustomXepr Notification', body)
 
-    @queued_exec(job_queue)
+    @queued_exec(manager.job_queue)
     def sleep(self, seconds):
         """
         Pauses for the specified amount of seconds. This sleep function checks
@@ -234,7 +181,7 @@ class CustomXepr(QtCore.QObject):
                 time.sleep(1)
                 logger.status('Waiting %s/%s.' % (i+1, seconds))
                 # check for abort event
-                if self.worker.abort.is_set():
+                if self.abort.is_set():
                     logger.info('Aborted by user.')
                     return
         # use a single sleep command for less than one second pause
@@ -265,95 +212,11 @@ class CustomXepr(QtCore.QObject):
         # update config file
         CONF.set('CustomXepr', 'temperature_tolerance', new_tol)
 
-    @property
-    def notify_address(self):
-        """ List of addresses for email notifications."""
-        # get root logger
-        root_logger = logging.getLogger()
-        # find all email handlers (there should be only one)
-        eh = [x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler]
-
-        if len(eh) == 0:
-            logging.warning('No email handler could be found.')
-
-        elif len(eh) > 0:
-            # get emails from all handlers
-            email_list = []
-            for handler in eh:
-                email_list += handler.toaddrs
-            # remove duplicates and return
-            return list(set(email_list))
-
-    @notify_address.setter
-    def notify_address(self, email_list):
-        """Setter: Address list for email notifications."""
-        # get root logger
-        root_logger = logging.getLogger()
-        # find all email handlers (there should be only one)
-        eh = [x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler]
-
-        if len(eh) == 0:
-            logging.warning('No email handler could be found.')
-        elif len(eh) > 0:
-            for handler in eh:
-                handler.toaddrs = email_list
-
-        email_list_str = ', '.join(email_list)
-        logger.info('Email notifications will be sent to '
-                    + email_list_str + '.')
-
-        # update conf file
-        CONF.set('CustomXepr', 'notify_address', email_list)
-
-    @property
-    def log_file_dir(self):
-        """Directory for log files. Defaults to '~/.CustomXepr'."""
-        # get root logger
-        root_log = logging.getLogger()
-        # find all email handlers (there should be only one)
-        fh = [x for x in root_log.handlers if type(x) == logging.FileHandler]
-
-        if len(fh) == 0:
-            logging.warning('No file handler could be found.')
-        else:
-            file_name = fh[0].baseFilename
-            return os.path.dirname(file_name)
-
-    @property
-    def email_handler_level(self):
-        """
-        Logging level for email notifications. Defaults to :class:`logging.WARNING`.
-        """
-        # get root logger
-        root_logger = logging.getLogger()
-        # find all email handlers (there should be only one)
-        eh = [x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler]
-
-        if len(eh) == 0:
-            logging.warning('No email handler could be found.')
-        else:
-            return eh[0].level
-
-    @email_handler_level.setter
-    def email_handler_level(self, level=logging.WARNING):
-        """Setter: Logging level for email notifications."""
-        # get root logger
-        root_logger = logging.getLogger()
-        # find all email handlers (there should be only one)
-        eh = [x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler]
-
-        if len(eh) == 0:
-            logging.warning('No email handler could be found.')
-        else:
-            eh[0].setLevel(level)
-        # update conf file
-        CONF.set('CustomXepr', 'email_handler_level', level)
-
 # ========================================================================================
 # set up Xepr functions
 # ========================================================================================
 
-    @queued_exec(job_queue)
+    @queued_exec(manager.job_queue)
     def tune(self):
         """
         Runs Xepr's built-in tuning routine.
@@ -365,7 +228,7 @@ class CustomXepr(QtCore.QObject):
         self.XeprCmds.aqParSet('AcqHidden', '*cwBridge.OpMode', 'Tune')
         self.XeprCmds.aqParSet('AcqHidden', '*cwBridge.Tune', 'Up')
 
-    @queued_exec(job_queue)
+    @queued_exec(manager.job_queue)
     def finetune(self):
         """
         Runs Xepr's built-in finetuning routine.
@@ -376,7 +239,7 @@ class CustomXepr(QtCore.QObject):
 
         self.XeprCmds.aqParSet('AcqHidden', '*cwBridge.Tune', 'Fine')
 
-    @queued_exec(job_queue)
+    @queued_exec(manager.job_queue)
     def customtune(self):
         """
         Custom tuning routine with higher accuracy. It takes longer than :meth:`tune`
@@ -415,7 +278,7 @@ class CustomXepr(QtCore.QObject):
         # tune iris at 40 dB and 30 dB
         for atten in [40, 30]:
             # check for abort event
-            if self.worker.abort.is_set():
+            if self.abort.is_set():
                 self.hidden['PowerAtten'].value = atten_start
                 time.sleep(self.wait)
                 logger.info('Aborted by user.')
@@ -430,7 +293,7 @@ class CustomXepr(QtCore.QObject):
         # tune iris and phase and frequency at 20 dB and 10 dB
         for atten in [20, 10]:
             # check for abort event, clear event
-            if self.worker.abort.is_set():
+            if self.abort.is_set():
                 self.hidden['PowerAtten'].value = atten_start
                 time.sleep(self.wait)
                 logger.info('Aborted by user.')
@@ -477,7 +340,7 @@ class CustomXepr(QtCore.QObject):
 
         logger.status('Tuning done.')
 
-    @queued_exec(job_queue)
+    @queued_exec(manager.job_queue)
     def tuneBias(self):
         """
         Tunes the diode bias. A perfectly tuned bias results in a diode
@@ -486,7 +349,7 @@ class CustomXepr(QtCore.QObject):
 
         self._tuneBias()
 
-    @queued_exec(job_queue)
+    @queued_exec(manager.job_queue)
     def tuneIris(self, tolerance=1):
         """
         Tunes the cavity's iris. A perfectly tuned iris results in a diode
@@ -497,7 +360,7 @@ class CustomXepr(QtCore.QObject):
         """
         self._tuneIris(tolerance)
 
-    @queued_exec(job_queue)
+    @queued_exec(manager.job_queue)
     def tuneFreq(self, tolerance=3):
         """
         Tunes the microwave frequency to a lock offset close to zero.
@@ -507,14 +370,14 @@ class CustomXepr(QtCore.QObject):
         """
         self._tuneFreq(tolerance)
 
-    @queued_exec(job_queue)
+    @queued_exec(manager.job_queue)
     def tunePhase(self):
         """
         Tunes the phase of the MW reference arm to maximise the diode current.
         """
         self._tunePhase()
 
-    @queued_exec(job_queue)
+    @queued_exec(manager.job_queue)
     def getQValueFromXepr(self, path=None, temperature=298):
         """
         Gets the Q-Value as determined by Xepr, averaged over 20 readouts, and saves it
@@ -589,7 +452,7 @@ class CustomXepr(QtCore.QObject):
 
         return q_mean
 
-    @queued_exec(job_queue)
+    @queued_exec(manager.job_queue)
     def getQValueCalc(self, path=None, temperature=298):
         """
         Calculates the Q-value by fitting the cavity mode picture to a Lorentzian
@@ -704,7 +567,7 @@ class CustomXepr(QtCore.QObject):
                 f.write(header)
             f.write(line)
 
-    @queued_exec(job_queue)
+    @queued_exec(manager.job_queue)
     def runXeprExperiment(self, exp, retune=False, path=None, **kwargs):
         """
         Runs the Xepr experiment ``exp`. Keyword arguments (kwargs)
@@ -773,7 +636,7 @@ class CustomXepr(QtCore.QObject):
         while is_running_or_paused():
 
             # check for abort event
-            if self.worker.abort.is_set():
+            if self.abort.is_set():
                 exp.aqExpPause()
                 time.sleep(self.wait)
                 logger.info('Aborted by user.')
@@ -876,7 +739,7 @@ class CustomXepr(QtCore.QObject):
 
             return dset
 
-    @queued_exec(job_queue)
+    @queued_exec(manager.job_queue)
     def saveCurrentData(self, path, exp=None):
         """
         Saves the data from a given experiment in Xepr to the specified path. If
@@ -896,7 +759,7 @@ class CustomXepr(QtCore.QObject):
 
         self._saveCurrentData(path, exp)
 
-    @queued_exec(job_queue)
+    @queued_exec(manager.job_queue)
     def setStandby(self):
         """
         Sets the magnetic field to zero and the MW bridge to standby.
@@ -972,7 +835,7 @@ class CustomXepr(QtCore.QObject):
 
     def _tuneBias(self):
         # check for abort event
-        if self.worker.abort.is_set():
+        if self.abort.is_set():
             return
 
         logger.status('Tuning (Bias).')
@@ -987,7 +850,7 @@ class CustomXepr(QtCore.QObject):
         # rapid tuning with high tolerance and large steps
         while abs(diff) > tolerance1:
             # check for abort event
-            if self.worker.abort.is_set():
+            if self.abort.is_set():
                 return
 
             step = 1*cmp(0, diff)  # coarse step of 1
@@ -1000,7 +863,7 @@ class CustomXepr(QtCore.QObject):
         # fine tuning with low tolerance and small steps
         while abs(diff) > tolerance2:
             # check for abort event
-            if self.worker.abort.is_set():
+            if self.abort.is_set():
                 return
 
             step = 5*cmp(0, diff)  # fine step of 5
@@ -1012,7 +875,7 @@ class CustomXepr(QtCore.QObject):
 
     def _tuneIris(self, tolerance=1):
         # check for abort event
-        if self.worker.abort.is_set():
+        if self.abort.is_set():
             return
 
         logger.status('Tuning (Iris).')
@@ -1022,7 +885,7 @@ class CustomXepr(QtCore.QObject):
 
         while abs(diff) > tolerance:
             # check for abort event
-            if self.worker.abort.is_set():
+            if self.abort.is_set():
                 return
 
             if diff < 0:
@@ -1054,7 +917,7 @@ class CustomXepr(QtCore.QObject):
 
     def _tuneFreq(self, tolerance=3):
         # check for abort event
-        if self.worker.abort.is_set():
+        if self.abort.is_set():
             return
 
         logger.status('Tuning (Freq).')
@@ -1065,7 +928,7 @@ class CustomXepr(QtCore.QObject):
 
         while abs(fq_offset) > tolerance:
             # check for abort event
-            if self.worker.abort.is_set():
+            if self.abort.is_set():
                 return
 
             step = 1 * cmp(0, fq_offset) * max(abs(int(fq_offset/10)), 1)
@@ -1077,7 +940,7 @@ class CustomXepr(QtCore.QObject):
 
     def _tunePhase(self):
         # check for abort event
-        if self.worker.abort.is_set():
+        if self.abort.is_set():
             return
 
         logger.status('Tuning (Phase).')
@@ -1103,7 +966,7 @@ class CustomXepr(QtCore.QObject):
 
         for phase in phase_array:
             # check for abort event
-            if self.worker.abort.is_set():
+            if self.abort.is_set():
                 return
             self.hidden['SignalPhase'].value = phase
             time.sleep(self.wait)
@@ -1152,7 +1015,7 @@ class CustomXepr(QtCore.QObject):
 
         while diode_curr_new > np.max(diode_curr_array) - 5:
             # check for abort event
-            if self.worker.abort.is_set():
+            if self.abort.is_set():
                 return
             # check for limits of diode range, readjust iris if necessary
             if diode_curr_new in [0, 400]:
@@ -1199,7 +1062,7 @@ class CustomXepr(QtCore.QObject):
 # set up cryostat functions
 # ========================================================================================
 
-    @queued_exec(job_queue)
+    @queued_exec(manager.job_queue)
     def setTemperature(self, target):
         """
         Sets the target temperature for the ESR900 cryostat and waits for it to
@@ -1256,7 +1119,7 @@ class CustomXepr(QtCore.QObject):
 
         while stable_counter < self.temp_wait_time:
             # check for abort command
-            if self.worker.abort.is_set():
+            if self.abort.is_set():
                 logger.info('Aborted by user.')
                 return
 
@@ -1313,7 +1176,7 @@ class CustomXepr(QtCore.QObject):
             expected_time = abs(self._temperature_target - self.feed.readings['Temp']) / 5
         return expected_time * 60  # return value in sec
 
-    @queued_exec(job_queue)
+    @queued_exec(manager.job_queue)
     def setTempRamp(self, ramp):
         """
         Sets the temperature ramp for the ESR900 cryostat in K/min.
@@ -1326,13 +1189,13 @@ class CustomXepr(QtCore.QObject):
 
         # set temperature and wait to stabilize
         self.feed.control.ramp = ramp
-        logger.info('Setting temperature ramp to %s K/min.' % ramp)
+        logger.info('Temperature ramp set to %s K/min.' % ramp)
 
 # ========================================================================================
 # set up Keithley functions
 # ========================================================================================
 
-    @queued_exec(job_queue)
+    @queued_exec(manager.job_queue)
     def transferMeasurement(self, smu_gate=K_CONF.get('Sweep', 'gate'),
                             smu_drain=K_CONF.get('Sweep', 'drain'),
                             vg_start=K_CONF.get('Sweep', 'VgStart'),
@@ -1377,7 +1240,7 @@ class CustomXepr(QtCore.QObject):
 
         return sd
 
-    @queued_exec(job_queue)
+    @queued_exec(manager.job_queue)
     def outputMeasurement(self, smu_gate=K_CONF.get('Sweep', 'gate'),
                           smu_drain=K_CONF.get('Sweep', 'drain'),
                           vd_start=K_CONF.get('Sweep', 'VdStart'),
@@ -1422,7 +1285,7 @@ class CustomXepr(QtCore.QObject):
 
         return sd
 
-    @queued_exec(job_queue)
+    @queued_exec(manager.job_queue)
     def setGateVoltage(self, v, smu_gate=K_CONF.get('Sweep', 'gate')):
         """
         Sets the gate bias of the given keithley, grounds other SMUs.
@@ -1447,7 +1310,7 @@ class CustomXepr(QtCore.QObject):
         if v == 0:
             self.keithley.reset()
 
-    @queued_exec(job_queue)
+    @queued_exec(manager.job_queue)
     def applyDrainCurrent(self, i, smu=K_CONF.get('Sweep', 'drain')):
         """
         Applies a specified current to the selected Keithley SMU.
@@ -1524,59 +1387,3 @@ class CustomXepr(QtCore.QObject):
                 return False
         else:
             return True
-
-
-# ========================================================================================
-# Set up loggers to send emails and write to log files
-# ========================================================================================
-
-def setup_root_logger(to_address):
-
-    # Set up email notification handler for WARNING messages and above
-    root_logger = logging.getLogger()
-    # noinspection PyUnresolvedReferences
-    root_logger.setLevel(logging.STATUS)
-
-    # find all email handlers
-    eh = [x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler]
-    # find all file handlers
-    fh = [x for x in root_logger.handlers if type(x) == logging.FileHandler]
-    # find all stream handlers
-    sh = [x for x in root_logger.handlers if type(x) == logging.StreamHandler]
-
-    # define standard format of logging messages
-    f = logging.Formatter(fmt='%(asctime)s %(name)s %(levelname)s: ' +
-                          '%(message)s', datefmt='%H:%M')
-
-    # remove stream handlers
-    for handler in sh:
-        root_logger.handlers.remove(handler)
-
-    # add email handler if not present
-    if len(eh) == 0:
-        # create and add email handler
-
-        email_handler = logging.handlers.SMTPHandler('localhost', 'ss2151@cam.ac.uk',
-                                                     to_address, 'Xepr logger')
-        email_handler.setFormatter(f)
-        email_handler.setLevel(CONF.get('CustomXepr', 'email_handler_level'))
-
-        root_logger.addHandler(email_handler)
-
-    # add file handler if not present
-    if len(fh) == 0:
-        home_path = os.path.expanduser('~')
-        logging_path = os.path.join(home_path, '.CustomXepr', 'LOG_FILES')
-
-        if not os.path.exists(logging_path):
-            os.makedirs(logging_path)
-
-        log_file = os.path.join(logging_path, 'root_logger '
-                                + time.strftime("%Y-%m-%d_%H-%M-%S") + '.txt')
-        file_handler = logging.FileHandler(log_file)
-        file_handler.setFormatter(f)
-        file_handler.setLevel(logging.INFO)
-        root_logger.addHandler(file_handler)
-
-
-setup_root_logger(CONF.get('CustomXepr', 'notify_address'))
