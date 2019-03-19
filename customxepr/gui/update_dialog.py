@@ -18,5 +18,5 @@ class UpdateWindow(QtWidgets.QDialog):
 
         # set copyright text
         placeholder = self.label.text()
-        self.label.setText(placeholder.format(__version__, __url__ +
-                                              '/en/latest/changelog.html'))
+        self.label.setText(placeholder.format(
+            __version__, __url__ + '/en/latest/changelog.html'))

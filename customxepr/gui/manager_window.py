@@ -21,7 +21,7 @@ from qtpy import QtCore, QtWidgets, QtGui, uic
 
 # local imports
 from customxepr.gui.about_window import AboutWindow
-from customxepr.gui.help_window import UpdateWindow
+from customxepr.gui.update_dialog import UpdateWindow
 from customxepr.gui.error_dialog import ErrorDialog
 from customxepr.main import __version__, __year__, __author__, __url__
 from customxepr.manager import ExpStatus
@@ -169,9 +169,9 @@ class ManagerApp(QtWidgets.QMainWindow):
 
         # load layout file, setup toolbar on macOS
         if platform.system() == 'Darwin':
-            layout_file = 'manager_ui_macos.ui'
+            layout_file = 'manager_window_macos.ui'
         else:
-            layout_file = 'manager_ui_linux.ui'
+            layout_file = 'manager_window_linux.ui'
 
         uic.loadUi(os.path.join(_root, layout_file), self)
 

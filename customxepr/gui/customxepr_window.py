@@ -3,7 +3,7 @@ import os
 import platform
 from qtpy import QtWidgets, QtCore, uic
 
-from customxepr.gui.manager_ui import ManagerApp, logger
+from customxepr.gui.manager_window import ManagerApp, logger
 
 _root = QtCore.QFileInfo(__file__).absolutePath()
 
@@ -17,7 +17,7 @@ class GridLayoutShortcuts(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent=parent)
-        layout_file = 'customxepr_settings.ui'
+        layout_file = 'customxepr_panel.ui'
         uic.loadUi(os.path.join(_root, layout_file), self)
 
         if platform.system() == 'Darwin':
