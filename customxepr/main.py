@@ -12,7 +12,7 @@ import os
 import logging
 import time
 import numpy as np
-
+import tempfile
 from qtpy import QtCore
 from keithleygui import CONF as K_CONF
 
@@ -711,34 +711,36 @@ class CustomXepr(QtCore.QObject):
 
         # save the data if path is given
         # add temperature data and Q-value if available
-        if path is not None:
-            self._saveCurrentData(path, exp)
-            time.sleep(self.wait)
+        if path is None:
+            path = os.path.join(tempfile.gettempdir(), 'autosave_' + next(tempfile._get_candidate_names()))
 
-            basename = path.split('.')[0]
-            dsc_path = basename + '.DSC'
+        self._saveCurrentData(path, exp)
+        time.sleep(self.wait)
 
-            dset = XeprData(dsc_path)
+        basename = path.split('.')[0]
+        dsc_path = basename + '.DSC'
 
-            if self._last_qvalue is not None:
-                try:
-                    dset.set_par('QValue', self._last_qvalue)
-                except ValueError:
-                    mw_bridge_layer = dset.dsl.groups['mwBridge']
-                    mw_bridge_layer.pars['QValue'] = XeprParam(self._last_qvalue)
+        dset = XeprData(dsc_path)
 
-            if temperature_history is not None:
-                param_list = dict()
-                param_list['AcqWaitTime'] = XeprParam(self._temp_wait_time, 's')
-                param_list['Temperature'] = XeprParam(self.feed.control.t_setpoint, 'K')
-                param_list['Tolerance'] = XeprParam(self._temperature_tolerance, 'K')
-                param_list['Stability'] = XeprParam(temperature_mean, 'K')
-                tg = ParamGroupDSL(name='tempCtrl', pars=param_list)
-                dset.dsl.groups['tempCtrl'] = tg
+        if self._last_qvalue is not None:
+            try:
+                dset.set_par('QValue', self._last_qvalue)
+            except ValueError:
+                mw_bridge_layer = dset.dsl.groups['mwBridge']
+                mw_bridge_layer.pars['QValue'] = XeprParam(self._last_qvalue)
 
-            dset.save(path)
+        if temperature_history is not None:
+            param_list = dict()
+            param_list['AcqWaitTime'] = XeprParam(self._temp_wait_time, 's')
+            param_list['Temperature'] = XeprParam(self.feed.control.t_setpoint, 'K')
+            param_list['Tolerance'] = XeprParam(self._temperature_tolerance, 'K')
+            param_list['Stability'] = XeprParam(temperature_mean, 'K')
+            tg = ParamGroupDSL(name='tempCtrl', pars=param_list)
+            dset.dsl.groups['tempCtrl'] = tg
 
-            return dset
+        dset.save(path)
+
+        return dset
 
     @queued_exec(manager.job_queue)
     def saveCurrentData(self, path, exp=None):
