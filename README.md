@@ -15,7 +15,7 @@ The aim of CustomXepr is twofold: First and foremost, it enables the user to aut
 ![CustomXepr structure](/screenshots/CustomXepr_structure.png)
 
 ## Installation
-Install the Keithle2600 and MercuryiTC drivers first, then install CustomXepr by running
+Make sure that you have PyQt or PySide installed on your system (all other dependencies will be installed automaticaly). Then install CustomXepr by running
 ```
 $ pip install git+https://github.com/OE-FET/customxepr
 ```
@@ -165,21 +165,7 @@ In this code, all functions belonging to CustomXepr will be added to the job que
 - NI-VISA (pyvisa-py is used as a fallback if not installed)
 
 *Required python modules:*
-- PyQt 5.9 or higher
-- IPython
-- decorator
-- keithley2600
-- keithleygui
-- lmfit
-- matplotlib
-- mercurygui
-- mercuryitc
-- numpy
-- pyvisa
-- pyvisa-py
-- qtpy
-- queue (Python 2.7 only)
-- scipy
+- PySide2 or PyQt >= 5.9
 
 *Recommended python modules:*
 - pyusb (only when using pyvisa-py backend)
