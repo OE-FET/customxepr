@@ -43,12 +43,13 @@ CustomXepr's core consists of functions for preconfigured tasks, such as changin
 For instance, `customXepr.setTemperature(110)` tells the MercuryiTC to change its temperature set-point to 110 K and waits until the latter is reached and maintained with the desired stability (default: ±0.1 K for 120 sec). It also adjusts the helium flow if necessary and warns the user if the target temperature cannot be reached within the expected time.
 `customXepr.runExperiment(powersat)` will run the preconfigured EPR measurement "powersat" while tuning the cavity between scans and monitoring the temperature stability during the measurement.
 
-Such built in jobs are not performed immediately but are queued and run after the successful completion of the previous jobs. Any data returned by a job, such as a transfer curve or a cavity mode picture, will be kept in a result queue and saved to a specified file if requested. CustomXepr functions that are expected to run for longer than 1 sec can gracefully abort upon user request without leaving the setup in an inconsistent state.
+Such built in jobs are not performed immediately but are queued and run after the successful completion of the previous jobs. Any data returned by a job, such as a transfer curve or a cavity mode picture, will be kept in a result queue and saved to a specified file if requested. If the returned object has `save` and `plot` methods implemented, one can right-click on its entry in the GUI to plot the data or save it to the hard drive. 
+
+CustomXepr functions that are expected to run for longer than 1 sec can gracefully abort upon user request without leaving the setup in an inconsistent state. 
 
 ![Screenshot of CustomXepr GUI](/screenshots/CustomXepr_jobs.png)
 
-In addition, the queuing system can be used to manually schedule any user-specified jobs, related or unrelated to the EPR setup and its ancillary equipment. This can
-be done with the `queued_exec` decorator from `customxepr.manager`:
+In addition, the queuing system can be used to manually schedule any user-specified jobs, related or unrelated to the EPR setup and its ancillary equipment. This can be done with the `queued_exec` decorator from `customxepr.manager`:
 
 ```python
     >>> import time
@@ -76,7 +77,7 @@ The result returned by `test_func` can be retrieved from the result queue as fol
 	test succeeded
 ```
 
-If the returned object has `save` and `plot` methods implemented, one can right-click on its entry in the GUI to plot the data or save it to the hard drive.
+More information regarding the manual scheduling of experiments can be found [here](https://customxepr.readthedocs.io/en/latest/api/manager.html#manager.Manager).
 
 ## Logging and error handling
 
