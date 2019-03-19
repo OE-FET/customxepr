@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 @author: Sam Schott  (ss2151@cam.ac.uk)
@@ -17,11 +16,11 @@ import numpy as np
 from qtpy import QtCore
 from keithleygui import CONF as K_CONF
 
-from customxepr.utils.mail import EmailSender
-from customxepr.mode_picture import ModePicture
-from customxepr.xepr_dataset import XeprParam, ParamGroupDSL, XeprData
+from customxepr.utils import EmailSender
+from customxepr.experiment import ModePicture, XeprData, XeprParam
+from customxepr.experiment.xepr_dataset import ParamGroupDSL
 from customxepr.manager import Manager, queued_exec
-from customxepr.config.main import CONF
+from customxepr.config import CONF
 
 try:
     sys.path.insert(0, os.popen('Xepr --apipath').read())
@@ -29,6 +28,7 @@ try:
 except ImportError:
     ExperimentError = RuntimeError
 
+PY2 = sys.version[0] == '2'
 
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'
 __year__ = str(time.localtime().tm_year)

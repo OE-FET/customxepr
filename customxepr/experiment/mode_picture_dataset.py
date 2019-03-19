@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 @author: Sam Schott  (ss2151@cam.ac.uk)
@@ -258,7 +257,8 @@ class ModePicture(object):
 
         return filepath
 
-    def load(self, filepath=None):
+    @staticmethod
+    def load(filepath=None):
         """
         Loads mode picture data from text file. If no file path is given, the
         user is prompted to select a location and name through a user interface.

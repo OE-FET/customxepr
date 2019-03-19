@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Tue Aug 23 11:03:57 2016
@@ -10,7 +9,6 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
 from __future__ import division, absolute_import
-import sys
 import os
 import logging
 import platform
@@ -21,13 +19,14 @@ import webbrowser
 from qtpy import QtCore, QtWidgets, QtGui, uic
 
 # local imports
-from customxepr.main import CustomXepr, __version__, __year__, __author__, __url__
+from customxepr.gui.about_window import AboutWindow
+from customxepr.gui.help_window import UpdateWindow
+from customxepr.gui.error_dialog import ErrorDialog
+from customxepr.main import PY2, __version__, __year__, __author__, __url__
 from customxepr.manager import ExpStatus
 from customxepr.config.main import CONF
-from customxepr.error_dialog import ErrorDialog
-from customxepr.utils.notify import Notipy
+from customxepr.gui.notify import Notipy
 
-PY2 = sys.version[0] == '2'
 _root = QtCore.QFileInfo(__file__).absolutePath()
 
 
@@ -676,124 +675,3 @@ class ManagerApp(QtWidgets.QMainWindow):
     def t_timeout(self, time_in_min):
         """ Sets the timeout limit in minutes in timeout_timer."""
         self.timeout_timer.setInterval(time_in_min * self._min2msec)
-
-
-# ========================================================================================
-# About / Help Window
-# ========================================================================================
-
-# noinspection PyArgumentList
-class AboutWindow(QtWidgets.QWidget):
-    """
-    Shows version number, copyright info and url for CustomXepr in a new window.
-    """
-    def __init__(self):
-        super(self.__class__, self).__init__()
-        # load user interface file
-        uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                'about_window.ui'), self)
-
-        # set title string of window to CustomXepr version
-        self.title_string = (CustomXepr.__name__ + ' ' + __version__)
-        self.titleText.setText(self.title_string)
-
-        # set copyright text
-        placeholder = self.labelCopyRight.text()
-        self.labelCopyRight.setText(placeholder.format(__year__, __author__))
-        self.labelWebsite.setText(self.labelWebsite.text().format(__url__))
-
-
-# noinspection PyArgumentList
-class UpdateWindow(QtWidgets.QDialog):
-    """
-    Show new version number, link to changes.
-    """
-    def __init__(self):
-        super(self.__class__, self).__init__()
-        # load user interface file
-        uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                'update_info.ui'), self)
-
-        # set copyright text
-        placeholder = self.label.text()
-        self.label.setText(placeholder.format(__version__, __url__ +
-                                              '/en/latest/changelog.html'))
-
-
-# ========================================================================================
-# Subclass of JobStatusApp exposing certain CustomXepr settings
-# ========================================================================================
-
-
-class GridLayoutShortcuts(QtWidgets.QWidget):
-
-    def __init__(self, parent=None):
-        QtWidgets.QWidget.__init__(self, parent=parent)
-        layout_file = 'customxepr_settings.ui'
-        uic.loadUi(os.path.join(_root, layout_file), self)
-
-        if platform.system() == 'Darwin':
-            self.layout.setContentsMargins(20, 0, 20, 0)
-        else:
-            self.layout.setContentsMargins(20, 15, 20, 10)
-
-
-# noinspection PyArgumentList
-class CustomXeprGuiApp(ManagerApp):
-
-    """
-    Subclass of :class:`ManagerApp` which adds controls for select CustomXepr settings.
-    """
-
-    def __init__(self, customxepr):
-        ManagerApp.__init__(self, customxepr.manager)
-        self.customxepr = customxepr
-
-        self.gridLayoutShortcuts = GridLayoutShortcuts()
-        self.tabJobs.layout().addWidget(self.gridLayoutShortcuts)
-
-        # get temperature control settings
-        self.gridLayoutShortcuts.lineEditT_tolerance.setValue(self.customxepr.temperature_tolerance)
-        self.gridLayoutShortcuts.lineEditT_settling.setValue(self.customxepr.temp_wait_time)
-        self.gridLayoutShortcuts.lineEditT_tolerance.setMinimum(0)
-        self.gridLayoutShortcuts.lineEditT_settling.setMinimum(0)
-
-        # connect quick settings
-        self.gridLayoutShortcuts.qValueButton.clicked.connect(self.on_qvalue_clicked)
-        self.gridLayoutShortcuts.tuneButton.clicked.connect(self.on_tune_clicked)
-        self.gridLayoutShortcuts.lineEditT_tolerance.valueChanged.connect(self.set_temperature_tolerance)
-        self.gridLayoutShortcuts.lineEditT_settling.valueChanged.connect(self.set_t_settling)
-
-    # ====================================================================================
-    # Button callbacks
-    # ====================================================================================
-
-    def on_tune_clicked(self):
-        """
-        Schedules a tuning job if the ESR is connected.
-        """
-
-        if self.job_queue.has_queued():
-            logger.info('Tuning job added to the job queue.')
-
-        self.customxepr.customtune()
-
-    def on_qvalue_clicked(self):
-        """
-        Schedules a Q-Value readout if the ESR is connected.
-        """
-
-        if self.job_queue.has_queued():
-            logger.info('Q-Value readout added to the job queue.')
-
-        self.customxepr.getQValueCalc()
-
-    # ====================================================================================
-    # Callbacks and functions for CustomXepr settings adjustments
-    # ====================================================================================
-
-    def set_temperature_tolerance(self, value):
-        self.customxepr.temperature_tolerance = value
-
-    def set_t_settling(self, value):
-        self.customxepr.temp_wait_time = value

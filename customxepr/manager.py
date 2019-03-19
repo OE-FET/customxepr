@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 @author: Sam Schott  (ss2151@cam.ac.uk)
@@ -7,7 +6,6 @@
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
-import sys
 import os
 import time
 import logging
@@ -25,10 +23,10 @@ import collections
 from decorator import decorator
 from qtpy import QtCore
 
-from customxepr.config.main import CONF
+from customxepr.main import PY2
+from customxepr.config import CONF
 
 
-PY2 = sys.version[0] == '2'
 logger = logging.getLogger('customxepr')
 
 

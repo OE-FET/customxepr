@@ -1,7 +1,7 @@
 from __future__ import division, absolute_import, unicode_literals
 from customxepr.startup import run
 from customxepr.main import CustomXepr
-from customxepr.xepr_dataset import XeprData, XeprParam
+from customxepr.experiment.xepr_dataset import XeprData, XeprParam
 from customxepr.manager import queued_exec
 
 # =======================================================================================

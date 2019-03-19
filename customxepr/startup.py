@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Tue Aug 23 11:03:57 2016
@@ -13,8 +12,10 @@ from __future__ import division, absolute_import
 import os
 import logging
 
-from qtpy import QtCore, QtWidgets, QtGui, uic
+from qtpy import QtCore, QtWidgets
 from IPython import get_ipython
+
+from customxepr.gui import SplashScreen
 
 ipython = get_ipython()
 if ipython:
@@ -62,46 +63,6 @@ def get_qt_app():
 # Create splash screen
 # ========================================================================================
 
-SPLASH_UI_PATH = os.path.join(os.path.dirname(__file__), "splash.ui")
-LOGO_PATH = os.path.join(os.path.dirname(__file__), "resources/logo@2x.png")
-
-
-class SplashScreen(QtWidgets.QMainWindow):
-    def __init__(self, parent=None):
-        super(self.__class__, self).__init__(parent)
-        uic.loadUi(SPLASH_UI_PATH, self)
-        pixmap = QtGui.QPixmap(LOGO_PATH)
-        self.splah_image.setPixmap(pixmap.scaledToHeight(460))
-        self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.FramelessWindowHint)
-
-        # adjust font sizes according to os defaults
-        font = QtWidgets.QLabel('test').font()
-        font_size = font.pointSize()
-
-        fs_title = int(font_size * 2.31)
-        fs_info = int(font_size * 1.0)
-        fs_status = int(font_size * 0.90)
-
-        font.setPointSize(fs_title)
-        self.titleLabel.setFont(font)
-        font.setPointSize(fs_info)
-        self.infoLabel.setFont(font)
-        font.setPointSize(fs_status)
-        self.statusLabel.setFont(font)
-
-        # move to screen center
-        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
-        fg = self.frameGeometry()
-        fg.moveCenter(cp)
-        self.move(fg.topLeft())
-
-    def showMessage(self, text):
-        self.statusLabel.setText(text)
-        self.show()
-        self.raise_()
-        QtWidgets.QApplication.processEvents()
-
-
 def show_splash_screen():
     """
     Shows the CustomXepr splash screen.
@@ -127,8 +88,6 @@ def connect_to_instruments():
     addresses saved in the respective configuration files.
 
     :returns: Tuple containing instrument instances.
-    :rtype: (:class:`XeprAPI.Xepr`, :class:`mercuryitc.MercuryITC`,
-        :class:`keithley2600.Keithley2600`)
     """
 
     import sys
@@ -136,6 +95,7 @@ def connect_to_instruments():
     from keithleygui import CONF as KCONF
     from mercuryitc import MercuryITC
     from mercurygui import CONF as MCONF
+    from mercurygui import MercuryFeed
 
     keithley_address = KCONF.get('Connection', 'VISA_ADDRESS')
     keithley_visa_lib = KCONF.get('Connection', 'VISA_LIBRARY')
@@ -155,34 +115,31 @@ def connect_to_instruments():
         xepr = None
 
     mercury = MercuryITC(mercury_address, mercury_visa_lib, open_timeout=1)
+    mercury_feed = MercuryFeed(mercury)
     keithley = Keithley2600(keithley_address, keithley_visa_lib, open_timeout=1)
 
-    return xepr, mercury, keithley
+    return xepr, customXepr, mercury, mercury_feed, keithley
 
 
 # ========================================================================================
 # Start CustomXepr and user interfaces
 # ========================================================================================
 
-def start_gui(xepr, mercury, keithley):
+def start_gui(xepr, mercury_feed, keithley):
     """
     Starts GUIs for Keithley, Mercury and CustomXepr.
 
     :returns: Tuple containing GUI instances.
-    :rtype: (:class:`main.CustomXepr`, :class:`main_ui.JobStatusApp`,
-        :class:`mercurygui.MercuryFeed`, :class:`mercurygui.MercuryMonitorApp`,
-        :class:`keithleygui.KeithleyGuiApp`)
     """
     from keithleygui import KeithleyGuiApp
-    from mercurygui import MercuryFeed, MercuryMonitorApp
+    from mercurygui import MercuryMonitorApp
     from customxepr.main import CustomXepr
-    from customxepr.main_ui import CustomXeprGuiApp
+    from customxepr.gui import CustomXeprGuiApp
 
-    mercuryfeed = MercuryFeed(mercury)
-    mercury_gui = MercuryMonitorApp(mercuryfeed)
+    mercury_gui = MercuryMonitorApp(mercury_feed)
     keithley_gui = KeithleyGuiApp(keithley)
 
-    customXepr = CustomXepr(xepr, mercuryfeed, keithley)
+    customXepr = CustomXepr(xepr, mercury_feed, keithley)
     customXepr_gui = CustomXeprGuiApp(customXepr)
 
     mercury_gui.QUIT_ON_CLOSE = False
@@ -193,7 +150,7 @@ def start_gui(xepr, mercury, keithley):
     mercury_gui.show()
     keithley_gui.show()
 
-    return customXepr, customXepr_gui, mercuryfeed, mercury_gui, keithley_gui
+    return customXepr_gui, mercury_gui, keithley_gui
 
 
 def run():
@@ -208,14 +165,10 @@ def run():
     controllers. Otherwise, it will create its own Jupyter console to receive user input.
 
     :returns: Tuple containing instrument and GUI instances.
-    :rtype: (:class:`main.CustomXepr`, :class:`XeprAPI.Xepr`,
-        :class:`keithley2600.Keithley2600`, :class:`mercuryitc.MercuryITC`,
-        :class:`main_ui.JobStatusApp`, :class:`mercurygui.MercuryMonitorApp`,
-        :class:`keithleygui.KeithleyGuiApp`)
     """
 
     from customxepr.main import __version__, __author__, __year__
-    from customxepr.error_dialog import patch_excepthook
+    from customxepr.gui.error_dialog import patch_excepthook
 
     # create a new Qt app or return an existing one
     app, interactive = get_qt_app()
@@ -225,10 +178,10 @@ def run():
 
     # connect to instruments
     splash.showMessage("Connecting to instruments...")
-    xepr, mercury, keithley = connect_to_instruments()
+    xepr, customXepr, mercury, mercury_feed, keithley = connect_to_instruments()
     # start user interfaces
     splash.showMessage("Loading user interface...")
-    customXepr, customXepr_gui, mercuryfeed, mercury_gui, keithley_gui = start_gui(xepr, mercury, keithley)
+    customXepr_gui, mercury_gui, keithley_gui = start_gui(xepr, mercury_feed, keithley)
 
     banner = ('Welcome to CustomXepr %s. ' % __version__ +
               'You can access connected instruments through "customXepr" ' +
@@ -252,7 +205,7 @@ def run():
         # remove splash screen
         splash.hide()
 
-        return (customXepr, xepr, mercury, mercuryfeed, keithley,
+        return (customXepr, xepr, mercury, mercury_feed, keithley,
                 customXepr_gui, mercury_gui, keithley_gui)
 
     else:
@@ -265,7 +218,7 @@ def run():
         internal_kernel.new_qt_console()
 
         var_dict = {'customXepr': customXepr, 'xepr': xepr, 'mercury': mercury,
-                    'mercuryfeed': mercuryfeed, 'keithley': keithley,
+                    'mercury_feed': mercury_feed, 'keithley': keithley,
                     'customXepr_gui': customXepr_gui,
                     'mercury_gui': mercury_gui, 'keithley_gui': keithley_gui,
                     }
@@ -282,5 +235,5 @@ def run():
 
 
 if __name__ == '__main__':
-    customXepr, xepr, mercury, mercuryfeed, keithley, customXepr_gui, \
+    customXepr, xepr, mercury, mercury_feed, keithley, customXepr_gui, \
         mercury_gui, keithley_gui = run()
