@@ -10,8 +10,8 @@ This documentation provides both a tutorial-like introduction to CustomXepr and
 a detailed reference of the API (currently only non-GUI classes):
 
 .. toctree::
-   :maxdepth: 2
-   
+   :maxdepth: 3
+
    Introduction <introduction>
    api/index
    changelog
