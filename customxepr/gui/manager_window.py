@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Tue Aug 23 11:03:57 2016
@@ -21,11 +20,14 @@ import webbrowser
 from qtpy import QtCore, QtWidgets, QtGui, uic
 
 # local imports
-from customxepr.main import CustomXepr, __version__, __year__, __author__, __url__
+from customxepr.gui.about_window import AboutWindow
+from customxepr.gui.update_dialog import UpdateWindow
+from customxepr.gui.error_dialog import ErrorDialog
+from customxepr.main import __version__, __year__, __author__, __url__
 from customxepr.manager import ExpStatus
 from customxepr.config.main import CONF
-from customxepr.utils.misc import ErrorDialog
-from customxepr.utils.notify import Notipy
+from customxepr.gui.notify import Notipy
+
 
 PY2 = sys.version[0] == '2'
 _root = QtCore.QFileInfo(__file__).absolutePath()
@@ -116,7 +118,7 @@ error_handler = QErrorLogHandler()
 error_handler.setLevel(logging.ERROR)
 
 # add handlers to customxepr logger
-logger = logging.getLogger('customxepr.main')
+logger = logging.getLogger('customxepr')
 logger.addHandler(status_handler)
 logger.addHandler(info_handler)
 logger.addHandler(error_handler)
@@ -126,9 +128,8 @@ logger.addHandler(error_handler)
 # Define JobStatusApp class
 # ========================================================================================
 
-
 # noinspection PyArgumentList
-class JobStatusApp(QtWidgets.QMainWindow):
+class ManagerApp(QtWidgets.QMainWindow):
 
     """
     A GUI for CustomXepr, composed of three panels:
@@ -153,14 +154,14 @@ class JobStatusApp(QtWidgets.QMainWindow):
     MAX_JOB_HISTORY_LENGTH = 1
     QUIT_ON_CLOSE = False
 
-    def __init__(self, customxepr):
+    def __init__(self, manager):
         # noinspection PyArgumentList
-        super(self.__class__, self).__init__()
+        QtWidgets.QMainWindow.__init__(self)
 
         # get input arguments
-        self.customxepr = customxepr
-        self.job_queue = customxepr.job_queue
-        self.result_queue = customxepr.result_queue
+        self.manager = manager
+        self.job_queue = self.manager.job_queue
+        self.result_queue = self.manager.result_queue
 
         # ================================================================================
         # Set-up the UI
@@ -168,9 +169,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
 
         # load layout file, setup toolbar on macOS
         if platform.system() == 'Darwin':
-            layout_file = 'main_ui_macos.ui'
+            layout_file = 'manager_window_macos.ui'
         else:
-            layout_file = 'main_ui_linux.ui'
+            layout_file = 'manager_window_linux.ui'
 
         uic.loadUi(os.path.join(_root, layout_file), self)
 
@@ -208,7 +209,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.restore_geometry()
 
         # ================================================================================
-        # Connect UI to CustomXepr functionality
+        # Updated UI to reflect Manager status
         # ================================================================================
 
         # check status of worker thread (Paused or Running) and adjust buttons
@@ -218,20 +219,6 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.get_email_list()
         self.get_notification_level()
         self.plotCheckBox.setChecked(CONF.get('Window', 'auto_plot_results'))
-
-        # get temperature control settings
-        self.lineEditT_tolerance.setValue(self.customxepr.temperature_tolerance)
-        self.lineEditT_settling.setValue(self.customxepr.temp_wait_time)
-        self.lineEditT_tolerance.setMinimum(0)
-        self.lineEditT_settling.setMinimum(0)
-
-        # perform various UI updates after status change
-        status_handler.status_signal.connect(self.statusField.setText)
-        status_handler.status_signal.connect(self.check_paused)
-        status_handler.status_signal.connect(self.get_email_list)
-
-        # notify user of any errors in job execution with a message box
-        error_handler.error_signal.connect(self.show_error)
 
         # create data models for message log, job queue and result queue
         self.messageLogModel = info_handler.model
@@ -255,6 +242,14 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.populate_results()
         self.populate_jobs()
 
+        # set context menus for job_queue and result_queue items
+        self.resultQueueDisplay.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.jobQueueDisplay.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+
+        # ================================================================================
+        # Connect signals, slots, and callbacks
+        # ================================================================================
+
         # update views when items are added to or removed from queues
         self.result_queue.put_signal.connect(self.add_result)
         self.result_queue.pop_signal.connect(self.on_result_pop)
@@ -264,39 +259,35 @@ class JobStatusApp(QtWidgets.QMainWindow):
         self.job_queue.removed_signal.connect(self.jobQueueModel.removeRows)
         self.job_queue.status_changed_signal.connect(self.on_job_status_changed)
 
-        # set context menus for job_queue and result_queue items
-        self.resultQueueDisplay.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.jobQueueDisplay.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        # perform various UI updates after status change
+        status_handler.status_signal.connect(self.statusField.setText)
+        status_handler.status_signal.connect(self.check_paused)
+        status_handler.status_signal.connect(self.get_email_list)
 
+        # notify user of any errors in job execution with a message box
+        error_handler.error_signal.connect(self.show_error)
+
+        # connect context menu callbacks
         self.resultQueueDisplay.customContextMenuRequested.connect(self.open_result_context_menu)
         self.jobQueueDisplay.customContextMenuRequested.connect(self.open_job_context_menu)
 
-        # ================================================================================
-        # Connect signals, slots, and callbacks
-        # ================================================================================
-
-        self.qValueButton.clicked.connect(self.on_qvalue_clicked)
-        self.tuneButton.clicked.connect(self.on_tune_clicked)
-
+        # connect job control buttons
         self.pauseButton.clicked.connect(self.on_pause_clicked)
-        self.abortButton.clicked.connect(self.customxepr.abort_job)
-        self.clearButton.clicked.connect(self.customxepr.clear_all_jobs)
+        self.abortButton.clicked.connect(self.manager.abort_job)
+        self.clearButton.clicked.connect(self.manager.clear_all_jobs)
 
+        # connect log control settings
         self.lineEditEmailList.returnPressed.connect(self.set_email_list)
-        self.lineEditT_tolerance.valueChanged.connect(self.set_temperature_tolerance)
-        self.lineEditT_settling.valueChanged.connect(self.set_t_settling)
-
         self.bG.buttonClicked['int'].connect(self.on_bg_clicked)
         self.plotCheckBox.toggled.connect(self.on_plot_checkbox_toggeled)
 
         # Universal timeout:
         # Send an email notification if there is no status update for 30 min.
-
-        _timeout_min = 30  # time in minutes before timeout warning
-        self.min2msec = 60*1000  # conversion factor for min to msec
+        _timeout_min = 30
+        self._min2msec = 60 * 1000
 
         self.timeout_timer = QtCore.QTimer()
-        self.timeout_timer.setInterval(_timeout_min * self.min2msec)
+        self.timeout_timer.setInterval(_timeout_min * self._min2msec)
         self.timeout_timer.setSingleShot(True)
         self.timeout_timer.timeout.connect(self.timeout_warning)
 
@@ -336,8 +327,8 @@ class JobStatusApp(QtWidgets.QMainWindow):
         CONF.set('Window', 'y', geo.y())
 
     def exit_(self):
-        self.customxepr.clear_all_jobs()
-        self.customxepr.abort_job()
+        self.manager.clear_all_jobs()
+        self.manager.abort_job()
         self.save_geometry()
         if self.customxepr.xepr is not None:
             self.customxepr.xepr.XeprClose()
@@ -583,7 +574,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         Checks if worker thread is running and updates the Run/Pause button
         accordingly.
         """
-        if self.customxepr.worker.running.is_set():
+        if self.manager.worker.running.is_set():
             self.pauseButton.setText('Pause')
         else:
             self.pauseButton.setText('Resume')
@@ -592,40 +583,20 @@ class JobStatusApp(QtWidgets.QMainWindow):
     # Button callbacks
     # ====================================================================================
 
-    def on_tune_clicked(self):
-        """
-        Schedules a tuning job if the ESR is connected.
-        """
-
-        if self.job_queue.has_queued():
-            logger.info('Tuning job added to the job queue.')
-
-        self.customxepr.customtune()
-
-    def on_qvalue_clicked(self):
-        """
-        Schedules a Q-Value readout if the ESR is connected.
-        """
-
-        if self.job_queue.has_queued():
-            logger.info('Q-Value readout added to the job queue.')
-
-        self.customxepr.getQValueCalc()
-
     def on_pause_clicked(self):
         """
         Pauses or resumes worker thread on button click.
         """
-        if self.customxepr.worker.running.is_set():
-            self.customxepr.pause_worker()
+        if self.manager.worker.running.is_set():
+            self.manager.pause_worker()
         else:
-            self.customxepr.resume_worker()
+            self.manager.resume_worker()
 
     def on_log_clicked(self):
         """
         Opens directory with log files with current log file selected.
         """
-        path = self.customxepr.log_file_dir
+        path = self.manager.log_file_dir
 
         if platform.system() == 'Darwin':
             subprocess.Popen(['open', path])
@@ -657,13 +628,13 @@ class JobStatusApp(QtWidgets.QMainWindow):
                 address_list = [x for x in address_list if (x is not email)]
 
         # send list to CustomXepr
-        self.customxepr.notify_address = address_list
+        self.manager.notify_address = address_list
 
     def get_email_list(self):
         """
         Gets the email list from CustomXepr and updates it in the UI.
         """
-        address_list = self.customxepr.notify_address
+        address_list = self.manager.notify_address
         if not self.lineEditEmailList.hasFocus():
             self.lineEditEmailList.setText(', '.join(address_list))
 
@@ -672,7 +643,7 @@ class JobStatusApp(QtWidgets.QMainWindow):
         Checks the notification level for email handler and sets the respective
         checkButton to checked.
         """
-        level = self.customxepr.email_handler_level
+        level = self.manager.email_handler_level
         if level == 40:
             self.radioButtonErrorMail.setChecked(True)
         elif level == 30:
@@ -686,19 +657,13 @@ class JobStatusApp(QtWidgets.QMainWindow):
         """ Sets the email notification level to the selected level."""
         clicked_button = self.bG.checkedButton()
         if clicked_button == self.radioButtonErrorMail:
-            self.customxepr.email_handler_level = 40
+            self.manager.email_handler_level = 40
         elif clicked_button == self.radioButtonWarningMail:
-            self.customxepr.email_handler_level = 30
+            self.manager.email_handler_level = 30
         elif clicked_button == self.radioButtonInfoMail:
-            self.customxepr.email_handler_level = 20
+            self.manager.email_handler_level = 20
         elif clicked_button == self.radioButtonNoMail:
-            self.customxepr.email_handler_level = 50
-
-    def set_temperature_tolerance(self, value):
-        self.customxepr.temperature_tolerance = value
-
-    def set_t_settling(self, value):
-        self.customxepr.temp_wait_time = value
+            self.manager.email_handler_level = 50
 
     # ====================================================================================
     # Properties
@@ -707,51 +672,9 @@ class JobStatusApp(QtWidgets.QMainWindow):
     @property
     def t_timeout(self):
         """Gets the timeout limit in minutes from timeout_timer."""
-        return self.timeout_timer.interval()/self.min2msec
+        return self.timeout_timer.interval()/self._min2msec
 
     @t_timeout.setter
     def t_timeout(self, time_in_min):
         """ Sets the timeout limit in minutes in timeout_timer."""
-        self.timeout_timer.setInterval(time_in_min * self.min2msec)
-
-
-# ========================================================================================
-# About / Help Window
-# ========================================================================================
-
-# noinspection PyArgumentList
-class AboutWindow(QtWidgets.QWidget):
-    """
-    Shows version number, copyright info and url for CustomXepr in a new window.
-    """
-    def __init__(self):
-        super(self.__class__, self).__init__()
-        # load user interface file
-        uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                'about_window.ui'), self)
-
-        # set title string of window to CustomXepr version
-        self.title_string = (CustomXepr.__name__ + ' ' + __version__)
-        self.titleText.setText(self.title_string)
-
-        # set copyright text
-        placeholder = self.labelCopyRight.text()
-        self.labelCopyRight.setText(placeholder.format(__year__, __author__))
-        self.labelWebsite.setText(self.labelWebsite.text().format(__url__))
-
-
-# noinspection PyArgumentList
-class UpdateWindow(QtWidgets.QDialog):
-    """
-    Show new version number, link to changes.
-    """
-    def __init__(self):
-        super(self.__class__, self).__init__()
-        # load user interface file
-        uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                'update_info.ui'), self)
-
-        # set copyright text
-        placeholder = self.label.text()
-        self.label.setText(placeholder.format(__version__, __url__ +
-                                              '/en/latest/changelog.html'))
+        self.timeout_timer.setInterval(time_in_min * self._min2msec)

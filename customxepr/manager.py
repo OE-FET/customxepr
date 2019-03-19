@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 @author: Sam Schott  (ss2151@cam.ac.uk)
@@ -7,10 +6,12 @@
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
-
 import sys
+import os
 import time
 import logging
+import logging.handlers
+import operator
 # noinspection PyCompatibility
 try:
     from queue import Queue, Empty
@@ -23,8 +24,11 @@ import collections
 from decorator import decorator
 from qtpy import QtCore
 
+from customxepr.config import CONF
+
+
 PY2 = sys.version[0] == '2'
-logger = logging.getLogger('customxepr.main')
+logger = logging.getLogger('customxepr')
 
 
 # ========================================================================================
@@ -123,7 +127,7 @@ class SignalQueue(QtCore.QObject, Queue):
     def remove_item(self, i):
         """
         Removes item from the queue in a thread safe manner. Calls
-        :func:`task_done` when done.
+        :meth:`task_done` when done.
 
         :param int i: Index of item to remove.
         """
@@ -134,7 +138,7 @@ class SignalQueue(QtCore.QObject, Queue):
         Removes the items from index `i_start` to `i_end` from the queue.
         Raises a :class:`ValueError` if the item belongs to a running or
         already completed job. Emits the :attr:`removed_signal` for
-        every removed item. Calls :func:`task_done` for every item removed.
+        every removed item. Calls :meth:`task_done` for every item removed.
 
         This call has O(n) performance with regards to the queue length and
         number of items to be removed.
@@ -163,6 +167,7 @@ class SignalQueue(QtCore.QObject, Queue):
 
         for i in range(n_items):
             self.task_done()
+
 
 # ========================================================================================
 # custom queue for experiments where all history is kept
@@ -356,12 +361,20 @@ class Worker(QtCore.QObject):
     """
 
     running = Event()
-    abort = Event()
 
-    def __init__(self, job_q, result_q):
+    def __init__(self, job_q, result_q, abort_events):
         super(self.__class__, self).__init__(None)
         self.job_q = job_q
         self.result_q = result_q
+        self.abort_events = abort_events
+
+    def abort_is_set(self):
+        is_set = operator.methodcaller('is_set')
+        return any(map(is_set, self.abort_events))
+
+    def clear_abort(self):
+        for event in self.abort_events:
+            event.clear()
 
     def process(self):
         while True:
@@ -389,14 +402,309 @@ class Worker(QtCore.QObject):
                     if result is not None:
                         self.result_q.put(result)
 
-                    if self.abort.is_set():
+                    if self.abort_is_set():
                         exit_status = ExpStatus.ABORTED
-                        self.abort.clear()
+                        self.clear_abort()
                     else:
                         exit_status = ExpStatus.FINISHED
 
                     self.job_q.task_done(exit_status, result)
                     logger.status('IDLE')
+
+
+# noinspection PyUnresolvedReferences
+class Manager(QtCore.QObject):
+    """
+    :class:`Manager` provides a high level interface for the scheduling and executing
+    experiments. All queued experiments will be run in a background thread and
+    :class:`Manager` provides methods to pause, resume and abort the execution of
+    experiments. All results will be kept in the :cvar:`result_queue` for later retrieval.
+
+    Function calls can be queued as experiments by decorating the function
+    with the :func:`manager.queued_exec` decorator:
+
+    >>> import time
+    >>> from customxepr.manager import Manager, queued_exec
+    >>> manager = Manager()
+
+    >>> # create test function
+    >>> @queued_exec(manager.job_queue)
+    ... def decorated_test_func(*args):
+    ...     # do something
+    ...     for i in range(0, 10):
+    ...         time.sleep(1)
+    ...         # check for requested aborts
+    ...         if manager.abort.is_set()
+    ...             break
+    ...     return args  # return input arguments
+
+    >>> # run the function: this will return immediately
+    >>> decorated_test_func('test succeeded')
+
+    The result returned by `test_func` can be retrieved from the result queue as follows:
+
+    >>> result = manager.result_queue.get()  # blocks until result is available
+    >>> print(result)
+    test succeeded
+
+    Alternatively, it is possible to manually create an experiment from a function call
+    and queue it for processing as follows:
+
+    >>> import time
+    >>> from customxepr.manager import Manager, Experiment
+    >>> manager = Manager()
+
+    >>> # create test function
+    >>> def stand_alone_test_func(*args):
+    ...     # do something
+    ...     for i in range(0, 10):
+    ...         time.sleep(1)
+    ...         # check for requested aborts
+    ...         if manager.abort.is_set()
+    ...             break
+    ...     return args  # return input arguments
+
+    >>> # create an experiment from function
+    >>> exp = Experiment(stand_alone_test_func, args=['test succeeded',], kwargs={})
+    >>> # queue the experiment
+    >>> manager.job_queue.put(exp)
+
+    This class provides an event :cvar:`abort` which can queried periodically by any
+    function to see if it should abort prematurely. Alternatively, functions and methods
+    can provide their own abort events and register them with the manager as follows:
+
+    >>> from threading import Event
+    >>> abort_event = Event()
+    >>> # register the event with the manager instance
+    >>> manager.abort_events = [abort_event]
+
+    The manager will automatically set the status of an experiment to ABORTED if it
+    finishes while an abort event is set and clear all abort events afterwards.
+
+    :cvar job_queue: An instance of :class:`ExperimentQueue` holding all queued and
+        finished experiments.
+    :cvar result_queue: A queue holding all results.
+    :cvar abort: A generic event which can be used in long-running experiments to check
+        if they should be aborted.
+    """
+
+    job_queue = ExperimentQueue()
+    result_queue = SignalQueue()
+
+    abort = Event()
+    _abort_events = [abort]
+
+    def __init__(self):
+        super(self.__class__, self).__init__()
+
+        # create background thread to process all executions in queue
+        self.worker_thread = QtCore.QThread()
+        self.worker_thread.setObjectName('CustomXeprWorkerThread')
+        self.worker = Worker(self.job_queue, self.result_queue, self._abort_events)
+        self.worker.moveToThread(self.worker_thread)
+
+        self.worker_thread.started.connect(self.worker.process)
+        self.worker_thread.start()
+        self.worker.running.set()
+
+        self.running = self.worker.running
+        self._abort_events = []
+
+        # set up logging functionality
+        self._setup_root_logger()
+
+    # ====================================================================================
+    # job execution management
+    # ====================================================================================
+
+    @property
+    def abort_events(self):
+        """
+        List of abort events to be used when calling :func:`abort_job`. This is
+        in addition to :attr:`abort` which can be checked periodically by all experiments
+        passed to the worker. All abort events will be cleared after the a job has been
+        aborted.
+        """
+        return self._abort_events[1:]
+
+    @abort_events.setter
+    def abort_events(self, events):
+        """
+        Setter for :attr:`set_abort_events`.
+        """
+        self._abort_events = [self.abort] + events
+
+    def pause_worker(self):
+        """
+        Pauses the execution of jobs after the current job has been completed.
+        """
+        self.worker.running.clear()
+        logger.status('PAUSED')
+
+    def resume_worker(self):
+        """
+        Resumes the execution of jobs.
+        """
+        self.worker.running.set()
+        logger.status('IDLE')
+
+    def abort_job(self):
+        """
+        Aborts the current job and continues with the next.
+        """
+        if self.job_queue.has_running() > 0:
+            self.abort.set()
+
+        for event in self._abort_events:
+            event.set()
+
+    def clear_all_jobs(self):
+        """
+        Clears all pending jobs in :attr:`job_queue`.
+        """
+        self.job_queue.clear()
+
+    # ====================================================================================
+    # logging facilities
+    # ====================================================================================
+
+    @staticmethod
+    def _setup_root_logger():
+
+        # Set up new STATUS level
+        root_logger = logging.getLogger()
+
+        logging.STATUS = 15
+        logging.addLevelName(logging.STATUS, 'STATUS')
+        for l in [logger, root_logger]:
+            l.setLevel(logging.STATUS)
+            setattr(l, 'status', lambda message,
+                    *args: logger._log(logging.STATUS, message, args))
+
+        # find all email handlers
+        eh = [x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler]
+        # find all file handlers
+        fh = [x for x in root_logger.handlers if type(x) == logging.FileHandler]
+        # find all stream handlers
+        sh = [x for x in root_logger.handlers if type(x) == logging.StreamHandler]
+
+        # define standard format of logging messages
+        f = logging.Formatter(fmt='%(asctime)s %(name)s %(levelname)s: ' +
+                                  '%(message)s', datefmt='%H:%M')
+
+        # remove stream handlers
+        for handler in sh:
+            root_logger.handlers.remove(handler)
+
+        # add email handler if not present
+        if len(eh) == 0:
+            # create and add email handler
+
+            email_handler = logging.handlers.SMTPHandler(
+                'localhost', 'ss2151@cam.ac.uk', CONF.get('CustomXepr', 'notify_address'),
+                'Xepr logger')
+            email_handler.setFormatter(f)
+            email_handler.setLevel(CONF.get('CustomXepr', 'email_handler_level'))
+
+            root_logger.addHandler(email_handler)
+
+        # add file handler if not present
+        if len(fh) == 0:
+            home_path = os.path.expanduser('~')
+            logging_path = os.path.join(home_path, '.CustomXepr', 'LOG_FILES')
+
+            if not os.path.exists(logging_path):
+                os.makedirs(logging_path)
+
+            log_file = os.path.join(logging_path, 'root_logger '
+                                    + time.strftime("%Y-%m-%d_%H-%M-%S") + '.txt')
+            file_handler = logging.FileHandler(log_file)
+            file_handler.setFormatter(f)
+            file_handler.setLevel(logging.INFO)
+            root_logger.addHandler(file_handler)
+
+    @property
+    def notify_address(self):
+        """ List of addresses for email notifications."""
+        # get root logger
+        root_logger = logging.getLogger()
+        # find all email handlers (there should be only one)
+        eh = [x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler]
+
+        if len(eh) == 0:
+            logging.warning('No email handler could be found.')
+
+        elif len(eh) > 0:
+            # get emails from all handlers
+            email_list = []
+            for handler in eh:
+                email_list += handler.toaddrs
+            # remove duplicates and return
+            return list(set(email_list))
+
+    @notify_address.setter
+    def notify_address(self, email_list):
+        """Setter: Address list for email notifications."""
+        # get root logger
+        root_logger = logging.getLogger()
+        # find all email handlers (there should be only one)
+        eh = [x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler]
+
+        if len(eh) == 0:
+            logging.warning('No email handler could be found.')
+        elif len(eh) > 0:
+            for handler in eh:
+                handler.toaddrs = email_list
+
+        email_list_str = ', '.join(email_list)
+        logger.info('Email notifications will be sent to ' + email_list_str + '.')
+
+        # update conf file
+        CONF.set('CustomXepr', 'notify_address', email_list)
+
+    @property
+    def log_file_dir(self):
+        """Directory for log files. Defaults to '~/.CustomXepr'."""
+        # get root logger
+        root_log = logging.getLogger()
+        # find all email handlers (there should be only one)
+        fh = [x for x in root_log.handlers if type(x) == logging.FileHandler]
+
+        if len(fh) == 0:
+            logger.warning('No file handler could be found.')
+        else:
+            file_name = fh[0].baseFilename
+            return os.path.dirname(file_name)
+
+    @property
+    def email_handler_level(self):
+        """
+        Logging level for email notifications. Defaults to :class:`logging.WARNING`.
+        """
+        # get root logger
+        root_logger = logging.getLogger()
+        # find all email handlers (there should be only one)
+        eh = [x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler]
+
+        if len(eh) == 0:
+            logger.warning('No email handler could be found.')
+        else:
+            return eh[0].level
+
+    @email_handler_level.setter
+    def email_handler_level(self, level=logging.WARNING):
+        """Setter: Logging level for email notifications."""
+        # get root logger
+        root_logger = logging.getLogger()
+        # find all email handlers (there should be only one)
+        eh = [x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler]
+
+        if len(eh) == 0:
+            logger.warning('No email handler could be found.')
+        else:
+            eh[0].setLevel(level)
+        # update conf file
+        CONF.set('CustomXepr', 'email_handler_level', level)
 
 
 # ========================================================================================

@@ -4,16 +4,18 @@
 
 A Python instrument controller and GUI for Bruker E500 EPR spectrometers, MercuryiTC temperature controllers and Keithley 2600 series source measurement units. CustomXepr relies on the python drivers [keithley2600](https://github.com/OE-FET/keithley2600) and [mercuryitc](https://github.com/OE-FET/mercuryitc) and the respective user interfaces [keithleygui](https://github.com/OE-FET/keithleygui) and [mercurygui](https://github.com/OE-FET/mercurygui) for functionality regarding the Keithley 2600 and MercuryiTC instruments.
 
+![Screenshot of CustomXepr GUI](/screenshots/CustomXepr_all.png)
+
 ## Overview
 
-CustomXepr for Linux and macOS enables the interaction with all instruments involved in electron spin resonance (EPR) measurements: the Bruker E500 spectrometer, through Bruker's Xepr Python API, the Oxford Instruments MercuryiTC temperature controller, and the Keithley 2600 series of source measurement units (SMUs).
+CustomXepr for Linux and macOS enables the interaction with all instruments involved in field induced electron spin resonance (FI-EPR) measurements: the Bruker E500 spectrometer, through Bruker's Xepr Python API, the Oxford Instruments MercuryiTC temperature controller, and the Keithley 2600 series of source measurement units (SMUs). The programm suite is structred into drivers and user interfaces for individual instruments (external packages), CustomXepr's main class which provides higher level functions that often combine functionality from multiple instruments, and a manager which handles the schedulding of experiments.
 
 The aim of CustomXepr is twofold: First and foremost, it enables the user to automate and schedule full measurement plans which may run for weeks without user input. Second, it complements the functionality of Bruker's Xepr control software. This includes for instance powerful logging capabilities, a more accurate determination of the cavity's Q-value from its frequency response, more reliable tuning of the cavity, the ability to re-tune the cavity during long-running measurements, logging of the cryostat temperature during measurements, and many more. Low level functionality and communication with the spectrometer remains with Xepr.
 
-![Screenshot of CustomXepr GUI](/screenshots/CustomXepr_all.png)
+![CustomXepr structure](/screenshots/CustomXepr_structure.png)
 
 ## Installation
-Install the Keithle2600 and MercuryiTC drivers first, then install CustomXepr by running
+Make sure that you have PyQt or PySide installed on your system (all other dependencies will be installed automaticaly). Then install CustomXepr by running
 ```
 $ pip install git+https://github.com/OE-FET/customxepr
 ```
@@ -49,18 +51,19 @@ In addition, the queuing system can be used to manually schedule any user-specif
 be done with the `queued_exec` decorator from `customxepr.manager`:
 
 ```python
-    >>> # assume we already have a CustomXepr instance `customXepr`
-    >>> from customxepr.manager import queued_exec
+    >>> import time
+    >>> from customxepr.manager import Manager, queued_exec
+    >>> manager = Manager()
     >>> # create test function
-    >>> @queued_exec(customXepr.job_queue)
+    >>> @queued_exec(manager.job_queue)
     ... def test_func(*args):
     ...     # do something
     ...     for i in range(0, 10):
     ...         time.sleep(1)
-	...		    # check for requested aborts
-    ...         if customXepr.abort_event.is_set()
+    ...		    # check for requested aborts
+    ...         if manager.abort.is_set()
     ...             break
-    ...     return args
+    ...     return args  # return input arguments
     >>> # run the function: this will return immediately
     >>> test_func('test succeeded')
 ```
@@ -68,7 +71,7 @@ be done with the `queued_exec` decorator from `customxepr.manager`:
 The result returned by `test_func` can be retrieved from the result queue as follows:
 
 ```python
-    >>> result = customXepr.result_queue.get()  # blocks until result is available
+    >>> result = manager.result_queue.get()  # blocks until result is available
     >>> print(result)
 	test succeeded
 ```
@@ -148,6 +151,7 @@ customXepr.setStandby()  # ramp down field and set MW bridge to standby
 
 In this code, all functions belonging to CustomXepr will be added to the job queue and will be carried out successively such that, for instance, EPR measurements will not start while the temperature is still being ramped.
 
+
 ## Requirements
 *System requirements:*
 
@@ -161,21 +165,7 @@ In this code, all functions belonging to CustomXepr will be added to the job que
 - NI-VISA (pyvisa-py is used as a fallback if not installed)
 
 *Required python modules:*
-- PyQt 5.9 or higher
-- IPython
-- decorator
-- keithley2600
-- keithleygui
-- lmfit
-- matplotlib
-- mercurygui
-- mercuryitc
-- numpy
-- pyvisa
-- pyvisa-py
-- qtpy
-- queue (Python 2.7 only)
-- scipy
+- PySide2 or PyQt >= 5.9
 
 *Recommended python modules:*
 - pyusb (only when using pyvisa-py backend)
