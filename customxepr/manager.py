@@ -14,7 +14,10 @@ import logging
 import logging.handlers
 import operator
 # noinspection PyCompatibility
-from queue import Queue, Empty
+try:
+    from queue import Queue, Empty
+except ImportError:
+    from Queue import Queue, Empty
 from threading import RLock, Event
 from enum import Enum
 import collections
