@@ -1,4 +1,4 @@
-#### master (2019-03-18)
+#### v2.3.0 (2019-03-20)
 
 This release focuses on under-the-hood improvements and provides significant speedups to the user interface (plotting data, deleting a large number of queued jobs, etc).
 
