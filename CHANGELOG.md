@@ -1,12 +1,12 @@
 #### master (2019-03-18)
 
-This release focuses on under-the-hood improvements and provides significant speedups to the user interface (plotting data, deleting a large number of jobs, etc).
+This release focuses on under-the-hood improvements and provides significant speedups to the user interface (plotting data, deleting a large number of queued jobs, etc).
 
 _Changed:_
 
 - Reduced the startup time when no instruments can be found by reducing the connection timeout.
 - Added info messages to splash screen.
-- Swtiched graphics backend for Mercury ITC and Keithley 2600 from Matplotlib to pyqtgraph. This allows for smoother user interactions with plots.
+- Swtiched plotting library for Mercury ITC and Keithley 2600 from Matplotlib to pyqtgraph. This allows for smoother user interactions with plots.
 - Bug fixes for PyQt 5.12.
 - Performance improvements when deleting a large number of results or pending jobs: previously _O(n^2)_, now _O(n)_ performance.
 - Better organization of code into submodules.

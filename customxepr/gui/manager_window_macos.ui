@@ -54,6 +54,28 @@
    <bool>true</bool>
   </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="styleSheet">
+    <string notr="true">QHeaderView::section {
+	height: 18;
+	border: 0px;
+	background: rgb(240, 240, 240);
+	padding-left: 10px;
+}
+
+QHeaderView::section:horizontal{
+    margin-top: 3px;
+    margin-bottom: 3px;
+    border-right: 1px solid rgb(212, 212, 212);
+}
+
+QHeaderView {
+	border: 1px solid rgb(183, 183, 183);
+	background: rgb(240, 240, 240);
+	border-left: 0px;
+	border-right: 0px;
+	font-size: 11pt;
+}</string>
+   </property>
    <layout class="QGridLayout" name="gridLayout">
     <property name="leftMargin">
      <number>0</number>
@@ -124,25 +146,6 @@
         <property name="verticalSpacing">
          <number>0</number>
         </property>
-        <item row="0" column="0" colspan="2">
-         <widget class="QTreeView" name="jobQueueDisplay">
-          <property name="frameShape">
-           <enum>QFrame::NoFrame</enum>
-          </property>
-          <property name="editTriggers">
-           <set>QAbstractItemView::NoEditTriggers</set>
-          </property>
-          <property name="alternatingRowColors">
-           <bool>true</bool>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::ExtendedSelection</enum>
-          </property>
-          <property name="indentation">
-           <number>0</number>
-          </property>
-         </widget>
-        </item>
         <item row="3" column="0" colspan="2">
          <layout class="QGridLayout" name="gridLayoutJobControl">
           <property name="leftMargin">
@@ -245,6 +248,28 @@
           </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0" colspan="2">
+         <widget class="QTreeView" name="jobQueueDisplay">
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::ExtendedSelection</enum>
+          </property>
+          <property name="indentation">
+           <number>0</number>
           </property>
          </widget>
         </item>
