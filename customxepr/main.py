@@ -687,7 +687,7 @@ class CustomXepr(QtCore.QObject):
                                    '15 min. Pausing current measurement and ' +
                                    'all pending jobs.')
                     exp.aqExpPause()
-                    self.worker.running.clear()
+                    self.manager.running.clear()
                     return
 
             time.sleep(1)
