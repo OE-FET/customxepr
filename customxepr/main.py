@@ -241,15 +241,16 @@ class CustomXepr(QtCore.QObject):
         self.XeprCmds.aqParSet('AcqHidden', '*cwBridge.Tune', 'Fine')
 
     @queued_exec(manager.job_queue)
-    def customtune(self, lowQ=False):
+    def customtune(self, low_q=False):
         """
         Custom tuning routine with higher accuracy. It takes longer than :meth:`tune`
-        and requires the spectrometer to be already close to tuned. In case of Q-values < 4500,
-        you can set :param:`lowQ` to `True` so that the tuning routine will cycle through a smaller
-        range of microwave powers. If Q < 3000, it is recommended to tune the spectrometer manually.
+        and requires the spectrometer to be already close to tuned. In case of Q-values
+        < 4500, you can set :param:`lowQ` to `True` so that the tuning routine will cycle
+        through a smaller range of microwave powers. If Q < 3000, it is recommended to
+        tune the spectrometer manually.
 
-        :param bool lowQ: If True, the tuning routine will be adjusted for low Q-value conditions.
-            This is recommended for 3000 < Q < 4500.
+        :param bool low_q: If True, the tuning routine will be adjusted for low Q-value
+            conditions. This is recommended for 3000 < Q < 4500.
         """
 
         if not self._check_for_xepr():
@@ -268,8 +269,8 @@ class CustomXepr(QtCore.QObject):
             self.hidden['OpMode'].value = 'Operate'
             time.sleep(self.wait)
 
-        dB_min = 10 if not lowQ else 20
-        dB_max = 50 if not lowQ else 45
+        dB_min = 10 if not low_q else 20
+        dB_max = 50 if not low_q else 45
 
         # tune frequency and phase at 30 dB
         self.hidden['PowerAtten'].value = 30
@@ -722,7 +723,8 @@ class CustomXepr(QtCore.QObject):
         # save the data if path is given
         # add temperature data and Q-value if available
         if path is None:
-            path = os.path.join(tempfile.gettempdir(), 'autosave_' + next(tempfile._get_candidate_names()))
+            path = os.path.join(tempfile.gettempdir(), 'autosave_' +
+                                next(tempfile._get_candidate_names()))
 
         self._saveCurrentData(path, exp)
         time.sleep(self.wait)
@@ -972,15 +974,18 @@ class CustomXepr(QtCore.QObject):
         phase_step = self.hidden['SignalPhase'].aqGetParCoarseSteps()
         time.sleep(self.wait)
 
-        # determine direction of increasing diode current
+        # determine the direction of increasing diode current
         diode_curr_array = np.array([])
         interval_min = max(phase0-3*phase_step, phase_min)
         interval_max = min(phase0+4*phase_step, phase_max)
         phase_array = np.arange(interval_min, interval_max, phase_step)
 
         for phase in phase_array:
-            # check for abort event
+            # Check for abort event
             if self.abort.is_set():
+                return
+            # Abort if phase at limit
+            if self._phase_at_limit(phase, phase_min, phase_max):
                 return
             self.hidden['SignalPhase'].value = phase
             time.sleep(1)
@@ -991,88 +996,72 @@ class CustomXepr(QtCore.QObject):
                 logger.warning('Phase tuning timeout.')
                 break
 
-        # Determine position of maximum phase by stepping the phase until it
-        # decreases again. Shift by 360° if maximum or minimum is encountered.
-
-        self.hidden['SignalPhase'].value = phase0
-        time.sleep(self.wait)
-
         upper = np.mean(diode_curr_array[phase_array > phase0])
         lower = np.mean(diode_curr_array[phase_array < phase0])
-
         direction = cmp(upper, lower)
-        phase_array = np.array([])
-        diode_curr_array = np.array([])
+
+        # determine position of maximum phase by stepping until phase deceases again
+        self.hidden['SignalPhase'].value = phase0
+        time.sleep(1)
+        diode_curr_new = self.hidden['DiodeCurrent'].value
+        time.sleep(self.wait)
+
+        phase_array = np.array([phase0])
+        diode_curr_array = np.array([diode_curr_new])
 
         new_phase = phase0
 
-        # Check if phase is within limits, then step. otherwise shift phase
-        # and return.
-        deg_step = 6.5  # approximate step of 1 deg
-        if new_phase > phase_max:
-            logger.info('Phase at upper limit, reducing by 360 deg.')
-            self.hidden['SignalPhase'].value = phase0 - 360*deg_step
-            time.sleep(4)
-            return
-        elif new_phase < phase_min:
-            logger.info('Phase at lower limit, increasing by 360 deg.')
-            self.hidden['SignalPhase'].value = phase0 + 360*deg_step
-            time.sleep(4)
-            return
-        else:
-            self.hidden['SignalPhase'].value = new_phase
-            time.sleep(1)
-
-        diode_curr_new = self.hidden['DiodeCurrent'].value
-        time.sleep(self.wait)
-        diode_curr_array = np.append(diode_curr_array, diode_curr_new)
-        phase_array = np.append(phase_array, new_phase)
-
         while diode_curr_new > np.max(diode_curr_array) - 15:
+            # get next phase step
+            new_phase += direction*phase_step
+
             # check for abort event
             if self.abort.is_set():
                 return
-            # check for limits of diode range, readjust iris if necessary
+
+            # check for limits of diode range, readjust iris if necessary and abort
             if diode_curr_new in [0, 400]:
                 self._tuneIris()
-                self._tunePhase()  # start from beginning
+                return
 
-            # calculate phase after step
-            new_phase = new_phase + direction*phase_step
-            # Check if phase is within limits, then step. otherwise shift phase
-            # and return.
-            if new_phase > phase_max or new_phase < phase_min:
-                if new_phase > phase_max:
-                    logger.info('Phase at upper limit, reducing by 360 deg.')
-                    self.hidden['SignalPhase'].value = new_phase - 360*deg_step
-                    time.sleep(4)
-                    return
-                elif new_phase < phase_min:
-                    logger.info('Phase at lower limit, increasing by 360 deg.')
-                    self.hidden['SignalPhase'].value = new_phase + 360*deg_step
-                    time.sleep(4)
-                    return
-                else:
-                    self.hidden['SignalPhase'].value = new_phase
-                    time.sleep(1)
-            else:
-                self.hidden['SignalPhase'].value = new_phase
-                time.sleep(1)
+            # abort if phase at limit
+            if self._phase_at_limit(new_phase, phase_min, phase_max):
+                return
 
+            # get new reading
+            self.hidden['SignalPhase'].value = new_phase
+            time.sleep(1)
             diode_curr_new = self.hidden['DiodeCurrent'].value
             time.sleep(self.wait)
+
             diode_curr_array = np.append(diode_curr_array, diode_curr_new)
             phase_array = np.append(phase_array, new_phase)
 
-            # set a tuning timeout if Xepr is not responsive
+            # timeout if Xepr is not responsive
             if time.time() - t0 > self._tuning_timeout:
-                logger.info('Phase tuning timeout.')
+                logger.warning('Phase tuning timeout.')
                 break
 
-        # set phase to best value
+        # set phase to the best value
         best_phase = phase_array[np.argmax(diode_curr_array)]
         self.hidden['SignalPhase'].value = best_phase
         time.sleep(self.wait)
+
+    def _phase_at_limit(self, phase, phase_min, phase_max):
+
+        assert phase_max > phase_min
+
+        deg_step = 6.5  # approximate step of 1 deg
+
+        if phase_min < phase < phase_max:
+            return False
+        else:
+            # shift by 360° if maximum or minimum is encountered
+            direction = int(phase < phase_min) - int(phase > phase_max)
+            self.hidden['SignalPhase'].value = phase + direction*360*deg_step
+            logger.info('Phase at limit, cycling by 360 deg.')
+            time.sleep(4)
+            return True
 
 # ========================================================================================
 # set up cryostat functions
