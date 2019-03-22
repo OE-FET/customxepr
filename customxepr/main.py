@@ -974,8 +974,8 @@ class CustomXepr(QtCore.QObject):
 
         # determine direction of increasing diode current
         diode_curr_array = np.array([])
-        interval_min = max(phase0-2*phase_step, phase_min)
-        interval_max = min(phase0+2*phase_step, phase_max)
+        interval_min = max(phase0-3*phase_step, phase_min)
+        interval_max = min(phase0+4*phase_step, phase_max)
         phase_array = np.arange(interval_min, interval_max, phase_step)
 
         for phase in phase_array:
@@ -983,7 +983,7 @@ class CustomXepr(QtCore.QObject):
             if self.abort.is_set():
                 return
             self.hidden['SignalPhase'].value = phase
-            time.sleep(self.wait)
+            time.sleep(1)
             diode_curr = self.hidden['DiodeCurrent'].value
             time.sleep(self.wait)
             diode_curr_array = np.append(diode_curr_array, diode_curr)
@@ -1001,9 +1001,10 @@ class CustomXepr(QtCore.QObject):
         lower = np.mean(diode_curr_array[phase_array < phase0])
 
         direction = cmp(upper, lower)
-        diode_curr_array = phase_array = np.array([])
+        phase_array = np.array([])
+        diode_curr_array = np.array([])
 
-        new_phase = phase0 + direction*phase_step
+        new_phase = phase0
 
         # Check if phase is within limits, then step. otherwise shift phase
         # and return.
@@ -1020,20 +1021,21 @@ class CustomXepr(QtCore.QObject):
             return
         else:
             self.hidden['SignalPhase'].value = new_phase
-            time.sleep(self.wait)
+            time.sleep(1)
 
         diode_curr_new = self.hidden['DiodeCurrent'].value
         time.sleep(self.wait)
         diode_curr_array = np.append(diode_curr_array, diode_curr_new)
         phase_array = np.append(phase_array, new_phase)
 
-        while diode_curr_new > np.max(diode_curr_array) - 5:
+        while diode_curr_new > np.max(diode_curr_array) - 10:
             # check for abort event
             if self.abort.is_set():
                 return
             # check for limits of diode range, readjust iris if necessary
             if diode_curr_new in [0, 400]:
                 self._tuneIris()
+                self._tunePhase()  # start from beginning
 
             # calculate phase after step
             new_phase = new_phase + direction*phase_step
@@ -1052,7 +1054,7 @@ class CustomXepr(QtCore.QObject):
                     return
                 else:
                     self.hidden['SignalPhase'].value = new_phase
-                    time.sleep(self.wait)
+                    time.sleep(1)
             else:
                 self.hidden['SignalPhase'].value = new_phase
                 time.sleep(self.wait)
@@ -1068,8 +1070,8 @@ class CustomXepr(QtCore.QObject):
                 break
 
         # set phase to best value
-        phase_max = phase_array[np.argmax(diode_curr_array)]
-        self.hidden['SignalPhase'].value = phase_max
+        best_phase = phase_array[np.argmax(diode_curr_array)]
+        self.hidden['SignalPhase'].value = best_phase
         time.sleep(self.wait)
 
 # ========================================================================================
