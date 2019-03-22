@@ -1,3 +1,9 @@
+#### master
+
+_Added:_
+- Added a keyword argument `lowQ` to `customtune` for low Q-values.
+- Added a keyword argument `auto_gf` to `setTemperature` to disable or enable automatic gasflow control.
+
 #### v2.3.0 (2019-03-20)
 
 This release focuses on under-the-hood improvements and provides significant speedups to the user interface (plotting data, deleting a large number of queued jobs, etc).

@@ -325,7 +325,7 @@ class CustomXepr(QtCore.QObject):
         self._tuneBias()
         time.sleep(self.wait)
 
-        # tune iris at 15 dB
+        # tune iris at 20 dB
         self.hidden['PowerAtten'].value = 20
         time.sleep(self.wait)
         self._tuneIris()
@@ -975,7 +975,7 @@ class CustomXepr(QtCore.QObject):
         # determine direction of increasing diode current
         diode_curr_array = np.array([])
         interval_min = max(phase0-2*phase_step, phase_min)
-        interval_max = min(phase0+2*phase_step, phase_max)
+        interval_max = min(phase0+3*phase_step, phase_max)
         phase_array = np.arange(interval_min, interval_max, phase_step)
 
         for phase in phase_array:
@@ -992,7 +992,7 @@ class CustomXepr(QtCore.QObject):
                 break
 
         # Determine position of maximum phase by stepping the phase until it
-        # decreases again. Shift by 360° if maximum or minimum is encountered.
+        # decreases again. Shift by 360° if maximum or minimum is reached.
 
         self.hidden['SignalPhase'].value = phase0
         time.sleep(self.wait)
