@@ -160,7 +160,7 @@ class CustomXepr(QtCore.QObject):
 
         :param str body: Text to send.
         """
-        self.emailSender.sendmail(self.notify_address,
+        self.emailSender.sendmail(self.manager.notify_address,
                                   'CustomXepr Notification', body)
 
     @queued_exec(manager.job_queue)
