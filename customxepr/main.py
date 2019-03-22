@@ -1057,7 +1057,7 @@ class CustomXepr(QtCore.QObject):
                     time.sleep(1)
             else:
                 self.hidden['SignalPhase'].value = new_phase
-                time.sleep(self.wait)
+                time.sleep(1)
 
             diode_curr_new = self.hidden['DiodeCurrent'].value
             time.sleep(self.wait)
