@@ -1028,7 +1028,7 @@ class CustomXepr(QtCore.QObject):
         diode_curr_array = np.append(diode_curr_array, diode_curr_new)
         phase_array = np.append(phase_array, new_phase)
 
-        while diode_curr_new > np.max(diode_curr_array) - 10:
+        while diode_curr_new > np.max(diode_curr_array) - 15:
             # check for abort event
             if self.abort.is_set():
                 return
