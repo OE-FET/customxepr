@@ -241,10 +241,15 @@ class CustomXepr(QtCore.QObject):
         self.XeprCmds.aqParSet('AcqHidden', '*cwBridge.Tune', 'Fine')
 
     @queued_exec(manager.job_queue)
-    def customtune(self):
+    def customtune(self, lowQ=False):
         """
         Custom tuning routine with higher accuracy. It takes longer than :meth:`tune`
-        and requires the spectrometer to be already close to tuned.
+        and requires the spectrometer to be already close to tuned. In case of Q-values < 4500,
+        you can set :param:`lowQ` to `True` so that the tuning routine will cycle through a smaller
+        range of microwave powers. If Q < 3000, it is recommended to tune the spectrometer manually.
+
+        :param bool lowQ: If True, the tuning routine will be adjusted for low Q-value conditions.
+            This is recommended for 3000 < Q < 4500.
         """
 
         if not self._check_for_xepr():
@@ -263,15 +268,20 @@ class CustomXepr(QtCore.QObject):
             self.hidden['OpMode'].value = 'Operate'
             time.sleep(self.wait)
 
-        # tune frequency at 30 dB
+        dB_min = 10 if not lowQ else 20
+        dB_max = 50 if not lowQ else 45
+
+        # tune frequency and phase at 30 dB
         self.hidden['PowerAtten'].value = 30
         time.sleep(self.wait)
         self._tuneFreq()
         time.sleep(self.wait)
+        self._tunePhase()
+        time.sleep(self.wait)
 
-        # tune bias of reference arm at 50 dB
+        # tune bias of reference arm at dB_max
         # (where diode current is determined by reference arm)
-        self.hidden['PowerAtten'].value = 50
+        self.hidden['PowerAtten'].value = dB_max
         time.sleep(self.wait)
         self._tuneBias()
         time.sleep(self.wait)
@@ -292,7 +302,7 @@ class CustomXepr(QtCore.QObject):
             time.sleep(self.wait)
 
         # tune iris and phase and frequency at 20 dB and 10 dB
-        for atten in [20, 10]:
+        for atten in [20, dB_min]:
             # check for abort event, clear event
             if self.abort.is_set():
                 self.hidden['PowerAtten'].value = atten_start
@@ -309,8 +319,8 @@ class CustomXepr(QtCore.QObject):
             self._tuneFreq()
             time.sleep(self.wait)
 
-        # tune bias at 50 dB
-        self.hidden['PowerAtten'].value = 50
+        # tune bias at dB_max
+        self.hidden['PowerAtten'].value = dB_max
         time.sleep(self.wait)
         self._tuneBias()
         time.sleep(self.wait)
@@ -321,14 +331,14 @@ class CustomXepr(QtCore.QObject):
         self._tuneIris()
         time.sleep(self.wait)
 
-        # tune bias at 50 dB
-        self.hidden['PowerAtten'].value = 50
+        # tune bias at dB_max
+        self.hidden['PowerAtten'].value = dB_max
         time.sleep(self.wait)
         self._tuneBias()
         time.sleep(self.wait)
 
-        # tune iris at 10 dB
-        self.hidden['PowerAtten'].value = 10
+        # tune iris at dB_min
+        self.hidden['PowerAtten'].value = dB_min
         time.sleep(self.wait)
         self._tuneIris()
         time.sleep(self.wait)
@@ -1067,7 +1077,7 @@ class CustomXepr(QtCore.QObject):
 # ========================================================================================
 
     @queued_exec(manager.job_queue)
-    def setTemperature(self, target):
+    def setTemperature(self, target, auto_gf=True):
         """
         Sets the target temperature for the ESR900 cryostat and waits for it to
         stabilize within :attr:`temp_wait_time` with fluctuations below
@@ -1076,6 +1086,7 @@ class CustomXepr(QtCore.QObject):
         Warns the user if this takes too long.
 
         :param float target: Target temperature in Kelvin.
+        :param bool auto_gf: If `True`, the gasflow will be controlled automatically by the Mercury.
         """
 
         if not self._check_for_mercury():
@@ -1087,7 +1098,7 @@ class CustomXepr(QtCore.QObject):
 
         # set temperature and wait to stabilize
         self.feed.control.t_setpoint = self._temperature_target
-        self._waitStable()
+        self._waitStable(auto_gf=auto_gf)
 
         # check if gas flow is too high for temperature set point
         # if yes, reduce minimum value until target is reached
@@ -1103,7 +1114,7 @@ class CustomXepr(QtCore.QObject):
             self.feed.control.flow_auto = 'ON'
             self.feed.gasflow.gmin = max(self.feed.readings['FlowMin'] - 1, 1)
 
-    def _waitStable(self):
+    def _waitStable(self, auto_gf=True):
         """
         Waits for the cryostat temperature to stabilize within the specified
         tolerance :attr:`temperature_tolerance`. Releases after it has been
@@ -1129,13 +1140,14 @@ class CustomXepr(QtCore.QObject):
 
             # set gas flow to minimum for temperatures above 247K, this improves
             # the PID control and speeds up stabilization
-            if gasflow_man_counter == 0:
-                if self.feed.readings['Temp'] > 247 and self._temperature_target > 247:
+            if not auto_gf:
+                if gasflow_man_counter == 0:
                     self.feed.control.flow_auto = 'OFF'
-                    self.feed.control.flow = self.feed.readings['FlowMin']
-                else:
-                    self.feed.control.flow_auto = 'ON'
-                gasflow_man_counter += 1
+                    if self._temperature_target > 247:
+                        self.feed.control.flow = self.feed.readings['FlowMin']
+                    else:
+                        self.feed.control.flow_auto = 'ON'
+                    gasflow_man_counter += 1
 
             # check temperature deviation
             self.T_diff = abs(self._temperature_target - self.feed.readings['Temp'])
