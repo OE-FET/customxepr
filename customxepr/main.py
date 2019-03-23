@@ -250,7 +250,7 @@ class CustomXepr(QtCore.QObject):
         tune the spectrometer manually.
 
         :param bool low_q: If True, the tuning routine will be adjusted for low Q-value
-            conditions. This is recommended for 3000 < Q < 4500.
+            conditions. This is recommended for 3000 < Q < 5000.
         """
 
         if not self._check_for_xepr():
