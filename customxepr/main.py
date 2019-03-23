@@ -746,8 +746,8 @@ class CustomXepr(QtCore.QObject):
             param_list['AcqWaitTime'] = XeprParam(self._temp_wait_time, 's')
             param_list['Temperature'] = XeprParam(self.feed.control.t_setpoint, 'K')
             param_list['Tolerance'] = XeprParam(self._temperature_tolerance, 'K')
-            param_list['Stability'] = XeprParam(temperature_var, 'K')
-            param_list['Mean'] = XeprParam(temperature_mean, 'K')
+            param_list['Stability'] = XeprParam(round(temperature_var, 4), 'K')
+            param_list['Mean'] = XeprParam(round(temperature_mean, 4), 'K')
             tg = ParamGroupDSL(name='tempCtrl', pars=param_list)
             dset.dsl.groups['tempCtrl'] = tg
 
