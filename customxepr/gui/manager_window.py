@@ -177,7 +177,6 @@ class ManagerApp(QtWidgets.QMainWindow):
 
         if platform.system() == 'Darwin':
             # create unified toolbar
-            self.toolbar = QtWidgets.QToolBar(self)
             self.create_toolbar()
 
         cpr_text = '© {0}, {1}.'.format(__year__, __author__)
@@ -317,10 +316,23 @@ class ManagerApp(QtWidgets.QMainWindow):
     # ====================================================================================
 
     def create_toolbar(self):
+        from customxepr.gui.segmentedcontrol_widget import MacSegmentedControl
+
+        self.toolbar = QtWidgets.QToolBar(self)
         self.toolbar.setFloatable(False)
         self.toolbar.setMovable(False)
         self.addToolBar(self.toolbar)
-        self.toolbar.addWidget(self.tabWidget)
+        self.segmented_control_button = MacSegmentedControl(labels=['Pending Jobs', 'Results', 'Message Log'])
+        self.segmented_control_button.currentChanged.connect(self.stackedWidget.setCurrentIndex)
+
+        self.left_spacer = QtWidgets.QWidget()
+        self.left_spacer.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.right_spacer = QtWidgets.QWidget()
+        self.right_spacer.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+
+        self.toolbar.addWidget(self.left_spacer)
+        self.toolbar.addWidget(self.segmented_control_button)
+        self.toolbar.addWidget(self.right_spacer)
 
     def restore_geometry(self):
         x = CONF.get('Window', 'x')
