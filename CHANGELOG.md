@@ -3,6 +3,7 @@
 _Added:_
 - Added a keyword argument `low_q` to `customtune` for low Q-values.
 - Added a keyword argument `auto_gf` to `setTemperature` to disable or enable automatic gasflow control.
+- Double click on a result item in the GUI to plot it.
 
 #### v2.3.0 (2019-03-20)
 
