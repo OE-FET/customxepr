@@ -141,9 +141,9 @@ def start_gui(customXepr, mercury_feed, keithley):
     keithley_gui = KeithleyGuiApp(keithley)
     customXepr_gui = CustomXeprGuiApp(customXepr)
 
-    # mercury_gui.QUIT_ON_CLOSE = False
-    # keithley_gui.QUIT_ON_CLOSE = False
-    # customXepr_gui.QUIT_ON_CLOSE = False
+    mercury_gui.QUIT_ON_CLOSE = False
+    keithley_gui.QUIT_ON_CLOSE = False
+    customXepr_gui.QUIT_ON_CLOSE = False
 
     customXepr_gui.show()
     mercury_gui.show()
@@ -233,7 +233,12 @@ def run():
         # start event loop
         kernel.ipkernel.start()
 
+        # disconnect from instruments when quitting
+        customXepr_gui.exit_()
+        mercury_gui.exit_()
+        keithley_gui.exit_()
 
 if __name__ == '__main__':
     customXepr, xepr, mercury, mercury_feed, keithley, customXepr_gui, \
         mercury_gui, keithley_gui = run()
+
