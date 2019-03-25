@@ -271,6 +271,9 @@ class ManagerApp(QtWidgets.QMainWindow):
         self.resultQueueDisplay.customContextMenuRequested.connect(self.open_result_context_menu)
         self.jobQueueDisplay.customContextMenuRequested.connect(self.open_job_context_menu)
 
+        # plot result on double click
+        self.resultQueueDisplay.doubleClicked.connect(self.on_result_double_clicked)
+
         # connect job control buttons
         self.pauseButton.clicked.connect(self.on_pause_clicked)
         self.abortButton.clicked.connect(self.manager.abort_job)
@@ -343,6 +346,14 @@ class ManagerApp(QtWidgets.QMainWindow):
         message = 'CustomXepr has encountered an error while executing a job.'
         msg = ErrorDialog(title, message, exc_info, parent=self)
         msg.exec_()
+
+    def on_result_double_clicked(self, index):
+        """Plot item if double clicked."""
+        i = index.row()
+        try:
+            self.result_queue.queue[i].plot()
+        except AttributeError:
+            pass
 
     def open_result_context_menu(self):
         """
