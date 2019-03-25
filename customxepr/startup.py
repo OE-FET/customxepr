@@ -141,9 +141,9 @@ def start_gui(customXepr, mercury_feed, keithley):
     keithley_gui = KeithleyGuiApp(keithley)
     customXepr_gui = CustomXeprGuiApp(customXepr)
 
-    mercury_gui.QUIT_ON_CLOSE = False
-    keithley_gui.QUIT_ON_CLOSE = False
-    customXepr_gui.QUIT_ON_CLOSE = False
+    # mercury_gui.QUIT_ON_CLOSE = False
+    # keithley_gui.QUIT_ON_CLOSE = False
+    # customXepr_gui.QUIT_ON_CLOSE = False
 
     customXepr_gui.show()
     mercury_gui.show()
@@ -214,8 +214,8 @@ def run():
         from customxepr.utils.internal_ipkernel import InternalIPKernel
 
         # start event loop and console if run as a standalone app
-        internal_kernel = InternalIPKernel(banner=banner)
-        internal_kernel.new_qt_console()
+        kernel = InternalIPKernel(banner=banner)
+        kernel.new_qt_console()
 
         var_dict = {'customXepr': customXepr, 'xepr': xepr, 'mercury': mercury,
                     'mercury_feed': mercury_feed, 'keithley': keithley,
@@ -223,15 +223,15 @@ def run():
                     'mercury_gui': mercury_gui, 'keithley_gui': keithley_gui,
                     }
 
-        internal_kernel.send_to_namespace(var_dict)
-        # noinspection PyUnresolvedReferences
-        app.aboutToQuit.connect(internal_kernel.cleanup_consoles)
+        kernel.send_to_namespace(var_dict)
+        # set shutdown behaviour
+        app.aboutToQuit.connect(kernel.cleanup_consoles)
         # patch exception hook to display errors from Qt event loop
         patch_excepthook()
         # remove splash screen
-        splash.hide()
+        splash.close()
         # start event loop
-        internal_kernel.ipkernel.start()
+        kernel.ipkernel.start()
 
 
 if __name__ == '__main__':

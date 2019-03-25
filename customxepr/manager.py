@@ -91,6 +91,17 @@ class Experiment(object):
         else:
             self._status = s
 
+    def __repr__(self):
+        info_strings = ['func={}'.format(self.func.__name__)]
+        if len(self.args) > 0:
+            info_strings.append('args={}'.format(self.args))
+        if len(self.kwargs) > 0:
+            info_strings.append('kwargs={}'.format(self.kwargs))
+        info_strings.append('status={}'.format(self.status))
+        if self.status is ExpStatus.FINISHED:
+            info_strings.append('has_result={}'.format(self.result is not None))
+        return '<{0}({1})>'.format(self.__class__.__name__, ', '.join(info_strings))
+
 
 # =============================================================================
 # custom queue which emits PyQt signals on put and get
@@ -127,7 +138,7 @@ class SignalQueue(QtCore.QObject, Queue):
     def remove_item(self, i):
         """
         Removes item from the queue in a thread safe manner. Calls
-        :meth:`task_done` when done.
+        :meth:`job_done` when done.
 
         :param int i: Index of item to remove.
         """
@@ -138,7 +149,7 @@ class SignalQueue(QtCore.QObject, Queue):
         Removes the items from index `i_start` to `i_end` from the queue.
         Raises a :class:`ValueError` if the item belongs to a running or
         already completed job. Emits the :attr:`removed_signal` for
-        every removed item. Calls :meth:`task_done` for every item removed.
+        every removed item. Calls :meth:`job_done` for every item removed.
 
         This call has O(n) performance with regards to the queue length and
         number of items to be removed.
@@ -218,7 +229,7 @@ class ExperimentQueue(QtCore.QObject):
             self._queued.put(exp)
             self.added_signal.emit()
 
-    def next_job(self):
+    def get_next_job(self):
         """
         Returns the next item with status :class:`ExpStatus.QUEUED` and flags it as
         running. If there are no items with status :class:`ExpStatus.QUEUED`,
@@ -235,7 +246,7 @@ class ExperimentQueue(QtCore.QObject):
 
         return exp
 
-    def task_done(self, exit_status, result=None):
+    def job_done(self, exit_status, result=None):
         """
         Call to inform the Experiment queue that a task is completed. Changes
         the corresponding item's status to `exit_status` and its result to `result`.
@@ -342,11 +353,18 @@ class ExperimentQueue(QtCore.QObject):
         else:
             return self._history.qsize() + self._running.qsize() + self._queued.qsize()
 
+    def __repr__(self):
+        return '<{0}(history={1}, running={2}, queued={3})>'.format(
+            self.__class__.__name__, self.qsize('history'), self.qsize('running'),
+            self.qsize('queued'))
+
 
 # ========================================================================================
 # worker that gets function / method calls from queue and carriers them out
 # ========================================================================================
 
+
+# Worker needs to inherit from QObject so that it can be moved to QThread later
 class Worker(QtCore.QObject):
     """
     Worker that gets all method calls with args from :attr:`job_q` and executes
@@ -356,8 +374,6 @@ class Worker(QtCore.QObject):
     :param result_q: Queue with results from completed jobs.
 
     :cvar running: Event that causes the worker to pause between jobs if set.
-    :cvar abort: Event that tells a job to abort if set. After a job has
-        been aborted, Worker will clear the :attr:`abort` event.
     """
 
     running = Event()
@@ -386,7 +402,7 @@ class Worker(QtCore.QObject):
             self.running.wait()
 
             try:
-                exp = self.job_q.next_job()  # get next job
+                exp = self.job_q.get_next_job()  # get next job
             except Empty:
                 pass
             else:
@@ -395,7 +411,7 @@ class Worker(QtCore.QObject):
                     result = exp.func(*exp.args, **exp.kwargs)  # run the job
                 except Exception:  # log exception and pause execution of jobs
                     logger.exception('Job error')
-                    self.job_q.task_done(ExpStatus.FAILED, result=None)
+                    self.job_q.job_done(ExpStatus.FAILED, result=None)
                     self.running.clear()
                     logger.status('PAUSED')
                 else:
@@ -408,7 +424,7 @@ class Worker(QtCore.QObject):
                     else:
                         exit_status = ExpStatus.FINISHED
 
-                    self.job_q.task_done(exit_status, result)
+                    self.job_q.job_done(exit_status, result)
                     logger.status('IDLE')
 
 
@@ -418,7 +434,7 @@ class Manager(QtCore.QObject):
     :class:`Manager` provides a high level interface for the scheduling and executing
     experiments. All queued experiments will be run in a background thread and
     :class:`Manager` provides methods to pause, resume and abort the execution of
-    experiments. All results will be kept in the :cvar:`result_queue` for later retrieval.
+    experiments. All results will be kept in the `result_queue` for later retrieval.
 
     Function calls can be queued as experiments by decorating the function
     with the :func:`manager.queued_exec` decorator:
@@ -469,7 +485,7 @@ class Manager(QtCore.QObject):
     >>> # queue the experiment
     >>> manager.job_queue.put(exp)
 
-    This class provides an event :cvar:`abort` which can queried periodically by any
+    This class provides an event `abort` which can queried periodically by any
     function to see if it should abort prematurely. Alternatively, functions and methods
     can provide their own abort events and register them with the manager as follows:
 
@@ -484,6 +500,7 @@ class Manager(QtCore.QObject):
     :cvar job_queue: An instance of :class:`ExperimentQueue` holding all queued and
         finished experiments.
     :cvar result_queue: A queue holding all results.
+    :ivar running: Event that causes the worker to pause between jobs if set.
     :cvar abort: A generic event which can be used in long-running experiments to check
         if they should be aborted.
     """
@@ -498,6 +515,7 @@ class Manager(QtCore.QObject):
         super(self.__class__, self).__init__()
 
         # create background thread to process all executions in queue
+        # we use QThread here, so that the worker can emit and connect to Qt Signals
         self.worker_thread = QtCore.QThread()
         self.worker_thread.setObjectName('CustomXeprWorkerThread')
         self.worker = Worker(self.job_queue, self.result_queue, self._abort_events)

@@ -330,8 +330,6 @@ class ManagerApp(QtWidgets.QMainWindow):
         self.manager.clear_all_jobs()
         self.manager.abort_job()
         self.save_geometry()
-        if self.customxepr.xepr is not None:
-            self.customxepr.xepr.XeprClose()
         self.deleteLater()
 
     def closeEvent(self, event):
