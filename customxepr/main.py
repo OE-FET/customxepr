@@ -1338,11 +1338,11 @@ class CustomXepr(QtCore.QObject):
                    'require a connected cryostat will not work.')
         elif self.feed.heater is None:
             msg = ('MercuryiTC error: No heater module configured for ' +
-                   '%s. ' % self.mercury.temperature.nick +
+                   '%s. ' % self.feed.mercury.temperature.nick +
                    'Functions that require a connected cryostat will not work.')
         elif self.feed.gasflow is None:
             msg = ('MercuryiTC error: No gas flow module configured for ' +
-                   '%s. ' % self.mercury.temperature.nick +
+                   '%s. ' % self.feed.mercury.temperature.nick +
                    'Functions that require a connected cryostat will not work.')
         else:
             msg = False
