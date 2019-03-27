@@ -1374,7 +1374,7 @@ class CustomXepr(QtCore.QObject):
             else:
                 logger.info(msg)
 
-    def _check_for_xepr(self):
+    def _check_for_xepr(self, raise_error=True):
         if not self.xepr:
             msg = ('No Xepr instance supplied. Functions that ' +
                    'require Xepr will not work.')
