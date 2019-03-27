@@ -743,9 +743,9 @@ class CustomXepr(QtCore.QObject):
 
         if temperature_history is not None:
             param_list = dict()
-            param_list['AcqWaitTime'] = XeprParam(self._temp_wait_time, 's')
-            param_list['Temperature'] = XeprParam(self.feed.control.t_setpoint, 'K')
-            param_list['Tolerance'] = XeprParam(self._temperature_tolerance, 'K')
+            param_list['AcqWaitTime'] = XeprParam(self.temp_wait_time, 's')
+            param_list['Temperature'] = XeprParam(self.feed.temperature.loop_tset, 'K')
+            param_list['Tolerance'] = XeprParam(self.temperature_tolerance, 'K')
             param_list['Stability'] = XeprParam(round(temperature_var, 4), 'K')
             param_list['Mean'] = XeprParam(round(temperature_mean, 4), 'K')
             tg = ParamGroupDSL(name='tempCtrl', pars=param_list)
@@ -1085,7 +1085,7 @@ class CustomXepr(QtCore.QObject):
         logger.info('Setting target temperature to %sK.' % self._temperature_target)
 
         # set temperature and wait to stabilize
-        self.feed.control.t_setpoint = self._temperature_target
+        self.feed.temperature.loop_tset = self._temperature_target
         self._waitStable(auto_gf=auto_gf)
 
         # check if gas flow is too high for temperature set point
@@ -1099,7 +1099,7 @@ class CustomXepr(QtCore.QObject):
         if heater_too_strong and flow_at_min:
 
             logger.warning('Gas flow is too high, trying to reduce.')
-            self.feed.control.flow_auto = 'ON'
+            self.feed.temperature.loop_faut = 'ON'
             self.feed.gasflow.gmin = max(self.feed.readings['FlowMin'] - 1, 1)
 
     def _waitStable(self, auto_gf=True):
@@ -1130,11 +1130,11 @@ class CustomXepr(QtCore.QObject):
             # the PID control and speeds up stabilization
             if not auto_gf:
                 if gasflow_man_counter == 0:
-                    self.feed.control.flow_auto = 'OFF'
+                    self.feed.temperature.loop_faut = 'OFF'
                     if self._temperature_target > 247:
-                        self.feed.control.flow = self.feed.readings['FlowMin']
+                        self.feed.temperature.loop_fset = self.feed.readings['FlowMin']
                     else:
-                        self.feed.control.flow_auto = 'ON'
+                        self.feed.temperature.loop_faut = 'ON'
                     gasflow_man_counter += 1
 
             # check temperature deviation
@@ -1192,7 +1192,7 @@ class CustomXepr(QtCore.QObject):
             raise RuntimeError('Not connected to MercuryITC.')
 
         # set temperature and wait to stabilize
-        self.feed.control.ramp = ramp
+        self.feed.temperature.loop_rena = ramp
         logger.info('Temperature ramp set to %s K/min.' % ramp)
 
 # ========================================================================================
