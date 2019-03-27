@@ -118,9 +118,9 @@ class CustomXepr(QtCore.QObject):
         # target temperature, set during first use
         self._temperature_target = None
 
-        self._check_for_xepr()
-        self._check_for_mercury()
-        self._check_for_keithley()
+        self._check_for_xepr(raise_error=False)
+        self._check_for_mercury(raise_error=False)
+        self._check_for_keithley(raise_error=False)
 
         # =====================================================================
         # define / load certain settings for customxepr functions
@@ -219,8 +219,7 @@ class CustomXepr(QtCore.QObject):
         Runs Xepr's built-in tuning routine.
         """
 
-        if not self._check_for_xepr():
-            raise RuntimeError('Not connected to Xepr.')
+        self._check_for_xepr()
 
         self.XeprCmds.aqParSet('AcqHidden', '*cwBridge.OpMode', 'Tune')
         self.XeprCmds.aqParSet('AcqHidden', '*cwBridge.Tune', 'Up')
@@ -231,8 +230,7 @@ class CustomXepr(QtCore.QObject):
         Runs Xepr's built-in finetuning routine.
         """
 
-        if not self._check_for_xepr():
-            raise RuntimeError('Not connected to Xepr.')
+        self._check_for_xepr()
 
         self.XeprCmds.aqParSet('AcqHidden', '*cwBridge.Tune', 'Fine')
 
@@ -249,8 +247,7 @@ class CustomXepr(QtCore.QObject):
             conditions. This is recommended for 3000 < Q < 5000.
         """
 
-        if not self._check_for_xepr():
-            raise RuntimeError('Not connected to Xepr.')
+        self._check_for_xepr()
 
         logger.info('Tuning.')
 
@@ -354,7 +351,7 @@ class CustomXepr(QtCore.QObject):
         Tunes the diode bias. A perfectly tuned bias results in a diode current of 200 mA
         for all microwave powers.
         """
-
+        self._check_for_xepr()
         self._tuneBias()
 
     @queued_exec(manager.job_queue)
@@ -366,6 +363,7 @@ class CustomXepr(QtCore.QObject):
         :param int tolerance: Minimum diode current offset that must be achieved before
             :meth:`tuneIris` returns.
         """
+        self._check_for_xepr()
         self._tuneIris(tolerance)
 
     @queued_exec(manager.job_queue)
@@ -376,6 +374,7 @@ class CustomXepr(QtCore.QObject):
         :param int tolerance: Minimum lock offset that must be achieved before
             :meth:`tuneFreq` returns.
         """
+        self._check_for_xepr()
         self._tuneFreq(tolerance)
 
     @queued_exec(manager.job_queue)
@@ -383,6 +382,7 @@ class CustomXepr(QtCore.QObject):
         """
         Tunes the phase of the MW reference arm to maximise the diode current.
         """
+        self._check_for_xepr()
         self._tunePhase()
 
     @queued_exec(manager.job_queue)
@@ -399,8 +399,7 @@ class CustomXepr(QtCore.QObject):
         :rtype: float
         """
 
-        if not self._check_for_xepr():
-            raise RuntimeError('Not connected to Xepr.')
+        self._check_for_xepr()
 
         wait_old = self.wait
         self.wait = 1
@@ -477,8 +476,7 @@ class CustomXepr(QtCore.QObject):
         :rtype: :class:`mode_picture.ModePicture`
         """
 
-        if not self._check_for_xepr():
-            raise RuntimeError('Not connected to Xepr.')
+        self._check_for_xepr()
 
         wait_old = self.wait
         self.wait = 1
@@ -602,8 +600,7 @@ class CustomXepr(QtCore.QObject):
             Allowed parameters will depend on the type of experiment.
         """
 
-        if not self._check_for_xepr():
-            raise RuntimeError('Not connected to Xepr.')
+        self._check_for_xepr()
 
         # -----------set experiment parameters if given in kwargs--------------
         for key in kwargs:
@@ -781,8 +778,7 @@ class CustomXepr(QtCore.QObject):
         Sets the magnetic field to zero and the MW bridge to standby.
         """
 
-        if not self._check_for_xepr():
-            raise RuntimeError('Not connected to Xepr.')
+        self._check_for_xepr()
 
         # check if WindDown experiment already exists, otherwise create
         try:
@@ -820,8 +816,7 @@ class CustomXepr(QtCore.QObject):
             currently selected experiment if not given.
         """
 
-        if not self._check_for_xepr():
-            raise RuntimeError('Not connected to Xepr.')
+        self._check_for_xepr()
 
         path = os.path.expanduser(path)
 
@@ -1073,12 +1068,11 @@ class CustomXepr(QtCore.QObject):
         Warns the user if this takes too long.
 
         :param float target: Target temperature in Kelvin.
-        :param bool auto_gf: If `True`, the gasflow will be controlled automatically by
+        :param bool auto_gf: If `True`, the gas flow will be controlled automatically by
             the Mercury.
         """
 
-        if not self._check_for_mercury():
-            raise RuntimeError('Not connected to MercuryITC.')
+        self._check_for_mercury()
 
         # create instance variable here to allow outside access
         self._temperature_target = target
@@ -1188,8 +1182,7 @@ class CustomXepr(QtCore.QObject):
         :param float ramp: Ramp in Kelvin per minute.
         """
 
-        if not self._check_for_mercury():
-            raise RuntimeError('Not connected to MercuryITC.')
+        self._check_for_mercury()
 
         # set temperature and wait to stabilize
         self.feed.temperature.loop_rena = ramp
@@ -1230,8 +1223,7 @@ class CustomXepr(QtCore.QObject):
         :rtype: :class:`keithley2600.TransistorSweepData`
         """
 
-        if not self._check_for_keithley():
-            raise RuntimeError('Not connected to Keithley.')
+        self._check_for_keithley()
 
         smu_gate = getattr(self.keithley, smu_gate)
         smu_drain = getattr(self.keithley, smu_drain)
@@ -1275,8 +1267,7 @@ class CustomXepr(QtCore.QObject):
         :rtype: :class:`keithley2600.TransistorSweepData`
         """
 
-        if not self._check_for_keithley():
-            raise RuntimeError('Not connected to Keithley.')
+        self._check_for_keithley()
 
         smu_gate = getattr(self.keithley, smu_gate)
         smu_drain = getattr(self.keithley, smu_drain)
@@ -1298,8 +1289,7 @@ class CustomXepr(QtCore.QObject):
         :param str smu_gate: Name of SMU. Defaults to the SMU saved as gate.
         """
 
-        if not self._check_for_keithley():
-            raise RuntimeError('Not connected to Keithley.')
+        self._check_for_keithley()
 
         gate = getattr(self.keithley, smu_gate)
 
@@ -1323,8 +1313,7 @@ class CustomXepr(QtCore.QObject):
         :param str smu: Name of SMU. Defaults to the SMU saved as drain.
         """
 
-        if not self._check_for_keithley():
-            raise RuntimeError('Not connected to Keithley.')
+        self._check_for_keithley()
 
         smu = getattr(self.keithley, smu)
 
@@ -1335,59 +1324,76 @@ class CustomXepr(QtCore.QObject):
 # Helper methods
 # ========================================================================================
 
-    def _check_for_mercury(self):
+    def _check_for_mercury(self, raise_error=True):
         """
         Checks if a mercury instance has been passed and is connected to an an actual
         instrument.
         """
-        if not self.feed or not self.feed.mercury:
-            logger.info('No Mercury instance supplied. Functions that ' +
-                        'require a connected cryostat will not work.')
-            return False
-        elif not self.feed.mercury.connected:
-            logger.info('MercuryiTC is not connected. Functions that ' +
-                        'require a connected cryostat will not work.')
-            return False
-        else:
-            return True
 
-    def _check_for_keithley(self):
+        if not self.feed or not self.feed.mercury:
+            msg = ('No Mercury instance supplied. Functions that ' +
+                   'require a connected cryostat will not work.')
+        elif not self.feed.mercury.connected:
+            msg = ('MercuryiTC is not connected. Functions that ' +
+                   'require a connected cryostat will not work.')
+        elif self.feed.mercury.heater is None:
+            msg = ('MercuryiTC error: No heater module configured for ' +
+                   '%s. ' % self.mercury.temperature.nick +
+                   'Functions that require a connected cryostat will not work.')
+        elif self.feed.mercury.gasflow is None:
+            msg = ('MercuryiTC error: No gas flow module configured for ' +
+                   '%s. ' % self.mercury.temperature.nick +
+                   'Functions that require a connected cryostat will not work.')
+        else:
+            msg = False
+
+        if msg:
+            if raise_error:
+                raise RuntimeError(msg)
+            else:
+                logger.info(msg)
+
+    def _check_for_keithley(self, raise_error=True):
         """
         Checks if a keithley instance has been passed and is connected to an an actual
         instrument.
         """
 
         if not self.keithley:
-            logger.info('No Keithley instance supplied. Functions that ' +
-                        'require a connected Keithley SMU will not work.')
-            return False
+            msg = ('No Keithley instance supplied. Functions that ' +
+                   'require a connected Keithley SMU will not work.')
         elif not self.keithley.connected:
-            logger.info('Keithley is not connected. Functions that ' +
-                        'require a connected Keithley will not work.')
-            return False
+            msg = ('Keithley is not connected. Functions that ' +
+                   'require a connected Keithley will not work.')
         else:
-            return True
+            msg = False
+
+        if msg:
+            if raise_error:
+                raise RuntimeError(msg)
+            else:
+                logger.info(msg)
 
     def _check_for_xepr(self):
         if not self.xepr:
-            logger.info('No Xepr instance supplied. Functions that ' +
-                        'require Xepr will not work.')
-            return False
+            msg = ('No Xepr instance supplied. Functions that ' +
+                   'require Xepr will not work.')
         elif not self.xepr.XeprActive():
-            logger.info('Xepr API not active. Please activate Xepr API by ' +
-                        'pressing "Processing > XeprAPI > Enable Xepr API"')
-            return False
-
-        self.XeprCmds = self.xepr.XeprCmds
-
-        if not self.hidden:
-            try:
-                self.hidden = self.xepr.XeprExperiment('AcqHidden')
-                return True
-            except ExperimentError:
-                logger.info('Xepr is not connected to the spectrometer.' +
-                            'Please connect by pressing "Acquisition > ' +
-                            'Connect To Spectrometer..."')
-                return False
+            msg = ('Xepr API not active. Please activate Xepr API by ' +
+                   'pressing "Processing > XeprAPI > Enable Xepr API"')
         else:
-            return True
+            msg = False
+            self.XeprCmds = self.xepr.XeprCmds
+            if not self.hidden:
+                try:
+                    self.hidden = self.xepr.XeprExperiment('AcqHidden')
+                except ExperimentError:
+                    msg = ('Xepr is not connected to the spectrometer.' +
+                           'Please connect by pressing "Acquisition > ' +
+                           'Connect To Spectrometer..."')
+
+        if msg:
+            if raise_error:
+                raise RuntimeError(msg)
+            else:
+                logger.info(msg)
