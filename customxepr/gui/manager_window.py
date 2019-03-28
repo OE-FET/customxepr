@@ -128,7 +128,7 @@ logger.addHandler(error_handler)
 # Define JobStatusApp class
 # ========================================================================================
 
-# noinspection PyArgumentList
+# noinspection PyArgumentList,PyCallByClass
 class ManagerApp(QtWidgets.QMainWindow):
 
     """

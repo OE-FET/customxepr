@@ -12,12 +12,13 @@ import time
 import logging
 import logging.handlers
 import operator
+from PySignal import ClassSignal
 # noinspection PyCompatibility
 try:
     from queue import Queue, Empty
 except ImportError:
     from Queue import Queue, Empty
-from threading import RLock, Event
+from threading import RLock, Event, Thread
 from enum import Enum
 import collections
 
@@ -107,7 +108,7 @@ class Experiment(object):
 # custom queue which emits PyQt signals on put and get
 # =============================================================================
 
-class SignalQueue(QtCore.QObject, Queue):
+class SignalQueue(Queue):
     """
     Custom queue that emits Qt signals if an item is added or removed. Inherits
     from :class:`queue.Queue` and provides a thread-safe method to remove items
@@ -118,13 +119,12 @@ class SignalQueue(QtCore.QObject, Queue):
     :cvar removed_signal: Is emitted when items are removed from the queue.
     """
 
-    put_signal = QtCore.Signal()
-    pop_signal = QtCore.Signal()
-    removed_signal = QtCore.Signal(int, int)
+    put_signal = ClassSignal()
+    pop_signal = ClassSignal()
+    removed_signal = ClassSignal()
 
     def __init__(self):
-        QtCore.QObject.__init__(self)
-        Queue.__init__(self)
+        super(self.__class__, self).__init__()
 
     def _put(self, item):
         Queue._put(self, item)
@@ -184,7 +184,7 @@ class SignalQueue(QtCore.QObject, Queue):
 # custom queue for experiments where all history is kept
 # ========================================================================================
 
-class ExperimentQueue(QtCore.QObject):
+class ExperimentQueue(object):
     """
     Queue to hold all jobs: Pending, running and already completed. Items in
     this queue should be of type :class:`Experiment`.
@@ -197,9 +197,9 @@ class ExperimentQueue(QtCore.QObject):
         a tuple holding the job index and status.
     """
 
-    added_signal = QtCore.Signal()
-    removed_signal = QtCore.Signal(int, int)
-    status_changed_signal = QtCore.Signal(int, object)
+    added_signal = ClassSignal()
+    removed_signal = ClassSignal()
+    status_changed_signal = ClassSignal()
 
     _lock = RLock()
 
@@ -365,7 +365,7 @@ class ExperimentQueue(QtCore.QObject):
 
 
 # Worker needs to inherit from QObject so that it can be moved to QThread later
-class Worker(QtCore.QObject):
+class Worker(object):
     """
     Worker that gets all method calls with args from :attr:`job_q` and executes
     them. Results are then stored in the :attr:`result_q`.
@@ -379,7 +379,7 @@ class Worker(QtCore.QObject):
     running = Event()
 
     def __init__(self, job_q, result_q, abort_events):
-        super(self.__class__, self).__init__(None)
+        super(self.__class__, self).__init__()
         self.job_q = job_q
         self.result_q = result_q
         self.abort_events = abort_events
@@ -429,7 +429,7 @@ class Worker(QtCore.QObject):
 
 
 # noinspection PyUnresolvedReferences
-class Manager(QtCore.QObject):
+class Manager(object):
     """
     :class:`Manager` provides a high level interface for the scheduling and executing
     experiments. All queued experiments will be run in a background thread and
@@ -515,15 +515,11 @@ class Manager(QtCore.QObject):
         super(self.__class__, self).__init__()
 
         # create background thread to process all executions in queue
-        # we use QThread here, so that the worker can emit and connect to Qt Signals
-        self.worker_thread = QtCore.QThread()
-        self.worker_thread.setObjectName('CustomXeprWorkerThread')
         self.worker = Worker(self.job_queue, self.result_queue, self._abort_events)
-        self.worker.moveToThread(self.worker_thread)
+        self.thread = Thread(target= self.worker.process, name='ExperimentManagerThread')
 
-        self.worker_thread.started.connect(self.worker.process)
-        self.worker_thread.start()
         self.worker.running.set()
+        self.thread.start()
 
         self.running = self.worker.running
         self._abort_events = []
