@@ -239,7 +239,7 @@ class CustomXepr(QtCore.QObject):
         """
         Custom tuning routine with higher accuracy. It takes longer than :meth:`tune`
         and requires the spectrometer to be already close to tuned. In case of Q-values
-        < 4500, you can set :param:`lowQ` to `True` so that the tuning routine will cycle
+        < 4500, you can set ``lowQ`` to `True` so that the tuning routine will cycle
         through a smaller range of microwave powers. If Q < 3000, it is recommended to
         tune the spectrometer manually.
 
@@ -579,7 +579,7 @@ class CustomXepr(QtCore.QObject):
         Runs the Xepr experiment ``exp``. Keyword arguments ``kwargs`` allow the user to
         pass experiment settings to Xepr (e.g., 'ModAmp' for modulation amplitude).
         Allowed parameters will depend on the type of experiment and can be found from the
-        experiment table (at 'Acquisition > Experiment Table...') by selecting
+        experiment table in Xepr (at 'Acquisition > Experiment Table...') by selecting
         'Experiment > Show Description...'.
 
         If a temperature controller is connected, CustomXepr monitors the temperature
@@ -587,9 +587,9 @@ class CustomXepr(QtCore.QObject):
         given temperature stability requirement.
 
         If the ``path`` argument is given, the resulting data set is saved to the drive.
-        The temperature and its stability as well as the last-measurement (if available)
-        are written to the Bruker '.DSC' file. If no path is given, a temporary file will
-        be created (those are deleted periodically by the operating system).
+        Otherwise, a temporary file will be created (those are deleted periodically by the
+        operating system). The temperature and its stability as well as the
+        last-measurement Q-value (if available) are written to the Bruker '.DSC' file.
 
         :param exp: Xepr experiment object to run.
         :param bool retune: Retune iris and freq between scans (default: False).
@@ -759,6 +759,11 @@ class CustomXepr(QtCore.QObject):
         is `None` the currently displayed data set is saved.
 
         Xepr only allows file paths shorter than 128 characters.
+
+        .. note::
+           To save a just completed measurement, please use the ``path`` argument of
+           :func:`runXeprExperiment`. This will automatically add temperature stability
+           and Q-value information to your data files.
 
         :param str path: Absolute path to save data file. Must be shorter than 128
             characters.
@@ -1156,7 +1161,7 @@ class CustomXepr(QtCore.QObject):
         """
         Calculates the ideal heater voltage for a given temperature. This function can be
         used to check the current gas flow: If the heater voltage exceeds its target
-        value, the gas flow likely too high (and vice versa).
+        value, the gas flow likely is too high (and vice versa).
 
         :param float temperature: Temperature in Kelvin.
         """
@@ -1177,7 +1182,7 @@ class CustomXepr(QtCore.QObject):
     @queued_exec(manager.job_queue)
     def setTempRamp(self, ramp):
         """
-        Sets the temperature ramp for the ESR900 cryostat in K/min.
+        Sets the temperature ramp speed for the cryostat in K/min.
 
         :param float ramp: Ramp in Kelvin per minute.
         """
@@ -1204,7 +1209,7 @@ class CustomXepr(QtCore.QObject):
                             pulsed=K_CONF.get('Sweep', 'pulsed'),
                             path=None):
         """
-        Records a transfer curve and saves returns the resulting data. If a valid path is
+        Records a transfer curve and returns the resulting data. If a valid path is path
         given, the data is also saved as a .txt file.
 
         :param smu_gate: Name of SMU attached to the gate electrode of an FET.
@@ -1283,7 +1288,7 @@ class CustomXepr(QtCore.QObject):
     @queued_exec(manager.job_queue)
     def setGateVoltage(self, v, smu_gate=K_CONF.get('Sweep', 'gate')):
         """
-        Sets the gate bias of the given keithley, grounds other SMUs.
+        Sets the gate bias of the given Keithley SMU, grounds other SMUs.
 
         :param float v: Gate voltage in Volts.
         :param str smu_gate: Name of SMU. Defaults to the SMU saved as gate.
