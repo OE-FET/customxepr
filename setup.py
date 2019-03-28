@@ -54,6 +54,7 @@ setup(
                 "mercuryitc@git+https://github.com/OE-FET/mercuryitc",
                 "numpy",
                 "pygments",
+                "PySignal",
                 "qtpy",
                 "qtconsole",
                 "configparser;python_version<='2.7'",

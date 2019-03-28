@@ -4,6 +4,8 @@ configparser
 decorator
 future
 ipykernel
+pyvisa >= 1.9.0
+pyvisa-py >= 0.3.1
 keithley2600 >= 1.0.0
 keithleygui >= 1.0.0
 lmfit
@@ -12,8 +14,7 @@ mercurygui
 mercuryitc >= 0.2.0
 numpy
 pygments
-pyvisa >= 1.9.0
-pyvisa-py >= 0.3.1
+PySignal
 qtpy
 qtconsole
 scipy
