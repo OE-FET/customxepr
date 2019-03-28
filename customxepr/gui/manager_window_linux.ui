@@ -50,9 +50,6 @@
   <property name="windowTitle">
    <string>CustomXepr</string>
   </property>
-  <property name="unifiedTitleAndToolBarOnMac">
-   <bool>false</bool>
-  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <property name="leftMargin">
@@ -65,7 +62,7 @@
      <number>0</number>
     </property>
     <property name="bottomMargin">
-     <number>9</number>
+     <number>0</number>
     </property>
     <item row="0" column="0" colspan="4">
      <widget class="QTabWidget" name="tabWidget">
@@ -83,14 +80,39 @@
        <attribute name="title">
         <string>Pending jobs</string>
        </attribute>
-       <layout class="QGridLayout" name="gridLayout_4">
+       <layout class="QVBoxLayout" name="verticalLayout_2">
         <property name="leftMargin">
          <number>0</number>
         </property>
         <property name="rightMargin">
          <number>0</number>
         </property>
-        <item row="1" column="0">
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QTreeView" name="jobQueueDisplay">
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::ExtendedSelection</enum>
+          </property>
+          <property name="indentation">
+           <number>0</number>
+          </property>
+          <property name="uniformRowHeights">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
          <layout class="QGridLayout" name="gridLayoutJobControl">
           <property name="leftMargin">
            <number>20</number>
@@ -185,27 +207,43 @@
           </item>
          </layout>
         </item>
-        <item row="0" column="0">
-         <widget class="QTreeView" name="jobQueueDisplay">
-          <property name="frameShape">
-           <enum>QFrame::StyledPanel</enum>
+        <item>
+         <layout class="QGridLayout" name="gridLayout_8">
+          <property name="leftMargin">
+           <number>20</number>
           </property>
-          <property name="editTriggers">
-           <set>QAbstractItemView::NoEditTriggers</set>
+          <property name="topMargin">
+           <number>10</number>
           </property>
-          <property name="alternatingRowColors">
-           <bool>true</bool>
+          <property name="rightMargin">
+           <number>20</number>
           </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::ExtendedSelection</enum>
+          <property name="bottomMargin">
+           <number>7</number>
           </property>
-          <property name="indentation">
-           <number>0</number>
-          </property>
-          <property name="uniformRowHeights">
-           <bool>true</bool>
-          </property>
-         </widget>
+          <item row="0" column="0">
+           <widget class="QLabel" name="statusField">
+            <property name="font">
+             <font>
+              <italic>true</italic>
+             </font>
+            </property>
+            <property name="text">
+             <string>Status: --</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1" alignment="Qt::AlignRight">
+           <widget class="QLabel" name="labelCopyRight">
+            <property name="styleSheet">
+             <string notr="true">color: grey</string>
+            </property>
+            <property name="text">
+             <string>© 2018 Sam Schott</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>
@@ -213,14 +251,17 @@
        <attribute name="title">
         <string>Results</string>
        </attribute>
-       <layout class="QGridLayout" name="gridLayout_6">
+       <layout class="QVBoxLayout" name="verticalLayout">
         <property name="leftMargin">
          <number>0</number>
         </property>
         <property name="rightMargin">
          <number>0</number>
         </property>
-        <item row="0" column="0">
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
          <widget class="QTreeView" name="resultQueueDisplay">
           <property name="editTriggers">
            <set>QAbstractItemView::NoEditTriggers</set>
@@ -236,7 +277,7 @@
           </property>
          </widget>
         </item>
-        <item row="1" column="0">
+        <item>
          <layout class="QGridLayout" name="gridLayoutResultControl">
           <property name="leftMargin">
            <number>20</number>
@@ -262,20 +303,83 @@
           </item>
          </layout>
         </item>
+        <item>
+         <layout class="QGridLayout" name="gridLayout_9">
+          <property name="leftMargin">
+           <number>20</number>
+          </property>
+          <property name="topMargin">
+           <number>10</number>
+          </property>
+          <property name="rightMargin">
+           <number>20</number>
+          </property>
+          <property name="bottomMargin">
+           <number>7</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="statusField_2">
+            <property name="font">
+             <font>
+              <italic>true</italic>
+             </font>
+            </property>
+            <property name="text">
+             <string>Status: --</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1" alignment="Qt::AlignRight">
+           <widget class="QLabel" name="labelCopyRight_2">
+            <property name="styleSheet">
+             <string notr="true">color: grey</string>
+            </property>
+            <property name="text">
+             <string>© 2018 Sam Schott</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
        </layout>
       </widget>
       <widget class="QWidget" name="tabLog">
        <attribute name="title">
         <string>Message log</string>
        </attribute>
-       <layout class="QGridLayout" name="gridLayout_5">
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <property name="spacing">
+         <number>-1</number>
+        </property>
         <property name="leftMargin">
          <number>0</number>
         </property>
         <property name="rightMargin">
          <number>0</number>
         </property>
-        <item row="1" column="0">
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QTreeView" name="messageLogDisplay">
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::ExtendedSelection</enum>
+          </property>
+          <property name="uniformRowHeights">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
          <layout class="QGridLayout" name="gridLayoutLogControl" columnstretch="1,2">
           <property name="leftMargin">
            <number>20</number>
@@ -398,60 +502,47 @@
           </item>
          </layout>
         </item>
-        <item row="0" column="0">
-         <widget class="QTreeView" name="messageLogDisplay">
-          <property name="frameShape">
-           <enum>QFrame::StyledPanel</enum>
+        <item>
+         <layout class="QGridLayout" name="gridLayout_10">
+          <property name="leftMargin">
+           <number>20</number>
           </property>
-          <property name="editTriggers">
-           <set>QAbstractItemView::NoEditTriggers</set>
+          <property name="topMargin">
+           <number>10</number>
           </property>
-          <property name="alternatingRowColors">
-           <bool>true</bool>
+          <property name="rightMargin">
+           <number>20</number>
           </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::ExtendedSelection</enum>
+          <property name="bottomMargin">
+           <number>7</number>
           </property>
-          <property name="uniformRowHeights">
-           <bool>true</bool>
-          </property>
-         </widget>
+          <item row="0" column="0">
+           <widget class="QLabel" name="statusField_3">
+            <property name="font">
+             <font>
+              <italic>true</italic>
+             </font>
+            </property>
+            <property name="text">
+             <string>Status: --</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1" alignment="Qt::AlignRight">
+           <widget class="QLabel" name="labelCopyRight_3">
+            <property name="styleSheet">
+             <string notr="true">color: grey</string>
+            </property>
+            <property name="text">
+             <string>© 2018 Sam Schott</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>
      </widget>
-    </item>
-    <item row="2" column="0" rowspan="3" colspan="4">
-     <layout class="QGridLayout" name="gridLayout_8">
-      <property name="leftMargin">
-       <number>20</number>
-      </property>
-      <property name="rightMargin">
-       <number>20</number>
-      </property>
-      <item row="0" column="0">
-       <widget class="QLabel" name="statusField">
-        <property name="font">
-         <font>
-          <italic>true</italic>
-         </font>
-        </property>
-        <property name="text">
-         <string>Status: --</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1" alignment="Qt::AlignRight">
-       <widget class="QLabel" name="labelCopyRight">
-        <property name="styleSheet">
-         <string notr="true">color: grey</string>
-        </property>
-        <property name="text">
-         <string>© 2018 Sam Schott</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
     </item>
    </layout>
   </widget>
@@ -607,6 +698,22 @@
     <hint type="destinationlabel">
      <x>403</x>
      <y>331</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>labelCopyRight</sender>
+   <signal>windowIconTextChanged(QString)</signal>
+   <receiver>labelCopyRight</receiver>
+   <slot>setText(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>727</x>
+     <y>645</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>727</x>
+     <y>645</y>
     </hint>
    </hints>
   </connection>
