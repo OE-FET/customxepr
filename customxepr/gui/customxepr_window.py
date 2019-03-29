@@ -5,7 +5,7 @@ from qtpy import QtWidgets, QtCore, uic
 
 from customxepr.gui.manager_window import ManagerApp, logger
 
-_root = QtCore.QFileInfo(__file__).absolutePath()
+_root = os.path.dirname(os.path.realpath(__file__))
 
 
 # ========================================================================================

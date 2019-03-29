@@ -30,7 +30,7 @@ from customxepr.gui.notify import Notipy
 
 
 PY2 = sys.version[0] == '2'
-_root = QtCore.QFileInfo(__file__).absolutePath()
+_root = os.path.dirname(os.path.realpath(__file__))
 
 
 # ========================================================================================
