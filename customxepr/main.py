@@ -28,15 +28,14 @@ try:
 except ImportError:
     ExperimentError = RuntimeError
 
-
-PY2 = sys.version[0] == '2'
-
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'
 __year__ = str(time.localtime().tm_year)
 __version__ = 'v2.3.0'
 __url__ = 'https://customxepr.readthedocs.io'
 
 
+PY2 = sys.version[0] == '2'
+_root = os.path.dirname(os.path.realpath(__file__))
 logger = logging.getLogger('customxepr')
 
 
@@ -1157,15 +1156,24 @@ class CustomXepr(QtCore.QObject):
         logger.info(message)
 
     @staticmethod
-    def heater_target(temperature):
+    def heater_target(temperature, htt_file=None):
         """
-        Calculates the ideal heater voltage for a given temperature. This function can be
+        Returns the ideal heater voltage for a given temperature. This function can be
         used to check the current gas flow: If the heater voltage exceeds its target
         value, the gas flow likely is too high (and vice versa).
 
+        The
+
         :param float temperature: Temperature in Kelvin.
+        :param str htt_file: Custom file with heater target table. Every row must contain
+            a comma delimited pair of temperature in Kelvin and heater target voltage in
+            Volts. Target voltages are interpolated between given temperatures.
         """
-        return 4.5 * np.log(temperature) - 5.5
+        if htt_file is None:
+            htt_file = os.path.join(_root, 'experiment', 'mercury_htt.txt')
+
+        htt = np.loadtxt(htt_file, delimiter=',')
+        return np.interp(temperature, htt[:, 0], htt[:, 1])
 
     def _ramp_time(self):
         """

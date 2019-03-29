@@ -36,6 +36,7 @@ setup(
                     "gui/resources/*.icns",
                     "gui/resources/*.png",
                     "gui/*.ui",
+                    "experiment/*.txt",
                     ],
             },
     data_files=[('info', ['README.md', 'CHANGELOG.md'])],

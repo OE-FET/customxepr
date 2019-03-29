@@ -3,7 +3,11 @@
 _Added:_
 - Added a keyword argument `low_q` to `customtune` for low Q-values.
 - Added a keyword argument `auto_gf` to `setTemperature` to disable or enable automatic gasflow control.
+- Added an keyword argument to `heater_target` to select a custom heater target file.
 - Double click on a result item in the GUI to plot it.
+
+_Changed:_
+- Updated default heater target table for MercuryITC.
 
 #### v2.3.0 (2019-03-20)
 
