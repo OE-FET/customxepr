@@ -1,1 +1,3 @@
+PyVisa
+pyvisa-py
 m2r
