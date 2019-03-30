@@ -1,3 +1,4 @@
+decorator
 pyvisa
 pyvisa-py
 keithleygui

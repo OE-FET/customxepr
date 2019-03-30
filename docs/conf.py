@@ -22,7 +22,7 @@ autodoc_mock_imports = [
     'matplotlib.backends.backend_qt5agg',
     'PySignal',
     'lmfit',
-    'keithleygui',
+    'customxepr'
     ]
 
 sys.path.insert(0, os.path.abspath('.'))
