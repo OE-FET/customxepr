@@ -1163,12 +1163,12 @@ class CustomXepr(QtCore.QObject):
         value, the gas flow likely is too high (and vice versa).
 
         :func:`heater_target` accepts a file path ``htt_file`` to a custom heater target
-        table file, used instead of the default values for the ESR900 cryostat. Every row
-        must contain a comma delimited pair of temperature in Kelvin and heater target
-        voltage in Volts. Target voltages are interpolated between given temperatures.
+        table file, used instead of the default values for the ESR900 cryostat. The file
+        must contain comma-delimited pairs of temperature (in Kelvin) and heater target
+        voltage (in Volts) with a new line for each pair.
 
         :param float temperature: Temperature in Kelvin.
-        :param str htt_file: Path to custom file with heater target table.
+        :param str htt_file: Path to file with custom heater target table.
         """
         if htt_file is None:
             htt_file = os.path.join(_root, 'experiment', 'mercury_htt.txt')
