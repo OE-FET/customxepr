@@ -180,12 +180,8 @@ class ManagerApp(QtWidgets.QMainWindow):
             self.toolbar = QtWidgets.QToolBar(self)
             self.create_toolbar()
 
-        cpr_text = '© {0}, {1}.'.format(__year__, __author__)
-        self.labelCopyRight.setText(cpr_text)
-        if not platform.system() == 'Darwin':
-            # every tab has its own label if not on macOS
-            self.labelCopyRight_2.setText(cpr_text)
-            self.labelCopyRight_3.setText(cpr_text)
+        self.labelCopyRight.setText('© {0}, {1}.'.format(
+                __year__, __author__))
 
         # create about window and update window
         self.aboutWindow = AboutWindow()
@@ -272,10 +268,6 @@ class ManagerApp(QtWidgets.QMainWindow):
 
         # perform various UI updates after status change
         status_handler.status_signal.connect(self.statusField.setText)
-        if not platform.system() == 'Darwin':
-            # every tab has its own field if not on macOS
-            status_handler.status_signal.connect(self.statusField_2.setText)
-            status_handler.status_signal.connect(self.statusField_3.setText)
         status_handler.status_signal.connect(self.check_paused)
         status_handler.status_signal.connect(self.get_email_list)
 
