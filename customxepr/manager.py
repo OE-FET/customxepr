@@ -108,7 +108,7 @@ class Experiment(object):
 # custom queue which emits PyQt signals on put and get
 # =============================================================================
 
-class SignalQueue(Queue):
+class SignalQueue(Queue, object):
     """
     Custom queue that emits Qt signals if an item is added or removed. Inherits
     from :class:`queue.Queue` and provides a thread-safe method to remove items
