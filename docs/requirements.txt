@@ -1,3 +1,4 @@
+IPython
 PyVisa
 keithleygui
 pyvisa-py
