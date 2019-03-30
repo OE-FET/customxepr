@@ -23,7 +23,7 @@ autodoc_mock_imports = [
     'PySignal',
     'lmfit',
     'keithleygui',
-    'IPython']
+    ]
 
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../customxepr'))
