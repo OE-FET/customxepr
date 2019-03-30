@@ -254,13 +254,20 @@ class ManagerApp(QtWidgets.QMainWindow):
         # Connect signals, slots, and callbacks
         # ================================================================================
 
+        # cannot call Qt slots directly from PySignal in Python 2
+        def on_result_rows_removed(i0, n_items):
+            self.resultQueueModel.removeRows(i0, n_items)
+
+        def on_job_rows_removed(i0, n_items):
+            self.jobQueueModel.removeRows(i0, n_items)
+
         # update views when items are added to or removed from queues
         self.result_queue.put_signal.connect(self.add_result)
         self.result_queue.pop_signal.connect(self.on_result_pop)
-        self.result_queue.removed_signal.connect(self.resultQueueModel.removeRows)
+        self.result_queue.removed_signal.connect(self.on_result_rows_removed)
 
         self.job_queue.added_signal.connect(self.on_job_added)
-        self.job_queue.removed_signal.connect(self.jobQueueModel.removeRows)
+        self.job_queue.removed_signal.connect(self.on_job_rows_removed)
         self.job_queue.status_changed_signal.connect(self.on_job_status_changed)
 
         # perform various UI updates after status change
