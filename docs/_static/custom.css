@@ -4,6 +4,10 @@
     --color-secondary: #1e254a;
 }
 
+.wy-side-nav-search, .wy-nav-top {
+    background: var(--color-secondary);
+}
+
 .wy-nav-side {
     background: var(--color-secondary);
     color: white;
