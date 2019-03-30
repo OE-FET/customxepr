@@ -4,10 +4,6 @@
     --color-secondary: #1e254a;
 }
 
-.navbar {
-    margin-bottom: 0;
-}
-
 .wy-nav-side {
     background: var(--color-secondary);
     color: white;
@@ -23,8 +19,14 @@
 }
 
 
+.bg-dark {
+    background-color: var(--gammapy-secondary) !important;
+    /* TODO: Make navbar text brighter! */
+    color: white;
+}
+
 body {
-    color: var(--color-secondary);
+    color: var(--gammapy-secondary);
     font-family: 'Fira Sans', sans-serif;
 }
 
@@ -34,12 +36,7 @@ main {
 }
 
 a {
-    color: var(--color-primary);
-}
-
-footer {
-    padding-top: 1.5rem;
-    padding-bottom: 1rem;
+    color: var(--gammapy-primary);
 }
 
 
