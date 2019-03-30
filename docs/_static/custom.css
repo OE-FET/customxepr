@@ -1,15 +1,57 @@
-.wy-side-nav-search, .wy-nav-top {
-  background: #511D43;
+
+:root {
+    --color-primary: rgb(224, 10, 52);
+    --color-secondary: #1e254a;
 }
-/* Sidebar search field */
+
+.navbar {
+    margin-bottom: 0;
+}
+
 .wy-side-nav-search input[type=text] {
-    border-color: #3e0e2a
-}
-/* Sidebar */
-.wy-nav-side {
-  background: #41474e;
+    border-color: #202448
 }
 
 .wy-nav-content {
    max-width: 800 px
+}
+
+.bg-dark {
+    background-color: #1e254a !important;
+    /* TODO: Make navbar text brighter! */
+    color: white;
+}
+
+body {
+    color: var(--color-secondary);
+    font-family: 'Fira Sans', sans-serif;
+}
+
+main {
+    padding-top: 7rem;
+    margin-bottom: 0;
+}
+
+a {
+    color: var(--color-primary);
+}
+
+footer {
+    padding-top: 1.5rem;
+    padding-bottom: 1rem;
+}
+
+
+.btn-outline-primary {
+    background-color: white;
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:active,
+.btn-outline-primary:focus {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
 }
