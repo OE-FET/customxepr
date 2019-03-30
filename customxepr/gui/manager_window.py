@@ -267,8 +267,8 @@ class ManagerApp(QtWidgets.QMainWindow):
         self.result_queue.removed_signal.connect(on_result_rows_removed)
 
         self.job_queue.added_signal.connect(self.on_job_added)
-        self.job_queue.removed_signal.connect(self.on_job_rows_removed)
-        self.job_queue.status_changed_signal.connect(on_job_status_changed)
+        self.job_queue.removed_signal.connect(on_job_rows_removed)
+        self.job_queue.status_changed_signal.connect(self.on_job_status_changed)
 
         # perform various UI updates after status change
         status_handler.status_signal.connect(self.statusField.setText)
