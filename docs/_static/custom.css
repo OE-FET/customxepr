@@ -8,19 +8,20 @@
     margin-bottom: 0;
 }
 
+.wy-nav-side {
+    background: var(--color-secondary);
+    color: white;
+
 .wy-side-nav-search input[type=text] {
-    border-color: #202448
+    border-color: #202448;
+    background: var(--color-secondary);
+    color: white;
 }
 
 .wy-nav-content {
    max-width: 800 px
 }
 
-.bg-dark {
-    background-color: #1e254a !important;
-    /* TODO: Make navbar text brighter! */
-    color: white;
-}
 
 body {
     color: var(--color-secondary);
