@@ -1,5 +1,4 @@
-IPython
-PyVisa
-keithleygui
+pyvisa
 pyvisa-py
+keithleygui
 m2r

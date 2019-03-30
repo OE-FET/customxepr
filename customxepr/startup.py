@@ -13,11 +13,14 @@ import os
 import logging
 
 from qtpy import QtCore, QtWidgets
-from IPython import get_ipython
+try:
+    from IPython import get_ipython
+    ipython = get_ipython()
+except ImportError:
+    ipython = False
 
 from customxepr.gui import SplashScreen
 
-ipython = get_ipython()
 if ipython:
     # if we are running from IPython start integrated Qt event loop
     ipython.magic('%gui qt')
