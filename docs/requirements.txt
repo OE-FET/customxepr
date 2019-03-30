@@ -1,3 +1,4 @@
 PyVisa
+keithleygui
 pyvisa-py
 m2r
