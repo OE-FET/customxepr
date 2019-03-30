@@ -1,54 +1,53 @@
-
 :root {
     --color-primary: rgb(224, 10, 52);
     --color-secondary: #1e254a;
+    --color-lightgray: #f2f2f2;;
 }
 
-.wy-side-nav-search, .wy-nav-top {
-    background: var(--color-secondary);
-}
+/* sidebar header (and topbar for mobile) */
+ .wy-side-nav-search, .wy-nav-top {
+   background: var(--color-secondary);
+ }
 
-.wy-nav-side {
-    background: var(--color-secondary);
-    color: white;
-
-.wy-side-nav-search input[type=text] {
+ .wy-side-nav-search input[type=text] {
     border-color: #202448;
     background: var(--color-secondary);
     color: white;
 }
 
-.bg-dark {
-    background-color: var(--gammapy-secondary) !important;
-    /* TODO: Make navbar text brighter! */
-    color: white;
+/* sidebar */
+ .wy-nav-side {
+   background: var(--color-secondary);
 }
 
-body {
-    color: var(--gammapy-secondary);
-    font-family: 'Fira Sans', sans-serif;
+/* links outside nav */
+.rst-content a:link, .rst-content a:visited {
+   color: var(--color-primary);
+   text-decoration: none;
+ }
+
+/* admonitions only */
+.admonition.note {
+   background: var(--color-lightgray);
 }
 
-main {
-    padding-top: 7rem;
-    margin-bottom: 0;
+/* font size smaller and striped cols in notebook tables */
+.output_area {
+    font-size: 12px;
+}
+.output_area tr:nth-child(even) {background-color: var(--color-lightgray);}
+th {
+    background-color: #f2f2f2;
+    padding-right: 8px;
+    text-align: left;
 }
 
-a {
-    color: var(--gammapy-primary);
+/* font size smaller and not-stripped cols in API tables */
+table.docutils {
+    font-size: 14px;
 }
-
-
-.btn-outline-primary {
-    background-color: white;
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-}
-
-.btn-outline-primary:hover,
-.btn-outline-primary:active,
-.btn-outline-primary:focus {
-    background-color: var(--color-primary);
-    border-color: var(--color-primary);
-    color: white;
+.rst-content table.docutils:not(.field-list) tr:nth-child(2n-1) td,
+.wy-table-striped tr:nth-child(2n-1) td,
+.wy-table-odd td {
+     background-color: #fff;
 }
