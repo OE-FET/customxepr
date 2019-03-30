@@ -11,8 +11,6 @@
 
  .wy-side-nav-search input[type=text] {
     border-color: #202448;
-    background: var(--color-secondary);
-    color: white;
 }
 
 /* sidebar */
