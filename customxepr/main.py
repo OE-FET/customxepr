@@ -1199,7 +1199,7 @@ class CustomXepr(QtCore.QObject):
         self._check_for_mercury()
 
         # set temperature and wait to stabilize
-        self.feed.temperature.loop_rena = ramp
+        self.feed.temperature.loop_rset = ramp
         logger.info('Temperature ramp set to %s K/min.' % ramp)
 
 # ========================================================================================
