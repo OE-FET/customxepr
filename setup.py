@@ -37,10 +37,10 @@ setup(
                     "gui/resources/*.png",
                     "gui/*.ui",
                     "experiment/*.txt",
-                    ],
-            },
+            ],
+    },
     data_files=[('info', ['README.md', 'CHANGELOG.md'])],
-    install_requires=["IPython",
+    install_requires=[
                 "decorator",
                 "future",
                 "ipython",
@@ -60,7 +60,7 @@ setup(
                 "keithleygui@git+https://github.com/OE-FET/keithleygui",
                 "mercurygui@git+https://github.com/OE-FET/mercurygui",
                 "mercuryitc@git+https://github.com/OE-FET/mercuryitc",
-                ],
+    ],
     zip_safe=False,
     entry_points={
       "console_scripts": ["CustomXepr=customxepr.startup:run"],
