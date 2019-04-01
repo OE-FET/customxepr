@@ -15,15 +15,15 @@ import logging
 from qtpy import QtCore, QtWidgets
 try:
     from IPython import get_ipython
-    ipython = get_ipython()
+    IP = get_ipython()
 except ImportError:
-    ipython = False
+    IP = False
 
 from customxepr.gui import SplashScreen
 
-if ipython:
+if IP:
     # if we are running from IPython start integrated Qt event loop
-    ipython.magic('%gui qt')
+    IP.magic('%gui qt')
     app = QtWidgets.QApplication(['CustomXepr'])
 
 
@@ -41,14 +41,11 @@ def get_qt_app():
     :rtype: (:class:`qtpy.QtWidgets.QApplication`, bool)
     """
 
-    from IPython import get_ipython
-
-    ipython = get_ipython()
-    if ipython:
+    if IP:
         interactive = True
         # disable autoreload
-        ipython.magic('%load_ext autoreload')
-        ipython.magic('%autoreload 0')
+        IP.magic('%load_ext autoreload')
+        IP.magic('%autoreload 0')
         os.environ.update(SPY_UMR_ENABLED='False')
         # get app instance
         app = QtWidgets.QApplication.instance()
@@ -240,6 +237,7 @@ def run():
         customXepr_gui.exit_()
         mercury_gui.exit_()
         keithley_gui.exit_()
+
 
 if __name__ == '__main__':
     customXepr, xepr, mercury, mercury_feed, keithley, customXepr_gui, \
