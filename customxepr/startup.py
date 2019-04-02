@@ -230,13 +230,17 @@ def run():
         patch_excepthook()
         # remove splash screen
         splash.close()
+        
         # start event loop
-        kernel.ipkernel.start()
+        res = kernel.ipkernel.start()
 
         # disconnect from instruments when quitting
         customXepr_gui.exit_()
         mercury_gui.exit_()
         keithley_gui.exit_()
+        
+        # exit system
+        sys.exit(res)
 
 
 if __name__ == '__main__':
