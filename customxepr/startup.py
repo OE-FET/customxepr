@@ -225,13 +225,17 @@ def run():
                     }
 
         kernel.send_to_namespace(var_dict)
-        # set shutdown behaviour
-        app.aboutToQuit.connect(kernel.cleanup_consoles)
+
         # patch exception hook to display errors from Qt event loop
         patch_excepthook()
         # remove splash screen
         splash.close()
         
+        # set shutdown behaviour
+        app.aboutToQuit.connect(kernel.cleanup_consoles)
+        app.aboutToQuit.connect(customXepr_gui.exit_)
+        app.aboutToQuit.connect(mercury_gui.exit_)
+        app.aboutToQuit.connect(keithley_gui.exit_)
         # start event loop
         kernel.ipkernel.start()
 
