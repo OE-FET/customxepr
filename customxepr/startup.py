@@ -233,7 +233,7 @@ def run():
         splash.close()
         
         # start event loop
-        sys.exit(kernel.ipkernel.start())
+        kernel.ipkernel.start()
 
         # disconnect from instruments when quitting
         #customXepr_gui.exit_()
