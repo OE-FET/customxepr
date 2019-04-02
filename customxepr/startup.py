@@ -233,15 +233,12 @@ def run():
         splash.close()
         
         # start event loop
-        res = kernel.ipkernel.start()
+        sys.exit(kernel.ipkernel.start())
 
         # disconnect from instruments when quitting
-        customXepr_gui.exit_()
-        mercury_gui.exit_()
-        keithley_gui.exit_()
-        
-        # exit system
-        sys.exit(res)
+        #customXepr_gui.exit_()
+        #mercury_gui.exit_()
+        #keithley_gui.exit_()
 
 
 if __name__ == '__main__':
