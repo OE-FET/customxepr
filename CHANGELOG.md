@@ -8,6 +8,8 @@ _Added:_
 
 _Changed:_
 - Updated default heater target table for MercuryITC.
+- Delete log files older than 7 days on startup.
+- Removed all Qt related depencies from non-GUI modules. This makes it easier to run CustomXepr in headless mode from the command line.
 
 #### v2.3.0 (2019-03-20)
 
