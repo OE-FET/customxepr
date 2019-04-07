@@ -621,10 +621,10 @@ class Manager(object):
             root_logger.addHandler(email_handler)
 
         # add file handler if not present
-        if len(fh) == 0:
-            home_path = os.path.expanduser('~')
-            logging_path = os.path.join(home_path, '.CustomXepr', 'LOG_FILES')
+        home_path = os.path.expanduser('~')
+        logging_path = os.path.join(home_path, '.CustomXepr', 'LOG_FILES')
 
+        if len(fh) == 0:
             if not os.path.exists(logging_path):
                 os.makedirs(logging_path)
 
@@ -634,6 +634,16 @@ class Manager(object):
             file_handler.setFormatter(f)
             file_handler.setLevel(logging.INFO)
             root_logger.addHandler(file_handler)
+
+        # delete old log files
+        now = time.time()
+        days_to_keep = 7
+
+        for f in os.listdir(path):
+            if os.stat(f).st_mtime < now - days_to_keep*24*60*60:
+                if os.path.isfile(f):
+                    os.remove(os.path.join(path, f))
+
 
     @property
     def notify_address(self):
