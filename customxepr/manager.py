@@ -640,10 +640,10 @@ class Manager(object):
         days_to_keep = 7
 
         for f in os.listdir(path):
+            f = os.path.join(path, f)
             if os.stat(f).st_mtime < now - days_to_keep*24*60*60:
                 if os.path.isfile(f):
-                    os.remove(os.path.join(path, f))
-
+                    os.remove(f)
 
     @property
     def notify_address(self):
