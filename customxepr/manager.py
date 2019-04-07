@@ -23,8 +23,6 @@ from enum import Enum
 import collections
 
 from decorator import decorator
-from qtpy import QtCore
-
 from customxepr.config import CONF
 
 
@@ -516,7 +514,7 @@ class Manager(object):
 
         # create background thread to process all executions in queue
         self.worker = Worker(self.job_queue, self.result_queue, self._abort_events)
-        self.thread = Thread(target= self.worker.process, name='ExperimentManagerThread')
+        self.thread = Thread(target=self.worker.process, name='ExperimentManagerThread')
 
         self.worker.running.set()
         self.thread.start()
