@@ -91,7 +91,6 @@ def connect_to_instruments():
     :returns: Tuple containing instrument instances.
     """
 
-    import sys
     from keithley2600 import Keithley2600
     from keithleygui import CONF as KCONF
     from mercuryitc import MercuryITC
@@ -230,7 +229,7 @@ def run():
         patch_excepthook()
         # remove splash screen
         splash.close()
-        
+
         # set shutdown behaviour
         app.aboutToQuit.connect(kernel.cleanup_consoles)
         app.aboutToQuit.connect(customXepr_gui.exit_)
@@ -240,12 +239,11 @@ def run():
         kernel.ipkernel.start()
 
         # disconnect from instruments when quitting
-        #customXepr_gui.exit_()
-        #mercury_gui.exit_()
-        #keithley_gui.exit_()
+        # customXepr_gui.exit_()
+        # mercury_gui.exit_()
+        # keithley_gui.exit_()
 
 
 if __name__ == '__main__':
     customXepr, xepr, mercury, mercury_feed, keithley, customXepr_gui, \
         mercury_gui, keithley_gui = run()
-

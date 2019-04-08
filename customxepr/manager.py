@@ -639,8 +639,8 @@ class Manager(object):
         now = time.time()
         days_to_keep = 7
 
-        for f in os.listdir(path):
-            f = os.path.join(path, f)
+        for f in os.listdir(logging_path):
+            f = os.path.join(logging_path, f)
             if os.stat(f).st_mtime < now - days_to_keep*24*60*60:
                 if os.path.isfile(f):
                     os.remove(f)
