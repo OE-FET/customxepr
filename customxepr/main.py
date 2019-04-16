@@ -744,7 +744,7 @@ class CustomXepr(QtCore.QObject):
             new_group.pars['Stability'] = XeprParam(round(temperature_var, 4), 'K')
             new_group.pars['Mean'] = XeprParam(round(temperature_mean, 4), 'K')
 
-            dset.dsl.groups['tempCtrl'] = new_group.pars
+            dset.dsl.groups['tempCtrl'] = new_group
 
         if retune:
             dset.pars['AcqFineTuning'] = 'Slice'  # TODO: confirm correct value
