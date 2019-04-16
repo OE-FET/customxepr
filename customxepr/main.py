@@ -612,7 +612,7 @@ class CustomXepr(QtCore.QObject):
 
         # -------------------start experiment----------------------------------
         temperature_mean = temperature_var = None
-        if self._check_for_mercury():
+        if self._check_for_mercury(raise_error=False):
             temperature_history = np.array([])
         else:
             temperature_history = None
@@ -1345,27 +1345,29 @@ class CustomXepr(QtCore.QObject):
         """
 
         if not self.feed or not self.feed.mercury:
-            msg = ('No Mercury instance supplied. Functions that ' +
-                   'require a connected cryostat will not work.')
+            error_info = ('No Mercury instance supplied. Functions that ' +
+                          'require a connected cryostat will not work.')
         elif not self.feed.mercury.connected:
-            msg = ('MercuryiTC is not connected. Functions that ' +
-                   'require a connected cryostat will not work.')
+            error_info = ('MercuryiTC is not connected. Functions that ' +
+                          'require a connected cryostat will not work.')
         elif self.feed.heater is None:
-            msg = ('MercuryiTC error: No heater module configured for ' +
-                   '%s. ' % self.feed.temperature.nick +
-                   'Functions that require a connected cryostat will not work.')
+            error_info = ('MercuryiTC error: No heater module configured for ' +
+                          '%s. ' % self.feed.temperature.nick +
+                          'Functions that require a connected cryostat will not work.')
         elif self.feed.gasflow is None:
-            msg = ('MercuryiTC error: No gas flow module configured for ' +
-                   '%s. ' % self.feed.temperature.nick +
-                   'Functions that require a connected cryostat will not work.')
+            error_info = ('MercuryiTC error: No gas flow module configured for ' +
+                          '%s. ' % self.feed.temperature.nick +
+                          'Functions that require a connected cryostat will not work.')
         else:
-            msg = False
+            error_info = False
 
-        if msg:
+        if error_info:
             if raise_error:
-                raise RuntimeError(msg)
-            else:
-                logger.info(msg)
+                raise RuntimeError(error_info)
+            logger.info(error_info)
+            return False
+        else:
+            return True
 
     def _check_for_keithley(self, raise_error=True):
         """
@@ -1374,40 +1376,44 @@ class CustomXepr(QtCore.QObject):
         """
 
         if not self.keithley:
-            msg = ('No Keithley instance supplied. Functions that ' +
-                   'require a connected Keithley SMU will not work.')
+            error_info = ('No Keithley instance supplied. Functions that ' +
+                          'require a connected Keithley SMU will not work.')
         elif not self.keithley.connected:
-            msg = ('Keithley is not connected. Functions that ' +
-                   'require a connected Keithley will not work.')
+            error_info = ('Keithley is not connected. Functions that ' +
+                          'require a connected Keithley will not work.')
         else:
-            msg = False
+            error_info = False
 
-        if msg:
+        if error_info:
             if raise_error:
-                raise RuntimeError(msg)
-            else:
-                logger.info(msg)
+                raise RuntimeError(error_info)
+            logger.info(error_info)
+            return False
+        else:
+            return True
 
     def _check_for_xepr(self, raise_error=True):
         if not self.xepr:
-            msg = ('No Xepr instance supplied. Functions that ' +
-                   'require Xepr will not work.')
+            error_info = ('No Xepr instance supplied. Functions that ' +
+                          'require Xepr will not work.')
         elif not self.xepr.XeprActive():
-            msg = ('Xepr API not active. Please activate Xepr API by ' +
-                   'pressing "Processing > XeprAPI > Enable Xepr API"')
+            error_info = ('Xepr API not active. Please activate Xepr API by ' +
+                          'pressing "Processing > XeprAPI > Enable Xepr API"')
         else:
-            msg = False
+            error_info = False
             self.XeprCmds = self.xepr.XeprCmds
             if not self.hidden:
                 try:
                     self.hidden = self.xepr.XeprExperiment('AcqHidden')
                 except ExperimentError:
-                    msg = ('Xepr is not connected to the spectrometer.' +
-                           'Please connect by pressing "Acquisition > ' +
-                           'Connect To Spectrometer..."')
+                    error_info = ('Xepr is not connected to the spectrometer.' +
+                                  'Please connect by pressing "Acquisition > ' +
+                                  'Connect To Spectrometer..."')
 
-        if msg:
+        if error_info:
             if raise_error:
-                raise RuntimeError(msg)
-            else:
-                logger.info(msg)
+                raise RuntimeError(error_info)
+            logger.info(error_info)
+            return False
+        else:
+            return True
