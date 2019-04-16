@@ -732,8 +732,8 @@ class CustomXepr(QtCore.QObject):
 
         if self._last_qvalue is not None:
             try:
-                dset.set_par('QValue', self._last_qvalue)
-            except ValueError:
+                dset.pars['QValue'] = self._last_qvalue
+            except KeyError:  # the parameter 'QValue' doesn't exist yet
                 dset.dsl.groups['mwBridge'].pars['QValue'] = XeprParam(self._last_qvalue)
 
         if temperature_history is not None:
@@ -747,7 +747,8 @@ class CustomXepr(QtCore.QObject):
             dset.dsl.groups['tempCtrl'] = new_group.pars
 
         if retune:
-            dset.set_par('AcqSliceFTuning', 'On')  # TODO: confirm correct value
+            dset.pars['AcqFineTuning'] = 'Slice'  # TODO: confirm correct value
+            dset.pars['AcqSliceFTuning'] = 'On'
 
         dset.save(path)
 

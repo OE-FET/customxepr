@@ -11,6 +11,7 @@ import os
 import re
 import numpy as np
 import itertools
+from collections.abc import Mapping
 
 
 def is_metadata(line):
@@ -366,6 +367,62 @@ class ManipulationHistoryLayer(ParamLayer):
     GROUP_CLASS = ParamGroupMHL
 
 
+class ParamDict(Mapping):
+
+    def __init__(self, layers):
+
+        for layer in layers:
+            if not isinstance(layer, ParamLayer):
+                raise ValueError('Layers must all be instances of "ParamLayer".')
+
+        self.layers = layers
+
+    def _flatten(self):
+
+        flat_dict = dict()
+
+        for layer in self.layers:
+            for group in layer.groups.values():
+                flat_dict.update(group.pars)
+
+        return flat_dict
+
+    def __getitem__(self, name):
+
+        flat_dict = self._flatten()
+
+        return flat_dict[name]
+
+    def __setitem__(self, name, value):
+
+        if not isinstance(value, XeprParam):
+            raise ValueError('Assigned value must be of type "XeprParam".')
+
+        is_set = False
+
+        for layer in self.layers:
+            for group in layer.groups.values():
+                if name in group.pars.keys():
+                    if isinstance(value, XeprParam):
+                        group.pars[name] = value
+                    else:
+                        group.pars[name] = XeprParam(value)
+                    is_set = True
+
+        if not is_set:
+            raise KeyError('Parameter "%s" does not exist yet.' % name +
+                           'To create a new parameter, you must assign it directly ' +
+                           'to an existing parameter layer / group.')
+
+    def __iter__(self):
+        flat_dict = self._flatten()
+        return iter(flat_dict)
+
+    def __len__(self):
+        flat_dict = self._flatten()
+        return len(flat_dict)
+
+
 # noinspection PyTypeChecker
 class XeprData(object):
     """
@@ -398,8 +455,9 @@ class XeprData(object):
 
     :Example:
 
-        Read a data file and get some information:
+        Read a data file and get some information about the device specific parameters:
 
+        >>> from customxepr import XeprData, XeprParam
         >>> data_set = XeprData('/path/to/file.DSC')
         >>> data_set.dsl.groups
         {'fieldCtrl': <ParamGroupDSL(fieldCtrl)>,
@@ -408,23 +466,25 @@ class XeprData(object):
          'mwBridge': <ParamGroupDSL(mwBridge)>,
          'recorder': <ParamGroupDSL(recorder)>,
          'signalChannel': <ParamGroupDSL(signalChannel)>}
-        >>> data_set.dsl.groups['mwBridge'].pars['Power']
-        <XeprParam(0.002 mW)>
-        >>> data_set.dsl.groups['signalChannel'].pars['ModAmp']
-        <XeprParam(1.5 G)>
+        >>> data_set.dsl.groups['mwBridge'].pars
+        {'AcqFineTuning': <XeprParam(Never)>,
+         'AcqScanFTuning': <XeprParam(Off)>,
+         'AcqSliceFTuning': <XeprParam(Off)>,
+         'BridgeCalib': <XeprParam(50.5)>,
+         'Power': <XeprParam(0.002 mW)>,
+         'PowerAtten': <XeprParam(50.0 dB)>,
+         'QValue': <XeprParam(5900)>}
 
-        Update an existing parameter:
+        Change the value of an existing parameter:
 
-        >>> data_set.set_par('ModAmp', value=2, unit='G')
-        >>> s_ch = data_set.dsl.groups['signalChannel']
-        >>> s_ch.pars['ModAmp'] = XeprParam(2, 'G')
+        >>> data_set.pars['ModAmp'] = XeprParam(value=2, unit='G')
 
-        Add a new parameter:
+        Add a new parameter (this must added to the appropriate parameter group directly):
 
         >>> mw_bridge = data_set.dsl.groups['mwBridge']
-        >>> mw_bridge.pars['QValue']  = XeprParam(2, 'G')
+        >>> mw_bridge.pars['QValue']  = XeprParam(6789)
 
-        Add a new temperature controller parameter group:
+        Add a new parameter group for a temperature controller:
 
         >>> pars = {'Temperature': XeprParam(290, 'K'),
         ...         'AcqWaitTime': XeprParam(120, 's')}
@@ -446,6 +506,8 @@ class XeprData(object):
         self.spl = StandardParameterLayer()  # Standard Parameter Layer (optional)
         self.dsl = DeviceSpecificLayer()  # Device Specific Layer (optional)
         self.mhl = ManipulationHistoryLayer()  # Manipulation History Layer (optional)
+
+        self.pars = ParamDict(layers=[self.desc, self.spl, self.dsl, self.dsl, self.mhl])
 
         self._dsc = None
         self._dta = np.array([], dtype='>f8')
@@ -564,60 +626,6 @@ class XeprData(object):
 
         if self.pars['ZTYP'].value == 'IGD':
             self.z.tofile(base_path + '.YGF')
-
-    @property
-    def pars(self):
-        """
-        Dictionary containing all measurement parameters. This property is read-only
-        and will be created on-demand. Use :meth:`set_par` to set a parameter instead.
-        """
-        all_pars = dict()
-        for layer in [self.desc, self.spl, self.dsl, self.mhl]:
-            for group in layer.groups.values():
-                all_pars.update(group.pars)
-
-        return all_pars
-
-    def get_par(self, name):
-        """
-        Gets the specified parameter. The parameter must exist in one of the parameter
-        layers. If multiple parameters with the same name exist, the first match will
-        be returned.
-
-        :param str name: Parameter name.
-        :returns: Xepr data set parameter.
-        :rtype: :class:`XeprParam`
-        """
-
-        for layer in [self.desc, self.spl, self.dsl, self.mhl]:
-            for group in layer.groups.values():
-                if name in group.pars.keys():
-                    return group.pars[name]
-
-        raise ValueError('Parameter "%s" does not exist.' % name)
-
-    def set_par(self, name, value, unit='', comment=''):
-        """
-        Sets the specified parameter. The parameter must already exist in one of the
-        parameter layers. If multiple parameters exist with the same name, all of their
-        values will be set. New parameters must be created and assigned directly to a
-        subgroup of a parameter layer.
-
-        :param str name: Parameter name.
-        :param value: Parameter value to set.
-        :param str unit: Parameter unit to set (default: '').
-        :param str comment: Parameter comment to set (default: '').
-        """
-        is_set = False
-
-        for layer in [self.desc, self.spl, self.dsl, self.mhl]:
-            for group in layer.groups.values():
-                if name in group.pars.keys():
-                    group.pars[name] = XeprParam(value, unit, comment)
-                    is_set = True
-
-        if not is_set:
-            raise ValueError('Parameter "%s" does not exist.' % name)
 
     def print_dsc(self):
         """
