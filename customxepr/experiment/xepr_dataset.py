@@ -115,10 +115,10 @@ class XeprParam(object):
                 par_value = ' '.join(contents)
 
         if par_header:
-            self.value = np.array([float(x) for x in par_value.split(',')])
+            array = np.array([float(x) for x in par_value.split(',')])
             shape = [int(x) for x in par_header.split(';')[1].split(',')]
             shape.reverse()
-            self.value = self.value.reshape(shape).transpose()
+            self.value = array.reshape(shape)
         else:
             try:
                 if '.' in par_value:
@@ -134,11 +134,7 @@ class XeprParam(object):
                     self.value = par_value
 
     def __repr__(self):
-        if self.unit:
-            return '<{0}({1} {2})>'.format(self.__class__.__name__,
-                                           str(self.value), str(self.unit))
-        else:
-            return '<{0}({1})>'.format(self.__class__.__name__, str(self.value))
+        return '<{0}({1})>'.format(self.__class__.__name__, self.to_string())
 
 
 class ParamGroup(object):
