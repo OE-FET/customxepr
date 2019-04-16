@@ -395,9 +395,6 @@ class ParamDict(Mapping):
 
     def __setitem__(self, name, value):
 
-        if not isinstance(value, XeprParam):
-            raise ValueError('Assigned value must be of type "XeprParam".')
-
         is_set = False
 
         for layer in self.layers:
