@@ -734,18 +734,20 @@ class CustomXepr(QtCore.QObject):
             try:
                 dset.set_par('QValue', self._last_qvalue)
             except ValueError:
-                mw_bridge_layer = dset.dsl.groups['mwBridge']
-                mw_bridge_layer.pars['QValue'] = XeprParam(self._last_qvalue)
+                dset.dsl.groups['mwBridge'].pars['QValue'] = XeprParam(self._last_qvalue)
 
         if temperature_history is not None:
-            param_list = dict()
-            param_list['AcqWaitTime'] = XeprParam(self.temp_wait_time, 's')
-            param_list['Temperature'] = XeprParam(self.feed.temperature.loop_tset, 'K')
-            param_list['Tolerance'] = XeprParam(self.temperature_tolerance, 'K')
-            param_list['Stability'] = XeprParam(round(temperature_var, 4), 'K')
-            param_list['Mean'] = XeprParam(round(temperature_mean, 4), 'K')
-            tg = ParamGroupDSL(name='tempCtrl', pars=param_list)
-            dset.dsl.groups['tempCtrl'] = tg
+            new_group = ParamGroupDSL(name='tempCtrl')
+            new_group.pars['AcqWaitTime'] = XeprParam(self.temp_wait_time, 's')
+            new_group.pars['Temperature'] = XeprParam(self.feed.temperature.loop_tset, 'K')
+            new_group.pars['Tolerance'] = XeprParam(self.temperature_tolerance, 'K')
+            new_group.pars['Stability'] = XeprParam(round(temperature_var, 4), 'K')
+            new_group.pars['Mean'] = XeprParam(round(temperature_mean, 4), 'K')
+
+            dset.dsl.groups['tempCtrl'] = new_group.pars
+
+        if retune:
+            dset.set_par('AcqSliceFTuning', 'On')  # TODO: confirm correct value
 
         dset.save(path)
 
