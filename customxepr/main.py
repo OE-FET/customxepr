@@ -731,9 +731,9 @@ class CustomXepr(QtCore.QObject):
         dset = XeprData(dsc_path)
 
         if self._last_qvalue is not None:
-            try:
+            if 'QValue' in dset.pars:
                 dset.pars['QValue'] = self._last_qvalue
-            except KeyError:  # the parameter 'QValue' doesn't exist yet
+            else:  # the parameter 'QValue' doesn't exist yet
                 dset.dsl.groups['mwBridge'].pars['QValue'] = XeprParam(self._last_qvalue)
 
         if temperature_history is not None:

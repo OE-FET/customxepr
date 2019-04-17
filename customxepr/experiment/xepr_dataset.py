@@ -11,7 +11,10 @@ import os
 import re
 import numpy as np
 import itertools
-from collections.abc import Mapping
+try:
+    from collections.abc import MutableMapping
+except ImportError:
+    from collections import MutableMapping
 
 
 def is_metadata(line):
@@ -367,7 +370,7 @@ class ManipulationHistoryLayer(ParamLayer):
     GROUP_CLASS = ParamGroupMHL
 
 
-class ParamDict(Mapping):
+class ParamDict(MutableMapping):
 
     def __init__(self, layers):
 
@@ -387,29 +390,50 @@ class ParamDict(Mapping):
 
         return flat_dict
 
-    def __getitem__(self, name):
+    def copy(self):
+        """
+        Returns the flatted dictionary.
+
+        :rtype: dict
+        """
+        return self._flatten()
+
+    def __getitem__(self, key):
 
         flat_dict = self._flatten()
 
-        return flat_dict[name]
+        return flat_dict[key]
 
-    def __setitem__(self, name, value):
+    def __setitem__(self, key, value):
 
         is_set = False
 
         for layer in self.layers:
             for group in layer.groups.values():
-                if name in group.pars.keys():
+                if key in group.pars.keys():
                     if isinstance(value, XeprParam):
-                        group.pars[name] = value
+                        group.pars[key] = value
                     else:
-                        group.pars[name] = XeprParam(value)
+                        group.pars[key] = XeprParam(value)
                     is_set = True
 
         if not is_set:
-            raise KeyError('Parameter "%s" does not exist yet.' % name +
+            raise KeyError('Parameter "%s" does not exist yet.' % key +
                            'To create a new parameter, you must assign it directly ' +
                            'to an existing parameter layer / group.')
+
+    def __delitem__(self, key):
+
+        is_deleted = False
+
+        for layer in self.layers:
+            for group in layer.groups.values():
+                if key in group.pars.keys():
+                    del group.pars[key]
+                    is_deleted = True
+
+        if not is_deleted:
+            raise KeyError('Parameter "%s" does not exist.' % key)
 
     def __iter__(self):
         flat_dict = self._flatten()
