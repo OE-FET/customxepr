@@ -10,6 +10,10 @@ _Changed:_
 - Updated default heater target table for MercuryITC.
 - Delete log files older than 7 days on startup.
 - Removed all Qt related depencies from non-GUI modules. This makes it easier to run CustomXepr in headless mode from the command line.
+- Simplified access and modification of `XeprData` paramaters. Parameters can now be updated by assigning a value to their dictionary entry.
+
+_Removed:_
+- Deprecated `set_param` and `get_param` methods of `XeprData`. Use the `pars` attribute and with dictionary type access instead.
 
 #### v2.3.0 (2019-03-20)
 
