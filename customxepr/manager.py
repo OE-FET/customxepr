@@ -175,6 +175,9 @@ class SignalQueue(Queue, object):
         for i in range(n_items):
             self.task_done()
 
+    def __repr__(self):
+        return '<{0}({1} results)>'.format(self.__class__.__name__, self.qsize())
+
 
 # ========================================================================================
 # custom queue for experiments where all history is kept
@@ -350,7 +353,7 @@ class ExperimentQueue(object):
             return self._history.qsize() + self._running.qsize() + self._queued.qsize()
 
     def __repr__(self):
-        return '<{0}(history={1}, running={2}, queued={3})>'.format(
+        return '<{0}({1} done, {2} running, {3} queued)>'.format(
             self.__class__.__name__, self.qsize('history'), self.qsize('running'),
             self.qsize('queued'))
 
