@@ -465,14 +465,17 @@ class XeprData(object):
         describe manipulations performed on the data set (e.g., baseline correction,
         scaling, ...).
 
-    The actual data is stored as numpy arrays:
+    The actual data is accessible as numpy arrays:
 
-    :ivar x: X-axis data, for instance the external magnetic field.
+    :ivar x: x-axis data, for instance the external magnetic field.
     :ivar y: If present, y-axis data. Can be any parameter which is swept during an EPR
         experiment, for instance sample angles or microwave powers.
     :ivar z: If present, z-axis data. Can be any parameter which is swept during an EPR
         experiment, for instance sample angles or microwave powers.
     :ivar o: Ordinate. Contains the measured EPR signal.
+
+    It is currently not possible to change the x/y/z-axis data. Ordinate data can be
+    changed, but must match the previous dimensions.
 
     :Example:
 
@@ -533,13 +536,40 @@ class XeprData(object):
         self._dsc = None
         self._dta = np.array([], dtype='>f8')
 
-        self.x = np.array([], dtype='>f8')
-        self.y = np.array([], dtype='>f8')
-        self.z = np.array([], dtype='>f8')
-        self.o = np.array([], dtype='>f8')
+        self._x = np.array([], dtype='>f8')
+        self._y = np.array([], dtype='>f8')
+        self._z = np.array([], dtype='>f8')
+        self._o = np.array([], dtype='>f8')
 
         if path:
             self.load(path)
+
+    @property
+    def x(self):
+        return self._x.astype('float64')
+
+    @property
+    def y(self):
+        return self._y.astype('float64')
+
+    @property
+    def z(self):
+        return self._z.astype('float64')
+
+    @property
+    def o(self):
+        return self._o.astype('float64')
+
+    @o.setter
+    def o(self, array_like):
+        tmp_array = np.array(array_like, dtype='>f8')
+
+        if not tmp_array.shape == self._o.shape:
+            raise ValueError('Ordinate array must have the shape {0!r} '.format(self._o.shape) +
+                             'to match the axis data.')
+
+        self._o = tmp_array
+        self._dta = self._o.flatten()
 
     def load(self, path):
         """
@@ -551,11 +581,12 @@ class XeprData(object):
         """
 
         path = os.path.expanduser(path)
-
-        if not os.path.isfile(path):
-            raise ValueError('No such file: %s' % path)
-
         base_path = path.split('.')[0]
+
+        dsc_path = base_path + '.DSC'
+
+        if not os.path.isfile(dsc_path):
+            raise ValueError('No such file: %s' % dsc_path)
 
         self._load_dsc(base_path)
         self._load_dta(base_path)
@@ -590,32 +621,32 @@ class XeprData(object):
             x_min = self.pars['XMIN'].value
             x_max = x_min + self.pars['XWID'].value
             x_pts = self.pars['XPTS'].value
-            self.x = np.linspace(x_min, x_max, x_pts, dtype='>f8')
+            self._x = np.linspace(x_min, x_max, x_pts, dtype='>f8')
         elif self.pars['XTYP'].value == 'IGD':
-            self.x = np.fromfile(base_path + '.XGF', '>f8')
+            self._x = np.fromfile(base_path + '.XGF', '>f8')
 
         if self.pars['YTYP'].value == 'IDX':
             y_min = self.pars['YMIN'].value
             y_max = y_min + self.pars['YWID'].value
             y_pts = self.pars['YPTS'].value
-            self.x = np.linspace(y_min, y_max, y_pts, dtype='>f8')
+            self._y = np.linspace(y_min, y_max, y_pts, dtype='>f8')
         elif self.pars['YTYP'].value == 'IGD':
-            self.y = np.fromfile(base_path + '.YGF', '>f8')
+            self._y = np.fromfile(base_path + '.YGF', '>f8')
 
         if self.pars['ZTYP'].value == 'IDX':
             z_min = self.pars['ZMIN'].value
             z_max = z_min + self.pars['ZWID'].value
             z_pts = self.pars['ZPTS'].value
-            self.x = np.linspace(z_min, z_max, z_pts, dtype='>f8')
+            self._z = np.linspace(z_min, z_max, z_pts, dtype='>f8')
         elif self.pars['ZTYP'].value == 'IGD':
-            self.z = np.fromfile(base_path + '.ZGF', '>f8')
+            self._z = np.fromfile(base_path + '.ZGF', '>f8')
 
-        if self.z.size > 0:
-            self.o = self._dta.reshape(self.z.size, self.y.size, self.x.size)
-        elif self.y.size > 0:
-            self.o = self._dta.reshape(self.y.size, self.x.size)
+        if self._z.size > 0:
+            self._o = self._dta.reshape(self.z.size, self.y.size, self.x.size)
+        elif self._y.size > 0:
+            self._o = self._dta.reshape(self.y.size, self.x.size)
         else:
-            self.o = self._dta
+            self._o = self._dta
 
     def save(self, path):
         """
