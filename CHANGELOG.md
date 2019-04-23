@@ -1,4 +1,4 @@
-#### master
+#### v2.3.1 (2019-04-23)
 
 _Added:_
 - Added a keyword argument `low_q` to `customtune` to enable tuning with low Q-values (default: `low_q=False`).
