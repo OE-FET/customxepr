@@ -250,20 +250,12 @@ class ManagerApp(QtWidgets.QMainWindow):
         # Connect signals, slots, and callbacks
         # ================================================================================
 
-        # cannot call Qt slots directly from PySignal in Python 2
-        def on_result_rows_removed(i0, n_items):
-            self.resultQueueModel.removeRows(i0, n_items)
-
-        def on_job_rows_removed(i0, n_items):
-            self.jobQueueModel.removeRows(i0, n_items)
-
         # update views when items are added to or removed from queues
-        self.result_queue.put_signal.connect(self.add_result)
-        self.result_queue.pop_signal.connect(self.on_result_pop)
-        self.result_queue.removed_signal.connect(on_result_rows_removed)
+        self.result_queue.added_signal.connect(self.on_result_added)
+        self.result_queue.removed_signal.connect(self.on_results_removed)
 
         self.job_queue.added_signal.connect(self.on_job_added)
-        self.job_queue.removed_signal.connect(on_job_rows_removed)
+        self.job_queue.removed_signal.connect(self.on_jobs_removed)
         self.job_queue.status_changed_signal.connect(self.on_job_status_changed)
 
         # perform various UI updates after status change
@@ -492,6 +484,25 @@ class ManagerApp(QtWidgets.QMainWindow):
 
         return string_list
 
+    def on_job_status_changed(self, index, status):
+        """
+        Updates status of top item in jobQueueDisplay.
+        """
+
+        if status is ExpStatus.RUNNING:
+            self.jobQueueModel.item(index).setIcon(self.icon_running)
+        elif status is ExpStatus.ABORTED:
+            self.jobQueueModel.item(index).setIcon(self.icon_aborted)
+        elif status is ExpStatus.FAILED:
+            self.jobQueueModel.item(index).setIcon(self.icon_failed)
+        elif status is ExpStatus.FINISHED:
+            self.jobQueueModel.item(index).setIcon(self.icon_finished)
+        elif status is ExpStatus.QUEUED:
+            self.jobQueueModel.item(index).setIcon(self.icon_queued)
+
+        self.jobQueueDisplay.scrollTo(self.jobQueueModel.createIndex(index-3, 1),
+                                      self.jobQueueDisplay.PositionAtTop)
+
     def on_job_added(self, index=-1):
         """
         Adds new entry to jobQueueDisplay.
@@ -520,29 +531,10 @@ class ManagerApp(QtWidgets.QMainWindow):
 
         self.jobQueueModel.appendRow([func_item, args_item])
 
-    def on_job_status_changed(self, index, status):
+    def on_result_added(self, index=-1):
         """
-        Updates status of top item in jobQueueDisplay.
-        """
-
-        if status is ExpStatus.RUNNING:
-            self.jobQueueModel.item(index).setIcon(self.icon_running)
-        elif status is ExpStatus.ABORTED:
-            self.jobQueueModel.item(index).setIcon(self.icon_aborted)
-        elif status is ExpStatus.FAILED:
-            self.jobQueueModel.item(index).setIcon(self.icon_failed)
-        elif status is ExpStatus.FINISHED:
-            self.jobQueueModel.item(index).setIcon(self.icon_finished)
-        elif status is ExpStatus.QUEUED:
-            self.jobQueueModel.item(index).setIcon(self.icon_queued)
-
-        self.jobQueueDisplay.scrollTo(self.jobQueueModel.createIndex(index-3, 1),
-                                      self.jobQueueDisplay.PositionAtTop)
-
-    def add_result(self, index=-1):
-        """
-        Adds new result to the :attr:`resultQueueDisplay` and tries to plot the result.
-        The new result is added to the end of :attr:`resultQueueDisplay`.
+        Adds new result to the :attr:`resultQueueModel` and tries to plot the result.
+        The new result is added to the end of :attr:`resultQueueModel`.
         """
         result = self.result_queue.queue[index]
 
@@ -563,11 +555,11 @@ class ManagerApp(QtWidgets.QMainWindow):
 
         self.resultQueueModel.appendRow([rslt_type, rslt_size, rslt_value])
 
-    def on_result_pop(self, index=0):
-        """
-        Removes entry with index ``i`` from :attr:`resultQueueDisplay` (default: i = 1).
-        """
-        self.resultQueueModel.removeRow(index)
+    def on_jobs_removed(self, i0, n_items):
+        self.jobQueueModel.removeRows(i0, n_items)
+
+    def on_results_removed(self, i0, n_items):
+        self.resultQueueModel.removeRows(i0, n_items)
 
     def populate_jobs(self):
         """
@@ -583,7 +575,7 @@ class ManagerApp(QtWidgets.QMainWindow):
         resultQueueDisplay.
         """
         for i in range(0, self.result_queue.qsize()):
-            self.add_result(i)
+            self.on_result_added(i)
 
     def check_paused(self):
         """

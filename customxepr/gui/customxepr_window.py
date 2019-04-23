@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import platform
-from qtpy import QtWidgets, QtCore, uic
+from qtpy import QtWidgets, uic
 
 from customxepr.gui.manager_window import ManagerApp, logger
 

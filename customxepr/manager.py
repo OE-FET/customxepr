@@ -112,13 +112,11 @@ class SignalQueue(Queue, object):
     from :class:`queue.Queue` and provides a thread-safe method to remove items
     from the center of the queue.
 
-    :cvar put_signal: Is emitted when an item is put into the queue.
-    :cvar pop_signal: Is emitted when an item is popped from the queue.
+    :cvar added_signal: Is emitted when an item is put into the queue.
     :cvar removed_signal: Is emitted when items are removed from the queue.
     """
 
-    put_signal = ClassSignal()
-    pop_signal = ClassSignal()
+    added_signal = ClassSignal()
     removed_signal = ClassSignal()
 
     def __init__(self):
@@ -126,11 +124,11 @@ class SignalQueue(Queue, object):
 
     def _put(self, item):
         Queue._put(self, item)
-        self.put_signal.emit()
+        self.added_signal.emit()
 
     def _get(self):
         item = Queue._get(self)
-        self.pop_signal.emit()
+        self.removed_signal.emit(self.qsize()-1, 1)
         return item
 
     def remove_item(self, i):
