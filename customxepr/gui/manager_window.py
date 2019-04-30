@@ -486,9 +486,10 @@ class ManagerApp(QtWidgets.QMainWindow):
 
     def on_job_status_changed(self, index, status):
         """
-        Updates status of top item in jobQueueDisplay.
+        Update jobQueueModel and jobQueueDisplay to reflect job status changes.
         """
 
+        # update job icon
         if status is ExpStatus.RUNNING:
             self.jobQueueModel.item(index).setIcon(self.icon_running)
         elif status is ExpStatus.ABORTED:
@@ -500,8 +501,12 @@ class ManagerApp(QtWidgets.QMainWindow):
         elif status is ExpStatus.QUEUED:
             self.jobQueueModel.item(index).setIcon(self.icon_queued)
 
-        self.jobQueueDisplay.scrollTo(self.jobQueueModel.createIndex(index-3, 1),
-                                      self.jobQueueDisplay.PositionAtTop)
+        item_index = self.jobQueueModel.createIndex(index, 1)
+        self.jobQueueModel.dataChanged.emit(item_index, item_index)
+
+        # update scroll position
+        top_item_index = self.jobQueueModel.createIndex(index-3, 1)
+        self.jobQueueDisplay.scrollTo(top_item_index, self.jobQueueDisplay.PositionAtTop)
 
     def on_job_added(self, index=-1):
         """
