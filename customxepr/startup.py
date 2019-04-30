@@ -152,7 +152,7 @@ def start_gui(customXepr, mercury_feed, keithley):
     return customXepr_gui, mercury_gui, keithley_gui
 
 
-def run(no_gui=False):
+def run(cmd_line=False):
     """
     Runs CustomXepr -- this is the main entry point. Calling ``run`` will first
     create or retrieve an existing Qt application, then aim to connect to Xepr,
@@ -163,7 +163,7 @@ def run(no_gui=False):
     will start an interactive session and return instances of the above instrument
     controllers. Otherwise, it will create its own Jupyter console to receive user input.
 
-    :param bool no_gui: If ``True``, start CustomXepr without a graphical user interface
+    :param bool cmd_line: If ``True``, start CustomXepr without a graphical user interface
         (default: ``no_gui = False``).
 
     :returns: Tuple containing instrument instances.
@@ -173,19 +173,21 @@ def run(no_gui=False):
     from customxepr.gui.error_dialog import patch_excepthook
 
     # create a new Qt app or return an existing one
-    if not no_gui:
+    if not cmd_line:
         app, interactive = get_qt_app()
+    else:
+        interactive = True
 
     # create and show splash screen
-    if not no_gui:
+    if not cmd_line:
         splash = show_splash_screen()
 
     # connect to instruments
-    if not no_gui:
+    if not cmd_line:
         splash.showMessage("Connecting to instruments...")
     xepr, customXepr, mercury, mercury_feed, keithley = connect_to_instruments()
     # start user interfaces
-    if not no_gui:
+    if not cmd_line:
         splash.showMessage("Loading user interface...")
         customXepr_gui, mercury_gui, keithley_gui = start_gui(customXepr, mercury_feed,
                                                               keithley)
@@ -208,14 +210,14 @@ def run(no_gui=False):
         print(banner)
 
         # patch exception hook to display errors from Qt event loop
-        if not no_gui:
+        if not cmd_line:
             patch_excepthook()
 
         # remove splash screen
-        if not no_gui:
+        if not cmd_line:
             splash.hide()
 
-        if not no_gui:
+        if not cmd_line:
             ui = (customXepr_gui, mercury_gui, keithley_gui)
         else:
             ui = ()
