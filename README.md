@@ -35,7 +35,7 @@ CustomXepr can be run interactively from a Jupyter console, or as a standalone p
 You can start CustomXepr from a Python command prompt as follows:
 ```python
 >>> from customxepr import run
->>> customXepr, xepr, mercury, mercury_feed, keithley = run()
+>>> customXepr, xepr, mercury, mercury_feed, keithley, ui = run()
 ```
 If executed from an Jupyter console, this will automatically start the integrated Qt event loop and run in interactive mode. To start CustomXepr from the console / terminal, run `CustomXepr`.
 

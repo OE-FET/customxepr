@@ -152,7 +152,7 @@ def start_gui(customXepr, mercury_feed, keithley):
     return customXepr_gui, mercury_gui, keithley_gui
 
 
-def run():
+def run(no_gui=False):
     """
     Runs CustomXepr -- this is the main entry point. Calling ``run`` will first
     create or retrieve an existing Qt application, then aim to connect to Xepr,
@@ -163,6 +163,9 @@ def run():
     will start an interactive session and return instances of the above instrument
     controllers. Otherwise, it will create its own Jupyter console to receive user input.
 
+    :param bool no_gui: If ``True``, start CustomXepr without a graphical user interface
+        (default: ``no_gui = False``).
+
     :returns: Tuple containing instrument instances.
     """
 
@@ -170,17 +173,22 @@ def run():
     from customxepr.gui.error_dialog import patch_excepthook
 
     # create a new Qt app or return an existing one
-    app, interactive = get_qt_app()
+    if not no_gui:
+        app, interactive = get_qt_app()
 
     # create and show splash screen
-    splash = show_splash_screen()
+    if not no_gui:
+        splash = show_splash_screen()
 
     # connect to instruments
-    splash.showMessage("Connecting to instruments...")
+    if not no_gui:
+        splash.showMessage("Connecting to instruments...")
     xepr, customXepr, mercury, mercury_feed, keithley = connect_to_instruments()
     # start user interfaces
-    splash.showMessage("Loading user interface...")
-    customXepr_gui, mercury_gui, keithley_gui = start_gui(customXepr, mercury_feed, keithley)
+    if not no_gui:
+        splash.showMessage("Loading user interface...")
+        customXepr_gui, mercury_gui, keithley_gui = start_gui(customXepr, mercury_feed,
+                                                              keithley)
 
     banner = ('Welcome to CustomXepr %s. ' % __version__ +
               'You can access connected instruments through "customXepr" ' +
@@ -200,12 +208,19 @@ def run():
         print(banner)
 
         # patch exception hook to display errors from Qt event loop
-        patch_excepthook()
+        if not no_gui:
+            patch_excepthook()
 
         # remove splash screen
-        splash.hide()
+        if not no_gui:
+            splash.hide()
 
-        return customXepr, xepr, mercury, mercury_feed, keithley
+        if not no_gui:
+            ui = (customXepr_gui, mercury_gui, keithley_gui)
+        else:
+            ui = ()
+
+        return customXepr, xepr, mercury, mercury_feed, keithley, ui
 
     else:
         splash.showMessage("Loading console...")
@@ -241,4 +256,4 @@ def run():
 
 
 if __name__ == '__main__':
-    customXepr, xepr, mercury, mercury_feed, keithley = run()
+    customXepr, xepr, mercury, mercury_feed, keithley, ui = run()
