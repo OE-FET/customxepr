@@ -85,13 +85,19 @@ More information regarding the manual scheduling of experiments can be found [he
 
 ## Logging and error handling
 
+The detection and escalation of possible problems is key to enabling unattended measurements. Otherwise the user may come back after two days expecting a completed measurement cycle, only to see that the helium dewar was emptied a day ago or that the program got stuck asking the user if it should really override a data file. CustomXepr therefore includes logging capabilities to track the progess of jobs and notify the user of potential problems.
+
 All CustomXper methods release logging messages during their execution which may have the levels "status", "info", "warning", and "error". Status notifications will only be shown in the user interface and typically contain information about the progress of a job (number of completed scans in an EPR measurement, countdown until the temperature is stable, etc). Info notifications typically contain information about the beginning or completion of a job (e.g., "Waiting for temperature to stabilize.", "All scans complete."), and potentially useful information about how the job was completed (e.g., "Temperature stable at 120.01±0.02 K during scans.").
 
 Warning notifications are logged when CustomXepr believes that there may be a problem which requires user intervention, for instance if a job is taking significantly longer than expected, or if the gas flow required to maintain a certain temperature is unusually high. Finally, error messages are released if CustomXepr is unable to proceed with a job, in which case it will abort and pause all pending jobs. Such errors may include loss of communication with an instrument, repeated strong temperature fluctuations during an EPR measurement, etc.
 
 By default, all messages of level "info" and higher are saved to a log file in the user's home directory and messages of level "warning" and higher are sent as an email to the user's address. In addition, temperature readings are saved to a log file every 5 min, allowing the user to retrospectively confirm the temperature stability during measurements.
 
-The detection and escalation of possible problems is key to enabling unattended measurements. Otherwise the user may come back after two days expecting a completed measurement cycle, only to see that the helium dewar was emptied a day ago or that the program got stuck asking the user if it should really override a data file.
+Email notifications are always sent from 'localhost' directly. Many commercial email providers will reject those emails, but academic providers often accept them, if sent from within the university / institutional network. You may configure your local mail transfer agent (e.g., Postfix) to send emails through your preffered email provides (e.g., Gmail) instead. Of course, you can also add an additional email handler with a different SMTP server to the CustomXepr logger. The CustomXepr logger is named 'customxepr' and can be retrived by:
+```python
+from customxepr import logger
+```
+You can find details on how to configure the logger in the documentation of Python's logging module [here](https://docs.python.org/3/library/logging.html).
 
 ![Screenshot of CustomXepr GUI](/screenshots/CustomXepr_log.png)
 
