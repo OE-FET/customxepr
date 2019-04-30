@@ -232,16 +232,13 @@ def run():
 
         # set shutdown behaviour
         app.aboutToQuit.connect(kernel.cleanup_consoles)
-        app.aboutToQuit.connect(customXepr_gui.exit_)
-        app.aboutToQuit.connect(mercury_gui.exit_)
-        app.aboutToQuit.connect(keithley_gui.exit_)
+        if not sys.platform == 'darwin':
+            app.aboutToQuit.connect(customXepr_gui.exit_)
+            app.aboutToQuit.connect(mercury_gui.exit_)
+            app.aboutToQuit.connect(keithley_gui.exit_)
+
         # start event loop
         kernel.ipkernel.start()
-
-        # disconnect from instruments when quitting
-        # customXepr_gui.exit_()
-        # mercury_gui.exit_()
-        # keithley_gui.exit_()
 
 
 if __name__ == '__main__':
