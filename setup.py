@@ -58,8 +58,8 @@ setup(
                 "scipy",
                 "pyqtgraph@git+https://github.com/OE-FET/pyqtgraph",
                 "keithleygui@git+https://github.com/OE-FET/keithleygui",
-                "mercurygui@git+https://github.com/OE-FET/mercurygui",
                 "mercuryitc@git+https://github.com/OE-FET/mercuryitc",
+                "mercurygui@git+https://github.com/OE-FET/mercurygui",
     ],
     zip_safe=False,
     entry_points={

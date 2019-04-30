@@ -21,6 +21,13 @@ $ pip install git+https://github.com/OE-FET/customxepr
 ```
 in you terminal / command prompt.
 
+CustomXepr depends on its own version of [pyqtgraph](http://www.pyqtgraph.org) which includes some important bug fixes. If you previously did not have pyqtgraph installed, the correct version will automatically be downloaded and installed for you. Otherwise, please uninstall pyqtgraph and reinstall it form [http://www.github.com/OE-FET/pyqtgraph](http://www.github.com/OE-FET/pyqtgraph) by running
+
+```
+$ pip install git+https://github.com/OE-FET/pyqtgraph
+```
+in you terminal / command prompt. This should not break any other packages which also depend on pyqtgraph.
+
 ## Instrument communication
 CustomXepr communicates with with the Keithley and MercuryiTC through NI-VISA or pyvisa-py and is therefore independent of the actual interface, e.g., Ethernet, USB, or GPIB. Connections to the EPR spectrometer are handled through the Bruker Xepr Python API.
 
@@ -35,7 +42,7 @@ You can start CustomXepr from a Python command prompt as follows:
 ```
 If executed from an Jupyter console, this will automatically start the integrated Qt event loop and run in interactive mode. To start CustomXepr from the console / terminal, run `CustomXepr`.
 
-CustomXepr has a user interface which displays all jobs waiting in the queue, all results returned from previous jobs, and all logging messages. Common tasks such as pausing, aborting and clearing jobs, plotting and saving returned data, and setting temperature stability tolerances can be performed through the interface itself. However, apart from tuning the cavity and reading a Q-factor, all jobs  must be scheduled programmatically through the provided Jupyter console. 
+CustomXepr has a user interface which displays all jobs waiting in the queue, all results returned from previous jobs, and all logging messages. Common tasks such as pausing, aborting and clearing jobs, plotting and saving returned data, and setting temperature stability tolerances can be performed through the interface itself. However, apart from tuning the cavity and reading a Q-factor, all jobs  must be scheduled programmatically through the provided Jupyter console.
 
 ## Job-scheduling
 
@@ -43,9 +50,9 @@ CustomXepr's core consists of functions for preconfigured tasks, such as changin
 For instance, `customXepr.setTemperature(110)` tells the MercuryiTC to change its temperature set-point to 110 K and waits until the latter is reached and maintained with the desired stability (default: ±0.1 K for 120 sec). It also adjusts the helium flow if necessary and warns the user if the target temperature cannot be reached within the expected time.
 `customXepr.runExperiment(powersat)` will run the preconfigured EPR measurement "powersat" while tuning the cavity between scans and monitoring the temperature stability during the measurement.
 
-Such built in jobs are not performed immediately but are queued and run after the successful completion of the previous jobs. Any data returned by a job, such as a transfer curve or a cavity mode picture, will be kept in a result queue and saved to a specified file if requested. If the returned object has `save` and `plot` methods implemented, one can right-click on its entry in the GUI to plot the data or save it to the hard drive. 
+Such built in jobs are not performed immediately but are queued and run after the successful completion of the previous jobs. Any data returned by a job, such as a transfer curve or a cavity mode picture, will be kept in a result queue and saved to a specified file if requested. If the returned object has `save` and `plot` methods implemented, one can right-click on its entry in the GUI to plot the data or save it to the hard drive.
 
-CustomXepr functions that are expected to run for longer than 1 sec can gracefully abort upon user request without leaving the setup in an inconsistent state. 
+CustomXepr functions that are expected to run for longer than 1 sec can gracefully abort upon user request without leaving the setup in an inconsistent state.
 
 ![Screenshot of CustomXepr GUI](/screenshots/CustomXepr_jobs.png)
 
