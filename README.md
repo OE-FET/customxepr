@@ -15,18 +15,15 @@ The aim of CustomXepr is twofold: First and foremost, it enables the user to aut
 ![CustomXepr structure](/screenshots/CustomXepr_structure.png)
 
 ## Installation
-Make sure that you have PyQt or PySide installed on your system (all other dependencies will be installed automaticaly). Then install CustomXepr by running
+Make sure that you have PyQt or PySide installed on your system (all other dependencies will be installed automaticaly). Then install CustomXepr by running in a terminal:
 ```
 $ pip install git+https://github.com/OE-FET/customxepr
 ```
-in you terminal / command prompt.
-
-CustomXepr depends on its own version of [pyqtgraph](http://www.pyqtgraph.org) which includes some important bug fixes. If you previously did not have pyqtgraph installed, the correct version will automatically be downloaded and installed for you. Otherwise, please uninstall pyqtgraph and reinstall it form [http://www.github.com/OE-FET/pyqtgraph](http://www.github.com/OE-FET/pyqtgraph) by running
-
+CustomXepr depends on its own version of [pyqtgraph](http://www.pyqtgraph.org) which includes some important bug fixes. If you previously did not have pyqtgraph installed, the correct version will automatically be downloaded and installed for you. Otherwise, please uninstall pyqtgraph and then reinstall it form [http://www.github.com/OE-FET/pyqtgraph](http://www.github.com/OE-FET/pyqtgraph) by running:
 ```
 $ pip install git+https://github.com/OE-FET/pyqtgraph
 ```
-in you terminal / command prompt. This should not break any other packages which also depend on pyqtgraph.
+This should not break any other packages which also depend on pyqtgraph.
 
 ## Instrument communication
 CustomXepr communicates with with the Keithley and MercuryiTC through NI-VISA or pyvisa-py and is therefore independent of the actual interface, e.g., Ethernet, USB, or GPIB. Connections to the EPR spectrometer are handled through the Bruker Xepr Python API.
@@ -38,7 +35,7 @@ CustomXepr can be run interactively from a Jupyter console, or as a standalone p
 You can start CustomXepr from a Python command prompt as follows:
 ```python
 >>> from customxepr import run
->>> customXepr, xepr, mercury, mercuryfeed, keithley, *_ = run()
+>>> customXepr, xepr, mercury, mercury_feed, keithley = run()
 ```
 If executed from an Jupyter console, this will automatically start the integrated Qt event loop and run in interactive mode. To start CustomXepr from the console / terminal, run `CustomXepr`.
 

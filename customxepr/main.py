@@ -48,7 +48,23 @@ class CustomXepr(QtCore.QObject):
     """
     CustomXepr defines routines to control the Bruker Xepr software and run full ESR
     measurement cycles. This includes tuning and setting the temperature, applying
-    voltages and recording IV characteristics with attached Keithley SMUs.
+    voltages and recording IV characteristics with attached Keithley SMUs. When creating
+    an instance of CustomXepr, you can pass instances of :class:`.XeprAPI.XeprAPI`,
+    :class:`mercurygui.MercuryFeed` and :class:`keithley2600.Keithley2600` to handle
+    interactions with the respective instruments:
+
+    >>> from customxepr import CustomXepr
+    >>> from XeprAPI import XeprAPI
+    >>> from mercuryitc import MercuryITC
+    >>> from mercurygui import MercuryFeed
+    >>> from keithley2600 import Keithley2600
+    >>> # connect to instruments
+    >>> xepr = XeprAPI.Xepr()
+    >>> mercury = MercuryITC('visa_address')
+    >>> mercuryfeed = MercuryFeed(mercury)
+    >>> keithley = Keithley2600('visa_address')
+    >>> # create CustomXepr instance
+    >>> customXepr = CustomXepr(xepr, mercuryfeed, keithley)
 
     All CustomXepr methods are executed in a worker thread in the order of their calls. To
     execute your own function in this thread, you can use the :func:`queued_exec`
@@ -57,7 +73,7 @@ class CustomXepr(QtCore.QObject):
 
     All results are added to the result queue and can be retrieved with:
 
-    >>> manager = customxepr.manager
+    >>> manager = customXepr.manager
     >>> result = manager.result_queue.get()  # blocks until result is available
 
     To pause or resume the worker between jobs, run

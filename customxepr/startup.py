@@ -163,7 +163,7 @@ def run():
     will start an interactive session and return instances of the above instrument
     controllers. Otherwise, it will create its own Jupyter console to receive user input.
 
-    :returns: Tuple containing instrument and GUI instances.
+    :returns: Tuple containing instrument instances.
     """
 
     from customxepr.main import __version__, __author__, __year__
@@ -205,8 +205,7 @@ def run():
         # remove splash screen
         splash.hide()
 
-        return (customXepr, xepr, mercury, mercury_feed, keithley,
-                customXepr_gui, mercury_gui, keithley_gui)
+        return customXepr, xepr, mercury, mercury_feed, keithley
 
     else:
         splash.showMessage("Loading console...")
@@ -242,5 +241,4 @@ def run():
 
 
 if __name__ == '__main__':
-    customXepr, xepr, mercury, mercury_feed, keithley, customXepr_gui, \
-        mercury_gui, keithley_gui = run()
+    customXepr, xepr, mercury, mercury_feed, keithley = run()
