@@ -15,6 +15,7 @@ pygments
 PySignal
 pyvisa >= 1.9.0
 pyvisa-py >= 0.3.1
+pyqtgraph_cx
 qtpy
 qtconsole
 scipy
