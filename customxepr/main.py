@@ -592,7 +592,7 @@ class CustomXepr(QtCore.QObject):
             f.write(line)
 
     @queued_exec(manager.job_queue)
-    def runXeprExperiment(self, exp, retune=False, path=None, **kwargs):
+    def runXeprExperiment(self, exp, retune=True, path=None, **kwargs):
         """
         Runs the Xepr experiment ``exp``. Keyword arguments ``kwargs`` allow the user to
         pass experiment settings to Xepr (e.g., 'ModAmp' for modulation amplitude).
@@ -610,7 +610,7 @@ class CustomXepr(QtCore.QObject):
         last-measurement Q-value (if available) are written to the Bruker '.DSC' file.
 
         :param exp: Xepr experiment object to run.
-        :param bool retune: Retune iris and freq between scans (default: False).
+        :param bool retune: Retune iris and freq between scans (default: True).
         :param str path: Path to file. If given, the data set will be saved to this path,
             otherwise, a temporary file will be created. Xepr only allows file paths
             shorter than 128 characters.
