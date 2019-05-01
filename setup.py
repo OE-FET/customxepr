@@ -56,7 +56,7 @@ setup(
                 "qtconsole",
                 "configparser;python_version<='2.7'",
                 "scipy",
-                "pyqtgraph_cx@git+https://github.com/OE-FET/pyqtgraph",
+                "pyqtgraph_cx",
                 "keithleygui@git+https://github.com/OE-FET/keithleygui",
                 "mercuryitc@git+https://github.com/OE-FET/mercuryitc",
                 "mercurygui@git+https://github.com/OE-FET/mercurygui",
