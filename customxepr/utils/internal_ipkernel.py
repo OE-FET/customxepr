@@ -6,7 +6,6 @@
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
-
 # system imports
 from __future__ import absolute_import, print_function
 from ipykernel.connect import connect_qtconsole
