@@ -1,3 +1,7 @@
+#### master (2019-05-03)
+_Added:_
+- Allow configuration of a custom SMTP server for email notifications in the config file '~/.CustomXepr/CustomXepr.ini'.
+
 #### v2.3.1 (2019-04-23)
 
 _Added:_
