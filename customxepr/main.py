@@ -14,7 +14,8 @@ import time
 import numpy as np
 import tempfile
 from qtpy import QtCore
-from keithleygui import CONF as K_CONF
+# explicitly import from config.main to avoid PyQt dependencies
+from keithleygui.config.main import CONF as K_CONF
 
 from customxepr.utils import EmailSender
 from customxepr.experiment import ModePicture, XeprData, XeprParam
