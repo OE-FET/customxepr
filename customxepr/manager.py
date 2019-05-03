@@ -612,10 +612,14 @@ class Manager(object):
         # add email handler if not present
         if len(eh) == 0:
             # create and add email handler
-
             email_handler = logging.handlers.SMTPHandler(
-                'localhost', 'ss2151@cam.ac.uk', CONF.get('CustomXepr', 'notify_address'),
-                'Xepr logger')
+                mailhost=CONF.get('SMTP', 'mailhost'),
+                fromaddr=CONF.get('SMTP', 'fromaddr'),
+                toaddrs=CONF.get('CustomXepr', 'notify_address'),
+                subject='Xepr logger',
+                credentials=CONF.get('SMTP', 'credentials'),
+                secure=CONF.get('SMTP', 'secure')
+            )
             email_handler.setFormatter(f)
             email_handler.setLevel(CONF.get('CustomXepr', 'email_handler_level'))
 

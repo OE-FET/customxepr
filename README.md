@@ -93,12 +93,6 @@ Warning notifications are logged when CustomXepr believes that there may be a pr
 
 By default, all messages of level "info" and higher are saved to a log file in the user's home directory and messages of level "warning" and higher are sent as an email to the user's address. In addition, temperature readings are saved to a log file every 5 min, allowing the user to retrospectively confirm the temperature stability during measurements.
 
-Email notifications are always sent from 'localhost' directly. Many commercial email providers will reject those emails, but academic providers often accept them, if sent from within the university / institutional network. You may configure your local mail transfer agent (e.g., Postfix) to send emails through your preffered email provides (e.g., Gmail) instead. Of course, you can also add an additional email handler with a different SMTP server to the CustomXepr logger. The CustomXepr logger is named 'customxepr' and can be retrived by:
-```python
-from customxepr import logger
-```
-You can find details on how to configure the logger in the documentation of Python's logging module [here](https://docs.python.org/3/library/logging.html).
-
 ![Screenshot of CustomXepr GUI](/screenshots/CustomXepr_log.png)
 
 ## Mercury controls
@@ -162,6 +156,30 @@ customXepr.setStandby()  # ramp down field and set MW bridge to standby
 
 In this code, all functions belonging to CustomXepr will be added to the job queue and will be carried out successively such that, for instance, EPR measurements will not start while the temperature is still being ramped.
 
+## Email notifications
+
+By default, email notifications are sent from 'ss2151@cam.ac.uk' via 'localhost' and most email clients will therefore reject them as spam. CustomXepr at the moment provides no way to modify the email settings via the user interface, but you can set them manually in the config file in your home directory: '~/.CustomXepr/CustomXepr.ini'. Changes will be appled when restarting CustomXper.
+
+By default, the relevant section in the config file reads:
+
+```ini
+[SMTP]
+mailhost = localhost
+fromaddr = ss2151@cam.ac.uk
+credentials = None
+secure = None
+```
+
+To specify a non-standard SMTP port, use the `(host, port)` tuple format for the mailhost argument. To specify authentication credentials, supply a `(username, password)` tuple for the credentials argument. To specify the use of a secure protocol (TLS), pass in a tuple for the secure argument. This will only be used when authentication credentials are supplied. The tuple will be either an empty tuple, or a single-value tuple with the name of a keyfile, or a 2-value tuple with the names of the keyfile and certificate file.
+For example, to send emails via the Cambridge SMTP server this section should be modified to read:
+
+```ini
+[SMTP]
+mailhost = ('smtp.hermes.cam.ac.uk', 587)
+fromaddr = ss2151@cam.ac.uk
+credentials = ('ss2151', 'my-secret-password')
+secure = ()
+```
 
 ## Requirements
 *System requirements:*
@@ -173,7 +191,6 @@ In this code, all functions belonging to CustomXepr will be added to the job que
 
 - Bruker Xepr software with Python XeprAPI (required for EPR related functions)
 - Postfix - mail transfer agent (required for email notifications from localhost)
-- NI-VISA (pyvisa-py is used as a fallback if not installed)
 
 *Required python modules:*
 - PySide2 or PyQt >= 5.9
