@@ -26,7 +26,7 @@ $ pip install git+https://github.com/OE-FET/pyqtgraph
 This should not break any other packages which also depend on pyqtgraph.
 
 ## Instrument communication
-CustomXepr communicates with with the Keithley and MercuryiTC through NI-VISA or pyvisa-py and is therefore independent of the actual interface, e.g., Ethernet, USB, or GPIB. Connections to the EPR spectrometer are handled through the Bruker Xepr Python API.
+CustomXepr communicates with with the Keithley and MercuryiTC through NI-VISA or pyvisa-py and is therefore independent of the actual interface, e.g., Ethernet, USB, or GPIB. Connections to the EPR spectrometer are handled through Bruker's Xepr Python API.
 
 ## Usage
 
@@ -193,7 +193,7 @@ secure = ()
 - Postfix - mail transfer agent (required for email notifications from localhost)
 
 *Required python modules:*
-- PySide2 or PyQt >= 5.9
+- PyQt5 >= 5.9 (PySide2 should also work but is not actively tested)
 
 *Recommended python modules:*
 - pyusb (only when using pyvisa-py backend)
