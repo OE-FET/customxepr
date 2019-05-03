@@ -158,7 +158,7 @@ In this code, all functions belonging to CustomXepr will be added to the job que
 
 ## Email notifications
 
-By default, email notifications are sent from 'ss2151@cam.ac.uk' via 'localhost' and most email clients will therefore reject them as spam. CustomXepr at the moment provides no way to modify the email settings via the user interface, but you can set them manually in the config file in your home directory: '~/.CustomXepr/CustomXepr.ini'. Changes will be appled when restarting CustomXper.
+By default, email notifications are sent from 'ss2151@cam.ac.uk' via 'localhost' and most email clients will therefore reject them as spam. CustomXepr at the moment provides no way to modify the email settings via the user interface, but you can set them manually in the config file in your home directory: '~/.CustomXepr/CustomXepr.ini'. Changes will be applied when restarting CustomXper.
 
 By default, the relevant section in the config file reads:
 
@@ -171,7 +171,7 @@ secure = None
 ```
 
 To specify a non-standard SMTP port, use the `(host, port)` tuple format for the mailhost argument. To specify authentication credentials, supply a `(username, password)` tuple for the credentials argument. To specify the use of a secure protocol (TLS), pass in a tuple for the secure argument. This will only be used when authentication credentials are supplied. The tuple will be either an empty tuple, or a single-value tuple with the name of a keyfile, or a 2-value tuple with the names of the keyfile and certificate file.
-For example, to send emails via the Cambridge SMTP server this section should be modified to read:
+For example, to send emails via the Cambridge SMTP server, this section should be modified to read:
 
 ```ini
 [SMTP]
