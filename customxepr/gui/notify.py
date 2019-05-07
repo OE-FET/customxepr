@@ -12,7 +12,6 @@ from enum import Enum
 
 
 class SupportedImplementation(Enum):
-    _order_ = 'notify_send osascript'
     notify_send = 'notify-send'
     osascript = 'osascript'
 
