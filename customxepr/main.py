@@ -153,6 +153,7 @@ class CustomXepr(QtCore.QObject):
         self._tuning_timeout = 60
         # last measured Q-value
         self._last_qvalue = None
+        self._last_qvalue_err = None
         # settling time for cryostat temperature (in sec)
         self._temp_wait_time = CONF.get('CustomXepr', 'temp_wait_time')
         # temperature stability tolerance (in K)
@@ -537,6 +538,7 @@ class CustomXepr(QtCore.QObject):
 
         mp = ModePicture(mode_pic_data, freq)
         self._last_qvalue = mp.qvalue
+        self._last_qvalue_err = mp.qvalue_stderr
 
         self.hidden['PowerAtten'].value = 30
         time.sleep(self._wait)
@@ -753,20 +755,19 @@ class CustomXepr(QtCore.QObject):
         dset = XeprData(dsc_path)
 
         if self._last_qvalue is not None:
-            if 'QValue' in dset.pars:
-                dset.pars['QValue'] = self._last_qvalue
-            else:  # the parameter 'QValue' doesn't exist yet
-                dset.dsl.groups['mwBridge'].pars['QValue'] = XeprParam(self._last_qvalue)
+            dsl_mwbridge = dset.dsl.groups['mwBridge']
+            dsl_mwbridge.pars['QValue'] = XeprParam(self._last_qvalue)
+            dsl_mwbridge.pars['QValueErr'] = XeprParam(self._last_qvalue_err)
 
         if temperature_history is not None:
-            new_group = ParamGroupDSL(name='tempCtrl')
-            new_group.pars['AcqWaitTime'] = XeprParam(self.temp_wait_time, 's')
-            new_group.pars['Temperature'] = XeprParam(self.feed.temperature.loop_tset, 'K')
-            new_group.pars['Tolerance'] = XeprParam(self.temperature_tolerance, 'K')
-            new_group.pars['Stability'] = XeprParam(round(temperature_var, 4), 'K')
-            new_group.pars['Mean'] = XeprParam(round(temperature_mean, 4), 'K')
+            dsl_temp = ParamGroupDSL(name='tempCtrl')
+            dsl_temp.pars['AcqWaitTime'] = XeprParam(self.temp_wait_time, 's')
+            dsl_temp.pars['Temperature'] = XeprParam(self.feed.temperature.loop_tset, 'K')
+            dsl_temp.pars['Tolerance'] = XeprParam(self.temperature_tolerance, 'K')
+            dsl_temp.pars['Stability'] = XeprParam(round(temperature_var, 4), 'K')
+            dsl_temp.pars['Mean'] = XeprParam(round(temperature_mean, 4), 'K')
 
-            dset.dsl.groups['tempCtrl'] = new_group
+            dset.dsl.groups['tempCtrl'] = dsl_temp
 
         if retune:
             dset.pars['AcqFineTuning'] = 'Slice'  # TODO: confirm correct value

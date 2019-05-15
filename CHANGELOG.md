@@ -1,6 +1,7 @@
 #### v2.3.2-dev (2019-05-03)
 _Added:_
 - Allow configuration of a custom SMTP server for email notifications in the config file '~/.CustomXepr/CustomXepr.ini'.
+- Save standard error for Q-Value determination in DSC file as parameter 'QValueErr', if available.
 
 #### v2.3.1 (2019-04-23)
 
