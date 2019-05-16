@@ -18,7 +18,6 @@ import time
 
 autodoc_mock_imports = [
     'pyvisa',
-    'PyQt5',
     'qtpy',
     'matplotlib.backends.backend_qt5agg',
     'PySignal',
