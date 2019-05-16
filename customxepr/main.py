@@ -13,9 +13,7 @@ import logging
 import time
 import numpy as np
 import tempfile
-from qtpy import QtCore
-# explicitly import from config.main to avoid PyQt dependencies
-from keithleygui.config.main import CONF as K_CONF
+from keithleygui.config import CONF as KCONF
 
 from customxepr.utils import EmailSender
 from customxepr.experiment import ModePicture, XeprData, XeprParam
@@ -45,7 +43,7 @@ def cmp(a, b):
 
 
 # noinspection PyUnresolvedReferences
-class CustomXepr(QtCore.QObject):
+class CustomXepr(object):
     """
     CustomXepr defines routines to control the Bruker Xepr software and run full ESR
     measurement cycles. This includes tuning and setting the temperature, applying
@@ -1093,7 +1091,8 @@ class CustomXepr(QtCore.QObject):
     def setTemperature(self, target, auto_gf=True):
         """
         Sets the target temperature for the ESR900 cryostat and waits for it to stabilize
-        within :attr:`temp_wait_time` with fluctuations below :attr:`temperature_tolerance`.
+        within :attr:`temp_wait_time` with fluctuations below
+        :attr:`temperature_tolerance`.
 
         Warns the user if this takes too long.
 
@@ -1233,15 +1232,15 @@ class CustomXepr(QtCore.QObject):
 # ========================================================================================
 
     @queued_exec(manager.job_queue)
-    def transferMeasurement(self, smu_gate=K_CONF.get('Sweep', 'gate'),
-                            smu_drain=K_CONF.get('Sweep', 'drain'),
-                            vg_start=K_CONF.get('Sweep', 'VgStart'),
-                            vg_stop=K_CONF.get('Sweep', 'VgStop'),
-                            vg_step=K_CONF.get('Sweep', 'VgStep'),
-                            vd_list=K_CONF.get('Sweep', 'VdList'),
-                            t_int=K_CONF.get('Sweep', 'tInt'),
-                            delay=K_CONF.get('Sweep', 'delay'),
-                            pulsed=K_CONF.get('Sweep', 'pulsed'),
+    def transferMeasurement(self, smu_gate=KCONF.get('Sweep', 'gate'),
+                            smu_drain=KCONF.get('Sweep', 'drain'),
+                            vg_start=KCONF.get('Sweep', 'VgStart'),
+                            vg_stop=KCONF.get('Sweep', 'VgStop'),
+                            vg_step=KCONF.get('Sweep', 'VgStep'),
+                            vd_list=KCONF.get('Sweep', 'VdList'),
+                            t_int=KCONF.get('Sweep', 'tInt'),
+                            delay=KCONF.get('Sweep', 'delay'),
+                            pulsed=KCONF.get('Sweep', 'pulsed'),
                             path=None):
         """
         Records a transfer curve and returns the resulting data. If a valid path is path
@@ -1277,15 +1276,15 @@ class CustomXepr(QtCore.QObject):
         return sd
 
     @queued_exec(manager.job_queue)
-    def outputMeasurement(self, smu_gate=K_CONF.get('Sweep', 'gate'),
-                          smu_drain=K_CONF.get('Sweep', 'drain'),
-                          vd_start=K_CONF.get('Sweep', 'VdStart'),
-                          vd_stop=K_CONF.get('Sweep', 'VdStop'),
-                          vd_step=K_CONF.get('Sweep', 'VdStep'),
-                          vg_list=K_CONF.get('Sweep', 'VgList'),
-                          t_int=K_CONF.get('Sweep', 'tInt'),
-                          delay=K_CONF.get('Sweep', 'delay'),
-                          pulsed=K_CONF.get('Sweep', 'pulsed'),
+    def outputMeasurement(self, smu_gate=KCONF.get('Sweep', 'gate'),
+                          smu_drain=KCONF.get('Sweep', 'drain'),
+                          vd_start=KCONF.get('Sweep', 'VdStart'),
+                          vd_stop=KCONF.get('Sweep', 'VdStop'),
+                          vd_step=KCONF.get('Sweep', 'VdStep'),
+                          vg_list=KCONF.get('Sweep', 'VgList'),
+                          t_int=KCONF.get('Sweep', 'tInt'),
+                          delay=KCONF.get('Sweep', 'delay'),
+                          pulsed=KCONF.get('Sweep', 'pulsed'),
                           path=None):
         """
         Records an output curve and returns the resulting data. If a valid path is given,
@@ -1321,7 +1320,7 @@ class CustomXepr(QtCore.QObject):
         return sd
 
     @queued_exec(manager.job_queue)
-    def setGateVoltage(self, v, smu_gate=K_CONF.get('Sweep', 'gate')):
+    def setGateVoltage(self, v, smu_gate=KCONF.get('Sweep', 'gate')):
         """
         Sets the gate bias of the given Keithley SMU, grounds other SMUs.
 
@@ -1345,7 +1344,7 @@ class CustomXepr(QtCore.QObject):
             self.keithley.reset()
 
     @queued_exec(manager.job_queue)
-    def applyDrainCurrent(self, i, smu=K_CONF.get('Sweep', 'drain')):
+    def applyDrainCurrent(self, i, smu=KCONF.get('Sweep', 'drain')):
         """
         Applies a specified current to the selected Keithley SMU.
 

@@ -92,10 +92,10 @@ def connect_to_instruments():
     """
 
     from keithley2600 import Keithley2600
-    from keithleygui import CONF as KCONF
+    from keithleygui.config import CONF as KCONF
     from mercuryitc import MercuryITC
-    from mercurygui import CONF as MCONF
-    from mercurygui import MercuryFeed
+    from mercurygui.config import CONF as MCONF
+    from mercurygui.feed import MercuryFeed
     from customxepr.main import CustomXepr
 
     keithley_address = KCONF.get('Connection', 'VISA_ADDRESS')
@@ -133,8 +133,8 @@ def start_gui(customXepr, mercury_feed, keithley):
 
     :returns: Tuple containing GUI instances.
     """
-    from keithleygui import KeithleyGuiApp
-    from mercurygui import MercuryMonitorApp
+    from keithleygui.main import KeithleyGuiApp
+    from mercurygui.main import MercuryMonitorApp
     from customxepr.gui import CustomXeprGuiApp
 
     mercury_gui = MercuryMonitorApp(mercury_feed)
@@ -203,10 +203,8 @@ def run(cmd_line=False):
 
     if interactive:
         # print banner
-        from IPython import get_ipython
-        ipython = get_ipython()
-        if ipython:
-            ipython.magic('%clear')
+        if IP:
+            IP.magic('%clear')
         print(banner)
 
         # patch exception hook to display errors from Qt event loop
