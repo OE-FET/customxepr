@@ -13,17 +13,15 @@ import sys
 import os
 import logging
 
-from qtpy import QtCore, QtWidgets
 try:
+    # noinspection PyUnresolvedReferences
     from IPython import get_ipython
     IP = get_ipython()
 except ImportError:
-    IP = False
+    IP = None
 
-from customxepr.gui import SplashScreen
-
-if IP:
-    # if we are running from IPython start integrated Qt event loop
+if IP:  # if we are running from IPython start integrated Qt event loop
+    from qtpy import QtWidgets
     IP.magic('%gui qt')
     app = QtWidgets.QApplication(['CustomXepr'])
 
@@ -42,14 +40,17 @@ def get_qt_app():
     :rtype: (:class:`qtpy.QtWidgets.QApplication`, bool)
     """
 
+    from qtpy import QtCore, QtWidgets
+
     if IP:
         interactive = True
         # disable autoreload
         IP.magic('%load_ext autoreload')
         IP.magic('%autoreload 0')
+        IP.magic('%gui qt')
         os.environ.update(SPY_UMR_ENABLED='False')
         # get app instance
-        app = QtWidgets.QApplication.instance()
+        app = QtWidgets.QApplication(['CustomXepr'])
     else:
         interactive = False
         app = QtWidgets.QApplication(['CustomXepr'])
@@ -70,6 +71,10 @@ def show_splash_screen():
 
     :returns: :class:`qtpy.QtWidgets.QSplashScreen`.
     """
+
+    from qtpy import QtWidgets
+    from customxepr.gui import SplashScreen
+
     splash = SplashScreen()
     splash.show()
     splash.raise_()
@@ -89,6 +94,7 @@ def connect_to_instruments():
     addresses saved in the respective configuration files.
 
     :returns: Tuple containing instrument instances.
+    :rtype: tuple
     """
 
     from keithley2600 import Keithley2600
@@ -132,6 +138,7 @@ def start_gui(customXepr, mercury_feed, keithley):
     Starts GUIs for Keithley, Mercury and CustomXepr.
 
     :returns: Tuple containing GUI instances.
+    :rtype: tuple
     """
     from keithleygui.main import KeithleyGuiApp
     from mercurygui.main import MercuryMonitorApp
@@ -152,7 +159,7 @@ def start_gui(customXepr, mercury_feed, keithley):
     return customXepr_gui, mercury_gui, keithley_gui
 
 
-def run(cmd_line=False):
+def run(gui=True):
     """
     Runs CustomXepr -- this is the main entry point. Calling ``run`` will first
     create or retrieve an existing Qt application, then aim to connect to Xepr,
@@ -163,34 +170,16 @@ def run(cmd_line=False):
     will start an interactive session and return instances of the above instrument
     controllers. Otherwise, it will create its own Jupyter console to receive user input.
 
-    :param bool cmd_line: If ``True``, start CustomXepr without a graphical user interface
-        (default: ``no_gui = False``).
+    :param bool gui: If ``False``, start CustomXepr without a GUI. In this case, no Qt
+        application will be started (defaults to ``True``) and customxepr will not depend
+        on PyQt5 or PySide2.
 
     :returns: Tuple containing instrument instances.
+    :rtype: tuple
     """
 
     from customxepr.main import __version__, __author__, __year__
     from customxepr.gui.error_dialog import patch_excepthook
-
-    # create a new Qt app or return an existing one
-    if not cmd_line:
-        app, interactive = get_qt_app()
-    else:
-        interactive = True
-
-    # create and show splash screen
-    if not cmd_line:
-        splash = show_splash_screen()
-
-    # connect to instruments
-    if not cmd_line:
-        splash.showMessage("Connecting to instruments...")
-    xepr, customXepr, mercury, mercury_feed, keithley = connect_to_instruments()
-    # start user interfaces
-    if not cmd_line:
-        splash.showMessage("Loading user interface...")
-        customXepr_gui, mercury_gui, keithley_gui = start_gui(customXepr, mercury_feed,
-                                                              keithley)
 
     banner = ('Welcome to CustomXepr %s. ' % __version__ +
               'You can access connected instruments through "customXepr" ' +
@@ -201,58 +190,54 @@ def run(cmd_line=False):
               'Type "exit" to exit CustomXepr.\n\n' +
               '(c) 2016 - %s, %s.' % (__year__, __author__))
 
-    if interactive:
-        # print banner
-        if IP:
-            IP.magic('%clear')
+    ui = ()
+
+    if not gui:
+        print("Connecting to instruments...")
+        xepr, customXepr, mercury, mercury_feed, keithley = connect_to_instruments()
+        if IP: IP.magic('%clear')
         print(banner)
 
-        # patch exception hook to display errors from Qt event loop
-        if not cmd_line:
-            patch_excepthook()
-
-        # remove splash screen
-        if not cmd_line:
-            splash.hide()
-
-        if not cmd_line:
-            ui = (customXepr_gui, mercury_gui, keithley_gui)
-        else:
-            ui = ()
-
-        return customXepr, xepr, mercury, mercury_feed, keithley, ui
-
     else:
-        splash.showMessage("Loading console...")
+        app, interactive = get_qt_app()  # create a new Qt app or return an existing one
+        splash = show_splash_screen()  # create splash screen for messages
 
-        from customxepr.utils.internal_ipkernel import InternalIPKernel
+        splash.showMessage("Connecting to instruments...")
+        xepr, customXepr, mercury, mercury_feed, keithley = connect_to_instruments()
 
-        # start event loop and console if run as a standalone app
-        kernel = InternalIPKernel(banner=banner)
-        kernel.new_qt_console()
+        splash.showMessage("Loading user interface...")
+        ui = start_gui(customXepr, mercury_feed, keithley)
 
-        var_dict = {'customXepr': customXepr, 'xepr': xepr, 'mercury': mercury,
-                    'mercury_feed': mercury_feed, 'keithley': keithley,
-                    'customXepr_gui': customXepr_gui,
-                    'mercury_gui': mercury_gui, 'keithley_gui': keithley_gui,
-                    }
+        if interactive:
+            if IP: IP.magic('%clear')
+            print(banner)
+        else:
+            # start ipython kernel and jupyter console
+            splash.showMessage("Loading console...")
 
-        kernel.send_to_namespace(var_dict)
+            from customxepr.utils.internal_ipkernel import InternalIPKernel
 
-        # patch exception hook to display errors from Qt event loop
-        patch_excepthook()
-        # remove splash screen
-        splash.close()
+            kernel = InternalIPKernel(banner=banner)
+            kernel.new_qt_console()
 
-        # set shutdown behaviour
-        app.aboutToQuit.connect(kernel.cleanup_consoles)
-        if not sys.platform == 'darwin':
-            app.aboutToQuit.connect(customXepr_gui.exit_)
-            app.aboutToQuit.connect(mercury_gui.exit_)
-            app.aboutToQuit.connect(keithley_gui.exit_)
+            var_dict = {'customXepr': customXepr, 'xepr': xepr, 'mercury': mercury,
+                        'mercury_feed': mercury_feed, 'keithley': keithley}
 
-        # start event loop
-        kernel.ipkernel.start()
+            kernel.send_to_namespace(var_dict)
+
+            # set shutdown behaviour
+            if not sys.platform == 'darwin':
+                app.aboutToQuit.connect(kernel.cleanup_consoles)
+                for u in ui:
+                    app.aboutToQuit.connect(u.exit_)
+
+            patch_excepthook()  # display errors from Qt event loop to user
+            splash.close()  # remove splash screen
+
+            # start event loop
+            kernel.ipkernel.start()
+
+    return customXepr, xepr, mercury, mercury_feed, keithley, ui
 
 
 if __name__ == '__main__':
