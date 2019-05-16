@@ -50,7 +50,7 @@ def get_qt_app():
         IP.magic('%gui qt')
         os.environ.update(SPY_UMR_ENABLED='False')
         # get app instance
-        app = QtWidgets.QApplication(['CustomXepr'])
+        app = QtWidgets.QApplication.instance()
     else:
         interactive = False
         app = QtWidgets.QApplication(['CustomXepr'])
