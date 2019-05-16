@@ -4,8 +4,8 @@ configparser
 decorator
 future
 ipykernel
-keithley2600 >= 1.0.0
-keithleygui >= 1.0.0
+keithley2600 >= 1.2.0
+keithleygui >= 1.1.1
 lmfit
 matplotlib >= 2.0
 mercurygui
