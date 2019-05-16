@@ -66,7 +66,7 @@ class CustomXepr(object):
     >>> customXepr = CustomXepr(xepr, mercuryfeed, keithley)
 
     However, the preferred method of connecting to instruments and creating an instance
-    of CustomXepr is through :func:`customxepr.startup.run`.
+    of CustomXepr is through :func:`startup.run`.
 
     All CustomXepr methods are executed in a worker thread in the order of their calls. To
     execute your own function in this thread, you can use the :func:`queued_exec`
