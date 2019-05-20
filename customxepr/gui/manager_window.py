@@ -426,7 +426,7 @@ class ManagerApp(QtWidgets.QMainWindow):
         """
         if self.job_queue.has_running() > 0:
             logger.warning('No status update for %i min.' % self.t_timeout +
-                           ' Please check on experiment')
+                           ' Please check on experiment.')
 
     @staticmethod
     def is_updated():
