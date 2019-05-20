@@ -13,7 +13,7 @@ import logging
 import time
 import numpy as np
 import tempfile
-from keithleygui.config import CONF as KCONF
+from keithleygui.config.main import CONF as KCONF
 
 from customxepr.utils import EmailSender
 from customxepr.experiment import ModePicture, XeprData, XeprParam

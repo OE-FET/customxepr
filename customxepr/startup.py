@@ -98,9 +98,9 @@ def connect_to_instruments():
     """
 
     from keithley2600 import Keithley2600
-    from keithleygui.config import CONF as KCONF
+    from keithleygui.config.main import CONF as KCONF
     from mercuryitc import MercuryITC
-    from mercurygui.config import CONF as MCONF
+    from mercurygui.config.main import CONF as MCONF
     from mercurygui.feed import MercuryFeed
     from customxepr.main import CustomXepr
 
