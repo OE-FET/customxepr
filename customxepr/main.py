@@ -160,7 +160,6 @@ class CustomXepr(object):
         # =====================================================================
         # interaction with manager
         # =====================================================================
-        self.notify_address = self.manager.notify_address
         self.abort = self.manager.abort
 
         if keithley is not None:
@@ -169,6 +168,17 @@ class CustomXepr(object):
 # ========================================================================================
 # define basic functions for email notifications, pausing, etc.
 # ========================================================================================
+
+
+    @property
+    def notify_address(self):
+        """List with email addresses for notifications."""
+        return self.manager.notify_address
+
+    @notify_address.setter
+    def notify_address(self, address_list):
+        """Setter: List with email addresses for notifications."""
+        self.manager.notify_address = address_list
 
     @queued_exec(manager.job_queue)
     def sendEmail(self, body):
