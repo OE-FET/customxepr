@@ -501,8 +501,9 @@ class ManagerApp(QtWidgets.QMainWindow):
         elif status is ExpStatus.QUEUED:
             self.jobQueueModel.item(index).setIcon(self.icon_queued)
 
-        item_index = self.jobQueueModel.createIndex(index, 1)
-        self.jobQueueModel.dataChanged.emit(item_index, item_index)
+        item_index1 = self.jobQueueModel.createIndex(index, 0)
+        item_index2 = self.jobQueueModel.createIndex(index, 1)
+        self.jobQueueDisplay.dataChanged(item_index1, item_index2)
 
         # update scroll position
         top_item_index = self.jobQueueModel.createIndex(index-3, 1)
