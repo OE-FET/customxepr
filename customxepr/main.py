@@ -169,7 +169,6 @@ class CustomXepr(object):
 # define basic functions for email notifications, pausing, etc.
 # ========================================================================================
 
-
     @property
     def notify_address(self):
         """List with email addresses for notifications."""
