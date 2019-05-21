@@ -50,45 +50,12 @@ class CustomXepr(object):
     voltages and recording IV characteristics with attached Keithley SMUs. When creating
     an instance of CustomXepr, you can pass instances of :class:`.XeprAPI.XeprAPI`,
     :class:`mercurygui.MercuryFeed` and :class:`keithley2600.Keithley2600` to handle
-    interactions with the respective instruments:
+    interactions with the respective instruments.
 
-    >>> from customxepr import CustomXepr
-    >>> from XeprAPI import XeprAPI
-    >>> from mercuryitc import MercuryITC
-    >>> from mercurygui import MercuryFeed
-    >>> from keithley2600 import Keithley2600
-    >>> # connect to instruments
-    >>> xepr = XeprAPI.Xepr()
-    >>> mercury = MercuryITC('visa_address')
-    >>> mercuryfeed = MercuryFeed(mercury)
-    >>> keithley = Keithley2600('visa_address')
-    >>> # create CustomXepr instance
-    >>> customXepr = CustomXepr(xepr, mercuryfeed, keithley)
-
-    However, the preferred method of connecting to instruments and creating an instance
-    of CustomXepr is through :func:`startup.run`.
-
-    All CustomXepr methods are executed in a worker thread in the order of their calls. To
-    execute your own function in this thread, you can use the :func:`queued_exec`
-    decorator provided by customxepr and query the ``abort_event`` to support
-    CustomXepr's abort functionality (see :class:`manager.Manager`).
-
-    All results are added to the result queue and can be retrieved with:
-
-    >>> manager = customXepr.manager
-    >>> result = manager.result_queue.get()  # blocks until result is available
-
-    To pause or resume the worker between jobs, run
-
-    >>> manager.pause_worker()
-
-    or
-
-    >>> manager.resume_worker()
-
-    To abort a job, run:
-
-    >>> manager.abort_job()
+    All CustomXepr methods are executed in a worker thread in the order of their calls.
+    Scheduling of jobs and retrieval of results is handled by :class:`customxepr.Manager`.
+    For an instructions on how to  execute your own function in this thread, see the
+    documentation of :mod:`customxepr.manager`.
 
     You can use :class:`CustomXepr` on its own, but it is recommended to start it with the
     :func:`run` function in the :mod:`startup` module. This will automatically connect to
@@ -100,14 +67,6 @@ class CustomXepr(object):
         MercuryiTC temperature controller. Defaults to `None` if not provided.
     :param keithley: :class:`keithley2600.Keithley2600` instance from keithley2600 driver.
         Defaults to `None` if not provided.
-
-    :cvar manager: Manages execution of queued experiments.
-
-    :ivar hidden: Xepr's hidden experiment.
-    :ivar xepr: Connected Xepr instance.
-    :ivar keithley: Connected :class:`keithley2600.Keithley2600` instance.
-    :ivar feed: Connected :class:`mercurygui.MercuryFeed` instance.
-    :ivar _wait: Delay between commands sent to Xepr.
     """
 
     manager = Manager()
@@ -145,17 +104,16 @@ class CustomXepr(object):
         # define / load certain settings for customxepr functions
         # =====================================================================
 
-        # waiting time for Xepr to process commands (in sec)
-        self._wait = 0.1
-        # timeout for phase tuning (in sec)
-        self._tuning_timeout = 60
-        # last measured Q-value
-        self._last_qvalue = None
-        self._last_qvalue_err = None
         # settling time for cryostat temperature (in sec)
-        self._temp_wait_time = CONF.get('CustomXepr', 'temp_wait_time')
+        self.temp_wait_time = CONF.get('CustomXepr', 'temp_wait_time')
         # temperature stability tolerance (in K)
-        self._temperature_tolerance = CONF.get('CustomXepr', 'temperature_tolerance')
+        self.temperature_tolerance = CONF.get('CustomXepr', 'temperature_tolerance')
+
+        self._wait = 0.1  # waiting time for Xepr to process commands (in sec)
+        self._tuning_timeout = 60  # timeout for phase tuning (in sec)
+
+        self._last_qvalue = None  # last measured Q-value
+        self._last_qvalue_err = None  # last measured Q-value error
 
         # =====================================================================
         # interaction with manager
@@ -217,24 +175,24 @@ class CustomXepr(object):
     @property
     def temp_wait_time(self):
         """Wait time until temperature is considered stable. Defaults to 120 sec."""
-        return self._temp_wait_time
+        return self.temp_wait_time
 
     @temp_wait_time.setter
     def temp_wait_time(self, new_time):
         """Setter: Wait time until temperature is considered stable."""
-        self._temp_wait_time = new_time
+        self.temp_wait_time = new_time
         # update config file
         CONF.set('CustomXepr', 'temp_wait_time', new_time)
 
     @property
     def temperature_tolerance(self):
         """Temperature fluctuation tolerance. Defaults to 0.1 Kelvin."""
-        return self._temperature_tolerance
+        return self.temperature_tolerance
 
     @temperature_tolerance.setter
     def temperature_tolerance(self, new_tol):
         """Setter: Temperature fluctuation tolerance."""
-        self._temperature_tolerance = new_tol
+        self.temperature_tolerance = new_tol
         # update config file
         CONF.set('CustomXepr', 'temperature_tolerance', new_tol)
 

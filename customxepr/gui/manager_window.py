@@ -135,9 +135,7 @@ class ManagerApp(QtWidgets.QMainWindow):
     A GUI for CustomXepr, composed of three panels:
 
         1) List of queued jobs and functionality to pause, resume and abort any
-           job execution. Basic CustomXepr settings such as the temperature
-           settling time and tolerance, as well as shortcuts to tuning and
-           Q-value evaluation routines, can be accesses here as well.
+           job execution.
 
         2) List of all results. Right-clicking on a result exposes plotting and
            saving functionality if corresponding methods are provided by the
@@ -147,7 +145,7 @@ class ManagerApp(QtWidgets.QMainWindow):
            UI to specify email addresses for notifications and the desired
            notification level (Status, Info, Warning or Error).
 
-    This class requires a :class:`main.CustomXepr` instance as input.
+    This class requires a :class:`manager.Manager` instance as input.
 
     """
 

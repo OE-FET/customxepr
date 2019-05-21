@@ -37,6 +37,8 @@ class CustomXeprGuiApp(ManagerApp):
 
     """
     Subclass of :class:`ManagerApp` which adds controls for select CustomXepr settings.
+
+    :param: :class:`main.CustomXepr` instance.
     """
 
     def __init__(self, customxepr):
