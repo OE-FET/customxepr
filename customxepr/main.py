@@ -571,9 +571,11 @@ class CustomXepr(object):
             logger.warning('Q = %i+/-%i is very small. ' % (mp.qvalue, mp.qvalue_stderr) +
                            'Please check on experiment.')
 
-        if path is None:
-            pass
-        elif os.path.isdir(path):
+        if path is not None:
+            path = os.path.expanduser(path)
+            if not os.path.isdir(path):
+                raise IOError('"%s" is not a valid directory.' % path)
+
             path1 = os.path.join(path, 'QValues.txt')
             path2 = os.path.join(path, 'ModePicture{0:03d}K.txt'.format(int(temperature)))
 
@@ -642,11 +644,12 @@ class CustomXepr(object):
         logger.info(message)
 
         # -------------------start experiment----------------------------------
-        temperature_mean = temperature_var = None
         if self._check_for_mercury(raise_error=False):
-            temperature_history = np.array([])
+            temperature_fluct_history = np.array([])
+            temperature_set = self.feed.temperature.loop_tset
         else:
-            temperature_history = None
+            temperature_fluct_history = None
+            temperature_set = None
 
         exp.select()
         time.sleep(self._wait)
@@ -706,36 +709,31 @@ class CustomXepr(object):
                     time.sleep(self._wait)
 
             # record temperature and warn if fluctuations exceed the tolerance
-            if temperature_history is not None:
-                temperature_curr = self.feed.readings['Temp']
-                temperature_history = np.append(temperature_history, temperature_curr)
-                # increment the number of violations n_out if temperature unstable
-                n_out += (abs(temperature_history[-1] - temperature_history[0]) >
-                          2 * self.temperature_tolerance)
-                # warn once for every 120 violations
+            if temperature_fluct_history is not None:
+                diff = abs(self.feed.readings['Temp'] - temperature_set)
+                temperature_fluct_history = np.append(temperature_fluct_history, diff)
+                # increment the number of violations n_out if temperature is unstable
+                n_out += (diff > self.temperature_tolerance)
+                # warn once for every 120 temperature violations
                 if np.mod(n_out, 120) == 1:
-                    logger.warning(u'Temperature fluctuations > +/-%sK.'
-                                   % (2*self.temperature_tolerance))
-                    n_out += 1  # prevent from warning again next second
+                    max_diff = np.max(temperature_fluct_history)
+                    logger.warning('Temperature fluctuations of +/-%sK.' % max_diff)
+                    n_out += 1  # prevent from warning again the next second
 
-                # Pause measurement and suspend all pending jobs after 15 min
-                # of temperature instability
+                # Pause measurement and raise error after 15 min of instability
                 if n_out > 60 * 15:
-                    logger.warning('Temperature could not be stabilized for ' +
-                                   '15 min. Pausing current measurement and ' +
-                                   'all pending jobs.')
                     exp.aqExpPause()
-                    self.manager.running.clear()
-                    return
+                    raise RuntimeError('Temperature could not be stabilized for ' +
+                                       '15 min. Pausing current measurement and ' +
+                                       'all pending jobs.')
 
             time.sleep(1)
 
         # get temperature stability during scan if mercury was connected
-        if temperature_history is not None:
-            temperature_var = max(temperature_history) - min(temperature_history)
-            temperature_mean = float(np.mean(temperature_history))
+        if temperature_fluct_history is not None:
+            max_diff = np.max(temperature_fluct_history)
             logger.info(u'Temperature stable at (%.2f+/-%.2f)K during scans.'
-                        % (temperature_mean, temperature_var / 2))
+                        % (temperature_set, max_diff))
 
         logger.info('All scans complete.')
 
@@ -766,7 +764,7 @@ class CustomXepr(object):
             dsl_mwbridge.pars['QValue'] = XeprParam(self._last_qvalue)
             dsl_mwbridge.pars['QValueErr'] = XeprParam(self._last_qvalue_err)
 
-        if temperature_history is not None:
+        if temperature_fluct_history is not None:
             dsl_temp = ParamGroupDSL(name='tempCtrl')
             dsl_temp.pars['AcqWaitTime'] = XeprParam(self.temp_wait_time, 's')
             dsl_temp.pars['Temperature'] = XeprParam(self.feed.temperature.loop_tset, 'K')
@@ -1022,7 +1020,7 @@ class CustomXepr(object):
             time.sleep(self._wait)
             diode_curr_array = np.append(diode_curr_array, diode_curr)
             if time.time() - t0 > self._tuning_timeout:
-                logger.warning('Phase tuning timeout.')
+                logger.info('Phase tuning timeout.')
                 break
 
         upper = np.mean(diode_curr_array[phase_array > phase0])
@@ -1068,7 +1066,7 @@ class CustomXepr(object):
 
             # timeout if Xepr is not responsive
             if time.time() - t0 > self._tuning_timeout:
-                logger.warning('Phase tuning timeout.')
+                logger.info('Phase tuning timeout.')
                 break
 
         # set phase to the best value

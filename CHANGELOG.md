@@ -3,13 +3,16 @@
 _Added:_
 - Allow configuration of a custom SMTP server for email notifications in the config file
   '~/.CustomXepr/CustomXepr.ini'.
-- Save standard error for Q-Value determination in DSC file as parameter 'QValueErr', if
-  available.
+- Save the standard error from fitting the Q-Value as a new parameter 'QValueErr' in the
+  DSC file, if available.
+  
+_Changed:_
+- Improved error and warning mesages.
 
 _Fixed:_
-- Fixed a deadlock when removing item from result queue.
-- Fixed an issue where job status icons might not update until the user clicks on the list
-  view.
+- Fixed a deadlock when removing an item from the result queue.
+- Fixed an issue where the job status icons might not update until the user clicks on the 
+  list view.
 
 #### v2.3.1 (2019-04-23)
 
