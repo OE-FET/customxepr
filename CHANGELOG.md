@@ -1,9 +1,18 @@
 #### v2.3.2-dev (2019-05-03)
+
+This release focuses on bug fixes and under-the-hood improvements.
+
 _Added:_
 - Allow configuration of a custom SMTP server for email notifications in the config file '~/.CustomXepr/CustomXepr.ini'.
 - Save standard error for Q-Value determination in DSC file as parameter 'QValueErr', if available.
 
+_Fixed:_
+- Fixed deadlock when removing item from result queue.
+- Fixed an issue where job status icons might not update until the user clicks on the list view.
+
 #### v2.3.1 (2019-04-23)
+
+This release adds several options (keyword arguments) to CustomXepr functions. It also fully separates UI from non-UI modules.
 
 _Added:_
 - Double click on a result in the GUI to plot it.
@@ -26,34 +35,33 @@ _Removed:_
 This release focuses on under-the-hood improvements and provides significant speedups to the user interface (plotting data, deleting a large number of queued jobs, etc).
 
 _Changed:_
-
 - Reduced the startup time when no instruments can be found.
 - Added info messages to the splash screen.
 - Swtiched plotting library for Mercury ITC and Keithley 2600 from Matplotlib to pyqtgraph. This allows for smoother user interactions with plots.
-- Bug fixes for PyQt 5.12.
 - Performance improvements when deleting a large number of results or pending jobs: previously _O(n^2)_, now _O(n)_ performance.
 - Better organization of code into submodules.
+
+_Fixed:_
+- Bug fixes for PyQt 5.12.
+
 
 #### v2.2.2 (2019-02-19)
 
 This release adds support for reading and writing Bruker Xepr data files in the BES3T format.
 
 _Added:_
-
 - Added `XeprData` class to hold, read and save Xepr measurement data files. `XeprData`
   provides methods to access and modifiy measurement parameters and to plot the data.
   It is compalitble with all Xepr experiment types, saved in the Bruker BES3T file format
   up to version 1.2 (currently used by Xepr).
 
 _Changed:_
-
 - `runXeprExperiment` now accepts a path parameter. If given, the resulting data
   will be saved to the specified path, togther with the last-measured Q-value
   and temperature setpoint.
 - Tweaked icons in user interface.
 
 _Removed:_
-
 - Removed the option to specify a title when saving an ESR data file. The file
   name is now always used as title.
 - `saveCurrentData` will be removed in a future version of CustomXepr. Use the `path`
@@ -61,15 +69,13 @@ _Removed:_
 
 #### v2.2.1 (2019-01-25)
 
-This release introduces online documentation for CustomXepr and user interface improvements.
+This release introduces online documentation for CustomXepr and user inlcudes interface improvements.
 
 _Added:_
-
 - Job history now remains visible together with icons indicating the job status.
 - Documentation is now available at [https://customxepr.readthedocs.io](https://customxepr.readthedocs.io).
 
 _Changed:_
-
 - Switched from custom TslSMTPHandler to python-bundled SMTPHandler for email
   notifications.
 - Improved docstrings.
@@ -77,7 +83,6 @@ _Changed:_
 #### v2.2.0 (2019-01-09)
 
 _Added:_
-
 - Added terminal / command line script "CustomXepr".
 - Added confidence interval for Q-value calculation in ModePicture class.
 - Window positions and sizes are saved and restored between sessions.
@@ -85,33 +90,27 @@ _Added:_
 - Nicely colored tracebacks for error messages.
 
 _Changed:_
-
 - CustomXepr is now distributed as a python package and can be installed with
   pip.
 
 _Fixed:_
-
 - Fixed a bug that could result in values inside spin-boxes to be displayed
   without their decimal marker on some systems.
 - Fixed a bug that could result in crashes after closing the keithley or
   mercury control windows.
 
 _Removed:_
-
 - Removed all ETA estimates for experiments.
 
 #### v2.1.1
 
 _Added:_
-
 - Included revamped keithleygui with IV sweep functionality.
 - Compatability with Python 3.6 and higher.
 
 _Changed:_
-
 - Proper disconnection from instruments when closing windows or shutting down
   the console with "exit" command.
-
 _Fixed:_
 
 - Fixed a bug that would prevent Xepr experiments to run if the measurement
@@ -121,15 +120,12 @@ _Fixed:_
 #### v2.1.0
 
 _Added:_
-
 - Warnings when invalid file paths are handed to Xepr.
 
 _Changed:_
-
 - Split off mercury_gui and keithley_gui as separate packages.
 
 _Removed:_
-
 - Removed dark theme: code is easier to maintain. System level dark themes,
   such as macOS Mojave's dark mode, may be supported in the future when Qt
   support is added.
@@ -137,7 +133,6 @@ _Removed:_
 #### v2.0.1
 
 _Changed:_
-
 - Moved default driver backends from NI-VISA to pyvisa-py. It is no longer
   necessary to install NI-VISA from National Instruments on your system.
 - Moved drivers to external packages. Install with pip before first use.

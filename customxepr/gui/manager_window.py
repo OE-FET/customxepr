@@ -562,9 +562,13 @@ class ManagerApp(QtWidgets.QMainWindow):
         self.resultQueueModel.appendRow([rslt_type, rslt_size, rslt_value])
 
     def on_jobs_removed(self, i0, n_items):
+
+        i0 = i0 % self.jobQueueModel.rowCount()  # convert negative to positive indices
         self.jobQueueModel.removeRows(i0, n_items)
 
     def on_results_removed(self, i0, n_items):
+
+        i0 = i0 % self.resultQueueModel.rowCount()  # convert negative to positive indices
         self.resultQueueModel.removeRows(i0, n_items)
 
     def populate_jobs(self):
