@@ -1,44 +1,55 @@
-#### v2.3.2-dev (2019-05-03)
-
-This release focuses on bug fixes and under-the-hood improvements.
+#### v2.3.2-dev0 (2019-05-21)
 
 _Added:_
-- Allow configuration of a custom SMTP server for email notifications in the config file '~/.CustomXepr/CustomXepr.ini'.
-- Save standard error for Q-Value determination in DSC file as parameter 'QValueErr', if available.
+- Allow configuration of a custom SMTP server for email notifications in the config file
+  '~/.CustomXepr/CustomXepr.ini'.
+- Save standard error for Q-Value determination in DSC file as parameter 'QValueErr', if
+  available.
 
 _Fixed:_
-- Fixed deadlock when removing item from result queue.
-- Fixed an issue where job status icons might not update until the user clicks on the list view.
+- Fixed a deadlock when removing item from result queue.
+- Fixed an issue where job status icons might not update until the user clicks on the list
+  view.
 
 #### v2.3.1 (2019-04-23)
 
-This release adds several options (keyword arguments) to CustomXepr functions. It also fully separates UI from non-UI modules.
+This release adds several options (keyword arguments) to CustomXepr functions. It also
+fully separates UI from non-UI modules.
 
 _Added:_
 - Double click on a result in the GUI to plot it.
 - Enable editing of ordinate data in `XeprData` instance.
-- Added a keyword argument `low_q` to `customtune` to enable tuning with low Q-values (default: `low_q=False`).
-- Added a keyword argument `auto_gf` to `setTemperature` to disable or enable automatic gasflow control (default: `auto_gf=True`).
-- Added a keyword argument `htt_file` to `heater_target` to select a file with a custom heater target table.
+- Added a keyword argument `low_q` to `customtune` to enable tuning with low Q-values
+  (default: `low_q=False`).
+- Added a keyword argument `auto_gf` to `setTemperature` to disable or enable automatic
+  gasflow control (default: `auto_gf=True`).
+- Added a keyword argument `htt_file` to `heater_target` to select a file with a custom
+  heater target table.
 
 _Changed:_
-- Simplified access and modification of `XeprData` paramaters. Parameter values can now be updated directly by assigning a value to their dictionary entry.
+- Simplified access and modification of `XeprData` paramaters. Parameter values can now be
+  updated directly by assigning a value to their dictionary entry.
 - Updated default heater target table for MercuryITC.
 - Log files older than 7 days are deleted automatically on startup.
-- Removed all Qt related depencies from non-GUI modules. This makes it easier to run CustomXepr in headless mode from the command line.
+- Removed all Qt related depencies from non-GUI modules. This makes it easier to run
+  CustomXepr in headless mode from the command line.
 
 _Removed:_
-- Deprecated `set_param` and `get_param` methods of `XeprData`. Use the `pars` attribute with dictionary type access instead.
+- Deprecated `set_param` and `get_param` methods of `XeprData`. Use the `pars` attribute
+  with dictionary type access instead.
 
 #### v2.3.0 (2019-03-20)
 
-This release focuses on under-the-hood improvements and provides significant speedups to the user interface (plotting data, deleting a large number of queued jobs, etc).
+This release focuses on under-the-hood improvements and provides significant speedups to
+the user interface (plotting data, deleting a large number of queued jobs, etc).
 
 _Changed:_
 - Reduced the startup time when no instruments can be found.
 - Added info messages to the splash screen.
-- Swtiched plotting library for Mercury ITC and Keithley 2600 from Matplotlib to pyqtgraph. This allows for smoother user interactions with plots.
-- Performance improvements when deleting a large number of results or pending jobs: previously _O(n^2)_, now _O(n)_ performance.
+- Swtiched plotting library for Mercury ITC and Keithley 2600 from Matplotlib to
+  pyqtgraph. This allows for smoother user interactions with plots.
+- Performance improvements when deleting a large number of results or pending jobs:
+  previously _O(n^2)_, now _O(n)_ performance.
 - Better organization of code into submodules.
 
 _Fixed:_
@@ -47,7 +58,8 @@ _Fixed:_
 
 #### v2.2.2 (2019-02-19)
 
-This release adds support for reading and writing Bruker Xepr data files in the BES3T format.
+This release adds support for reading and writing Bruker Xepr data files in the BES3T
+format.
 
 _Added:_
 - Added `XeprData` class to hold, read and save Xepr measurement data files. `XeprData`
@@ -69,11 +81,13 @@ _Removed:_
 
 #### v2.2.1 (2019-01-25)
 
-This release introduces online documentation for CustomXepr and user inlcudes interface improvements.
+This release introduces online documentation for CustomXepr and user inlcudes interface
+improvements.
 
 _Added:_
 - Job history now remains visible together with icons indicating the job status.
-- Documentation is now available at [https://customxepr.readthedocs.io](https://customxepr.readthedocs.io).
+- Documentation is now available at
+  [https://customxepr.readthedocs.io](https://customxepr.readthedocs.io).
 
 _Changed:_
 - Switched from custom TslSMTPHandler to python-bundled SMTPHandler for email
