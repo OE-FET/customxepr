@@ -1182,7 +1182,7 @@ class CustomXepr(object):
             # warn once if stabilization is taking longer than expected
             if time.time() - t0 > self._temperature_timeout:
                 t0 = time.time()
-                logger.warning('Temperature is taking too long to stabilize.')
+                logger.warning('Temperature is taking a long time to stabilize.')
 
         message = 'Mercury iTC: Temperature is stable at %sK.' % self._temperature_target
         logger.info(message)
