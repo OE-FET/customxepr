@@ -105,9 +105,9 @@ class CustomXepr(object):
         # =====================================================================
 
         # settling time for cryostat temperature (in sec)
-        self.temp_wait_time = CONF.get('CustomXepr', 'temp_wait_time')
+        self._temp_wait_time = CONF.get('CustomXepr', 'temp_wait_time')
         # temperature stability tolerance (in K)
-        self.temperature_tolerance = CONF.get('CustomXepr', 'temperature_tolerance')
+        self._temperature_tolerance = CONF.get('CustomXepr', 'temperature_tolerance')
 
         self._wait = 0.1  # waiting time for Xepr to process commands (in sec)
         self._tuning_timeout = 60  # timeout for phase tuning (in sec)
@@ -175,24 +175,24 @@ class CustomXepr(object):
     @property
     def temp_wait_time(self):
         """Wait time until temperature is considered stable. Defaults to 120 sec."""
-        return self.temp_wait_time
+        return self._temp_wait_time
 
     @temp_wait_time.setter
     def temp_wait_time(self, new_time):
         """Setter: Wait time until temperature is considered stable."""
-        self.temp_wait_time = new_time
+        self._temp_wait_time = new_time
         # update config file
         CONF.set('CustomXepr', 'temp_wait_time', new_time)
 
     @property
     def temperature_tolerance(self):
         """Temperature fluctuation tolerance. Defaults to 0.1 Kelvin."""
-        return self.temperature_tolerance
+        return self._temperature_tolerance
 
     @temperature_tolerance.setter
     def temperature_tolerance(self, new_tol):
         """Setter: Temperature fluctuation tolerance."""
-        self.temperature_tolerance = new_tol
+        self._temperature_tolerance = new_tol
         # update config file
         CONF.set('CustomXepr', 'temperature_tolerance', new_tol)
 
@@ -671,7 +671,7 @@ class CustomXepr(object):
                 diff = abs(self.feed.readings['Temp'] - temperature_set)
                 temperature_fluct_history = np.append(temperature_fluct_history, diff)
                 # increment the number of violations n_out if temperature is unstable
-                n_out += (diff > self.temperature_tolerance)
+                n_out += (diff > self._temperature_tolerance)
                 # warn once for every 120 temperature violations
                 if np.mod(n_out, 120) == 1:
                     max_diff = np.max(temperature_fluct_history)
@@ -724,9 +724,9 @@ class CustomXepr(object):
 
         if temperature_fluct_history is not None:
             dsl_temp = ParamGroupDSL(name='tempCtrl')
-            dsl_temp.pars['AcqWaitTime'] = XeprParam(self.temp_wait_time, 's')
+            dsl_temp.pars['AcqWaitTime'] = XeprParam(self._temp_wait_time, 's')
             dsl_temp.pars['Temperature'] = XeprParam(self.feed.temperature.loop_tset, 'K')
-            dsl_temp.pars['Tolerance'] = XeprParam(self.temperature_tolerance, 'K')
+            dsl_temp.pars['Tolerance'] = XeprParam(self._temperature_tolerance, 'K')
             dsl_temp.pars['Stability'] = XeprParam(round(temperature_var, 4), 'K')
             dsl_temp.pars['Mean'] = XeprParam(round(temperature_mean, 4), 'K')
 
@@ -1108,7 +1108,7 @@ class CustomXepr(object):
 
         logger.info('Waiting for temperature to stabilize.')
 
-        while stable_counter < self.temp_wait_time:
+        while stable_counter < self._temp_wait_time:
             # check for abort command
             if self.abort.is_set():
                 logger.info('Aborted by user.')
@@ -1127,14 +1127,14 @@ class CustomXepr(object):
 
             # check temperature deviation
             self.T_diff = abs(self._temperature_target - self.feed.readings['Temp'])
-            if self.T_diff > self.temperature_tolerance:
+            if self.T_diff > self._temperature_tolerance:
                 stable_counter = 0
                 time.sleep(self.feed.refresh)
                 logger.status('Waiting for temperature to stabilize.')
             else:
                 stable_counter += self.feed.refresh
                 logger.status('Stable for %s/%s sec.' % (stable_counter,
-                                                         self.temp_wait_time))
+                                                         self._temp_wait_time))
                 time.sleep(self.feed.refresh)
 
             # warn once if stabilization is taking longer than expected
