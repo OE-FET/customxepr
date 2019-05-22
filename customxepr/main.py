@@ -109,7 +109,7 @@ class CustomXepr(object):
         # temperature stability tolerance (in K)
         self._temperature_tolerance = CONF.get('CustomXepr', 'temperature_tolerance')
 
-        self._wait = 0.1  # waiting time for Xepr to process commands (in sec)
+        self._wait = 0.2  # waiting time for Xepr to process commands (in sec)
         self._tuning_timeout = 60  # timeout for phase tuning (in sec)
 
         self._last_qvalue = None  # last measured Q-value
@@ -671,7 +671,7 @@ class CustomXepr(object):
                 diff = abs(self.feed.readings['Temp'] - temperature_set)
                 temperature_fluct_history = np.append(temperature_fluct_history, diff)
                 # increment the number of violations n_out if temperature is unstable
-                n_out += (diff > self._temperature_tolerance)
+                n_out += (diff > 2*self._temperature_tolerance)
                 # warn once for every 120 temperature violations
                 if np.mod(n_out, 120) == 1:
                     max_diff = np.max(temperature_fluct_history)
@@ -1098,7 +1098,7 @@ class CustomXepr(object):
         """
 
         # time in sec after which a timeout warning is issued
-        self._temperature_timeout = (self._ramp_time() + 30*60)  # in sec
+        temperature_timeout = (self._ramp_time() + 30*60)  # in sec
         # counter for elapsed seconds since temperature has been stable
         stable_counter = 0
         # counter for setting gas flow to manual
@@ -1137,10 +1137,11 @@ class CustomXepr(object):
                                                          self._temp_wait_time))
                 time.sleep(self.feed.refresh)
 
-            # warn once if stabilization is taking longer than expected
-            if time.time() - t0 > self._temperature_timeout:
-                t0 = time.time()
+            # warn if stabilization is taking longer than expected, and again every 30 min
+            if time.time() - t0 > temperature_timeout:
                 logger.warning('Temperature is taking a long time to stabilize.')
+                t0 = time.time()
+                temperature_timeout = 30*60
 
         message = 'Mercury iTC: Temperature is stable at %sK.' % self._temperature_target
         logger.info(message)
@@ -1169,7 +1170,7 @@ class CustomXepr(object):
     def _ramp_time(self):
         """
         Calculates the expected time in sec to reach the target temperature.
-        Assumes a max ramping speed of 5 K/min if "ramp" is turned off.
+        Assumes a ramping speed of 5 K/min if "ramp" is turned off.
         """
         if self.feed.readings['TempRampEnable'] == 'ON':
             expected_time = (abs(self._temperature_target - self.feed.readings['Temp']) /
