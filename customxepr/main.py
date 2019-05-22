@@ -45,21 +45,20 @@ def cmp(a, b):
 # noinspection PyUnresolvedReferences
 class CustomXepr(object):
     """
-    CustomXepr defines routines to control the Bruker Xepr software and run full ESR
-    measurement cycles. This includes tuning and setting the temperature, applying
-    voltages and recording IV characteristics with attached Keithley SMUs. When creating
-    an instance of CustomXepr, you can pass instances of :class:`.XeprAPI.XeprAPI`,
-    :class:`mercurygui.MercuryFeed` and :class:`keithley2600.Keithley2600` to handle
-    interactions with the respective instruments.
+    CustomXepr defines routines to control Bruker's Xepr software and to run full ESR
+    measurement cycles. When creating an instance of CustomXepr, you can pass instances of
+    :class:`XeprAPI.XeprAPI`, :class:`mercurygui.MercuryFeed` and
+    :py:class:`keithley2600.Keithley2600` to handle interactions with the respective
+    instruments.
 
     All CustomXepr methods are executed in a worker thread in the order of their calls.
-    Scheduling of jobs and retrieval of results is handled by :class:`customxepr.Manager`.
-    For an instructions on how to  execute your own function in this thread, see the
-    documentation of :mod:`customxepr.manager`.
+    Scheduling of jobs and retrieval of results is handled by :class:`manager.Manager`.
+    For instructions on how to schedule your own experiments, see the documentation of
+    :mod:`manager`.
 
     You can use :class:`CustomXepr` on its own, but it is recommended to start it with the
-    :func:`run` function in the :mod:`startup` module. This will automatically connect to
-    available instruments and start the graphical user interfaces.
+    function :func:`startup.run` in the :mod:`startup` module. This will automatically
+    connect to available instruments and start CustomXepr's graphical user interfaces.
 
     :param xepr: Xepr instance from the Bruker Python XeprAPI. Defaults to `None` if not
         provided.
