@@ -195,7 +195,8 @@ def run(gui=True):
     if not gui:
         print("Connecting to instruments...")
         xepr, customXepr, mercury, mercury_feed, keithley = connect_to_instruments()
-        if IP: IP.magic('%clear')
+        if IP:
+            IP.magic('%clear')
         print(banner)
 
     else:
@@ -208,8 +209,14 @@ def run(gui=True):
         splash.showMessage("Loading user interface...")
         ui = start_gui(customXepr, mercury_feed, keithley)
 
+        # set shutdown behaviour
+        if not sys.platform == 'darwin':
+            for u in ui:
+                app.aboutToQuit.connect(u.exit_)
+
         if interactive:
-            if IP: IP.magic('%clear')
+            if IP:
+                IP.magic('%clear')
             print(banner)
         else:
             # start ipython kernel and jupyter console
@@ -225,11 +232,7 @@ def run(gui=True):
 
             kernel.send_to_namespace(var_dict)
 
-            # set shutdown behaviour
-            if not sys.platform == 'darwin':
-                app.aboutToQuit.connect(kernel.cleanup_consoles)
-                for u in ui:
-                    app.aboutToQuit.connect(u.exit_)
+            app.aboutToQuit.connect(kernel.cleanup_consoles)
 
             patch_excepthook()  # display errors from Qt event loop to user
             splash.close()  # remove splash screen

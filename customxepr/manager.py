@@ -320,7 +320,8 @@ class ExperimentQueue(object):
         Removes all queued experiments at once.
         """
         with self._lock:
-            self.removed_signal.emit(self.first_queued_index(), self._queued.qsize())
+            if self.has_queued():
+                self.removed_signal.emit(self.first_queued_index(), self._queued.qsize())
             self._queued.queue.clear()
 
     def has_running(self):

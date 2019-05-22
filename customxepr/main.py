@@ -856,7 +856,8 @@ class CustomXepr(object):
                 return
 
             step = 1*cmp(0, diff)  # coarse step of 1
-            self.XeprCmds.aqParStep('AcqHidden', '*cwBridge.SignalBias', 'Coarse %s' % step)
+            self.XeprCmds.aqParStep('AcqHidden', '*cwBridge.SignalBias',
+                                    'Coarse %s' % step)
             time.sleep(0.5)
             diff = self.hidden['DiodeCurrent'].value - 200
             time.sleep(self._wait)
