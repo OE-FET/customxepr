@@ -620,7 +620,7 @@ class Manager(object):
                 mailhost=CONF.get('SMTP', 'mailhost'),
                 fromaddr=CONF.get('SMTP', 'fromaddr'),
                 toaddrs=CONF.get('CustomXepr', 'notify_address'),
-                subject='Xepr logger',
+                subject='CustomXepr logger',
                 credentials=CONF.get('SMTP', 'credentials'),
                 secure=CONF.get('SMTP', 'secure')
             )
@@ -646,7 +646,7 @@ class Manager(object):
 
         # delete old log files
         now = time.time()
-        days_to_keep = 7
+        days_to_keep = 365
 
         for f in os.listdir(logging_path):
             f = os.path.join(logging_path, f)

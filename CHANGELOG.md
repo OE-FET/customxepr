@@ -8,6 +8,8 @@ _Added:_
   
 _Changed:_
 - Improved error and warning mesages.
+- Keep measurement logs for 356 days instead of 7 days.
+- Improved the usefulness of some log messages.
 
 _Fixed:_
 - Fixed a deadlock when removing an item from the result queue.
