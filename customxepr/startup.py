@@ -166,15 +166,15 @@ def run(gui=True):
     a Keithley 2600 instrument and a MercuryiTC temperature controller and finally
     create user interfaces to control all three instruments.
 
-    If run from an interactive Jupyter or IPython console with Qt backend, ``run``
+    If run from an interactive Jupyter or IPython console with a Qt backend, ``run``
     will start an interactive session and return instances of the above instrument
     controllers. Otherwise, it will create its own Jupyter console to receive user input.
 
-    :param bool gui: If ``False``, start CustomXepr without a GUI. In this case, no Qt
-        application will be started (defaults to ``True``) and customxepr will not depend
-        on PyQt5 or PySide2.
+    :param bool gui: If ``False``, CustomXepr is started without a GUI and no Qt
+        application will be started. In this case, CustomXepr does not require an
+        installation of PyQt5. Defaults to ``True``.
 
-    :returns: Tuple containing instrument instances.
+    :returns: Tuple containing instrument instances (and UIs).
     :rtype: tuple
     """
 
@@ -221,7 +221,7 @@ def run(gui=True):
             kernel.new_qt_console()
 
             var_dict = {'customXepr': customXepr, 'xepr': xepr, 'mercury': mercury,
-                        'mercury_feed': mercury_feed, 'keithley': keithley}
+                        'mercury_feed': mercury_feed, 'keithley': keithley, 'ui': ui}
 
             kernel.send_to_namespace(var_dict)
 

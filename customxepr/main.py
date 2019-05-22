@@ -136,6 +136,30 @@ class CustomXepr(object):
         """Setter: List with email addresses for notifications."""
         self.manager.notify_address = address_list
 
+    @property
+    def temp_wait_time(self):
+        """Wait time until temperature is considered stable. Defaults to 120 sec."""
+        return self._temp_wait_time
+
+    @temp_wait_time.setter
+    def temp_wait_time(self, new_time):
+        """Setter: Wait time until temperature is considered stable."""
+        self._temp_wait_time = new_time
+        # update config file
+        CONF.set('CustomXepr', 'temp_wait_time', new_time)
+
+    @property
+    def temperature_tolerance(self):
+        """Temperature fluctuation tolerance. Defaults to 0.1 Kelvin."""
+        return self._temperature_tolerance
+
+    @temperature_tolerance.setter
+    def temperature_tolerance(self, new_tol):
+        """Setter: Temperature fluctuation tolerance."""
+        self._temperature_tolerance = new_tol
+        # update config file
+        CONF.set('CustomXepr', 'temperature_tolerance', new_tol)
+
     @queued_exec(manager.job_queue)
     def sendEmail(self, body):
         """
@@ -170,30 +194,6 @@ class CustomXepr(object):
         # use a single sleep command for less than one second pause
         else:
             time.sleep(seconds)
-
-    @property
-    def temp_wait_time(self):
-        """Wait time until temperature is considered stable. Defaults to 120 sec."""
-        return self._temp_wait_time
-
-    @temp_wait_time.setter
-    def temp_wait_time(self, new_time):
-        """Setter: Wait time until temperature is considered stable."""
-        self._temp_wait_time = new_time
-        # update config file
-        CONF.set('CustomXepr', 'temp_wait_time', new_time)
-
-    @property
-    def temperature_tolerance(self):
-        """Temperature fluctuation tolerance. Defaults to 0.1 Kelvin."""
-        return self._temperature_tolerance
-
-    @temperature_tolerance.setter
-    def temperature_tolerance(self, new_tol):
-        """Setter: Temperature fluctuation tolerance."""
-        self._temperature_tolerance = new_tol
-        # update config file
-        CONF.set('CustomXepr', 'temperature_tolerance', new_tol)
 
 # ========================================================================================
 # set up Xepr functions
