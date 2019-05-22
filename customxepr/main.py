@@ -674,7 +674,7 @@ class CustomXepr(object):
                 # warn once for every 120 temperature violations
                 if np.mod(n_out, 120) == 1:
                     max_diff = np.max(temperature_fluct_history)
-                    logger.warning('Temperature fluctuations of +/-%sK.' % max_diff)
+                    logger.warning('Temperature fluctuations of +/-%.2fK.' % max_diff)
                     n_out += 1  # prevent from warning again the next second
 
                 # Pause measurement and raise error after 15 min of instability
