@@ -723,11 +723,10 @@ class CustomXepr(object):
 
         if temperature_fluct_history is not None:
             dsl_temp = ParamGroupDSL(name='tempCtrl')
+            dsl_temp.pars['Temperature'] = XeprParam(temperature_set, 'K')
+            dsl_temp.pars['Stability'] = XeprParam(round(max_diff, 4), 'K')
             dsl_temp.pars['AcqWaitTime'] = XeprParam(self._temp_wait_time, 's')
-            dsl_temp.pars['Temperature'] = XeprParam(self.feed.temperature.loop_tset, 'K')
             dsl_temp.pars['Tolerance'] = XeprParam(self._temperature_tolerance, 'K')
-            dsl_temp.pars['Stability'] = XeprParam(round(temperature_var, 4), 'K')
-            dsl_temp.pars['Mean'] = XeprParam(round(temperature_mean, 4), 'K')
 
             dset.dsl.groups['tempCtrl'] = dsl_temp
 
