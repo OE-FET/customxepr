@@ -459,14 +459,15 @@ class ManagerApp(QtWidgets.QMainWindow):
     def _trunc_str_list(self, string_list, max_total_len=150, min_item_len=13):
         """
         Tries to truncate strings in list until total length is smaller than
-        `max_total_len`. Starts with the last string in list and moves backward.
-        No individual string will be truncated shorter than `min_item_len`,
-        even if `max_total_len` must be exceeded.
+        `max_total_len`. Starts with the last string in list and moves to the first.
+        No individual string will be truncated shorter than `min_item_len`, even if
+        `max_total_len` must be exceeded.
 
         :param list string_list: List of strings to truncate
         :param int max_total_len: Maximum number of characters in truncated
             string list (default = 150).
         :param int min_item_len: Minimum number of characters per string (default = 13).
+
         :returns: List of truncated strings.
         :rtype: list
         """
