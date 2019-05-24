@@ -671,13 +671,13 @@ class XeprData(object):
         self._dta.tofile(dta_path)
 
         if self.pars['XTYP'].value == 'IGD':
-            self.x.tofile(base_path + '.XGF')
+            self._x.tofile(base_path + '.XGF')
 
         if self.pars['YTYP'].value == 'IGD':
-            self.y.tofile(base_path + '.YGF')
+            self._y.tofile(base_path + '.YGF')
 
         if self.pars['ZTYP'].value == 'IGD':
-            self.z.tofile(base_path + '.YGF')
+            self._z.tofile(base_path + '.YGF')
 
     def print_dsc(self):
         """

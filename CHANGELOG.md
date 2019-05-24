@@ -1,19 +1,26 @@
 #### v2.3.2-dev0 (2019-05-21)
 
+Fixes a critical error which would cause Xepr data files '.YGF' and '.ZGF' to be saved in
+the wrong file format.
+
 _Added:_
 - Allow configuration of a custom SMTP server for email notifications in the config file
   '~/.CustomXepr/CustomXepr.ini'.
 - Save the standard error from fitting the Q-Value as a new parameter 'QValueErr' in the
   DSC file, if available.
-  
+
 _Changed:_
 - Improved the usefulness of some log messages.
 - Keep measurement logs for 356 days instead of 7 days.
 
 _Fixed:_
 - Fixed a deadlock when removing an item from the result queue.
-- Fixed an issue where the job status icons might not update until the user clicks on the 
+- Fixed an issue where the job status icons might not update until the user clicks on the
   list view.
+- Fixed a bug in `XeprData` which would save y-axis and z-axis data files with the wrong
+  byte-order. Ordinate data and x-axis data was not affected. Xepr expects data files to
+  be save with little-endian byte-order.
+
 
 #### v2.3.1 (2019-04-23)
 
