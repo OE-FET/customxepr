@@ -1,7 +1,6 @@
-#### v2.3.2-dev0 (2019-05-21)
+#### v2.3.3 (2019-05-25)
 
-Fixes a critical error which would cause Xepr data files '.YGF' and '.ZGF' to be saved in
-the wrong file format.
+Fixes a critical errors when saving `XeprData` to DSC files.
 
 _Added:_
 - Allow configuration of a custom SMTP server for email notifications in the config file
@@ -14,13 +13,15 @@ _Changed:_
 - Keep measurement logs for 356 days instead of 7 days.
 
 _Fixed:_
-- Fixed a deadlock when removing an item from the result queue.
-- Fixed an issue where the job status icons might not update until the user clicks on the
-  list view.
 - Fixed a bug in `XeprData` which would save y-axis and z-axis data files with the wrong
   byte-order. Ordinate data and x-axis data was not affected. Xepr expects data files to
   be save with little-endian byte-order.
-
+- Fixed a bug in `XeprData` when saving the 'PolyCof' parameter or other array data to 
+  DSC files: The array shape would be incorrectly saved in the header (with row and 
+  column numbers swapped).
+- Fixed a deadlock when removing an item from the result queue.
+- Fixed an issue where the job status icons might not update until the user clicks on the
+  CustomXepr window.
 
 #### v2.3.1 (2019-04-23)
 
