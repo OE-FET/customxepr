@@ -90,6 +90,7 @@ class XeprParam(object):
         if not contents:
             return
 
+        # remove trailing comments
         if contents[-1].startswith('*'):
             self.comment = contents[-1]
             del contents[-1]
@@ -97,20 +98,24 @@ class XeprParam(object):
         par_header = ''
 
         if len(contents) == 0:
+            # return if string only was a comment
             return
         elif len(contents) == 1:
+            # set single field as value
             par_value = contents[0]
         elif len(contents) == 2:
-            if re.match(r'\{.*\}', contents[0]):
+            # check if we have a header-value pair, a value-unit pair, or a single value
+            if re.match(r'\{.*\}', contents[0]):  # header-value pair
                 par_header = contents[0]
                 par_value = contents[1]
-            elif contents[1] in self.ALL_UNITS:
+            elif contents[1] in self.ALL_UNITS:  # value-unit pair
                 par_value = contents[0]
                 self.unit = contents[1]
-            else:
+            else:  # single value with space
                 par_value = ' '.join(contents)
 
         elif len(contents) > 2:
+            # check if we have a header-unit-value triple, otherwise just save as string
             if re.match(r'\{.*\}', contents[0]):
                 par_header = contents[0]
                 self.unit = contents[1]
@@ -118,11 +123,12 @@ class XeprParam(object):
             else:
                 par_value = ' '.join(contents)
 
+        # if we have a header, follow its instructions to parse the value
         if par_header:
             array = np.array([float(x) for x in par_value.split(',')])
             shape = [int(x) for x in par_header.split(';')[1].split(',')]
-            shape.reverse()
             self.value = array.reshape(shape)
+        # otherwise, try to convert the value to Python types int / float / bool / str
         else:
             try:
                 if '.' in par_value:
