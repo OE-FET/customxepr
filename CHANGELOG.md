@@ -1,4 +1,4 @@
-#### v2.3.3 (2019-05-25)
+#### v2.3.2 (2019-05-25)
 
 Fixes a critical errors when saving `XeprData` to DSC files.
 
@@ -16,8 +16,8 @@ _Fixed:_
 - Fixed a bug in `XeprData` which would save y-axis and z-axis data files with the wrong
   byte-order. Ordinate data and x-axis data was not affected. Xepr expects data files to
   be save with little-endian byte-order.
-- Fixed a bug in `XeprData` when saving the 'PolyCof' parameter or other array data to 
-  DSC files: The array shape would be incorrectly saved in the header (with row and 
+- Fixed a bug in `XeprData` when saving the 'PolyCof' parameter or other array data to
+  DSC files: The array shape would be incorrectly saved in the header (with row and
   column numbers swapped).
 - Fixed a deadlock when removing an item from the result queue.
 - Fixed an issue where the job status icons might not update until the user clicks on the
