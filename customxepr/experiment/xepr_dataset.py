@@ -232,8 +232,8 @@ class ParamGroupDSL(ParamGroup):
     Class to hold an Xepr experiment parameter group associated with a functional unit,
     part of the Device Specific Layer (DSL).
     """
-
-    HEADER_FMT = '\n.DVC     {0}, 1.0\n'
+    VERSION = '1.0'
+    HEADER_FMT = '\n.DVC     {0}, %s\n' % VERSION
     CELL_LENGTH = 19
     DELIM = ''
 
@@ -268,6 +268,7 @@ class ParamLayer(object):
     TYPE = 'TEMP'
     NAME = 'TEMPLATE LAYER'
     VERSION = '1.0'
+    SUPPORTED_VERSIONS = ('1.0', '1.2', '2.0',)
 
     HEADER_FMT = '#{0}	{1} * {2}\n*'
     LB = '\n'
@@ -328,6 +329,7 @@ class DescriptorLayer(ParamLayer):
     TYPE = 'DESC'
     NAME = 'DESCRIPTOR INFORMATION'
     VERSION = '1.2'
+    SUPPORTED_VERSIONS = ('1.2',)
 
     HEADER_FMT = '#{0}	{1} * {2} ***********************'
 
@@ -342,6 +344,7 @@ class StandardParameterLayer(ParamLayer):
     TYPE = 'SPL'
     NAME = 'STANDARD PARAMETER LAYER'
     VERSION = '1.2'
+    SUPPORTED_VERSIONS = ('1.2',)
 
     GROUP_CLASS = ParamGroupSPL
 
@@ -361,6 +364,7 @@ class DeviceSpecificLayer(ParamLayer):
     TYPE = 'DSL'
     NAME = 'DEVICE SPECIFIC LAYER'
     VERSION = '1.0'
+    SUPPORTED_VERSIONS = ('1.0',)
 
     GROUP_CLASS = ParamGroupDSL
 
@@ -372,6 +376,7 @@ class ManipulationHistoryLayer(ParamLayer):
     TYPE = 'MHL'
     NAME = 'MANIPULATION HISTORY LAYER by BRUKER'
     VERSION = '1.0'
+    SUPPORTED_VERSIONS = ('1.0',)
 
     GROUP_CLASS = ParamGroupMHL
 
@@ -380,7 +385,7 @@ class ParamDict(MutableMapping):
 
     def __init__(self, layers):
 
-        for layer in layers:
+        for layer in layers.values():
             if not isinstance(layer, ParamLayer):
                 raise ValueError('Layers must all be instances of "ParamLayer".')
 
@@ -390,7 +395,7 @@ class ParamDict(MutableMapping):
 
         flat_dict = dict()
 
-        for layer in self.layers:
+        for layer in self.layers.values():
             for group in layer.groups.values():
                 flat_dict.update(group.pars)
 
@@ -412,27 +417,28 @@ class ParamDict(MutableMapping):
 
     def __setitem__(self, key, value):
 
-        is_set = False
+        # convert value to XeprParam if necessary
+        if not isinstance(value, XeprParam):
+            value = XeprParam(value)
 
-        for layer in self.layers:
+        # if the parameter belongs to an existing group, update it with the new value
+        for layer in self.layers.values():
             for group in layer.groups.values():
                 if key in group.pars.keys():
-                    if isinstance(value, XeprParam):
-                        group.pars[key] = value
-                    else:
-                        group.pars[key] = XeprParam(value)
-                    is_set = True
+                    group.pars[key] = value
+                    return  # we are done!
 
-        if not is_set:
-            raise KeyError('Parameter "%s" does not exist yet.' % key +
-                           'To create a new parameter, you must assign it directly ' +
-                           'to an existing parameter layer / group.')
+        # if the parameter is new, add it as a 'customXepr' parameter
+        if 'customXepr' not in self.layers['DSL'].groups:
+            self.layers['DSL'].groups['customXepr'] = ParamGroupDSL('customXepr')
+
+        self.layers['DSL'].groups['customXepr'].pars[key] = value
 
     def __delitem__(self, key):
 
         is_deleted = False
 
-        for layer in self.layers:
+        for layer in self.layers.values():
             for group in layer.groups.values():
                 if key in group.pars.keys():
                     del group.pars[key]
@@ -471,16 +477,15 @@ class XeprData(object):
         describe manipulations performed on the data set (e.g., baseline correction,
         scaling, ...).
 
-    The actual data is accessible as numpy arrays:
+    The actual data is accessible as numpy arrays :attr:`XeprData.x`, :attr:`XeprData.y`,
+    :attr:`XeprData.z` and :attr:`XeprData.o`.
 
-    :ivar x: x-axis data, for instance the external magnetic field.
-    :ivar y: If present, y-axis data. Can be any parameter which is swept during an EPR
-        experiment, for instance sample angles or microwave powers.
-    :ivar z: If present, z-axis data. Can be any parameter which is swept during an EPR
-        experiment, for instance sample angles or microwave powers.
-    :ivar o: Ordinate. Contains the measured EPR signal.
+    All measurement parameters are also accessible in as a dictionary
+    attr:`XeprData.pars`. Setting the value of an existing parameter will automatically
+    update it in the appropriate parameter layer. Setting a new parameter value will
+    add it to a 'customXepr' device group in the :class:`DeviceSpecificLayer`.
 
-    It is currently not possible to change the x/y/z-axis data. Ordinate data can be
+    It is not currently possible to change the x/y/z-axis data. Ordinate data can be
     changed, but must match the previous dimensions.
 
     :Example:
@@ -488,15 +493,15 @@ class XeprData(object):
         Read a data file and get some information about the device specific parameters:
 
         >>> from customxepr import XeprData, XeprParam
-        >>> data_set = XeprData('/path/to/file.DSC')
-        >>> data_set.dsl.groups
+        >>> dset = XeprData('/path/to/file.DSC')
+        >>> dset.dsl.groups
         {'fieldCtrl': <ParamGroupDSL(fieldCtrl)>,
          'fieldSweep': <ParamGroupDSL(fieldSweep)>,
          'freqCounter': <ParamGroupDSL(freqCounter)>,
          'mwBridge': <ParamGroupDSL(mwBridge)>,
          'recorder': <ParamGroupDSL(recorder)>,
          'signalChannel': <ParamGroupDSL(signalChannel)>}
-        >>> data_set.dsl.groups['mwBridge'].pars
+        >>> dset.dsl.groups['mwBridge'].pars
         {'AcqFineTuning': <XeprParam(Never)>,
          'AcqScanFTuning': <XeprParam(Off)>,
          'AcqSliceFTuning': <XeprParam(Off)>,
@@ -507,19 +512,23 @@ class XeprData(object):
 
         Change the value of an existing parameter:
 
-        >>> data_set.pars['ModAmp'] = XeprParam(value=2, unit='G')
+        >>> dset.pars['ModAmp'] = XeprParam(value=2, unit='G')
 
-        Add a new parameter (this must added to the appropriate parameter group directly):
+        Add a new parameter without an associated group (it will be added to a
+        'customXepr' group in the DSL layer):
 
-        >>> mw_bridge = data_set.dsl.groups['mwBridge']
-        >>> mw_bridge.pars['QValue']  = XeprParam(6789)
+        >>> dset.pars['NewParam'] = 1234
 
-        Add a new parameter group for a temperature controller:
+        Add a new parameter to the microwave bridge device group:
+
+        >>> dset.dsl.groups['mwBridge'].pars['QValue']  = XeprParam(6789)
+
+        Add a new parameter group for a temperature controller, with two parameters:
 
         >>> pars = {'Temperature': XeprParam(290, 'K'),
         ...         'AcqWaitTime': XeprParam(120, 's')}
-        >>> param_group = ParamGroupDSL('tempCtrl', pars)
-        >>> data_set.dsl.groups['tempCtrl'] = param_group
+        >>> new_group = ParamGroupDSL('tempCtrl', pars)
+        >>> dset.dsl.groups['tempCtrl'] = new_group
 
         Save the modified data set:
 
@@ -537,7 +546,9 @@ class XeprData(object):
         self.dsl = DeviceSpecificLayer()  # Device Specific Layer (optional)
         self.mhl = ManipulationHistoryLayer()  # Manipulation History Layer (optional)
 
-        self.pars = ParamDict(layers=[self.desc, self.spl, self.dsl, self.dsl, self.mhl])
+        self.param_layers = dict(DESC=self.desc, SPL=self.spl, DSL=self.dsl, MHL=self.mhl)
+
+        self.pars = ParamDict(layers=self.param_layers)
 
         self._dsc = None
         self._dta = np.array([], dtype='>f8')
@@ -571,8 +582,8 @@ class XeprData(object):
         tmp_array = np.array(array_like, dtype='>f8')
 
         if not tmp_array.shape == self._o.shape:
-            raise ValueError('Ordinate array must have the shape {0!r} '.format(self._o.shape) +
-                             'to match the axis data.')
+            err_msg = 'Ordinate array must have the shape {0!r} to match the axis data.'
+            raise ValueError(err_msg.format(self._o.shape))
 
         self._o = tmp_array
         self._dta = self._o.flatten()
@@ -604,18 +615,26 @@ class XeprData(object):
         with open(dsc_path, 'r') as f:
             self._dsc = f.read()
 
-        layers = self._dsc.split('#')
+        # separate layer sections, delimited by '#'
+        layer_strings = self._dsc.split('#')[1:]
 
-        for layer in layers:
-            head, sep, tail = layer.partition('\n')
-            if head.startswith('DESC'):
-                self.desc.from_string(tail)
-            elif head.startswith('SPL'):
-                self.spl.from_string(tail)
-            elif head.startswith('DSL'):
-                self.dsl.from_string(tail)
-            elif head.startswith('MHL'):
-                self.mhl.from_string(tail)
+        # read layer sections
+        for string in layer_strings:
+            # separate strings into header and body
+            head, sep, tail = string.partition('\n')
+            # identify layer type and format version from header
+            layer_type, version = head.split()[0:2]
+
+            # check if type and version are supported, raise error or warn otherwise
+            if layer_type not in self.param_layers.keys():
+                raise IOError('Parameter layer "{0}" not recognized.'.format(layer_type))
+            if version not in self.param_layers[layer_type].SUPPORTED_VERSIONS:
+                print('Version {0} of {1} format is not '.format(version, layer_type) +
+                      'supported. You may encounter parsing errors and data corruption.')
+
+            # parse content to respective parameter layer objects
+            self.param_layers[layer_type].from_string(tail)
+            self.param_layers[layer_type].VERSION = version
 
     def _load_dta(self, base_path):
 
@@ -695,7 +714,7 @@ class XeprData(object):
 
         lines = []
 
-        for layer in [self.desc, self.spl, self.dsl, self.mhl]:
+        for layer in self.param_layers.values():
             if len(layer.groups) > 0:
                 lines.append(layer.to_string())
 
