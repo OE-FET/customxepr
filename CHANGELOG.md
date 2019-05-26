@@ -11,6 +11,8 @@ _Added:_
 _Changed:_
 - Improved the usefulness of some log messages.
 - Keep measurement logs for 356 days instead of 7 days.
+- Impoved formatting of DSC files saved through CustomXepr vs Xepr. Number formatting,
+  e.g., the number of significant digits, will be preserved if possible.
 
 _Fixed:_
 - Fixed a bug in `XeprData` which would save y-axis and z-axis data files with the wrong
