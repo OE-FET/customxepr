@@ -10,7 +10,6 @@ from __future__ import division, absolute_import, unicode_literals
 import os
 import re
 import numpy as np
-import itertools
 try:
     from collections.abc import MutableMapping
 except ImportError:
@@ -33,17 +32,40 @@ class XeprParam(object):
         :attr:`comment` must start with "\*".
     """
 
-    UNITS = ['s', 'Hz', 'G', 'T', 'K', 'dB', 'W']
-    PREFIXES = ['', 'E', 'P', 'T', 'G', 'M', 'k', 'h',
-                'D', 'd', 'c', 'm', 'u', 'n', 'p', 'f', 'a']
-
-    ALL_UNITS = [p + u for p, u in itertools.product(PREFIXES, UNITS)]
-
     def __init__(self, value=None, unit='', comment=''):
 
-        self.value = value
-        self.unit = unit
-        self.comment = comment
+        self._value = value
+        self._unit = unit
+        self._comment = comment
+
+        self._string = None
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = value
+        self._string = None
+
+    @property
+    def unit(self):
+        return self._value
+
+    @unit.setter
+    def unit(self, unit):
+        self._unit = unit
+        self._string = None
+
+    @property
+    def comment(self):
+        return self._comment
+
+    @comment.setter
+    def comment(self, comment):
+        self._comment = comment
+        self._string = None
 
     def to_string(self):
         """
@@ -52,26 +74,34 @@ class XeprParam(object):
         :return: Parsed parameter.
         :rtype: str
         """
-        is_array = isinstance(self.value, np.ndarray)
+        # return original parsed version, if present
 
-        if is_array:
-            value_str = ','.join([str(x) for x in self.value.flatten()])
-            shape_str = str(self.value.shape).lstrip('(').strip(')').replace(' ', '')
-            header = '{{{0};{1};{2}}}'.format(self.value.ndim, shape_str, 0)
-
-        if self.value is None:
-            return_str = ''
-        elif is_array and self.unit:
-            return_str = ' '.join([header, str(self.unit), value_str])
-        elif is_array and not self.unit:
-            return_str = ' '.join([header, value_str])
-        elif not self.unit:
-            return_str = str(self.value)
+        if self._string:
+            return self._string
         else:
-            return_str = ' '.join([str(self.value), str(self.unit)])
+            return self._to_string()
 
-        if self.comment:
-            return_str = ' '.join([return_str, self.comment])
+    def _to_string(self):
+
+        # prepare value string (and potentially header string)
+        header_str = ''
+        if self._value is None:  # => empty string
+            value_str = ''
+        elif isinstance(self._value, np.ndarray):  # => flatten and add header
+            value_str = ','.join([str(x) for x in self._value.flatten()])
+            shape_str = str(self._value.shape).lstrip('(').strip(')').replace(' ', '')
+            header_str = '{{{0};{1};{2}}}'.format(self._value.ndim, shape_str, 0)
+        else:  # => take default string representation
+            value_str = str(self._value)
+
+        # determine order of strings (unit comes before value for arrays!)
+        if header_str:  # array
+            return_list = [header_str, self._unit, value_str, self._comment]
+        else:  # not an array
+            return_list = [value_str, self._unit, self._comment]
+
+        # join all non-empty strings
+        return_str = ' '.join([r for r in return_list if r != ''])
 
         return return_str
 
@@ -81,9 +111,11 @@ class XeprParam(object):
 
         :param str string: String to parse.
         """
-        self.value = None
-        self.unit = ''
-        self.comment = ''
+
+        self._string = string
+        self._value = None
+        self._unit = ''
+        self._comment = ''
 
         contents = string.split()
 
@@ -92,10 +124,10 @@ class XeprParam(object):
 
         # remove trailing comments
         if contents[-1].startswith('*'):
-            self.comment = contents[-1]
+            self._comment = contents[-1]
             del contents[-1]
 
-        par_header = ''
+        par_header = None
 
         if len(contents) == 0:
             # return if string only was a comment
@@ -105,43 +137,42 @@ class XeprParam(object):
             par_value = contents[0]
         elif len(contents) == 2:
             # check if we have a header-value pair, a value-unit pair, or a single value
-            if re.match(r'\{.*\}', contents[0]):  # header-value pair
+            if re.match(r'\{.*\}', contents[0]):  # first block is a header
                 par_header = contents[0]
                 par_value = contents[1]
-            elif contents[1] in self.ALL_UNITS:  # value-unit pair
-                par_value = contents[0]
-                self.unit = contents[1]
-            else:  # single value with space
-                par_value = ' '.join(contents)
-
-        elif len(contents) > 2:
-            # check if we have a header-unit-value triple, otherwise just save as string
-            if re.match(r'\{.*\}', contents[0]):
-                par_header = contents[0]
-                self.unit = contents[1]
-                par_value = contents[2]
             else:
-                par_value = ' '.join(contents)
+                try:
+                    float(contents[0])
+                    par_value = contents[0]
+                    # if first block is a number, second block must be a unit
+                    self._unit = contents[1]
+                except ValueError:  # a string with spaces
+                    par_value = ' '.join(contents)
+        # check if we have a header-unit-value triple
+        elif re.match(r'\{.*\}', contents[0]):
+            par_header = contents[0]
+            self._unit = contents[1]
+            par_value = contents[2]
+        else:  # otherwise just save as string
+            par_value = ' '.join(contents)
 
-        # if we have a header, follow its instructions to parse the value
-        if par_header:
+        if par_header:  # follow header instructions to parse the value
             array = np.array([float(x) for x in par_value.split(',')])
             shape = [int(x) for x in par_header.split(';')[1].split(',')]
-            self.value = array.reshape(shape)
-        # otherwise, try to convert the value to Python types int / float / bool / str
-        else:
+            self._value = array.reshape(shape)
+        else:  # try to convert the value to Python types int / float / bool / str
             try:
                 if '.' in par_value:
-                    self.value = float(par_value)
+                    self._value = float(par_value)
                 else:
-                    self.value = int(par_value)
+                    self._value = int(par_value)
             except ValueError:
                 if par_value == 'True':
-                    self.value = True
+                    self._value = True
                 elif par_value == 'False':
-                    self.value = False
+                    self._value = False
                 else:
-                    self.value = par_value
+                    self._value = par_value
 
     def __repr__(self):
         return '<{0}({1})>'.format(self.__class__.__name__, self.to_string())
@@ -174,7 +205,10 @@ class ParamGroup(object):
         """
         Prints a parameter group as string.
         """
-        lines = [self.HEADER_FMT.format(self.name)]
+        if self.HEADER_FMT:
+            lines = [self.HEADER_FMT.format(self.name)]
+        else:
+            lines = []
 
         for name, param in self.pars.items():
             new_line = '{0}{1}{2}'.format(name.ljust(self.CELL_LENGTH), self.DELIM,
@@ -222,7 +256,7 @@ class ParamGroupSPL(ParamGroup):
     part of the Standard Parameter Layer (SPL).
     """
 
-    HEADER_FMT = '{0}'
+    HEADER_FMT = None
     CELL_LENGTH = 8
     DELIM = ''
 
@@ -365,6 +399,8 @@ class DeviceSpecificLayer(ParamLayer):
     NAME = 'DEVICE SPECIFIC LAYER'
     VERSION = '1.0'
     SUPPORTED_VERSIONS = ('1.0',)
+
+    END = '\n*\n' + '*' * 60 + '\n*'
 
     GROUP_CLASS = ParamGroupDSL
 
