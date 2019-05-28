@@ -418,7 +418,9 @@ class ManipulationHistoryLayer(ParamLayer):
 
 
 class ParamDict(MutableMapping):
-
+    """
+    Object to allow dictionary-like access to all measurement parameters.
+    """
     def __init__(self, layers):
 
         for layer in layers.values():
@@ -497,7 +499,7 @@ class XeprData(object):
     """
     Holds a Bruker EPR measurement result, including all measurement parameters.
     Supports importing and exporting to the Bruker BES3T file format ('.DSC',
-    '.DTA' and possible associated 'XGF', 'YGF' and 'ZGF' files) in the 1.2
+    '.DTA' and possible associated '.XGF', '.YGF' and '.ZGF' files) in the 1.2
     specification currently used by Xepr. Parameters are stored in the following
     attributes and are grouped after the associated functional unit (e.g., 'mwBridge',
     'fieldCtrl') or type (e.g., 'Documentational Text').
@@ -512,16 +514,15 @@ class XeprData(object):
     :ivar mhl: :class:`ManipulationHistoryLayer` instance holding all parameters that
         describe manipulations performed on the data set (e.g., baseline correction,
         scaling, ...).
+    :ivar pars: Dictionary-like object giving direct access to all measurement parameters.
+        Allows for quickly reading and setting parameter values.
 
-    The actual data is accessible as numpy arrays :attr:`XeprData.x`, :attr:`XeprData.y`,
-    :attr:`XeprData.z` and :attr:`XeprData.o`.
-
-    All measurement parameters are also accessible in as a dictionary
-    attr:`XeprData.pars`. Setting the value of an existing parameter will automatically
+    Setting the value of an existing parameter will automatically
     update it in the appropriate parameter layer. Setting a new parameter value will
     add it to a 'customXepr' device group in the :class:`DeviceSpecificLayer`.
 
-    It is not currently possible to change the contained spectra but only the parameters.
+    The actual data is accessible as numpy arrays :attr:`x`, :attr:`y`, :attr:`z` and
+    :attr:`o`. It is not currently possible to change the actual data.
 
     .. warning::
 
