@@ -1,12 +1,16 @@
 #### v2.3.2 (2019-05-25)
 
-Fixes a critical errors when saving `XeprData` to DSC files.
+Improves compatability of `XeprData` with Bruker's Xepr BES3T file format.
 
 _Added:_
-- Allow configuration of a custom SMTP server for email notifications in the config file
-  '~/.CustomXepr/CustomXepr.ini'.
+- Expanded support for Xepr data files: introduced support for complex data sets, 32-bit 
+  floats and 32-bit signed integeres as well as multiple ordinate data sets per DTA 
+  file and different byte-orders. Currently still missing: support for 16-bit shorts, 
+  8-bit characters and CR-seperated ASCII in '.DTA' files
 - Save the standard error from fitting the Q-Value as a new parameter 'QValueErr' in the
   DSC file, if available.
+- Allow configuration of a custom SMTP server for email notifications in the config file
+  '~/.CustomXepr/CustomXepr.ini'.
 
 _Changed:_
 - Improved the usefulness of some log messages.
@@ -16,8 +20,8 @@ _Changed:_
 
 _Fixed:_
 - Fixed a bug in `XeprData` which would save y-axis and z-axis data files with the wrong
-  byte-order. Ordinate data and x-axis data was not affected. Xepr expects data files to
-  be save with little-endian byte-order.
+  byte-order. Ordinate data and x-axis data were not affected. Xepr expects data files to
+  be saved with the byte-order specified in the DSC file.
 - Fixed a bug in `XeprData` when saving the 'PolyCof' parameter or other array data to
   DSC files: The array shape would be incorrectly saved in the header (with row and
   column numbers swapped).
