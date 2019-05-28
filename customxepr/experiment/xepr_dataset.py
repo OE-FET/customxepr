@@ -522,7 +522,9 @@ class XeprData(object):
     add it to a 'customXepr' device group in the :class:`DeviceSpecificLayer`.
 
     The actual data is accessible as numpy arrays :attr:`x`, :attr:`y`, :attr:`z` and
-    :attr:`o`. It is not currently possible to change the actual data.
+    :attr:`o`. Only the the ordinate data may be changed and the new data must have
+    the same size and format as :attr:`o`. It is not currently possible to change the
+    x/y/z-axis data.
 
     .. warning::
 
@@ -609,20 +611,23 @@ class XeprData(object):
 
     @property
     def x(self):
+        """Returns x-axis data as numpy array."""
         return self._x.astype(float)
 
     @property
     def y(self):
+        """Returns y-axis data as numpy array."""
         return self._y.astype(float)
 
     @property
     def z(self):
+        """Returns z-axis data as numpy array."""
         return self._z.astype(float)
 
     @property
     def o(self):
         """
-        Returns a numpy array with ordinate data or a tuple of arrays containing all
+        Returns ordinate data as numpy array or as a tuple of arrays containing all
         ordinate data sets. If real and imaginary parts are present, they will be
         combined to a complex numpy array.
         """
@@ -632,14 +637,41 @@ class XeprData(object):
         # split self._o into numpy arrays, combine real and imaginary parts
         r_list = []
         for i in range(len(ikkf)):
-            # get real part
-            r = self._o['o%s real' % i].astype(float)
             if ikkf[i] == 'CPLX':
-                # add imaginary part
-                r = r + 1j*self._o['o%s imag' % i].astype(float)
-            r_list.append(r)
+                r = self._o['o%s real' % i] + 1j*self._o['o%s imag' % i]
+            else:
+                r = self._o['o%s real' % i]
+
+            r_list.append(r.astype('complex128'))
 
         return r_list[0] if len(r_list) == 1 else tuple(r_list)
+
+    @o.setter
+    def o(self, array_like):
+
+        ikkf = self.pars['IKKF'].value.split(',')  # get ordinate type: real or complex
+
+        if len(ikkf) == 1:
+            tmp_arrays = [np.array(array_like)]
+        else:
+            tmp_arrays = [np.array(a) for a in array_like]
+
+        assert len(tmp_arrays) == len(ikkf)
+
+        for i in range(len(ikkf)):
+
+            if not tmp_arrays[i].shape == self._o.shape:
+                err_msg = 'Ordinate array must have the shape {0!r} to match the ' \
+                          'axis data.'
+                raise ValueError(err_msg.format(self._o.shape))
+
+            if ikkf[i] == 'CPLX':
+                self._o['o%s real' % i] = tmp_arrays[i].real
+                self._o['o%s imag' % i] = tmp_arrays[i].imag
+            else:
+                self._o['o%s real' % i] = tmp_arrays[i].real
+
+            self._dta = self._o.flatten()
 
     def load(self, path):
         """
