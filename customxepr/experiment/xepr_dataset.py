@@ -521,8 +521,13 @@ class XeprData(object):
     update it in the appropriate parameter layer. Setting a new parameter value will
     add it to a 'customXepr' device group in the :class:`DeviceSpecificLayer`.
 
-    It is not currently possible to change the x/y/z-axis data. Ordinate data can be
-    changed, but must match the previous dimensions.
+    It is not currently possible to change the contained spectra but only the parameters.
+
+    .. warning::
+
+        Changing the parameters in the Descriptor Layer may result in inconsistencies
+        between the parameter file (DSC) and the actual data files (DTA, XGF, YGF, ZGF)
+        and therefore may result in corrupted files.
 
     :Example:
 
@@ -572,6 +577,10 @@ class XeprData(object):
 
     """
 
+    IRFMTS_DICT = {'D': 'f8', 'F': 'f4', 'I': 'i4', 'NODATA': '', '0': ''}
+
+    byte_order = '>'  # Bruker data files default to 'big-endian' byte-order
+
     def __init__(self, path=None):
         """
         :param str path: If given, the data file will be loaded from ``path``.
@@ -587,42 +596,49 @@ class XeprData(object):
         self.pars = ParamDict(layers=self.param_layers)
 
         self._dsc = None
-        self._dta = np.array([], dtype='>f8')
+        self._dta = np.array([])
 
-        self._x = np.array([], dtype='>f8')
-        self._y = np.array([], dtype='>f8')
-        self._z = np.array([], dtype='>f8')
-        self._o = np.array([], dtype='>f8')
+        self._x = np.array([])
+        self._y = np.array([])
+        self._z = np.array([])
+        self._o = np.array([])
 
         if path:
             self.load(path)
 
     @property
     def x(self):
-        return self._x.astype('float64')
+        return self._x.astype(float)
 
     @property
     def y(self):
-        return self._y.astype('float64')
+        return self._y.astype(float)
 
     @property
     def z(self):
-        return self._z.astype('float64')
+        return self._z.astype(float)
 
     @property
     def o(self):
-        return self._o.astype('float64')
+        """
+        Returns a numpy array with ordinate data or a tuple of arrays containing all
+        ordinate data sets. If real and imaginary parts are present, they will be
+        combined to a complex numpy array.
+        """
 
-    @o.setter
-    def o(self, array_like):
-        tmp_array = np.array(array_like, dtype='>f8')
+        ikkf = self.pars['IKKF'].value.split(',')  # get ordinate type: real or complex
 
-        if not tmp_array.shape == self._o.shape:
-            err_msg = 'Ordinate array must have the shape {0!r} to match the axis data.'
-            raise ValueError(err_msg.format(self._o.shape))
+        # split self._o into numpy arrays, combine real and imaginary parts
+        r_list = []
+        for i in range(len(ikkf)):
+            # get real part
+            r = self._o['o%s real' % i].astype(float)
+            if ikkf[i] == 'CPLX':
+                # add imaginary part
+                r = r + 1j*self._o['o%s imag' % i].astype(float)
+            r_list.append(r)
 
-        self._o = tmp_array
-        self._dta = self._o.flatten()
+        return r_list[0] if len(r_list) == 1 else tuple(r_list)
 
     def load(self, path):
         """
@@ -672,35 +688,100 @@ class XeprData(object):
             self.param_layers[layer_type].from_string(tail)
             self.param_layers[layer_type].VERSION = version
 
+        # determine byte order of data from DSC file
+        if self.pars['BSEQ'].value == 'BIG':
+            self._byte_order = '>'
+        elif self.pars['BSEQ'].value == 'LIT':
+            self._byte_order = '<'
+        else:
+            raise IOError('Byte-order of data file is not supported.')
+
+    def _get_dta_dtype(self):
+
+        # determine if acquired quantities are real or complex
+        ikkfs = self.pars['IKKF'].value.split(',')
+
+        # determine type of data: int 32-bit, float 32-bit or float 64-bit
+        if 'CPLX' in ikkfs:
+            irfmts = self.pars['IRFMT'].value.split(',')
+            iifmts = self.pars['IRFMT'].value.split(',')
+        else:
+            irfmts = self.pars['IRFMT'].value.split(',')
+            iifmts = len(irfmts)*['0']
+
+        # convert to numpy data types
+        try:
+            dtypes_real = [self.IRFMTS_DICT[irfmt] for irfmt in irfmts]
+            dtypes_imag = [self.IRFMTS_DICT[iifmt] for iifmt in iifmts]
+        except KeyError:
+            raise IOError('Data file has a not-supported data-type. Data type must ' +
+                          'be double (64-bit), float(32-bit), or int (32-bit).')
+
+        # assert that we have data types for each quantity
+        assert len(dtypes_real) == len(ikkfs)
+        assert len(dtypes_imag) == len(ikkfs)
+
+        field_names = []
+        data_types = []
+        for n, dtype_r, dtype_i in zip(range(len(ikkfs)), dtypes_real, dtypes_imag):
+            data_types.append(self._byte_order + dtype_r)
+            field_names.append('o%s real' % n)
+            if not dtype_i == '':
+                data_types.append(self._byte_order + dtype_i)
+                field_names.append('o%s imag' % n)
+
+        return list((fn, dt) for fn, dt in zip(field_names, data_types))
+
+    def _get_axis_dtype(self, axis='x'):
+
+        # determine type of data: int 32-bit, float 32-bit or float 64-bit
+        par_name = axis.capitalize() + 'FMT'
+        try:
+            dtype = self.IRFMTS_DICT[self.pars[par_name].value]
+        except KeyError:
+            raise IOError('Axis data file has a not-supported data-type. Data type ' +
+                          'must be double (64-bit), float(32-bit), or int (32-bit).')
+        return self._byte_order + dtype
+
     def _load_dta(self, base_path):
 
         dta_path = base_path + '.DTA'
+        fmt = self._get_dta_dtype()
 
-        self._dta = np.fromfile(dta_path, '>f8')
+        self._dta = np.fromfile(dta_path, fmt)
 
-        if self.pars['XTYP'].value == 'IDX':
-            x_min = self.pars['XMIN'].value
-            x_max = x_min + self.pars['XWID'].value
-            x_pts = self.pars['XPTS'].value
-            self._x = np.linspace(x_min, x_max, x_pts, dtype='>f8')
-        elif self.pars['XTYP'].value == 'IGD':
-            self._x = np.fromfile(base_path + '.XGF', '>f8')
+        if self.pars['XTYP'].value == 'IDX':  # indexed data
+            ax_min = self.pars['XMIN'].value
+            ax_max = ax_min + self.pars['XWID'].value
+            ax_pts = self.pars['XPTS'].value
+            self._x = np.linspace(ax_min, ax_max, ax_pts)
+        elif self.pars['XTYP'].value == 'IGD':  # data points saved in file
+            fmt = self._get_axis_dtype('X')
+            self._x = np.fromfile(base_path + '.XGF', fmt)
+        elif self.pars['XTYP'].value == 'NTUP':  # currently not supported
+            raise IOError('Tuple data is currently not supported by XeprData.')
 
-        if self.pars['YTYP'].value == 'IDX':
-            y_min = self.pars['YMIN'].value
-            y_max = y_min + self.pars['YWID'].value
-            y_pts = self.pars['YPTS'].value
-            self._y = np.linspace(y_min, y_max, y_pts, dtype='>f8')
-        elif self.pars['YTYP'].value == 'IGD':
-            self._y = np.fromfile(base_path + '.YGF', '>f8')
+        if self.pars['YTYP'].value == 'IDX':  # indexed data
+            ax_min = self.pars['YMIN'].value
+            ax_max = ax_min + self.pars['YWID'].value
+            ax_pts = self.pars['YPTS'].value
+            self._y = np.linspace(ax_min, ax_max, ax_pts)
+        elif self.pars['YTYP'].value == 'IGD':  # data points saved in file
+            fmt = self._get_axis_dtype('Y')
+            self._y = np.fromfile(base_path + '.YGF', fmt)
+        elif self.pars['YTYP'].value == 'NTUP':  # currently not supported
+            raise IOError('Tuple data is currently not supported by XeprData.')
 
-        if self.pars['ZTYP'].value == 'IDX':
-            z_min = self.pars['ZMIN'].value
-            z_max = z_min + self.pars['ZWID'].value
-            z_pts = self.pars['ZPTS'].value
-            self._z = np.linspace(z_min, z_max, z_pts, dtype='>f8')
-        elif self.pars['ZTYP'].value == 'IGD':
-            self._z = np.fromfile(base_path + '.ZGF', '>f8')
+        if self.pars['ZTYP'].value == 'IDX':  # indexed data
+            ax_min = self.pars['ZMIN'].value
+            ax_max = ax_min + self.pars['ZWID'].value
+            ax_pts = self.pars['ZPTS'].value
+            self._z = np.linspace(ax_min, ax_max, ax_pts)
+        elif self.pars['ZTYP'].value == 'IGD':  # data points saved in file
+            fmt = self._get_axis_dtype('Z')
+            self._z = np.fromfile(base_path + '.ZGF', fmt)
+        elif self.pars['ZTYP'].value == 'NTUP':  # currently not supported
+            raise IOError('Tuple data is currently not supported by XeprData.')
 
         if self._z.size > 0:
             self._o = self._dta.reshape(self.z.size, self.y.size, self.x.size)
