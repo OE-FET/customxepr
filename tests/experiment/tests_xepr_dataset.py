@@ -15,14 +15,18 @@ from customxepr import XeprData, XeprParam
 
 DIR = os.path.dirname(os.path.realpath(__file__))
 
-PATH_ORIGINAL = DIR + '/cw_epr_power_sat'
-PATH_NEW = DIR + '/cw_epr_power_sat_new'
 EXTENTIONS = ('.DSC', '.DTA', '.YGF', '.ZSC')
 
 
 class TestXeprData(unittest.TestCase):
 
-    def test_load_save(self):
+    PATH_ORIGINAL_2D = DIR + '/cw_epr_complex'
+    PATH_NEW_2D = DIR + '/cw_epr_power_sat_new'
+
+    PATH_ORIGINAL_CPLX = DIR + '/cw_epr_complex'
+    PATH_NEW_CPLX = DIR + '/cw_epr_complex_new'
+
+    def test_load_save_2d(self):
         """
         Test loading and saving BES3T data files form Xepr. Assert that the saved files
         have the same content as the original files. This test will fail in Python 2 since
@@ -31,19 +35,40 @@ class TestXeprData(unittest.TestCase):
 
         # test loading and saving in the correct file format
 
-        dset = XeprData(PATH_ORIGINAL + '.DSC')
-        dset.save(PATH_NEW + '.DSC')
+        dset = XeprData(self.PATH_ORIGINAL_2D + '.DSC')
+        dset.save(self.PATH_NEW_2D + '.DSC')
 
         for ext in EXTENTIONS:
-            if os.path.isfile(PATH_ORIGINAL + ext):
-                self.assertTrue(filecmp.cmp(PATH_ORIGINAL + ext, PATH_NEW + ext))
+            if os.path.isfile(self.PATH_ORIGINAL_2D + ext):
+                self.assertTrue(filecmp.cmp(self.PATH_ORIGINAL_2D + ext,
+                                            self.PATH_NEW_2D + ext))
+
+    def test_load_save_complex(self):
+        """
+        Test loading and saving BES3T data files form Xepr. Assert that the saved files
+        have the same content as the original files. This test will fail in Python 2 since
+        the order of sections will not be maintained.
+        """
+
+        # test loading and saving in the correct file format
+
+        dset = XeprData(self.PATH_ORIGINAL_CPLX + '.DSC')
+        dset.save(self.PATH_NEW_CPLX + '.DSC')
+
+        for ext in EXTENTIONS:
+            if os.path.isfile(self.PATH_ORIGINAL_CPLX + ext):
+                self.assertTrue(filecmp.cmp(self.PATH_ORIGINAL_CPLX + ext,
+                                            self.PATH_NEW_CPLX + ext))
 
     def test_remove_param(self):
         """
         Test removing a parameter from :attr:`XeprData.pars`. Assert that the parameter is
         indeed gone.
         """
-        dset = XeprData(PATH_ORIGINAL + '.DSC')
+
+        PATH_ORIGINAL = DIR + '/cw_epr_complex'
+
+        dset = XeprData(self.PATH_ORIGINAL_2D + '.DSC')
         del dset.pars['MWFQ']
 
         with self.assertRaises(KeyError):
@@ -54,12 +79,13 @@ class TestXeprData(unittest.TestCase):
         Test adding a new parameter to :attr:`XeprData.pars`. Assert that the parameter is
         saved to the appropriate location in the DSC file.
         """
-        dset = XeprData(PATH_ORIGINAL + '.DSC')
+
+        dset = XeprData(self.PATH_ORIGINAL_2D + '.DSC')
         dset.pars['NewParam1'] = 1234
         dset.pars['NewParam2'] = XeprParam(1234, 'K/sec')
-        dset.save(PATH_NEW + '.DSC')
+        dset.save(self.PATH_NEW_2D + '.DSC')
 
-        dset.load(PATH_NEW + '.DSC')
+        dset.load(self.PATH_NEW_2D + '.DSC')
 
         self.assertEqual(dset.pars['NewParam1'].value, 1234)
         self.assertEqual(dset.pars['NewParam2'].value, 1234)
@@ -67,13 +93,6 @@ class TestXeprData(unittest.TestCase):
         self.assertEqual(dset.dsl.groups['customXepr'].pars['NewParam1'].value, 1234)
         self.assertEqual(dset.dsl.groups['customXepr'].pars['NewParam2'].value, 1234)
 
-    def tearDown(self):
-        """
-        Delete created file.
-        """
-        for ext in EXTENTIONS:
-            if os.path.isfile(PATH_NEW + ext):
-                os.remove(PATH_NEW + ext)
 
 if __name__ == '__main__':
     unittest.main()
