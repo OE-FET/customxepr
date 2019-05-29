@@ -16,12 +16,13 @@ _Changed:_
 - Improved the usefulness of some log messages.
 - Keep measurement logs for 356 days instead of 7 days.
 - Impoved formatting of DSC files saved through CustomXepr vs Xepr. Number formatting,
-  e.g., the number of significant digits, will be preserved if possible.
+  e.g., the number of significant digits, will be preserved unless the parameter value
+  has changes
 
 _Fixed:_
 - Fixed a bug in `XeprData` which would save y-axis and z-axis data files with the wrong
   byte-order. Ordinate data and x-axis data were not affected. Xepr expects data files to
-  be saved with the byte-order specified in the DSC file.
+  be saved with the byte-order specified in the DSC file (typically big-endian).
 - Fixed a bug in `XeprData` when saving the 'PolyCof' parameter or other array data to
   DSC files: The array shape would be incorrectly saved in the header (with row and
   column numbers swapped).
