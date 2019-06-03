@@ -1,12 +1,14 @@
+#### v2.3.3-dev0 (2019-06-03)
+
 #### v2.3.2 (2019-05-25)
 
-Improves compatability of `XeprData` with Bruker's Xepr BES3T file format.
+Improves compatibility of `XeprData` with Bruker's Xepr BES3T file format.
 
 _Added:_
 - Expanded support for Xepr data files: introduced support for complex data sets, 32-bit 
-  floats and 32-bit signed integeres as well as multiple ordinate data sets per DTA 
+  floats and 32-bit signed integers as well as multiple ordinate data sets per DTA 
   file and different byte-orders. Currently still missing: support for 16-bit shorts, 
-  8-bit characters and CR-seperated ASCII in '.DTA' files
+  8-bit characters and CR-separated ASCII in '.DTA' files
 - Save the standard error from fitting the Q-Value as a new parameter 'QValueErr' in the
   DSC file, if available.
 - Allow configuration of a custom SMTP server for email notifications in the config file
@@ -15,7 +17,7 @@ _Added:_
 _Changed:_
 - Improved the usefulness of some log messages.
 - Keep measurement logs for 356 days instead of 7 days.
-- Impoved formatting of DSC files saved through CustomXepr vs Xepr. Number formatting,
+- Improved formatting of DSC files saved through CustomXepr vs Xepr. Number formatting,
   e.g., the number of significant digits, will be preserved unless the parameter value
   has changes
 
@@ -41,16 +43,16 @@ _Added:_
 - Added a keyword argument `low_q` to `customtune` to enable tuning with low Q-values
   (default: `low_q=False`).
 - Added a keyword argument `auto_gf` to `setTemperature` to disable or enable automatic
-  gasflow control (default: `auto_gf=True`).
+  gas flow control (default: `auto_gf=True`).
 - Added a keyword argument `htt_file` to `heater_target` to select a file with a custom
   heater target table.
 
 _Changed:_
-- Simplified access and modification of `XeprData` paramaters. Parameter values can now be
+- Simplified access and modification of `XeprData` parameters. Parameter values can now be
   updated directly by assigning a value to their dictionary entry.
 - Updated default heater target table for MercuryITC.
 - Log files older than 7 days are deleted automatically on startup.
-- Removed all Qt related depencies from non-GUI modules. This makes it easier to run
+- Removed all Qt related dependencies from non-GUI modules. This makes it easier to run
   CustomXepr in headless mode from the command line.
 
 _Removed:_
@@ -65,7 +67,7 @@ the user interface (plotting data, deleting a large number of queued jobs, etc).
 _Changed:_
 - Reduced the startup time when no instruments can be found.
 - Added info messages to the splash screen.
-- Swtiched plotting library for Mercury ITC and Keithley 2600 from Matplotlib to
+- Switched plotting library for Mercury ITC and Keithley 2600 from Matplotlib to
   pyqtgraph. This allows for smoother user interactions with plots.
 - Performance improvements when deleting a large number of results or pending jobs:
   previously _O(n^2)_, now _O(n)_ performance.
@@ -82,14 +84,14 @@ format.
 
 _Added:_
 - Added `XeprData` class to hold, read and save Xepr measurement data files. `XeprData`
-  provides methods to access and modifiy measurement parameters and to plot the data.
-  It is compalitble with all Xepr experiment types, saved in the Bruker BES3T file format
+  provides methods to access and modify measurement parameters and to plot the data.
+  It is compatible with all Xepr experiment types, saved in the Bruker BES3T file format
   up to version 1.2 (currently used by Xepr).
 
 _Changed:_
 - `runXeprExperiment` now accepts a path parameter. If given, the resulting data
-  will be saved to the specified path, togther with the last-measured Q-value
-  and temperature setpoint.
+  will be saved to the specified path, together with the last-measured Q-value
+  and temperature set point.
 - Tweaked icons in user interface.
 
 _Removed:_
@@ -100,7 +102,7 @@ _Removed:_
 
 #### v2.2.1 (2019-01-25)
 
-This release introduces online documentation for CustomXepr and user inlcudes interface
+This release introduces online documentation for CustomXepr and user includes interface
 improvements.
 
 _Added:_
@@ -119,8 +121,8 @@ _Added:_
 - Added terminal / command line script "CustomXepr".
 - Added confidence interval for Q-value calculation in ModePicture class.
 - Window positions and sizes are saved and restored between sessions.
-- Show errors during job excecution in GUI in addition to email notifications.
-- Nicely colored tracebacks for error messages.
+- Show errors during job execution in GUI in addition to email notifications.
+- Nicely colored trace backs for error messages.
 
 _Changed:_
 - CustomXepr is now distributed as a python package and can be installed with
@@ -139,7 +141,7 @@ _Removed:_
 
 _Added:_
 - Included revamped keithleygui with IV sweep functionality.
-- Compatability with Python 3.6 and higher.
+- Compatibility with Python 3.6 and higher.
 
 _Changed:_
 - Proper disconnection from instruments when closing windows or shutting down
@@ -170,8 +172,8 @@ _Changed:_
   necessary to install NI-VISA from National Instruments on your system.
 - Moved drivers to external packages. Install with pip before first use.
 - Improved data plotting in Mercury user interface:
-    - heater output and gasflow are plotted alongside the temperature
-    - major speedups in plotting framerate by relying on numpy for updating the
+    - heater output and gas flow are plotted alongside the temperature
+    - major speedups in plotting frame rate by relying on numpy for updating the
       data and redrawing only changed elements of plot widget
     - allow real-time panning and zooming of plots
-- Started working on Python 3 compatability.
+- Started working on Python 3 compatibility.
