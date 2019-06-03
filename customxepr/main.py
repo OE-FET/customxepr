@@ -13,8 +13,7 @@ import logging
 import time
 import numpy as np
 import tempfile
-from qtpy import QtCore
-from keithleygui import CONF as K_CONF
+from keithleygui.config.main import CONF as KCONF
 
 from customxepr.utils import EmailSender
 from customxepr.experiment import ModePicture, XeprData, XeprParam
@@ -30,7 +29,7 @@ except ImportError:
 
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'
 __year__ = str(time.localtime().tm_year)
-__version__ = 'v2.3.0'
+__version__ = 'v2.3.3-dev0'
 __url__ = 'https://customxepr.readthedocs.io'
 
 
@@ -44,37 +43,22 @@ def cmp(a, b):
 
 
 # noinspection PyUnresolvedReferences
-class CustomXepr(QtCore.QObject):
+class CustomXepr(object):
     """
-    CustomXepr defines routines to control the Bruker Xepr software and run full ESR
-    measurement cycles. This includes tuning and setting the temperature, applying
-    voltages and recording IV characteristics with attached Keithley SMUs.
+    CustomXepr defines routines to control Bruker's Xepr software and to run full ESR
+    measurement cycles. When creating an instance of CustomXepr, you can pass instances of
+    :class:`XeprAPI.XeprAPI`, :class:`mercurygui.MercuryFeed` and
+    :py:class:`keithley2600.Keithley2600` to handle interactions with the respective
+    instruments.
 
-    All CustomXepr methods are executed in a worker thread in the order of their calls. To
-    execute your own function in this thread, you can use the :func:`queued_exec`
-    decorator provided by customxepr and query the ``abort_event`` to support
-    CustomXepr's abort functionality (see :class:`manager.Manager`).
-
-    All results are added to the result queue and can be retrieved with:
-
-    >>> manager = customxepr.manager
-    >>> result = manager.result_queue.get()  # blocks until result is available
-
-    To pause or resume the worker between jobs, run
-
-    >>> manager.pause_worker()
-
-    or
-
-    >>> manager.resume_worker()
-
-    To abort a job, run:
-
-    >>> manager.abort_job()
+    All CustomXepr methods are executed in a worker thread in the order of their calls.
+    Scheduling of jobs and retrieval of results is handled by :class:`manager.Manager`.
+    For instructions on how to schedule your own experiments, see the documentation of
+    :mod:`manager`.
 
     You can use :class:`CustomXepr` on its own, but it is recommended to start it with the
-    :func:`run` function in the :mod:`startup` module. This will automatically connect to
-    available instruments and start the graphical user interfaces.
+    function :func:`startup.run` in the :mod:`startup` module. This will automatically
+    connect to available instruments and start CustomXepr's graphical user interfaces.
 
     :param xepr: Xepr instance from the Bruker Python XeprAPI. Defaults to `None` if not
         provided.
@@ -82,14 +66,6 @@ class CustomXepr(QtCore.QObject):
         MercuryiTC temperature controller. Defaults to `None` if not provided.
     :param keithley: :class:`keithley2600.Keithley2600` instance from keithley2600 driver.
         Defaults to `None` if not provided.
-
-    :cvar manager: Manages execution of queued experiments.
-
-    :ivar hidden: Xepr's hidden experiment.
-    :ivar xepr: Connected Xepr instance.
-    :ivar keithley: Connected :class:`keithley2600.Keithley2600` instance.
-    :ivar feed: Connected :class:`mercurygui.MercuryFeed` instance.
-    :ivar wait: Delay between commands sent to Xepr.
     """
 
     manager = Manager()
@@ -101,8 +77,10 @@ class CustomXepr(QtCore.QObject):
     def __init__(self, xepr=None, mercuryfeed=None, keithley=None):
 
         super(self.__class__, self).__init__()
-        self.emailSender = EmailSender('ss2151@cam.ac.uk', 'localhost',
-                                       displayname='Sam Schott')
+        self.emailSender = EmailSender(CONF.get('SMTP', 'mailhost'),
+                                       CONF.get('SMTP', 'fromaddr'),
+                                       CONF.get('SMTP', 'credentials'),
+                                       CONF.get('SMTP', 'secure'))
 
         # =====================================================================
         # check if connections to Xepr, MercuryiTC and Keithley are present
@@ -125,16 +103,16 @@ class CustomXepr(QtCore.QObject):
         # define / load certain settings for customxepr functions
         # =====================================================================
 
-        # waiting time for Xepr to process commands (in sec)
-        self.wait = 0.1
-        # timeout for phase tuning (in sec)
-        self._tuning_timeout = 60
-        # last measured Q-value
-        self._last_qvalue = None
         # settling time for cryostat temperature (in sec)
         self._temp_wait_time = CONF.get('CustomXepr', 'temp_wait_time')
         # temperature stability tolerance (in K)
         self._temperature_tolerance = CONF.get('CustomXepr', 'temperature_tolerance')
+
+        self._wait = 0.2  # waiting time for Xepr to process commands (in sec)
+        self._tuning_timeout = 60  # timeout for phase tuning (in sec)
+
+        self._last_qvalue = None  # last measured Q-value
+        self._last_qvalue_err = None  # last measured Q-value error
 
         # =====================================================================
         # interaction with manager
@@ -148,6 +126,40 @@ class CustomXepr(QtCore.QObject):
 # define basic functions for email notifications, pausing, etc.
 # ========================================================================================
 
+    @property
+    def notify_address(self):
+        """List with email addresses for notifications."""
+        return self.manager.notify_address
+
+    @notify_address.setter
+    def notify_address(self, address_list):
+        """Setter: List with email addresses for notifications."""
+        self.manager.notify_address = address_list
+
+    @property
+    def temp_wait_time(self):
+        """Wait time until temperature is considered stable. Defaults to 120 sec."""
+        return self._temp_wait_time
+
+    @temp_wait_time.setter
+    def temp_wait_time(self, new_time):
+        """Setter: Wait time until temperature is considered stable."""
+        self._temp_wait_time = new_time
+        # update config file
+        CONF.set('CustomXepr', 'temp_wait_time', new_time)
+
+    @property
+    def temperature_tolerance(self):
+        """Temperature fluctuation tolerance. Defaults to 0.1 Kelvin."""
+        return self._temperature_tolerance
+
+    @temperature_tolerance.setter
+    def temperature_tolerance(self, new_tol):
+        """Setter: Temperature fluctuation tolerance."""
+        self._temperature_tolerance = new_tol
+        # update config file
+        CONF.set('CustomXepr', 'temperature_tolerance', new_tol)
+
     @queued_exec(manager.job_queue)
     def sendEmail(self, body):
         """
@@ -155,8 +167,7 @@ class CustomXepr(QtCore.QObject):
 
         :param str body: Text to send.
         """
-        self.emailSender.sendmail(self.manager.notify_address,
-                                  'CustomXepr Notification', body)
+        self.emailSender.sendmail(self.notify_address, 'CustomXepr Notification', body)
 
     @queued_exec(manager.job_queue)
     def sleep(self, seconds):
@@ -183,30 +194,6 @@ class CustomXepr(QtCore.QObject):
         # use a single sleep command for less than one second pause
         else:
             time.sleep(seconds)
-
-    @property
-    def temp_wait_time(self):
-        """Wait time until temperature is considered stable. Defaults to 120 sec."""
-        return self._temp_wait_time
-
-    @temp_wait_time.setter
-    def temp_wait_time(self, new_time):
-        """Setter: Wait time until temperature is considered stable."""
-        self._temp_wait_time = new_time
-        # update config file
-        CONF.set('CustomXepr', 'temp_wait_time', new_time)
-
-    @property
-    def temperature_tolerance(self):
-        """Temperature fluctuation tolerance. Defaults to 0.1 Kelvin."""
-        return self._temperature_tolerance
-
-    @temperature_tolerance.setter
-    def temperature_tolerance(self, new_tol):
-        """Setter: Temperature fluctuation tolerance."""
-        self._temperature_tolerance = new_tol
-        # update config file
-        CONF.set('CustomXepr', 'temperature_tolerance', new_tol)
 
 # ========================================================================================
 # set up Xepr functions
@@ -252,95 +239,95 @@ class CustomXepr(QtCore.QObject):
 
         # save current operation mode and attenuation
         mode = self.hidden['OpMode'].value
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         atten_start = self.hidden['PowerAtten'].value
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         # switch mode to 'Operate'
         if not mode == 'Operate':
             self.hidden['OpMode'].value = 'Operate'
-            time.sleep(self.wait)
+            time.sleep(self._wait)
 
         dB_min = 10 if not low_q else 20
         dB_max = 50 if not low_q else 45
 
         # tune frequency and phase at 30 dB
         self.hidden['PowerAtten'].value = 30
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         self._tuneFreq()
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         self._tunePhase()
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         # tune bias of reference arm at dB_max
         # (where diode current is determined by reference arm)
         self.hidden['PowerAtten'].value = dB_max
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         self._tuneBias()
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         # tune iris at 40 dB and 30 dB
         for atten in [40, 30]:
             # check for abort event
             if self.abort.is_set():
                 self.hidden['PowerAtten'].value = atten_start
-                time.sleep(self.wait)
+                time.sleep(self._wait)
                 logger.info('Aborted by user.')
                 return
 
             self.hidden['PowerAtten'].value = atten
-            time.sleep(self.wait)
+            time.sleep(self._wait)
 
             self._tuneIris()
-            time.sleep(self.wait)
+            time.sleep(self._wait)
 
         # tune iris and phase and frequency at 20 dB and 10 dB
         for atten in [20, dB_min]:
             # check for abort event, clear event
             if self.abort.is_set():
                 self.hidden['PowerAtten'].value = atten_start
-                time.sleep(self.wait)
+                time.sleep(self._wait)
                 logger.info('Aborted by user.')
                 return
 
             self.hidden['PowerAtten'].value = atten
-            time.sleep(self.wait)
+            time.sleep(self._wait)
             self._tunePhase()
-            time.sleep(self.wait)
+            time.sleep(self._wait)
             self._tuneIris()
-            time.sleep(self.wait)
+            time.sleep(self._wait)
             self._tuneFreq()
-            time.sleep(self.wait)
+            time.sleep(self._wait)
 
         # tune bias at dB_max
         self.hidden['PowerAtten'].value = dB_max
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         self._tuneBias()
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         # tune iris at 15 dB
         self.hidden['PowerAtten'].value = 20
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         self._tuneIris()
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         # tune bias at dB_max
         self.hidden['PowerAtten'].value = dB_max
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         self._tuneBias()
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         # tune iris at dB_min
         self.hidden['PowerAtten'].value = dB_min
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         self._tuneIris()
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         # reset attenuation to original value, tune frequency again
         self.hidden['PowerAtten'].value = atten_start
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         self._tuneFreq()
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         logger.status('Tuning done.')
 
@@ -400,21 +387,21 @@ class CustomXepr(QtCore.QObject):
 
         self._check_for_xepr()
 
-        wait_old = self.wait
-        self.wait = 1
+        wait_old = self._wait
+        self._wait = 1
 
         logger.info('Reading Q-value.')
 
         att = self.hidden['PowerAtten'].value  # remember current attenuation
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         self.hidden['OpMode'].value = 'Tune'
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         self.hidden['RefArm'].value = 'On'
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         self.hidden['PowerAtten'].value = 33
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         self.hidden['ModeZoom'].value = 2
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         q_values = np.array([])
 
@@ -425,11 +412,11 @@ class CustomXepr(QtCore.QObject):
             time.sleep(1)
 
         self.hidden['PowerAtten'].value = 32
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         self.hidden['ModeZoom'].value = 1
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         self.hidden['RefArm'].value = 'On'
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         self.hidden['OpMode'].value = 'Operate'
 
         time.sleep(3)
@@ -440,7 +427,7 @@ class CustomXepr(QtCore.QObject):
         self._tuneFreq()
 
         self.hidden['PowerAtten'].value = att
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         q_mean = q_values.mean()
         q_stderr = q_values.std()
 
@@ -454,7 +441,7 @@ class CustomXepr(QtCore.QObject):
             logger.warning('Q = %i+/-%i is very small. ' % (q_mean, q_stderr) +
                            'Please check on experiment.')
 
-        self.wait = wait_old
+        self._wait = wait_old
 
         return q_mean
 
@@ -477,19 +464,19 @@ class CustomXepr(QtCore.QObject):
 
         self._check_for_xepr()
 
-        wait_old = self.wait
-        self.wait = 1
+        wait_old = self._wait
+        self._wait = 1
 
         logger.info('Reading Q-value.')
         att = self.hidden['PowerAtten'].value  # remember current attenuation
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         freq = self.hidden['FrequencyMon'].value  # get current frequency
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         self.hidden['OpMode'].value = 'Tune'
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         self.hidden['RefArm'].value = 'Off'
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         self.hidden['PowerAtten'].value = 33
         time.sleep(1)
 
@@ -506,7 +493,7 @@ class CustomXepr(QtCore.QObject):
             time.sleep(2)
 
             n_points = int(self.hidden['DataRange'][1])
-            time.sleep(self.wait)
+            time.sleep(self._wait)
 
             for i in range(0, n_points):
                 y_data = np.append(y_data, self.hidden['Data'][i])
@@ -515,13 +502,14 @@ class CustomXepr(QtCore.QObject):
 
         mp = ModePicture(mode_pic_data, freq)
         self._last_qvalue = mp.qvalue
+        self._last_qvalue_err = mp.qvalue_stderr
 
         self.hidden['PowerAtten'].value = 30
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         self.hidden['ModeZoom'].value = 1
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         self.hidden['RefArm'].value = 'On'
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         self.hidden['OpMode'].value = 'Operate'
 
         time.sleep(2)
@@ -532,7 +520,7 @@ class CustomXepr(QtCore.QObject):
         self._tuneFreq()
 
         self.hidden['PowerAtten'].value = att
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         if mp.qvalue > 3000:
             logger.info('Q = %i+/-%i.' % (mp.qvalue, mp.qvalue_stderr))
@@ -540,16 +528,18 @@ class CustomXepr(QtCore.QObject):
             logger.warning('Q = %i+/-%i is very small. ' % (mp.qvalue, mp.qvalue_stderr) +
                            'Please check on experiment.')
 
-        if path is None:
-            pass
-        elif os.path.isdir(path):
+        if path is not None:
+            path = os.path.expanduser(path)
+            if not os.path.isdir(path):
+                raise IOError('"%s" is not a valid directory.' % path)
+
             path1 = os.path.join(path, 'QValues.txt')
             path2 = os.path.join(path, 'ModePicture{0:03d}K.txt'.format(int(temperature)))
 
             self._saveQValue2File(temperature, mp.qvalue, mp.qvalue_stderr, path1)
             mp.save(path2)
 
-        self.wait = wait_old
+        self._wait = wait_old
 
         return mp
 
@@ -573,7 +563,7 @@ class CustomXepr(QtCore.QObject):
             f.write(line)
 
     @queued_exec(manager.job_queue)
-    def runXeprExperiment(self, exp, retune=False, path=None, **kwargs):
+    def runXeprExperiment(self, exp, retune=True, path=None, **kwargs):
         """
         Runs the Xepr experiment ``exp``. Keyword arguments ``kwargs`` allow the user to
         pass experiment settings to Xepr (e.g., 'ModAmp' for modulation amplitude).
@@ -591,7 +581,7 @@ class CustomXepr(QtCore.QObject):
         last-measurement Q-value (if available) are written to the Bruker '.DSC' file.
 
         :param exp: Xepr experiment object to run.
-        :param bool retune: Retune iris and freq between scans (default: False).
+        :param bool retune: Retune iris and freq between scans (default: True).
         :param str path: Path to file. If given, the data set will be saved to this path,
             otherwise, a temporary file will be created. Xepr only allows file paths
             shorter than 128 characters.
@@ -604,41 +594,42 @@ class CustomXepr(QtCore.QObject):
         # -----------set experiment parameters if given in kwargs--------------
         for key in kwargs:
             exp[key].value = kwargs[key]
-            time.sleep(self.wait)
+            time.sleep(self._wait)
 
         message = ('Measurement "%s" is running. ' % exp.aqGetExpName())
 
         logger.info(message)
 
         # -------------------start experiment----------------------------------
-        temperature_mean = temperature_var = None
         if self._check_for_mercury(raise_error=False):
-            temperature_history = np.array([])
+            temperature_fluct_history = np.array([])
+            temperature_set = self.feed.temperature.loop_tset
         else:
-            temperature_history = None
+            temperature_fluct_history = None
+            temperature_set = None
 
         exp.select()
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         exp.aqExpRun()
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         # wait for experiment to start
         while not exp.isRunning:
-            time.sleep(self.wait)
+            time.sleep(self._wait)
 
         if retune:  # schedule pause after scan to retune
             time.sleep(1)
             exp.aqExpPause()
-            time.sleep(self.wait)
+            time.sleep(self._wait)
 
         # count the number of temperature stability violations
         n_out = 0  # start at n_out = 0
 
         def is_running_or_paused():
             running = exp.isRunning
-            time.sleep(self.wait)
+            time.sleep(self._wait)
             paused = exp.isPaused
-            time.sleep(self.wait)
+            time.sleep(self._wait)
             return running or paused
 
         while is_running_or_paused():
@@ -646,14 +637,14 @@ class CustomXepr(QtCore.QObject):
             # check for abort event
             if self.abort.is_set():
                 exp.aqExpPause()
-                time.sleep(self.wait)
+                time.sleep(self._wait)
                 logger.info('Aborted by user.')
                 return
 
             nb_scans_done = exp['NbScansDone'].value
-            time.sleep(self.wait)
+            time.sleep(self._wait)
             nb_scans_to_do = exp['NbScansToDo'].value
-            time.sleep(self.wait)
+            time.sleep(self._wait)
             logger.status('Recording scan %i/%i.' % (nb_scans_done + 1, nb_scans_to_do))
 
             if retune:
@@ -666,55 +657,50 @@ class CustomXepr(QtCore.QObject):
 
                     # start next scan
                     exp.aqExpRun()
-                    time.sleep(self.wait)
+                    time.sleep(self._wait)
 
                     # wait for scan to start and schedule next pause
                     while not exp.isRunning:
                         time.sleep(1)
                     exp.aqExpPause()
-                    time.sleep(self.wait)
+                    time.sleep(self._wait)
 
             # record temperature and warn if fluctuations exceed the tolerance
-            if temperature_history is not None:
-                temperature_curr = self.feed.readings['Temp']
-                temperature_history = np.append(temperature_history, temperature_curr)
-                # increment the number of violations n_out if temperature unstable
-                n_out += (abs(temperature_history[-1] - temperature_history[0]) >
-                          2 * self.temperature_tolerance)
-                # warn once for every 120 violations
+            if temperature_fluct_history is not None:
+                diff = abs(self.feed.readings['Temp'] - temperature_set)
+                temperature_fluct_history = np.append(temperature_fluct_history, diff)
+                # increment the number of violations n_out if temperature is unstable
+                n_out += (diff > 2*self._temperature_tolerance)
+                # warn once for every 120 temperature violations
                 if np.mod(n_out, 120) == 1:
-                    logger.warning(u'Temperature fluctuations > +/-%sK.'
-                                   % (2*self.temperature_tolerance))
-                    n_out += 1  # prevent from warning again next second
+                    max_diff = np.max(temperature_fluct_history)
+                    logger.warning('Temperature fluctuations of +/-%.2fK.' % max_diff)
+                    n_out += 1  # prevent from warning again the next second
 
-                # Pause measurement and suspend all pending jobs after 15 min
-                # of temperature instability
+                # Pause measurement and raise error after 15 min of instability
                 if n_out > 60 * 15:
-                    logger.warning('Temperature could not be stabilized for ' +
-                                   '15 min. Pausing current measurement and ' +
-                                   'all pending jobs.')
                     exp.aqExpPause()
-                    self.manager.running.clear()
-                    return
+                    raise RuntimeError('Temperature could not be stabilized for ' +
+                                       '15 min. Pausing current measurement and ' +
+                                       'all pending jobs.')
 
             time.sleep(1)
 
         # get temperature stability during scan if mercury was connected
-        if temperature_history is not None:
-            temperature_var = max(temperature_history) - min(temperature_history)
-            temperature_mean = float(np.mean(temperature_history))
+        if temperature_fluct_history is not None:
+            max_diff = np.max(temperature_fluct_history)
             logger.info(u'Temperature stable at (%.2f+/-%.2f)K during scans.'
-                        % (temperature_mean, temperature_var / 2))
+                        % (temperature_set, max_diff))
 
         logger.info('All scans complete.')
 
         # -----------------show and save data----------
         # switch viewpoint to experiment which just finished running
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         exp_title = exp.aqGetExpName()
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         self.XeprCmds.aqExpSelect(1, exp_title)
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         # save the data if path is given
         # add temperature data and Q-value if available
@@ -723,7 +709,7 @@ class CustomXepr(QtCore.QObject):
                                 next(tempfile._get_candidate_names()))
 
         self._saveCurrentData(path, exp)
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         basename = path.split('.')[0]
         dsc_path = basename + '.DSC'
@@ -731,20 +717,18 @@ class CustomXepr(QtCore.QObject):
         dset = XeprData(dsc_path)
 
         if self._last_qvalue is not None:
-            if 'QValue' in dset.pars:
-                dset.pars['QValue'] = self._last_qvalue
-            else:  # the parameter 'QValue' doesn't exist yet
-                dset.dsl.groups['mwBridge'].pars['QValue'] = XeprParam(self._last_qvalue)
+            dsl_mwbridge = dset.dsl.groups['mwBridge']
+            dsl_mwbridge.pars['QValue'] = XeprParam(self._last_qvalue)
+            dsl_mwbridge.pars['QValueErr'] = XeprParam(self._last_qvalue_err)
 
-        if temperature_history is not None:
-            new_group = ParamGroupDSL(name='tempCtrl')
-            new_group.pars['AcqWaitTime'] = XeprParam(self.temp_wait_time, 's')
-            new_group.pars['Temperature'] = XeprParam(self.feed.temperature.loop_tset, 'K')
-            new_group.pars['Tolerance'] = XeprParam(self.temperature_tolerance, 'K')
-            new_group.pars['Stability'] = XeprParam(round(temperature_var, 4), 'K')
-            new_group.pars['Mean'] = XeprParam(round(temperature_mean, 4), 'K')
+        if temperature_fluct_history is not None:
+            dsl_temp = ParamGroupDSL(name='tempCtrl')
+            dsl_temp.pars['Temperature'] = XeprParam(temperature_set, 'K')
+            dsl_temp.pars['Stability'] = XeprParam(round(max_diff, 4), 'K')
+            dsl_temp.pars['AcqWaitTime'] = XeprParam(self._temp_wait_time, 's')
+            dsl_temp.pars['Tolerance'] = XeprParam(self._temperature_tolerance, 'K')
 
-            dset.dsl.groups['tempCtrl'] = new_group
+            dset.dsl.groups['tempCtrl'] = dsl_temp
 
         if retune:
             dset.pars['AcqFineTuning'] = 'Slice'  # TODO: confirm correct value
@@ -790,23 +774,23 @@ class CustomXepr(QtCore.QObject):
         # check if WindDown experiment already exists, otherwise create
         try:
             wd = self.xepr.XeprExperiment('WindDown')
-            time.sleep(self.wait)
+            time.sleep(self._wait)
         except ExperimentError:
             wd = self.xepr.XeprExperiment('WindDown', exptype='C.W.',
                                           axs1='Field', ordaxs='Signal channel')
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         wd.aqExpActivate()
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         wd['CenterField'].value = 0
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         wd['AtCenter'].value = True
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         self.hidden['OpMode'].value = 'Tune'
         time.sleep(3)
         self.hidden['OpMode'].value = 'Stand By'
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         logger.info('EPR set to standby.')
 
@@ -840,15 +824,15 @@ class CustomXepr(QtCore.QObject):
         # switch viewpoint to experiment if given
         if exp is not None:
             exp_title = exp.aqGetExpName()
-            time.sleep(self.wait)
+            time.sleep(self._wait)
             self.XeprCmds.aqExpSelect(1, exp_title)
-            time.sleep(self.wait)
+            time.sleep(self._wait)
 
         # tell Xepr to save data
         self.XeprCmds.ddPath(path)
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         self.XeprCmds.vpSave('Current Primary', filename,  path)
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         logger.info('Data saved to %s.' % path)
 
     def _tuneBias(self):
@@ -857,11 +841,11 @@ class CustomXepr(QtCore.QObject):
             return
 
         logger.status('Tuning (Bias).')
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         # get offset from 200 mA
         diff = self.hidden['DiodeCurrent'].value - 200
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         tolerance1 = 10  # tolerance for fast tuning
         tolerance2 = 1  # tolerance for second fine tuning
 
@@ -872,10 +856,11 @@ class CustomXepr(QtCore.QObject):
                 return
 
             step = 1*cmp(0, diff)  # coarse step of 1
-            self.XeprCmds.aqParStep('AcqHidden', '*cwBridge.SignalBias', 'Coarse %s' % step)
+            self.XeprCmds.aqParStep('AcqHidden', '*cwBridge.SignalBias',
+                                    'Coarse %s' % step)
             time.sleep(0.5)
             diff = self.hidden['DiodeCurrent'].value - 200
-            time.sleep(self.wait)
+            time.sleep(self._wait)
 
         # fine tuning with low tolerance and small steps
         while abs(diff) > tolerance2:
@@ -887,7 +872,7 @@ class CustomXepr(QtCore.QObject):
             self.XeprCmds.aqParStep('AcqHidden', '*cwBridge.SignalBias', 'Fine %s' % step)
             time.sleep(0.5)
             diff = self.hidden['DiodeCurrent'].value - 200
-            time.sleep(self.wait)
+            time.sleep(self._wait)
 
     def _tuneIris(self, tolerance=1):
         # check for abort event
@@ -895,7 +880,7 @@ class CustomXepr(QtCore.QObject):
             return
 
         logger.status('Tuning (Iris).')
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         diff = self.hidden['DiodeCurrent'].value - 200
 
@@ -916,7 +901,7 @@ class CustomXepr(QtCore.QObject):
             step_size = max(abs(diff), 30) * 0.01
             # scale step size for MW power: smaller steps at higher power
             step = step_size * (self.hidden['PowerAtten'].value**2)/400
-            time.sleep(self.wait)
+            time.sleep(self._wait)
             # set value to 0.1 if step is smaller
             # (usually only happens below 10dB)
             step = max(step, 0.1)
@@ -929,7 +914,7 @@ class CustomXepr(QtCore.QObject):
             time.sleep(wait)
 
             diff = self.hidden['DiodeCurrent'].value - 200
-            time.sleep(self.wait)
+            time.sleep(self._wait)
 
     def _tuneFreq(self, tolerance=3):
         # check for abort event
@@ -937,10 +922,10 @@ class CustomXepr(QtCore.QObject):
             return
 
         logger.status('Tuning (Freq).')
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         fq_offset = self.hidden['LockOffset'].value
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         while abs(fq_offset) > tolerance:
             # check for abort event
@@ -951,7 +936,7 @@ class CustomXepr(QtCore.QObject):
             self.XeprCmds.aqParStep('AcqHidden', '*cwBridge.Frequency', 'Fine %s' % step)
             time.sleep(1)
             fq_offset = self.hidden['LockOffset'].value
-            time.sleep(self.wait)
+            time.sleep(self._wait)
 
     def _tunePhase(self):
         # check for abort event
@@ -959,19 +944,19 @@ class CustomXepr(QtCore.QObject):
             return
 
         logger.status('Tuning (Phase).')
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         t0 = time.time()
 
         # get current phase and range
         phase0 = self.hidden['SignalPhase'].value
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         phase_min = self.hidden['SignalPhase'].aqGetParMinValue()
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         phase_max = self.hidden['SignalPhase'].aqGetParMaxValue()
-        time.sleep(self.wait)
+        time.sleep(self._wait)
         phase_step = self.hidden['SignalPhase'].aqGetParCoarseSteps()
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         # determine the direction of increasing diode current
         diode_curr_array = np.array([])
@@ -989,10 +974,10 @@ class CustomXepr(QtCore.QObject):
             self.hidden['SignalPhase'].value = phase
             time.sleep(1)
             diode_curr = self.hidden['DiodeCurrent'].value
-            time.sleep(self.wait)
+            time.sleep(self._wait)
             diode_curr_array = np.append(diode_curr_array, diode_curr)
             if time.time() - t0 > self._tuning_timeout:
-                logger.warning('Phase tuning timeout.')
+                logger.info('Phase tuning timeout.')
                 break
 
         upper = np.mean(diode_curr_array[phase_array > phase0])
@@ -1003,7 +988,7 @@ class CustomXepr(QtCore.QObject):
         self.hidden['SignalPhase'].value = phase0
         time.sleep(1)
         diode_curr_new = self.hidden['DiodeCurrent'].value
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
         phase_array = np.array([phase0])
         diode_curr_array = np.array([diode_curr_new])
@@ -1031,20 +1016,20 @@ class CustomXepr(QtCore.QObject):
             self.hidden['SignalPhase'].value = new_phase
             time.sleep(1)
             diode_curr_new = self.hidden['DiodeCurrent'].value
-            time.sleep(self.wait)
+            time.sleep(self._wait)
 
             diode_curr_array = np.append(diode_curr_array, diode_curr_new)
             phase_array = np.append(phase_array, new_phase)
 
             # timeout if Xepr is not responsive
             if time.time() - t0 > self._tuning_timeout:
-                logger.warning('Phase tuning timeout.')
+                logger.info('Phase tuning timeout.')
                 break
 
         # set phase to the best value
         best_phase = phase_array[np.argmax(diode_curr_array)]
         self.hidden['SignalPhase'].value = best_phase
-        time.sleep(self.wait)
+        time.sleep(self._wait)
 
     def _phase_at_limit(self, phase, phase_min, phase_max):
 
@@ -1070,7 +1055,8 @@ class CustomXepr(QtCore.QObject):
     def setTemperature(self, target, auto_gf=True):
         """
         Sets the target temperature for the ESR900 cryostat and waits for it to stabilize
-        within :attr:`temp_wait_time` with fluctuations below :attr:`temperature_tolerance`.
+        within :attr:`temp_wait_time` with fluctuations below
+        :attr:`temperature_tolerance`.
 
         Warns the user if this takes too long.
 
@@ -1111,7 +1097,7 @@ class CustomXepr(QtCore.QObject):
         """
 
         # time in sec after which a timeout warning is issued
-        self._temperature_timeout = (self._ramp_time() + 30*60)  # in sec
+        temperature_timeout = (self._ramp_time() + 30*60)  # in sec
         # counter for elapsed seconds since temperature has been stable
         stable_counter = 0
         # counter for setting gas flow to manual
@@ -1121,7 +1107,7 @@ class CustomXepr(QtCore.QObject):
 
         logger.info('Waiting for temperature to stabilize.')
 
-        while stable_counter < self.temp_wait_time:
+        while stable_counter < self._temp_wait_time:
             # check for abort command
             if self.abort.is_set():
                 logger.info('Aborted by user.')
@@ -1140,20 +1126,21 @@ class CustomXepr(QtCore.QObject):
 
             # check temperature deviation
             self.T_diff = abs(self._temperature_target - self.feed.readings['Temp'])
-            if self.T_diff > self.temperature_tolerance:
+            if self.T_diff > self._temperature_tolerance:
                 stable_counter = 0
                 time.sleep(self.feed.refresh)
                 logger.status('Waiting for temperature to stabilize.')
             else:
                 stable_counter += self.feed.refresh
                 logger.status('Stable for %s/%s sec.' % (stable_counter,
-                                                         self.temp_wait_time))
+                                                         self._temp_wait_time))
                 time.sleep(self.feed.refresh)
 
-            # warn once if stabilization is taking longer than expected
-            if time.time() - t0 > self._temperature_timeout:
+            # warn if stabilization is taking longer than expected, and again every 30 min
+            if time.time() - t0 > temperature_timeout:
+                logger.warning('Temperature is taking a long time to stabilize.')
                 t0 = time.time()
-                logger.warning('Temperature is taking too long to stabilize.')
+                temperature_timeout = 30*60
 
         message = 'Mercury iTC: Temperature is stable at %sK.' % self._temperature_target
         logger.info(message)
@@ -1182,7 +1169,7 @@ class CustomXepr(QtCore.QObject):
     def _ramp_time(self):
         """
         Calculates the expected time in sec to reach the target temperature.
-        Assumes a max ramping speed of 5 K/min if "ramp" is turned off.
+        Assumes a ramping speed of 5 K/min if "ramp" is turned off.
         """
         if self.feed.readings['TempRampEnable'] == 'ON':
             expected_time = (abs(self._temperature_target - self.feed.readings['Temp']) /
@@ -1210,15 +1197,15 @@ class CustomXepr(QtCore.QObject):
 # ========================================================================================
 
     @queued_exec(manager.job_queue)
-    def transferMeasurement(self, smu_gate=K_CONF.get('Sweep', 'gate'),
-                            smu_drain=K_CONF.get('Sweep', 'drain'),
-                            vg_start=K_CONF.get('Sweep', 'VgStart'),
-                            vg_stop=K_CONF.get('Sweep', 'VgStop'),
-                            vg_step=K_CONF.get('Sweep', 'VgStep'),
-                            vd_list=K_CONF.get('Sweep', 'VdList'),
-                            t_int=K_CONF.get('Sweep', 'tInt'),
-                            delay=K_CONF.get('Sweep', 'delay'),
-                            pulsed=K_CONF.get('Sweep', 'pulsed'),
+    def transferMeasurement(self, smu_gate=KCONF.get('Sweep', 'gate'),
+                            smu_drain=KCONF.get('Sweep', 'drain'),
+                            vg_start=KCONF.get('Sweep', 'VgStart'),
+                            vg_stop=KCONF.get('Sweep', 'VgStop'),
+                            vg_step=KCONF.get('Sweep', 'VgStep'),
+                            vd_list=KCONF.get('Sweep', 'VdList'),
+                            t_int=KCONF.get('Sweep', 'tInt'),
+                            delay=KCONF.get('Sweep', 'delay'),
+                            pulsed=KCONF.get('Sweep', 'pulsed'),
                             path=None):
         """
         Records a transfer curve and returns the resulting data. If a valid path is path
@@ -1254,15 +1241,15 @@ class CustomXepr(QtCore.QObject):
         return sd
 
     @queued_exec(manager.job_queue)
-    def outputMeasurement(self, smu_gate=K_CONF.get('Sweep', 'gate'),
-                          smu_drain=K_CONF.get('Sweep', 'drain'),
-                          vd_start=K_CONF.get('Sweep', 'VdStart'),
-                          vd_stop=K_CONF.get('Sweep', 'VdStop'),
-                          vd_step=K_CONF.get('Sweep', 'VdStep'),
-                          vg_list=K_CONF.get('Sweep', 'VgList'),
-                          t_int=K_CONF.get('Sweep', 'tInt'),
-                          delay=K_CONF.get('Sweep', 'delay'),
-                          pulsed=K_CONF.get('Sweep', 'pulsed'),
+    def outputMeasurement(self, smu_gate=KCONF.get('Sweep', 'gate'),
+                          smu_drain=KCONF.get('Sweep', 'drain'),
+                          vd_start=KCONF.get('Sweep', 'VdStart'),
+                          vd_stop=KCONF.get('Sweep', 'VdStop'),
+                          vd_step=KCONF.get('Sweep', 'VdStep'),
+                          vg_list=KCONF.get('Sweep', 'VgList'),
+                          t_int=KCONF.get('Sweep', 'tInt'),
+                          delay=KCONF.get('Sweep', 'delay'),
+                          pulsed=KCONF.get('Sweep', 'pulsed'),
                           path=None):
         """
         Records an output curve and returns the resulting data. If a valid path is given,
@@ -1298,7 +1285,7 @@ class CustomXepr(QtCore.QObject):
         return sd
 
     @queued_exec(manager.job_queue)
-    def setGateVoltage(self, v, smu_gate=K_CONF.get('Sweep', 'gate')):
+    def setGateVoltage(self, v, smu_gate=KCONF.get('Sweep', 'gate')):
         """
         Sets the gate bias of the given Keithley SMU, grounds other SMUs.
 
@@ -1322,7 +1309,7 @@ class CustomXepr(QtCore.QObject):
             self.keithley.reset()
 
     @queued_exec(manager.job_queue)
-    def applyDrainCurrent(self, i, smu=K_CONF.get('Sweep', 'drain')):
+    def applyDrainCurrent(self, i, smu=KCONF.get('Sweep', 'drain')):
         """
         Applies a specified current to the selected Keithley SMU.
 

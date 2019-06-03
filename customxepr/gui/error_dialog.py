@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Jul 22 13:11:20 2018
+@author: Sam Schott  (ss2151@cam.ac.uk)
 
-@author: Sam Schott
+(c) Sam Schott; This work is licensed under a Creative Commons
+Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
+
 """
 from __future__ import division, absolute_import
 import sys

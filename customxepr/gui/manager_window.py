@@ -135,9 +135,7 @@ class ManagerApp(QtWidgets.QMainWindow):
     A GUI for CustomXepr, composed of three panels:
 
         1) List of queued jobs and functionality to pause, resume and abort any
-           job execution. Basic CustomXepr settings such as the temperature
-           settling time and tolerance, as well as shortcuts to tuning and
-           Q-value evaluation routines, can be accesses here as well.
+           job execution.
 
         2) List of all results. Right-clicking on a result exposes plotting and
            saving functionality if corresponding methods are provided by the
@@ -147,7 +145,7 @@ class ManagerApp(QtWidgets.QMainWindow):
            UI to specify email addresses for notifications and the desired
            notification level (Status, Info, Warning or Error).
 
-    This class requires a :class:`main.CustomXepr` instance as input.
+    This class requires a :class:`manager.Manager` instance as input.
 
     """
 
@@ -438,7 +436,7 @@ class ManagerApp(QtWidgets.QMainWindow):
         """
         if self.job_queue.has_running() > 0:
             logger.warning('No status update for %i min.' % self.t_timeout +
-                           ' Please check on experiment')
+                           ' Please check on experiment.')
 
     @staticmethod
     def is_updated():
@@ -473,14 +471,15 @@ class ManagerApp(QtWidgets.QMainWindow):
     def _trunc_str_list(self, string_list, max_total_len=150, min_item_len=13):
         """
         Tries to truncate strings in list until total length is smaller than
-        `max_total_len`. Starts with the last string in list and moves backward.
-        No individual string will be truncated shorter than `min_item_len`,
-        even if `max_total_len` must be exceeded.
+        `max_total_len`. Starts with the last string in list and moves to the first.
+        No individual string will be truncated shorter than `min_item_len`, even if
+        `max_total_len` must be exceeded.
 
         :param list string_list: List of strings to truncate
         :param int max_total_len: Maximum number of characters in truncated
             string list (default = 150).
         :param int min_item_len: Minimum number of characters per string (default = 13).
+
         :returns: List of truncated strings.
         :rtype: list
         """
@@ -498,9 +497,10 @@ class ManagerApp(QtWidgets.QMainWindow):
 
     def on_job_status_changed(self, index, status):
         """
-        Updates status of top item in jobQueueDisplay.
+        Update jobQueueModel and jobQueueDisplay to reflect job status changes.
         """
 
+        # update job icon
         if status is ExpStatus.RUNNING:
             self.jobQueueModel.item(index).setIcon(self.icon_running)
         elif status is ExpStatus.ABORTED:
@@ -512,8 +512,13 @@ class ManagerApp(QtWidgets.QMainWindow):
         elif status is ExpStatus.QUEUED:
             self.jobQueueModel.item(index).setIcon(self.icon_queued)
 
-        self.jobQueueDisplay.scrollTo(self.jobQueueModel.createIndex(index-3, 1),
-                                      self.jobQueueDisplay.PositionAtTop)
+        item_index1 = self.jobQueueModel.createIndex(index, 0)
+        item_index2 = self.jobQueueModel.createIndex(index, 1)
+        self.jobQueueDisplay.dataChanged(item_index1, item_index2)
+
+        # update scroll position
+        top_item_index = self.jobQueueModel.createIndex(index-3, 1)
+        self.jobQueueDisplay.scrollTo(top_item_index, self.jobQueueDisplay.PositionAtTop)
 
     def on_job_added(self, index=-1):
         """
@@ -568,9 +573,13 @@ class ManagerApp(QtWidgets.QMainWindow):
         self.resultQueueModel.appendRow([rslt_type, rslt_size, rslt_value])
 
     def on_jobs_removed(self, i0, n_items):
+
+        i0 = i0 % self.jobQueueModel.rowCount()  # convert negative to positive indices
         self.jobQueueModel.removeRows(i0, n_items)
 
     def on_results_removed(self, i0, n_items):
+
+        i0 = i0 % self.resultQueueModel.rowCount()  # convert negative to positive indices
         self.resultQueueModel.removeRows(i0, n_items)
 
     def populate_jobs(self):

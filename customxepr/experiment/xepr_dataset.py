@@ -10,7 +10,6 @@ from __future__ import division, absolute_import, unicode_literals
 import os
 import re
 import numpy as np
-import itertools
 try:
     from collections.abc import MutableMapping
 except ImportError:
@@ -33,17 +32,40 @@ class XeprParam(object):
         :attr:`comment` must start with "\*".
     """
 
-    UNITS = ['s', 'Hz', 'G', 'T', 'K', 'dB', 'W']
-    PREFIXES = ['', 'E', 'P', 'T', 'G', 'M', 'k', 'h',
-                'D', 'd', 'c', 'm', 'u', 'n', 'p', 'f', 'a']
-
-    ALL_UNITS = [p + u for p, u in itertools.product(PREFIXES, UNITS)]
-
     def __init__(self, value=None, unit='', comment=''):
 
-        self.value = value
-        self.unit = unit
-        self.comment = comment
+        self._value = value
+        self._unit = unit
+        self._comment = comment
+
+        self._string = None
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = value
+        self._string = None
+
+    @property
+    def unit(self):
+        return self._value
+
+    @unit.setter
+    def unit(self, unit):
+        self._unit = unit
+        self._string = None
+
+    @property
+    def comment(self):
+        return self._comment
+
+    @comment.setter
+    def comment(self, comment):
+        self._comment = comment
+        self._string = None
 
     def to_string(self):
         """
@@ -52,26 +74,34 @@ class XeprParam(object):
         :return: Parsed parameter.
         :rtype: str
         """
-        is_array = isinstance(self.value, np.ndarray)
+        # return original parsed version, if present
 
-        if is_array:
-            value_str = ','.join([str(x) for x in self.value.flatten()])
-            shape_str = str(self.value.shape).lstrip('(').strip(')').replace(' ', '')
-            header = '{{{0};{1};{2}}}'.format(self.value.ndim, shape_str, 0)
-
-        if self.value is None:
-            return_str = ''
-        elif is_array and self.unit:
-            return_str = ' '.join([header, str(self.unit), value_str])
-        elif is_array and not self.unit:
-            return_str = ' '.join([header, value_str])
-        elif not self.unit:
-            return_str = str(self.value)
+        if self._string:
+            return self._string
         else:
-            return_str = ' '.join([str(self.value), str(self.unit)])
+            return self._to_string()
 
-        if self.comment:
-            return_str = ' '.join([return_str, self.comment])
+    def _to_string(self):
+
+        # prepare value string (and potentially header string)
+        header_str = ''
+        if self._value is None:  # => empty string
+            value_str = ''
+        elif isinstance(self._value, np.ndarray):  # => flatten and add header
+            value_str = ','.join([str(x) for x in self._value.flatten()])
+            shape_str = str(self._value.shape).lstrip('(').strip(')').replace(' ', '')
+            header_str = '{{{0};{1};{2}}}'.format(self._value.ndim, shape_str, 0)
+        else:  # => take default string representation
+            value_str = str(self._value)
+
+        # determine order of strings (unit comes before value for arrays!)
+        if header_str:  # array
+            return_list = [header_str, self._unit, value_str, self._comment]
+        else:  # not an array
+            return_list = [value_str, self._unit, self._comment]
+
+        # join all non-empty strings
+        return_str = ' '.join([r for r in return_list if r != ''])
 
         return return_str
 
@@ -81,61 +111,68 @@ class XeprParam(object):
 
         :param str string: String to parse.
         """
-        self.value = None
-        self.unit = ''
-        self.comment = ''
+
+        self._string = string
+        self._value = None
+        self._unit = ''
+        self._comment = ''
 
         contents = string.split()
 
         if not contents:
             return
 
+        # remove trailing comments
         if contents[-1].startswith('*'):
-            self.comment = contents[-1]
+            self._comment = contents[-1]
             del contents[-1]
 
-        par_header = ''
+        par_header = None
 
         if len(contents) == 0:
+            # return if string only was a comment
             return
         elif len(contents) == 1:
+            # set single field as value
             par_value = contents[0]
         elif len(contents) == 2:
-            if re.match(r'\{.*\}', contents[0]):
+            # check if we have a header-value pair, a value-unit pair, or a single value
+            if re.match(r'\{.*\}', contents[0]):  # first block is a header
                 par_header = contents[0]
                 par_value = contents[1]
-            elif contents[1] in self.ALL_UNITS:
-                par_value = contents[0]
-                self.unit = contents[1]
             else:
-                par_value = ' '.join(contents)
+                try:
+                    float(contents[0])
+                    par_value = contents[0]
+                    # if first block is a number, second block must be a unit
+                    self._unit = contents[1]
+                except ValueError:  # a string with spaces
+                    par_value = ' '.join(contents)
+        # check if we have a header-unit-value triple
+        elif re.match(r'\{.*\}', contents[0]):
+            par_header = contents[0]
+            self._unit = contents[1]
+            par_value = contents[2]
+        else:  # otherwise just save as string
+            par_value = ' '.join(contents)
 
-        elif len(contents) > 2:
-            if re.match(r'\{.*\}', contents[0]):
-                par_header = contents[0]
-                self.unit = contents[1]
-                par_value = contents[2]
-            else:
-                par_value = ' '.join(contents)
-
-        if par_header:
+        if par_header:  # follow header instructions to parse the value
             array = np.array([float(x) for x in par_value.split(',')])
             shape = [int(x) for x in par_header.split(';')[1].split(',')]
-            shape.reverse()
-            self.value = array.reshape(shape)
-        else:
+            self._value = array.reshape(shape)
+        else:  # try to convert the value to Python types int / float / bool / str
             try:
                 if '.' in par_value:
-                    self.value = float(par_value)
+                    self._value = float(par_value)
                 else:
-                    self.value = int(par_value)
+                    self._value = int(par_value)
             except ValueError:
                 if par_value == 'True':
-                    self.value = True
+                    self._value = True
                 elif par_value == 'False':
-                    self.value = False
+                    self._value = False
                 else:
-                    self.value = par_value
+                    self._value = par_value
 
     def __repr__(self):
         return '<{0}({1})>'.format(self.__class__.__name__, self.to_string())
@@ -168,7 +205,10 @@ class ParamGroup(object):
         """
         Prints a parameter group as string.
         """
-        lines = [self.HEADER_FMT.format(self.name)]
+        if self.HEADER_FMT:
+            lines = [self.HEADER_FMT.format(self.name)]
+        else:
+            lines = []
 
         for name, param in self.pars.items():
             new_line = '{0}{1}{2}'.format(name.ljust(self.CELL_LENGTH), self.DELIM,
@@ -216,7 +256,7 @@ class ParamGroupSPL(ParamGroup):
     part of the Standard Parameter Layer (SPL).
     """
 
-    HEADER_FMT = '{0}'
+    HEADER_FMT = None
     CELL_LENGTH = 8
     DELIM = ''
 
@@ -226,8 +266,8 @@ class ParamGroupDSL(ParamGroup):
     Class to hold an Xepr experiment parameter group associated with a functional unit,
     part of the Device Specific Layer (DSL).
     """
-
-    HEADER_FMT = '\n.DVC     {0}, 1.0\n'
+    VERSION = '1.0'
+    HEADER_FMT = '\n.DVC     {0}, %s\n' % VERSION
     CELL_LENGTH = 19
     DELIM = ''
 
@@ -262,6 +302,7 @@ class ParamLayer(object):
     TYPE = 'TEMP'
     NAME = 'TEMPLATE LAYER'
     VERSION = '1.0'
+    SUPPORTED_VERSIONS = ('1.0', '1.2', '2.0',)
 
     HEADER_FMT = '#{0}	{1} * {2}\n*'
     LB = '\n'
@@ -322,6 +363,7 @@ class DescriptorLayer(ParamLayer):
     TYPE = 'DESC'
     NAME = 'DESCRIPTOR INFORMATION'
     VERSION = '1.2'
+    SUPPORTED_VERSIONS = ('1.2',)
 
     HEADER_FMT = '#{0}	{1} * {2} ***********************'
 
@@ -336,6 +378,7 @@ class StandardParameterLayer(ParamLayer):
     TYPE = 'SPL'
     NAME = 'STANDARD PARAMETER LAYER'
     VERSION = '1.2'
+    SUPPORTED_VERSIONS = ('1.2',)
 
     GROUP_CLASS = ParamGroupSPL
 
@@ -355,6 +398,9 @@ class DeviceSpecificLayer(ParamLayer):
     TYPE = 'DSL'
     NAME = 'DEVICE SPECIFIC LAYER'
     VERSION = '1.0'
+    SUPPORTED_VERSIONS = ('1.0',)
+
+    END = '\n*\n' + '*' * 60 + '\n*'
 
     GROUP_CLASS = ParamGroupDSL
 
@@ -366,15 +412,18 @@ class ManipulationHistoryLayer(ParamLayer):
     TYPE = 'MHL'
     NAME = 'MANIPULATION HISTORY LAYER by BRUKER'
     VERSION = '1.0'
+    SUPPORTED_VERSIONS = ('1.0',)
 
     GROUP_CLASS = ParamGroupMHL
 
 
 class ParamDict(MutableMapping):
-
+    """
+    Object to allow dictionary-like access to all measurement parameters.
+    """
     def __init__(self, layers):
 
-        for layer in layers:
+        for layer in layers.values():
             if not isinstance(layer, ParamLayer):
                 raise ValueError('Layers must all be instances of "ParamLayer".')
 
@@ -384,7 +433,7 @@ class ParamDict(MutableMapping):
 
         flat_dict = dict()
 
-        for layer in self.layers:
+        for layer in self.layers.values():
             for group in layer.groups.values():
                 flat_dict.update(group.pars)
 
@@ -406,27 +455,28 @@ class ParamDict(MutableMapping):
 
     def __setitem__(self, key, value):
 
-        is_set = False
+        # convert value to XeprParam if necessary
+        if not isinstance(value, XeprParam):
+            value = XeprParam(value)
 
-        for layer in self.layers:
+        # if the parameter belongs to an existing group, update it with the new value
+        for layer in self.layers.values():
             for group in layer.groups.values():
                 if key in group.pars.keys():
-                    if isinstance(value, XeprParam):
-                        group.pars[key] = value
-                    else:
-                        group.pars[key] = XeprParam(value)
-                    is_set = True
+                    group.pars[key] = value
+                    return  # we are done!
 
-        if not is_set:
-            raise KeyError('Parameter "%s" does not exist yet.' % key +
-                           'To create a new parameter, you must assign it directly ' +
-                           'to an existing parameter layer / group.')
+        # if the parameter is new, add it as a 'customXepr' parameter
+        if 'customXepr' not in self.layers['DSL'].groups:
+            self.layers['DSL'].groups['customXepr'] = ParamGroupDSL('customXepr')
+
+        self.layers['DSL'].groups['customXepr'].pars[key] = value
 
     def __delitem__(self, key):
 
         is_deleted = False
 
-        for layer in self.layers:
+        for layer in self.layers.values():
             for group in layer.groups.values():
                 if key in group.pars.keys():
                     del group.pars[key]
@@ -449,7 +499,7 @@ class XeprData(object):
     """
     Holds a Bruker EPR measurement result, including all measurement parameters.
     Supports importing and exporting to the Bruker BES3T file format ('.DSC',
-    '.DTA' and possible associated 'XGF', 'YGF' and 'ZGF' files) in the 1.2
+    '.DTA' and possible associated '.XGF', '.YGF' and '.ZGF' files) in the 1.2
     specification currently used by Xepr. Parameters are stored in the following
     attributes and are grouped after the associated functional unit (e.g., 'mwBridge',
     'fieldCtrl') or type (e.g., 'Documentational Text').
@@ -464,30 +514,38 @@ class XeprData(object):
     :ivar mhl: :class:`ManipulationHistoryLayer` instance holding all parameters that
         describe manipulations performed on the data set (e.g., baseline correction,
         scaling, ...).
+    :ivar pars: Dictionary-like object giving direct access to all measurement parameters.
+        Allows for quickly reading and setting parameter values.
 
-    The actual data is stored as numpy arrays:
+    Setting the value of an existing parameter will automatically
+    update it in the appropriate parameter layer. Setting a new parameter value will
+    add it to a 'customXepr' device group in the :class:`DeviceSpecificLayer`.
 
-    :ivar x: X-axis data, for instance the external magnetic field.
-    :ivar y: If present, y-axis data. Can be any parameter which is swept during an EPR
-        experiment, for instance sample angles or microwave powers.
-    :ivar z: If present, z-axis data. Can be any parameter which is swept during an EPR
-        experiment, for instance sample angles or microwave powers.
-    :ivar o: Ordinate. Contains the measured EPR signal.
+    The actual data is accessible as numpy arrays :attr:`x`, :attr:`y`, :attr:`z` and
+    :attr:`o`. Only the the ordinate data may be changed and the new data must have
+    the same size and format as :attr:`o`. It is not currently possible to change the
+    x/y/z-axis data.
+
+    .. warning::
+
+        Changing the parameters in the Descriptor Layer may result in inconsistencies
+        between the parameter file (DSC) and the actual data files (DTA, XGF, YGF, ZGF)
+        and therefore may result in corrupted files.
 
     :Example:
 
         Read a data file and get some information about the device specific parameters:
 
         >>> from customxepr import XeprData, XeprParam
-        >>> data_set = XeprData('/path/to/file.DSC')
-        >>> data_set.dsl.groups
+        >>> dset = XeprData('/path/to/file.DSC')
+        >>> dset.dsl.groups
         {'fieldCtrl': <ParamGroupDSL(fieldCtrl)>,
          'fieldSweep': <ParamGroupDSL(fieldSweep)>,
          'freqCounter': <ParamGroupDSL(freqCounter)>,
          'mwBridge': <ParamGroupDSL(mwBridge)>,
          'recorder': <ParamGroupDSL(recorder)>,
          'signalChannel': <ParamGroupDSL(signalChannel)>}
-        >>> data_set.dsl.groups['mwBridge'].pars
+        >>> dset.dsl.groups['mwBridge'].pars
         {'AcqFineTuning': <XeprParam(Never)>,
          'AcqScanFTuning': <XeprParam(Off)>,
          'AcqSliceFTuning': <XeprParam(Off)>,
@@ -498,25 +556,33 @@ class XeprData(object):
 
         Change the value of an existing parameter:
 
-        >>> data_set.pars['ModAmp'] = XeprParam(value=2, unit='G')
+        >>> dset.pars['ModAmp'] = XeprParam(value=2, unit='G')
 
-        Add a new parameter (this must added to the appropriate parameter group directly):
+        Add a new parameter without an associated group (it will be added to a
+        'customXepr' group in the DSL layer):
 
-        >>> mw_bridge = data_set.dsl.groups['mwBridge']
-        >>> mw_bridge.pars['QValue']  = XeprParam(6789)
+        >>> dset.pars['NewParam'] = 1234
 
-        Add a new parameter group for a temperature controller:
+        Add a new parameter to the microwave bridge device group:
+
+        >>> dset.dsl.groups['mwBridge'].pars['QValue']  = XeprParam(6789)
+
+        Add a new parameter group for a temperature controller, with two parameters:
 
         >>> pars = {'Temperature': XeprParam(290, 'K'),
         ...         'AcqWaitTime': XeprParam(120, 's')}
-        >>> param_group = ParamGroupDSL('tempCtrl', pars)
-        >>> data_set.dsl.groups['tempCtrl'] = param_group
+        >>> new_group = ParamGroupDSL('tempCtrl', pars)
+        >>> dset.dsl.groups['tempCtrl'] = new_group
 
         Save the modified data set:
 
         >>> data_set.save('/path/to/file.DSC')
 
     """
+
+    IRFMTS_DICT = {'D': 'f8', 'F': 'f4', 'I': 'i4', 'NODATA': '', '0': ''}
+
+    byte_order = '>'  # Bruker data files default to 'big-endian' byte-order
 
     def __init__(self, path=None):
         """
@@ -528,18 +594,87 @@ class XeprData(object):
         self.dsl = DeviceSpecificLayer()  # Device Specific Layer (optional)
         self.mhl = ManipulationHistoryLayer()  # Manipulation History Layer (optional)
 
-        self.pars = ParamDict(layers=[self.desc, self.spl, self.dsl, self.dsl, self.mhl])
+        self.param_layers = dict(DESC=self.desc, SPL=self.spl, DSL=self.dsl, MHL=self.mhl)
+
+        self.pars = ParamDict(layers=self.param_layers)
 
         self._dsc = None
-        self._dta = np.array([], dtype='>f8')
+        self._dta = np.array([])
 
-        self.x = np.array([], dtype='>f8')
-        self.y = np.array([], dtype='>f8')
-        self.z = np.array([], dtype='>f8')
-        self.o = np.array([], dtype='>f8')
+        self._x = np.array([])
+        self._y = np.array([])
+        self._z = np.array([])
+        self._o = np.array([])
 
         if path:
             self.load(path)
+
+    @property
+    def x(self):
+        """Returns x-axis data as numpy array."""
+        return self._x.astype(float)
+
+    @property
+    def y(self):
+        """Returns y-axis data as numpy array."""
+        return self._y.astype(float)
+
+    @property
+    def z(self):
+        """Returns z-axis data as numpy array."""
+        return self._z.astype(float)
+
+    @property
+    def o(self):
+        """
+        Returns ordinate data as numpy array or as a tuple of arrays containing all
+        ordinate data sets. If real and imaginary parts are present, they will be
+        combined to a complex numpy array.
+        """
+
+        ikkf = self.pars['IKKF'].value.split(',')  # get ordinate types: real or complex
+
+        # split self._o into numpy arrays, combine real and imaginary parts
+        r_list = []
+        for i in range(len(ikkf)):
+            if ikkf[i] == 'CPLX':
+                r = self._o['o%s real' % i] + 1j*self._o['o%s imag' % i]
+            else:
+                r = self._o['o%s real' % i]
+
+            r_list.append(r.astype('complex128'))
+
+        return r_list[0] if len(r_list) == 1 else tuple(r_list)
+
+    @o.setter
+    def o(self, array_like):
+
+        ikkf = self.pars['IKKF'].value.split(',')  # get ordinate type: real or complex
+
+        if len(ikkf) == 1:
+            tmp_arrays = [np.array(array_like)]
+        else:
+            tmp_arrays = [np.array(a) for a in array_like]
+
+        # raise error if wrong number of data sets is provided
+        if not len(tmp_arrays) == len(ikkf):
+            err_msg = 'Need exactly {0} ordinate data sets, only {1} given.'
+            raise ValueError(err_msg.format(len(ikkf), len(tmp_arrays)))
+
+        for i in range(len(ikkf)):
+
+            if not tmp_arrays[i].shape == self._o.shape:
+                err_msg = 'Ordinate array must have the shape {0!r} to match the ' \
+                          'axis data.'
+                raise ValueError(err_msg.format(self._o.shape))
+
+            if ikkf[i] == 'CPLX':
+                self._o['o%s real' % i] = tmp_arrays[i].real
+                self._o['o%s imag' % i] = tmp_arrays[i].imag
+            else:
+                self._o['o%s real' % i] = tmp_arrays[i].real
+
+            self._dta = self._o.flatten()
 
     def load(self, path):
         """
@@ -551,11 +686,12 @@ class XeprData(object):
         """
 
         path = os.path.expanduser(path)
-
-        if not os.path.isfile(path):
-            raise ValueError('No such file: %s' % path)
-
         base_path = path.split('.')[0]
+
+        dsc_path = base_path + '.DSC'
+
+        if not os.path.isfile(dsc_path):
+            raise ValueError('No such file: %s' % dsc_path)
 
         self._load_dsc(base_path)
         self._load_dta(base_path)
@@ -567,55 +703,128 @@ class XeprData(object):
         with open(dsc_path, 'r') as f:
             self._dsc = f.read()
 
-        layers = self._dsc.split('#')
+        # separate layer sections, delimited by '#'
+        layer_strings = self._dsc.split('#')[1:]
 
-        for layer in layers:
-            head, sep, tail = layer.partition('\n')
-            if head.startswith('DESC'):
-                self.desc.from_string(tail)
-            elif head.startswith('SPL'):
-                self.spl.from_string(tail)
-            elif head.startswith('DSL'):
-                self.dsl.from_string(tail)
-            elif head.startswith('MHL'):
-                self.mhl.from_string(tail)
+        # read layer sections
+        for string in layer_strings:
+            # separate strings into header and body
+            head, sep, tail = string.partition('\n')
+            # identify layer type and format version from header
+            layer_type, version = head.split()[0:2]
+
+            # check if type and version are supported, raise error or warn otherwise
+            if layer_type not in self.param_layers.keys():
+                raise IOError('Parameter layer "{0}" not recognized.'.format(layer_type))
+            if version not in self.param_layers[layer_type].SUPPORTED_VERSIONS:
+                print('Version {0} of {1} format is not '.format(version, layer_type) +
+                      'supported. You may encounter parsing errors and data corruption.')
+
+            # parse content to respective parameter layer objects
+            self.param_layers[layer_type].from_string(tail)
+            self.param_layers[layer_type].VERSION = version
+
+        # determine byte order of data from DSC file
+        if self.pars['BSEQ'].value == 'BIG':
+            self._byte_order = '>'
+        elif self.pars['BSEQ'].value == 'LIT':
+            self._byte_order = '<'
+        else:
+            raise IOError('Byte-order of data file is not supported.')
+
+    def _get_dta_dtype(self):
+
+        # determine if acquired quantities are real or complex
+        ikkfs = self.pars['IKKF'].value.split(',')
+
+        # determine type of data: int 32-bit, float 32-bit or float 64-bit
+        if 'CPLX' in ikkfs:
+            irfmts = self.pars['IRFMT'].value.split(',')
+            iifmts = self.pars['IRFMT'].value.split(',')
+        else:
+            irfmts = self.pars['IRFMT'].value.split(',')
+            iifmts = len(irfmts)*['0']
+
+        # convert to numpy data types
+        try:
+            dtypes_real = [self.IRFMTS_DICT[irfmt] for irfmt in irfmts]
+            dtypes_imag = [self.IRFMTS_DICT[iifmt] for iifmt in iifmts]
+        except KeyError:
+            raise IOError('Data file has a not-supported data-type. Data type must ' +
+                          'be double (64-bit), float(32-bit), or int (32-bit).')
+
+        # assert that we have data types for each quantity
+        assert len(dtypes_real) == len(ikkfs)
+        assert len(dtypes_imag) == len(ikkfs)
+
+        field_names = []
+        data_types = []
+        for n, dtype_r, dtype_i in zip(range(len(ikkfs)), dtypes_real, dtypes_imag):
+            data_types.append(self._byte_order + dtype_r)
+            field_names.append('o%s real' % n)
+            if not dtype_i == '':
+                data_types.append(self._byte_order + dtype_i)
+                field_names.append('o%s imag' % n)
+
+        return list((fn, dt) for fn, dt in zip(field_names, data_types))
+
+    def _get_axis_dtype(self, axis='x'):
+
+        # determine type of data: int 32-bit, float 32-bit or float 64-bit
+        par_name = axis.capitalize() + 'FMT'
+        try:
+            dtype = self.IRFMTS_DICT[self.pars[par_name].value]
+        except KeyError:
+            raise IOError('Axis data file has a not-supported data-type. Data type ' +
+                          'must be double (64-bit), float(32-bit), or int (32-bit).')
+        return self._byte_order + dtype
 
     def _load_dta(self, base_path):
 
         dta_path = base_path + '.DTA'
+        fmt = self._get_dta_dtype()
 
-        self._dta = np.fromfile(dta_path, '>f8')
+        self._dta = np.fromfile(dta_path, fmt)
 
-        if self.pars['XTYP'].value == 'IDX':
-            x_min = self.pars['XMIN'].value
-            x_max = x_min + self.pars['XWID'].value
-            x_pts = self.pars['XPTS'].value
-            self.x = np.linspace(x_min, x_max, x_pts, dtype='>f8')
-        elif self.pars['XTYP'].value == 'IGD':
-            self.x = np.fromfile(base_path + '.XGF', '>f8')
+        if self.pars['XTYP'].value == 'IDX':  # indexed data
+            ax_min = self.pars['XMIN'].value
+            ax_max = ax_min + self.pars['XWID'].value
+            ax_pts = self.pars['XPTS'].value
+            self._x = np.linspace(ax_min, ax_max, ax_pts)
+        elif self.pars['XTYP'].value == 'IGD':  # data points saved in file
+            fmt = self._get_axis_dtype('X')
+            self._x = np.fromfile(base_path + '.XGF', fmt)
+        elif self.pars['XTYP'].value == 'NTUP':  # currently not supported
+            raise IOError('Tuple data is currently not supported by XeprData.')
 
-        if self.pars['YTYP'].value == 'IDX':
-            y_min = self.pars['YMIN'].value
-            y_max = y_min + self.pars['YWID'].value
-            y_pts = self.pars['YPTS'].value
-            self.x = np.linspace(y_min, y_max, y_pts, dtype='>f8')
-        elif self.pars['YTYP'].value == 'IGD':
-            self.y = np.fromfile(base_path + '.YGF', '>f8')
+        if self.pars['YTYP'].value == 'IDX':  # indexed data
+            ax_min = self.pars['YMIN'].value
+            ax_max = ax_min + self.pars['YWID'].value
+            ax_pts = self.pars['YPTS'].value
+            self._y = np.linspace(ax_min, ax_max, ax_pts)
+        elif self.pars['YTYP'].value == 'IGD':  # data points saved in file
+            fmt = self._get_axis_dtype('Y')
+            self._y = np.fromfile(base_path + '.YGF', fmt)
+        elif self.pars['YTYP'].value == 'NTUP':  # currently not supported
+            raise IOError('Tuple data is currently not supported by XeprData.')
 
-        if self.pars['ZTYP'].value == 'IDX':
-            z_min = self.pars['ZMIN'].value
-            z_max = z_min + self.pars['ZWID'].value
-            z_pts = self.pars['ZPTS'].value
-            self.x = np.linspace(z_min, z_max, z_pts, dtype='>f8')
-        elif self.pars['ZTYP'].value == 'IGD':
-            self.z = np.fromfile(base_path + '.ZGF', '>f8')
+        if self.pars['ZTYP'].value == 'IDX':  # indexed data
+            ax_min = self.pars['ZMIN'].value
+            ax_max = ax_min + self.pars['ZWID'].value
+            ax_pts = self.pars['ZPTS'].value
+            self._z = np.linspace(ax_min, ax_max, ax_pts)
+        elif self.pars['ZTYP'].value == 'IGD':  # data points saved in file
+            fmt = self._get_axis_dtype('Z')
+            self._z = np.fromfile(base_path + '.ZGF', fmt)
+        elif self.pars['ZTYP'].value == 'NTUP':  # currently not supported
+            raise IOError('Tuple data is currently not supported by XeprData.')
 
-        if self.z.size > 0:
-            self.o = self._dta.reshape(self.z.size, self.y.size, self.x.size)
-        elif self.y.size > 0:
-            self.o = self._dta.reshape(self.y.size, self.x.size)
+        if self._z.size > 0:
+            self._o = self._dta.reshape(self.z.size, self.y.size, self.x.size)
+        elif self._y.size > 0:
+            self._o = self._dta.reshape(self.y.size, self.x.size)
         else:
-            self.o = self._dta
+            self._o = self._dta
 
     def save(self, path):
         """
@@ -640,13 +849,13 @@ class XeprData(object):
         self._dta.tofile(dta_path)
 
         if self.pars['XTYP'].value == 'IGD':
-            self.x.tofile(base_path + '.XGF')
+            self._x.tofile(base_path + '.XGF')
 
         if self.pars['YTYP'].value == 'IGD':
-            self.y.tofile(base_path + '.YGF')
+            self._y.tofile(base_path + '.YGF')
 
         if self.pars['ZTYP'].value == 'IGD':
-            self.z.tofile(base_path + '.YGF')
+            self._z.tofile(base_path + '.YGF')
 
     def print_dsc(self):
         """
@@ -658,7 +867,7 @@ class XeprData(object):
 
         lines = []
 
-        for layer in [self.desc, self.spl, self.dsl, self.mhl]:
+        for layer in self.param_layers.values():
             if len(layer.groups) > 0:
                 lines.append(layer.to_string())
 

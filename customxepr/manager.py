@@ -107,6 +107,8 @@ class Experiment(object):
 # =============================================================================
 
 class SignalQueue(Queue, object):
+    # inherit from object explicitly since Queue in Python 2.7 does not inherit from
+    # object
     """
     Custom queue that emits Qt signals if an item is added or removed. Inherits
     from :class:`queue.Queue` and provides a thread-safe method to remove items
@@ -128,7 +130,7 @@ class SignalQueue(Queue, object):
 
     def _get(self):
         item = Queue._get(self)
-        self.removed_signal.emit(self.qsize()-1, 1)
+        self.removed_signal.emit(0, 1)
         return item
 
     def remove_item(self, i):
@@ -142,7 +144,7 @@ class SignalQueue(Queue, object):
 
     def remove_items(self, i_start, i_end=None):
         """
-        Removes the items from index `i_start` to `i_end` from the queue.
+        Removes the items from index `i_start` to `i_end` inclusive from the queue.
         Raises a :class:`ValueError` if the item belongs to a running or
         already completed job. Emits the :attr:`removed_signal` for
         every removed item. Calls :meth:`job_done` for every item removed.
@@ -154,13 +156,15 @@ class SignalQueue(Queue, object):
         :param int i_end: Index of last item to remove (defaults to i_end = i_start).
         """
 
+        size = self.qsize()
+
         with self.mutex:
             if i_end is None:
                 i_end = i_start
 
-            # convert negative indices to positive
-            i0 = self.qsize() + i_start if i_start < 0 else i_start
-            i1 = self.qsize() + i_end if i_end < 0 else i_end
+            # convert negative to positive indices
+            i0 = i_start % size
+            i1 = i_end % size
 
             if not i0 <= i1:
                 raise ValueError("'i_end' must be larger than or equal to 'i_start'.")
@@ -276,7 +280,7 @@ class ExperimentQueue(object):
 
     def remove_items(self, i_start, i_end=None):
         """
-        Removes the items from index `i_start` to `i_end` from the queue.
+        Removes the items from index `i_start` to `i_end` inclusive from the queue.
         Raises a :class:`ValueError` if the item belongs to a running or
         already completed job. Emits the :attr:`removed_signal` for
         every removed item.
@@ -293,8 +297,8 @@ class ExperimentQueue(object):
 
         with self._lock:
             # convert negative indices to positive
-            i_start = self.qsize() + i_start if i_start < 0 else i_start
-            i_end = self.qsize() + i_end if i_end < 0 else i_end
+            i_start = i_start % self.qsize()
+            i_end = i_end % self.qsize()
 
             # convert to index of self._queued.queue
             i0 = i_start - self.first_queued_index()
@@ -316,7 +320,8 @@ class ExperimentQueue(object):
         Removes all queued experiments at once.
         """
         with self._lock:
-            self.removed_signal.emit(self.first_queued_index(), self._queued.qsize())
+            if self.has_queued():
+                self.removed_signal.emit(self.first_queued_index(), self._queued.qsize())
             self._queued.queue.clear()
 
     def has_running(self):
@@ -343,11 +348,11 @@ class ExperimentQueue(object):
             return self._qsize(status)
 
     def _qsize(self, status):
-        if status is 'queued':
+        if status == 'queued':
             return self._queued.qsize()
-        elif status is 'running':
+        elif status == 'running':
             return self._running.qsize()
-        elif status is 'history':
+        elif status == 'history':
             return self._history.qsize()
         else:
             return self._history.qsize() + self._running.qsize() + self._queued.qsize()
@@ -612,10 +617,14 @@ class Manager(object):
         # add email handler if not present
         if len(eh) == 0:
             # create and add email handler
-
             email_handler = logging.handlers.SMTPHandler(
-                'localhost', 'ss2151@cam.ac.uk', CONF.get('CustomXepr', 'notify_address'),
-                'Xepr logger')
+                mailhost=CONF.get('SMTP', 'mailhost'),
+                fromaddr=CONF.get('SMTP', 'fromaddr'),
+                toaddrs=CONF.get('CustomXepr', 'notify_address'),
+                subject='CustomXepr logger',
+                credentials=CONF.get('SMTP', 'credentials'),
+                secure=CONF.get('SMTP', 'secure')
+            )
             email_handler.setFormatter(f)
             email_handler.setLevel(CONF.get('CustomXepr', 'email_handler_level'))
 
@@ -638,7 +647,7 @@ class Manager(object):
 
         # delete old log files
         now = time.time()
-        days_to_keep = 7
+        days_to_keep = 365
 
         for f in os.listdir(logging_path):
             f = os.path.join(logging_path, f)

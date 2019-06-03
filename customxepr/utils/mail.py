@@ -7,74 +7,88 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
 from __future__ import division, absolute_import, unicode_literals
+import sys
 import smtplib
-from email.utils import formatdate
+
+PY2 = sys.version[0] == '2'
+
+if not PY2:  # in Python 3
+    from email.message import EmailMessage
+    from email.utils import localtime
+    basestring = str
+else:  # in Python 2
+    from email.mime.text import MIMEText
+    from email.utils import formatdate
 
 
 class EmailSender(object):
     """
     Class to send plain text email notifications.
+
+    Initialize the instance with the from address. To specify a non-standard SMTP port,
+    use the (host, port) tuple format for the mailhost argument. To specify authentication
+    credentials, supply a (username, password) tuple for the credentials argument. To
+    specify the use of a secure protocol (TLS), pass in a tuple for the secure argument.
+    This will only be used when authentication credentials are supplied. The tuple will be
+    either an empty tuple, or a single-value tuple with the name of a keyfile, or a
+    2-value tuple with the names of the keyfile and certificate file. (This tuple is
+    passed to the `starttls` method).
     """
 
-    def __init__(self, fromaddr, mailhost, displayname=None, port=None,
-                 username=None, password=None, standby=False):
+    def __init__(self, mailhost, fromaddr, credentials=None, secure=None):
+        if isinstance(mailhost, (list, tuple)):
+            self.mailhost, self.mailport = mailhost
+        else:
+            self.mailhost, self.mailport = mailhost, None
+        if isinstance(credentials, (list, tuple)):
+            self.username, self.password = credentials
+        else:
+            self.username = None
         self.fromaddr = fromaddr
-        if displayname is not None:
-            self.displayname = '%s <%s>' % (displayname, fromaddr)
-        else:
-            self.displayname = fromaddr
-
-        self.mailhost = mailhost
-        if port:
-            self.port = port
-        else:
-            self.port = 25
-        self.username = username
-        self.password = password
-
-        self.standby = standby
-
-        if self.standby:
-            self.smtp = smtplib.SMTP(self.mailhost, self.port)
-            if self.username:
-                self.smtp.starttls()
-                self.smtp.ehlo()
-                self.smtp.login(self.username, self.password)
-
-    def __del__(self):
-        """
-        Quit mail server when instance is deleted.
-
-        This gets called when the instance is garbage-collected, even for
-        instances where __init__ failed with an exception. We therefore need to
-        insure that attributes have been created.
-        """
-
-        if hasattr(self, 's') and hasattr(self, 'standby'):
-            if not self.standby:
-                self.smtp.quit()
-
-    def create_email(self, toaddrs, subject, body):
-        """Compose email form main body, subject and email addresses."""
-
-        msg = u"""From: {0}\r\nTo: {1}\r\nSubject: {2}\r\nDate: {3}\r\n\r\n{4}""".format(
-                self.displayname, ",".join(toaddrs), subject, formatdate(), body
-                )
-
-        return msg
+        self.secure = secure
 
     def sendmail(self, toaddrs, subject, body):
 
-        msg = self.create_email(toaddrs, subject, body)
+        if isinstance(toaddrs, basestring):
+            toaddrs = [toaddrs]
 
-        if not self.standby:
-            self.smtp = smtplib.SMTP(self.mailhost, self.port)
-            if self.username:
-                self.smtp.starttls()
-                self.smtp.ehlo()
-                self.smtp.login(self.username, self.password)
-
-        self.smtp.sendmail(self.fromaddr, toaddrs, msg.encode('utf-8'))
-
-        if not self.standby:
-            self.smtp.quit()
+        try:
+            if not PY2:
+                port = self.mailport
+                if not port:
+                    port = smtplib.SMTP_PORT
+                smtp = smtplib.SMTP(self.mailhost, port)
+                msg = EmailMessage()
+                msg['From'] = self.fromaddr
+                msg['To'] = ','.join(toaddrs)
+                msg['Subject'] = subject
+                msg['Date'] = localtime()
+                msg.set_content(body)
+                if self.username:
+                    if self.secure is not None:
+                        smtp.ehlo()
+                        smtp.starttls(*self.secure)
+                        smtp.ehlo()
+                    smtp.login(self.username, self.password)
+                smtp.send_message(msg)
+                smtp.quit()
+            else:
+                port = self.mailport
+                if not port:
+                    port = smtplib.SMTP_PORT
+                smtp = smtplib.SMTP(self.mailhost, port)
+                msg = MIMEText(body)
+                msg['From'] = self.fromaddr
+                msg['To'] = ','.join(toaddrs)
+                msg['Subject'] = subject
+                msg['Date'] = formatdate()
+                if self.username:
+                    if self.secure is not None:
+                        smtp.ehlo()
+                        smtp.starttls(*self.secure)
+                        smtp.ehlo()
+                    smtp.login(self.username, self.password)
+                smtp.sendmail(self.fromaddr, toaddrs, msg.as_string())
+                smtp.quit()
+        except Exception:
+            print('Could not send email.')
