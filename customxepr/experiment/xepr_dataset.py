@@ -632,7 +632,7 @@ class XeprData(object):
         combined to a complex numpy array.
         """
 
-        ikkf = self.pars['IKKF'].value.split(',')  # get ordinate type: real or complex
+        ikkf = self.pars['IKKF'].value.split(',')  # get ordinate types: real or complex
 
         # split self._o into numpy arrays, combine real and imaginary parts
         r_list = []
@@ -656,7 +656,10 @@ class XeprData(object):
         else:
             tmp_arrays = [np.array(a) for a in array_like]
 
-        assert len(tmp_arrays) == len(ikkf)
+        # raise error if wrong number of data sets is provided
+        if not len(tmp_arrays) == len(ikkf):
+            err_msg = 'Need exactly {0} ordinate data sets, only {1} given.'
+            raise ValueError(err_msg.format(len(ikkf), len(tmp_arrays)))
 
         for i in range(len(ikkf)):
 
