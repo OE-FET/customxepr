@@ -51,6 +51,7 @@ setup(
                 "pyqtgraph_cx",
                 "lmfit",
                 "matplotlib",
+                "markdown2",
                 "numpy",
                 "pygments",
                 "PySignal",

@@ -8,6 +8,7 @@ keithley2600 >= 1.2.1
 keithleygui >= 1.1.2
 lmfit
 matplotlib >= 2.0
+markdown2
 mercurygui
 mercuryitc >= 0.2.0
 numpy

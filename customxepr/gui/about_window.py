@@ -11,6 +11,8 @@ from qtpy import QtWidgets, uic
 
 from customxepr.main import CustomXepr, __version__, __year__, __author__, __url__
 
+_root = os.path.dirname(os.path.realpath(__file__))
+
 
 # noinspection PyArgumentList
 class AboutWindow(QtWidgets.QWidget):
@@ -23,9 +25,16 @@ class AboutWindow(QtWidgets.QWidget):
         uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                 'about_window.ui'), self)
 
+        # get default platform font size, increase by 20% for title
+        font = QtWidgets.QLabel('test').font()
+        font_size = font.pointSize()
+        fs_title = int(font_size * 1.2)
+        font.setPointSize(fs_title)
+
         # set title string of window to CustomXepr version
         self.title_string = (CustomXepr.__name__ + ' ' + __version__)
         self.titleText.setText(self.title_string)
+        self.titleText.setFont(font)
 
         # set copyright text
         placeholder = self.labelCopyRight.text()

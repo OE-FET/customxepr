@@ -7,9 +7,12 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
 import os
+import markdown2
 from qtpy import QtWidgets, uic
 
 from customxepr.main import __version__, __url__
+
+_root = os.path.dirname(os.path.realpath(__file__))
 
 
 # noinspection PyArgumentList
@@ -20,10 +23,18 @@ class UpdateWindow(QtWidgets.QDialog):
     def __init__(self):
         super(self.__class__, self).__init__()
         # load user interface file
-        uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                'update_dialog.ui'), self)
+        uic.loadUi(os.path.join(_root, 'update_dialog.ui'), self)
 
         # set copyright text
         placeholder = self.label.text()
         self.label.setText(placeholder.format(
             __version__, __url__ + '/en/latest/changelog.html'))
+
+        # generate and set changelog html
+        path = os.path.normpath(os.path.join(_root, '../../../../../info/CHANGELOG.md'))
+        with open(path, 'r') as f:
+            changes_text = f.read()
+
+        html = markdown2.markdown(changes_text)
+
+        self.textBrowser.setHtml(html)
