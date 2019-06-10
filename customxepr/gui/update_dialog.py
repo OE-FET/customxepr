@@ -6,6 +6,8 @@
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
+from __future__ import division, absolute_import, unicode_literals
+import sys
 import os
 import markdown2
 from qtpy import QtWidgets, uic
@@ -31,7 +33,7 @@ class UpdateWindow(QtWidgets.QDialog):
             __version__, __url__ + '/en/latest/changelog.html'))
 
         # generate and set changelog html
-        path = os.path.normpath(os.path.join(_root, '../../../../../info/CHANGELOG.md'))
+        path = os.path.join(sys.prefix, 'customxepr_info/CHANGELOG.md')
         with open(path, 'r') as f:
             changes_text = f.read()
 

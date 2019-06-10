@@ -6,7 +6,7 @@
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
-from __future__ import division, absolute_import
+from __future__ import division, absolute_import, unicode_literals
 import os
 from enum import Enum
 

@@ -39,7 +39,7 @@ setup(
                     "experiment/*.txt",
             ],
     },
-    data_files=[('info', ['README.md', 'CHANGELOG.md'])],
+    data_files=[('customxepr_info', ['README.md', 'CHANGELOG.md'])],
     install_requires=[
                 "decorator",
                 "future",
