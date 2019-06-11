@@ -6,7 +6,8 @@ _Changed:_
 
 #### v2.3.2 (2019-05-25)
 
-Improves compatibility of `XeprData` with Bruker's Xepr BES3T file format.
+Improves compatibility of `XeprData` with Bruker's Xepr BES3T file format: support 
+complex data and more exotic data formats.
 
 _Added:_
 

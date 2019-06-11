@@ -670,7 +670,7 @@ class CustomXepr(object):
                 diff = abs(self.feed.readings['Temp'] - temperature_set)
                 temperature_fluct_history = np.append(temperature_fluct_history, diff)
                 # increment the number of violations n_out if temperature is unstable
-                n_out += (diff > 2*self._temperature_tolerance)
+                n_out += (diff > 4*self._temperature_tolerance)
                 # warn once for every 120 temperature violations
                 if np.mod(n_out, 120) == 1:
                     max_diff = np.max(temperature_fluct_history)
@@ -680,9 +680,9 @@ class CustomXepr(object):
                 # Pause measurement and raise error after 15 min of instability
                 if n_out > 60 * 15:
                     exp.aqExpPause()
-                    raise RuntimeError('Temperature could not be stabilized for ' +
-                                       '15 min. Pausing current measurement and ' +
-                                       'all pending jobs.')
+                    raise RuntimeError('Temperature could not be kept stable for ' +
+                                       '15 min. Aborting current measurement and ' +
+                                       'pausing all pending jobs.')
 
             time.sleep(1)
 
