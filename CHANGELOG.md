@@ -1,17 +1,19 @@
 #### v2.3.3-dev0 (2019-06-03)
 
 _Changed:_
-
 - Small tweaks to dialog windows (update info, about window, etc.).
+- Preserve order of entries in DSC files in Python 2. Previoursly, the order of sections
+  and parameter would be randomized when loading and saving a Bruker DSC files with
+  CustomXepr in Python 2.7.
 
 #### v2.3.2 (2019-05-25)
 
-Improves compatibility of `XeprData` with Bruker's Xepr BES3T file format: support 
+Improves compatibility of `XeprData` with Bruker's Xepr BES3T file format: support
 complex data and more exotic data formats.
 
 _Added:_
 
-- Expanded support for Xepr data files: introduced support for complex data sets, 32-bit 
+- Expanded support for Xepr data files: introduced support for complex data sets, 32-bit
   floats and 32-bit signed integers as well as multiple ordinate data sets per data file.
 - Introduced support for different byte-orders, as specified in '.DSC' file.
 - Save the standard error from fitting the Q-Value as a new parameter 'QValueErr' in the
