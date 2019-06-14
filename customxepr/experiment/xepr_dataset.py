@@ -7,13 +7,19 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
 from __future__ import division, absolute_import, unicode_literals
+import sys
 import os
 import re
 import numpy as np
-try:
-    from collections.abc import MutableMapping
-except ImportError:
+
+PY2 = sys.version[0] == '2'
+
+if PY2:
     from collections import MutableMapping
+    from collections import OrderedDict
+    dict = OrderedDict
+else:
+    from collections.abc import MutableMapping
 
 
 def is_metadata(line):
