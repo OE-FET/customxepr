@@ -1,10 +1,13 @@
-#### v2.3.3-dev0 (2019-06-03)
+#### v2.3.3-dev1 (2019-06-03)
 
 _Changed:_
+
 - Small tweaks to dialog windows (update info, about window, etc.).
 - Preserve order of entries in DSC files in Python 2. Previoursly, the order of sections
   and parameter would be randomized when loading and saving a Bruker DSC files with
   CustomXepr in Python 2.7.
+- Moved some custom widgets which are shared between `customxepr`, `keithleygui` and
+  `mercurygui` to a common submodule `pyqt_labutils`.
 
 #### v2.3.2 (2019-05-25)
 

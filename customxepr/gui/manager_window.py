@@ -26,7 +26,7 @@ from customxepr.gui.error_dialog import ErrorDialog
 from customxepr.main import __version__, __year__, __author__, __url__
 from customxepr.manager import ExpStatus
 from customxepr.config.main import CONF
-from customxepr.gui.notify import Notipy
+from customxepr.gui.pyqt_labutils import Notipy
 
 
 PY2 = sys.version[0] == '2'

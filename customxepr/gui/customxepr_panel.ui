@@ -226,7 +226,7 @@
   <customwidget>
    <class>ScienDSpinBox</class>
    <extends>QDoubleSpinBox</extends>
-   <header>customxepr.gui.scientific_spinbox.h</header>
+   <header>customxepr.gui.pyqt_labutils.scientific_spinbox.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
