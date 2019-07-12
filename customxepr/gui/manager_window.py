@@ -88,7 +88,7 @@ class QStatusLogHandler(logging.Handler, QtCore.QObject):
 
 class QErrorLogHandler(logging.Handler, QtCore.QObject):
     """
-    Handler which displays a message box with information about occurred errors.
+    Handler which emits a signal containing the error message.
     """
 
     error_signal = QtCore.Signal(tuple)

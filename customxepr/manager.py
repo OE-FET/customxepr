@@ -102,9 +102,9 @@ class Experiment(object):
         return '<{0}({1})>'.format(self.__class__.__name__, ', '.join(info_strings))
 
 
-# =============================================================================
+# ========================================================================================
 # custom queue which emits PyQt signals on put and get
-# =============================================================================
+# ========================================================================================
 
 class SignalQueue(Queue, object):
     # inherit from object explicitly since Queue in Python 2.7 does not inherit from
