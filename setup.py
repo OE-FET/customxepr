@@ -35,11 +35,12 @@ setup(
             "customxepr": [
                     "gui/resources/*.icns",
                     "gui/resources/*.png",
+                    "gui/resources/*.md",
+                    "gui/resources/*.ui",
                     "gui/*.ui",
                     "experiment/*.txt",
             ],
     },
-    data_files=[('customxepr_info', ['README.md', 'CHANGELOG.md'])],
     install_requires=[
                 "decorator",
                 "future",
@@ -64,6 +65,6 @@ setup(
     ],
     zip_safe=False,
     entry_points={
-      "console_scripts": ["CustomXepr=customxepr.startup:run"],
+      "console_scripts": ["customxepr=customxepr.startup:run"],
       },
     )

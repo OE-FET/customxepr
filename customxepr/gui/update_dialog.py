@@ -7,7 +7,6 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
 from __future__ import division, absolute_import, unicode_literals
-import sys
 import os
 import markdown2
 from qtpy import QtWidgets, uic
@@ -27,13 +26,13 @@ class UpdateWindow(QtWidgets.QDialog):
         # load user interface file
         uic.loadUi(os.path.join(_root, 'update_dialog.ui'), self)
 
-        # set copyright text
+        # set text
         placeholder = self.label.text()
         self.label.setText(placeholder.format(
             __version__, __url__ + '/en/latest/changelog.html'))
 
         # generate and set changelog html
-        path = os.path.join(sys.prefix, 'customxepr_info/CHANGELOG.md')
+        path = os.path.join(_root, 'resources/CHANGELOG.md')
         with open(path, 'r') as f:
             changes_text = f.read()
 
