@@ -1,9 +1,13 @@
-#### v2.3.3 (2019-07-12)
+#### v2.3.3 (2019-07-15)
+
+This release focuses on minor UI improvements. The most notable change is a better 
+handling of Bruker data files: the order of entries in DSC files is preserved when saving
+through CustomXepr.
 
 _Changed:_
 
 - Small tweaks to dialog windows (update info, about window, etc.).
-- Preserve order of entries in DSC files in Python 2. Previoursly, the order of sections
+- Preserve order of entries in DSC files in Python 2. Previously, the order of sections
   and parameter would be randomized when loading and saving a Bruker DSC files with
   CustomXepr in Python 2.7.
 - Moved some custom widgets which are shared between `customxepr`, `keithleygui` and
