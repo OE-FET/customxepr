@@ -66,5 +66,6 @@ setup(
     zip_safe=False,
     entry_points={
       "console_scripts": ["customxepr=customxepr.startup:run"],
+      "gui_scripts": ["keithleygui_gui=keithleygui.main:run"],
       },
     )
