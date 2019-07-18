@@ -6,7 +6,7 @@
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
-from __future__ import division, absolute_import
+from __future__ import division, absolute_import, unicode_literals
 import sys
 import os
 import logging
@@ -689,7 +689,7 @@ class CustomXepr(object):
         # get temperature stability during scan if mercury was connected
         if temperature_fluct_history is not None:
             max_diff = np.max(temperature_fluct_history)
-            logger.info(u'Temperature stable at (%.2f+/-%.2f)K during scans.'
+            logger.info('Temperature stable at (%.2f+/-%.2f)K during scans.'
                         % (temperature_set, max_diff))
 
         logger.info('All scans complete.')
@@ -702,16 +702,16 @@ class CustomXepr(object):
         self.XeprCmds.aqExpSelect(1, exp_title)
         time.sleep(self._wait)
 
-        # save the data if path is given
-        # add temperature data and Q-value if available
-        if path is None:
-            path = os.path.join(tempfile.gettempdir(), 'autosave_' +
+        # save the data to tmp file, this insures that we always save to a file path
+        # that Xepr can handle
+        tmp_path = os.path.join(tempfile.gettempdir(), 'autosave_' +
                                 next(tempfile._get_candidate_names()))
 
-        self._saveCurrentData(path, exp)
+        self._saveCurrentData(tmp_path, exp)
         time.sleep(self._wait)
 
-        basename = path.split('.')[0]
+        # add temperature data and Q-value if available
+        basename = tmp_path.split('.')[0]
         dsc_path = basename + '.DSC'
 
         dset = XeprData(dsc_path)
@@ -734,7 +734,10 @@ class CustomXepr(object):
             dset.pars['AcqFineTuning'] = 'Slice'  # TODO: confirm correct value
             dset.pars['AcqSliceFTuning'] = 'On'
 
-        dset.save(path)
+        if path:
+            dset.save(path)  # this may fail for many reasons, raise errors
+        else:
+            dset.save(tmp_path)
 
         return dset
 
@@ -813,7 +816,7 @@ class CustomXepr(object):
 
         if len(path) > 128:
             raise ValueError('Only paths with with 128 characters or less are ' +
-                             'by Xepr.')
+                             'allowed by Xepr.')
 
         directory, filename = os.path.split(path)
 
