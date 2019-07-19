@@ -1398,7 +1398,7 @@ class CustomXepr(object):
             if not self.hidden:
                 try:
                     self.hidden = self.xepr.XeprExperiment('AcqHidden')
-                except ExperimentError:
+                except Exception:
                     error_info = ('Xepr is not connected to the spectrometer.' +
                                   'Please connect by pressing "Acquisition > ' +
                                   'Connect To Spectrometer..."')
