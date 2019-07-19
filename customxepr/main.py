@@ -583,8 +583,8 @@ class CustomXepr(object):
         :param exp: Xepr experiment object to run.
         :param bool retune: Retune iris and freq between scans (default: True).
         :param str path: Path to file. If given, the data set will be saved to this path,
-            otherwise, a temporary file will be created. Xepr only allows file paths
-            shorter than 128 characters.
+            otherwise, a temporary file will be created. No Xepr file name restrictions
+            apply.
         :param kwargs: Keyword arguments corresponding to Xepr experiment parameters.
             Allowed parameters will depend on the type of experiment.
         """
@@ -754,8 +754,8 @@ class CustomXepr(object):
            :func:`runXeprExperiment`. This will automatically add temperature stability
            and Q-value information to your data files.
 
-        :param str path: Absolute path to save data file. Must be shorter than 128
-            characters.
+        :param str path: Absolute path to save data file. The path must be compatible with
+            Xepr, i.e., it must be shorter than 128 characters.
         :param exp: Xepr experiment instance associated with data set. Defaults to
             currently selected experiment if not given.
         """
@@ -805,7 +805,7 @@ class CustomXepr(object):
         Xepr only allows file paths shorter than 128 characters.
 
         :param str path: Absolute path to save data file. Must be shorter than 128
-            characters.
+            characters and must comply with possibly other Xepr file name restrictions.
         :param exp: Xepr experiment instance associated with data set. Defaults to
             currently selected experiment if not given.
         """
@@ -820,8 +820,8 @@ class CustomXepr(object):
 
         directory, filename = os.path.split(path)
 
-        # check if directory is valid, create otherwise
-        if not os.path.isdir(directory):
+        # check if directory exists, create otherwise
+        if not os.path.exists(directory):
             os.makedirs(directory)
 
         # switch viewpoint to experiment if given
