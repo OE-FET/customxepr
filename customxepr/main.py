@@ -235,6 +235,10 @@ class CustomXepr(object):
 
         self._check_for_xepr()
 
+        iris_tolerance = 3 if low_q else 1
+        bias_tolerance = 3 if low_q else 1
+        freq_tolerance = 5 if low_q else 2
+
         logger.info('Tuning.')
 
         # save current operation mode and attenuation
@@ -254,7 +258,7 @@ class CustomXepr(object):
         # tune frequency and phase at 30 dB
         self.hidden['PowerAtten'].value = 30
         time.sleep(self._wait)
-        self._tuneFreq()
+        self._tuneFreq(freq_tolerance)
         time.sleep(self._wait)
         self._tunePhase()
         time.sleep(self._wait)
@@ -263,7 +267,7 @@ class CustomXepr(object):
         # (where diode current is determined by reference arm)
         self.hidden['PowerAtten'].value = dB_max
         time.sleep(self._wait)
-        self._tuneBias()
+        self._tuneBias(bias_tolerance)
         time.sleep(self._wait)
 
         # tune iris at 40 dB and 30 dB
@@ -278,7 +282,7 @@ class CustomXepr(object):
             self.hidden['PowerAtten'].value = atten
             time.sleep(self._wait)
 
-            self._tuneIris()
+            self._tuneFreq(iris_tolerance)
             time.sleep(self._wait)
 
         # tune iris and phase and frequency at 20 dB and 10 dB
@@ -294,39 +298,39 @@ class CustomXepr(object):
             time.sleep(self._wait)
             self._tunePhase()
             time.sleep(self._wait)
-            self._tuneIris()
+            self._tuneFreq(iris_tolerance)
             time.sleep(self._wait)
-            self._tuneFreq()
+            self._tuneFreq(freq_tolerance)
             time.sleep(self._wait)
 
         # tune bias at dB_max
         self.hidden['PowerAtten'].value = dB_max
         time.sleep(self._wait)
-        self._tuneBias()
+        self._tuneBias(bias_tolerance)
         time.sleep(self._wait)
 
         # tune iris at 15 dB
         self.hidden['PowerAtten'].value = 20
         time.sleep(self._wait)
-        self._tuneIris()
+        self._tuneFreq(iris_tolerance)
         time.sleep(self._wait)
 
         # tune bias at dB_max
         self.hidden['PowerAtten'].value = dB_max
         time.sleep(self._wait)
-        self._tuneBias()
+        self._tuneBias(bias_tolerance)
         time.sleep(self._wait)
 
         # tune iris at dB_min
         self.hidden['PowerAtten'].value = dB_min
         time.sleep(self._wait)
-        self._tuneIris()
+        self._tuneFreq(iris_tolerance)
         time.sleep(self._wait)
 
         # reset attenuation to original value, tune frequency again
         self.hidden['PowerAtten'].value = atten_start
         time.sleep(self._wait)
-        self._tuneFreq()
+        self._tuneFreq(freq_tolerance)
         time.sleep(self._wait)
 
         logger.status('Tuning done.')
@@ -356,7 +360,7 @@ class CustomXepr(object):
         self._tuneIris(tolerance)
 
     @queued_exec(manager.job_queue)
-    def tuneFreq(self, tolerance=3):
+    def tuneFreq(self, tolerance=2):
         """
         Tunes the microwave frequency to a lock offset close to zero.
 
