@@ -118,7 +118,7 @@ QHeaderView {
          <string notr="true">color: grey</string>
         </property>
         <property name="text">
-         <string>© 2018 Sam Schott</string>
+         <string>© 2017-2019, Sam Schott &lt;ss2151@cam.ac.uk&gt;.</string>
         </property>
        </widget>
       </item>

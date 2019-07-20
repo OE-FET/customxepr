@@ -178,7 +178,7 @@ class ManagerApp(QtWidgets.QMainWindow):
             self.toolbar = QtWidgets.QToolBar(self)
             self.create_toolbar()
 
-        self.labelCopyRight.setText('© {0}, {1}.'.format(
+        self.labelCopyRight.setText('© 2017-{0}, {1}.'.format(
                 __year__, __author__))
 
         # create about window and update window
