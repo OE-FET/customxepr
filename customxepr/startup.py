@@ -185,7 +185,7 @@ def run(gui=True):
               'You can access connected instruments through "customXepr" ' +
               'or directly as "xepr", "keithley" and "mercury".\n\n' +
               'Use "%run -i path/to/file.py" to run a python script such ' +
-              'as a measurement routine. An introduction to available commands is ' +
+              'as a measurement routine. An introduction to CustomXepr is ' +
               'available at \x1b[1;34mhttps://customxepr.readthedocs.io\x1b[0m. '
               'Type "exit" to exit CustomXepr.\n\n' +
               '(c) 2016 - %s, %s.' % (__year__, __author__))
