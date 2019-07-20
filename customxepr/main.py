@@ -332,13 +332,16 @@ class CustomXepr(object):
         logger.status('Tuning done.')
 
     @queued_exec(manager.job_queue)
-    def tuneBias(self):
+    def tuneBias(self, tolerance=1):
         """
         Tunes the diode bias. A perfectly tuned bias results in a diode current of 200 mA
         for all microwave powers.
+
+        :param int tolerance: Minimum diode current offset that must be achieved before
+            :meth:`tuneBias` returns.
         """
         self._check_for_xepr()
-        self._tuneBias()
+        self._tuneBias(tolerance)
 
     @queued_exec(manager.job_queue)
     def tuneIris(self, tolerance=1):
@@ -838,7 +841,7 @@ class CustomXepr(object):
         time.sleep(self._wait)
         logger.info('Data saved to %s.' % path)
 
-    def _tuneBias(self):
+    def _tuneBias(self, tolerance=1):
         # check for abort event
         if self.abort.is_set():
             return
@@ -850,7 +853,7 @@ class CustomXepr(object):
         diff = self.hidden['DiodeCurrent'].value - 200
         time.sleep(self._wait)
         tolerance1 = 10  # tolerance for fast tuning
-        tolerance2 = 1  # tolerance for second fine tuning
+        tolerance2 = tolerance  # tolerance for second fine tuning
 
         # rapid tuning with high tolerance and large steps
         while abs(diff) > tolerance1:
@@ -1008,7 +1011,7 @@ class CustomXepr(object):
 
             # check for limits of diode range, readjust iris if necessary and abort
             if diode_curr_new in [0, 400]:
-                self._tuneIris()
+                self._tuneIris(tolerance=10)
                 return
 
             # abort if phase at limit
