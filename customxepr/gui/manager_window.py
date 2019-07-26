@@ -178,8 +178,7 @@ class ManagerApp(QtWidgets.QMainWindow):
             self.toolbar = QtWidgets.QToolBar(self)
             self.create_toolbar()
 
-        self.labelCopyRight.setText('© 2017-{0}, {1}.'.format(
-                __year__, __author__))
+        self.helpButton.clicked.connect(lambda: webbrowser.open_new(__url__))
 
         # create about window and update window
         self.aboutWindow = AboutWindow()

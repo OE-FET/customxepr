@@ -429,6 +429,34 @@
       <property name="rightMargin">
        <number>20</number>
       </property>
+      <item row="0" column="1" alignment="Qt::AlignRight">
+       <widget class="QPushButton" name="helpButton">
+        <property name="styleSheet">
+         <string notr="true">QPushButton{
+	border-width: 2px;
+	border-style: rgba(0, 0, 0, 0);
+	border-radius: 10px;
+	background:  rgba(0, 0, 0, 0);
+	color: rgb(40, 40, 40);
+	padding-right: 3px;
+	padding-left: 3px;
+}
+
+QPushButton::hover{
+    border-width: 2px;
+    border-style: rgb(159, 157, 160);
+    border-radius: 10px;
+	background: rgb(159, 157, 160);
+	color: rgb(255, 255, 255);
+	padding-right: 3px;
+	padding-left: 3px;
+}</string>
+        </property>
+        <property name="text">
+         <string>➲ CustomXepr Help</string>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="0">
        <widget class="QLabel" name="statusField">
         <property name="font">
@@ -438,16 +466,6 @@
         </property>
         <property name="text">
          <string>Status: --</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1" alignment="Qt::AlignRight">
-       <widget class="QLabel" name="labelCopyRight">
-        <property name="styleSheet">
-         <string notr="true">color: grey</string>
-        </property>
-        <property name="text">
-         <string>© 2017-2019, Sam Schott &lt;ss2151@cam.ac.uk&gt;.</string>
         </property>
        </widget>
       </item>
@@ -467,7 +485,7 @@
    <widget class="QMenu" name="menu_CustomXepr">
     <property name="geometry">
      <rect>
-      <x>199</x>
+      <x>226</x>
       <y>131</y>
       <width>168</width>
       <height>96</height>
