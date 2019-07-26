@@ -1,6 +1,10 @@
-#### v2.3.4-dev1 (2019-07-19)
+#### v2.3.4-dev1 (2019-07-26)
 
 Allow all valid file names and paths as locations to save an Xepr measurement.
+
+_Added:_
+
+- Added a help button to the main UI, replacing the copyright notice.
 
 _Changed:_
 

@@ -1,6 +1,21 @@
+#### v2.3.4-dev1 (2019-07-26)
+
+Allow all valid file names and paths as locations to save an Xepr measurement.
+
+_Added:_
+
+- Added a help button to the main UI, replacing the copyright notice.
+
+_Changed:_
+
+- Changed how Xepr data is saved: CustomXepr will now *always* save to a temporary file
+  first which is guaranteed to comply with Xepr's file name restrictions. This temporary
+  file will then be reloaded to add custom parameters and will be saved through Python to
+  any path which the file system accepts.
+
 #### v2.3.3 (2019-07-15)
 
-This release focuses on minor UI improvements. The most notable change is a better 
+This release focuses on minor UI improvements. The most notable change is a better
 handling of Bruker data files: the order of entries in DSC files is preserved when saving
 through CustomXepr.
 
