@@ -60,8 +60,8 @@ setup(
                 "qtconsole",
                 "configparser;python_version<='2.7'",
                 "scipy",
-                "mercuryitc@git+https://github.com/OE-FET/mercuryitc",
-                "mercurygui@git+https://github.com/OE-FET/mercurygui",
+                "mercuryitc>=0.2.1",
+                "mercurygui>=1.2.1",
     ],
     zip_safe=False,
     entry_points={
