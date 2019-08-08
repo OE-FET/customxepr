@@ -538,7 +538,7 @@ class XeprData(object):
         between the parameter file (DSC) and the actual data files (DTA, XGF, YGF, ZGF)
         and therefore may result in corrupted files.
 
-    :Example:
+    :Examples:
 
         Read a data file and get some information about the device specific parameters:
 

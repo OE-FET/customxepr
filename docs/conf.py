@@ -139,7 +139,7 @@ html_logo = 'logo@2x.png'
 #
 # html_sidebars = {}
 
-# Override default css to get a larger width for ReadTheDoc build
+# Override default css with our own theme
 html_context = {
     'css_files': [
         'https://media.readthedocs.org/css/sphinx_rtd_theme.css',
