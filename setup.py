@@ -61,7 +61,7 @@ setup(
                 "configparser;python_version<='2.7'",
                 "scipy",
                 "mercuryitc>=0.2.1",
-                "mercurygui>=1.2.1",
+                "mercurygui>=1.1.2",
     ],
     zip_safe=False,
     entry_points={

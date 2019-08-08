@@ -9,7 +9,7 @@ keithleygui >= 1.1.2
 lmfit
 matplotlib >= 2.0
 markdown2
-mercurygui >= 1.2.1
+mercurygui >= 1.1.2
 mercuryitc >= 0.2.1
 numpy
 pygments
