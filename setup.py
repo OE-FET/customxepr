@@ -67,4 +67,13 @@ setup(
     entry_points={
       "console_scripts": ["customxepr=customxepr.startup:run"],
       },
-    )
+    classifiers=[
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: Unix',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+    ],
+)
