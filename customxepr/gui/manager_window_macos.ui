@@ -87,7 +87,7 @@ QHeaderView {
      <number>0</number>
     </property>
     <property name="bottomMargin">
-     <number>12</number>
+     <number>5</number>
     </property>
     <property name="verticalSpacing">
      <number>0</number>
@@ -118,7 +118,7 @@ QHeaderView {
          <string notr="true">QPushButton{
 	border-width: 2px;
 	border-style: rgba(0, 0, 0, 0);
-	border-radius: 10px;
+	border-radius: 7px;
 	background:  rgba(0, 0, 0, 0);
 	color: rgb(40, 40, 40);
 	padding-right: 3px;
@@ -128,7 +128,7 @@ QHeaderView {
 QPushButton::hover{
     border-width: 2px;
     border-style: rgb(159, 157, 160);
-    border-radius: 10px;
+    border-radius: 7px;
 	background: rgb(159, 157, 160);
 	color: rgb(255, 255, 255);
 	padding-right: 3px;
