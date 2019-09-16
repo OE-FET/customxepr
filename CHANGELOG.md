@@ -12,6 +12,11 @@ _Changed:_
   first which is guaranteed to comply with Xepr's file name restrictions. This temporary
   file will then be reloaded to add custom parameters and will be saved through Python to
   any path which the file system accepts.
+  
+_Fixed:_
+
+- Fixed an issue where experiments where saved with the wrong title (starting with
+  "autosave_". The title now defaults to the given filename.
 
 #### v2.3.3 (2019-07-15)
 
