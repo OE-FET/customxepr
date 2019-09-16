@@ -435,7 +435,7 @@
          <string notr="true">QPushButton{
 	border-width: 2px;
 	border-style: rgba(0, 0, 0, 0);
-	border-radius: 10px;
+	border-radius: 7px;
 	background:  rgba(0, 0, 0, 0);
 	color: rgb(40, 40, 40);
 	padding-right: 3px;
@@ -445,7 +445,7 @@
 QPushButton::hover{
     border-width: 2px;
     border-style: rgb(159, 157, 160);
-    border-radius: 10px;
+    border-radius: 7px;
 	background: rgb(159, 157, 160);
 	color: rgb(255, 255, 255);
 	padding-right: 3px;
