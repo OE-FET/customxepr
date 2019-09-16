@@ -713,8 +713,8 @@ class CustomXepr(object):
         # that Xepr can handle
         tmp_path = os.path.join(tempfile.gettempdir(), 'autosave_' +
                                 next(tempfile._get_candidate_names()))
-
-        self._saveCurrentData(tmp_path, exp)
+        title = os.path.splitext(os.path.basename(path))[0]
+        self._saveData(tmp_path, exp=exp, title=title)
         time.sleep(self._wait)
 
         # add temperature data and Q-value if available
@@ -771,7 +771,7 @@ class CustomXepr(object):
               'of "runXeprExperiment". This will automatically add temperature ' +
               'stability and Q-value information to your data files.')
 
-        self._saveCurrentData(path, exp)
+        self._saveData(path, exp)
 
     @queued_exec(manager.job_queue)
     def setStandby(self):
@@ -804,7 +804,7 @@ class CustomXepr(object):
 
         logger.info('EPR set to standby.')
 
-    def _saveCurrentData(self, path, exp=None):
+    def _saveData(self, path, exp=None, title=None):
         """
         Saves the data from a given experiment in Xepr to the specified path. If ``exp``
         is `None` the currently displayed data set is saved.
@@ -815,6 +815,8 @@ class CustomXepr(object):
             characters and must comply with possibly other Xepr file name restrictions.
         :param exp: Xepr experiment instance associated with data set. Defaults to
             currently selected experiment if not given.
+        :param str title: Name of the data set. Will be saved as a parameter in the DSC
+            file. If not given, the basename of the path will be used.
         """
 
         self._check_for_xepr()
@@ -825,7 +827,10 @@ class CustomXepr(object):
             raise ValueError('Only paths with with 128 characters or less are ' +
                              'allowed by Xepr.')
 
-        directory, filename = os.path.split(path)
+        directory, basename = os.path.split(path)
+
+        if not title:
+            title = os.path.splitext(basename)[0]
 
         # check if directory exists, create otherwise
         if not os.path.exists(directory):
@@ -841,7 +846,7 @@ class CustomXepr(object):
         # tell Xepr to save data
         self.XeprCmds.ddPath(path)
         time.sleep(self._wait)
-        self.XeprCmds.vpSave('Current Primary', filename,  path)
+        self.XeprCmds.vpSave('Current Primary', title,  path)
         time.sleep(self._wait)
         logger.info('Data saved to %s.' % path)
 
