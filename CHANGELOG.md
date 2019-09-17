@@ -1,6 +1,7 @@
 #### v2.3.4-dev1 (2019-07-26)
 
-Allow all valid file names and paths as locations to save an Xepr measurement.
+No longer limit the allowed file names to save Xepr measurement data. We implement our own
+saving routine now.
 
 _Added:_
 
@@ -12,11 +13,13 @@ _Changed:_
   first which is guaranteed to comply with Xepr's file name restrictions. This temporary
   file will then be reloaded to add custom parameters and will be saved through Python to
   any path which the file system accepts.
-  
+
 _Fixed:_
 
 - Fixed an issue where experiments where saved with the wrong title (starting with
   "autosave_". The title now defaults to the given filename.
+- Fixed a bug which could cause `customXepr.setGateVoltage()` and subsequent Keithley
+  commands to fail due to an invalid command sent to the Keithley.
 
 #### v2.3.3 (2019-07-15)
 
