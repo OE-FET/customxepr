@@ -1316,7 +1316,7 @@ class CustomXepr(object):
         other_smus = filter(lambda a: a != smu_gate, self.keithley.SMU_LIST)
         for smu_name in other_smus:
             smu = getattr(self.keithley, smu_name)
-            smu.source.output = self.keithley.OUTPUT_OFF
+            smu.source.output = smu.OUTPUT_OFF
 
         self.keithley.rampToVoltage(gate, target_volt=v, delay=0.1, step_size=1)
 
