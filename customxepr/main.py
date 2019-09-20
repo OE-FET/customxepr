@@ -415,6 +415,10 @@ class CustomXepr(object):
         time.sleep(1)
 
         for iteration in range(0, 40):
+            # check for abort event
+            if self.abort.is_set():
+                logger.info('Aborted by user.')
+                return
             q_values = np.append(q_values, self.hidden['QValue'].value)
             time.sleep(1)
 
@@ -494,6 +498,12 @@ class CustomXepr(object):
         mode_pic_data = {}
 
         for mode_zoom in [1, 2, 4, 8]:
+
+            # check for abort event
+            if self.abort.is_set():
+                logger.info('Aborted by user.')
+                return
+
             y_data = np.array([])
 
             self.hidden['ModeZoom'].value = mode_zoom
