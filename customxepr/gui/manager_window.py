@@ -525,7 +525,7 @@ class ManagerApp(QtWidgets.QMainWindow):
 
         str_list = ['%s=%s' % (n, v) for n, v in zip(argument_strings, value_strings)]
 
-        if argspec.args[0] == 'self':
+        if len(argspec.args) > 0 and argspec.args[0] == 'self':
             str_list.pop(0)
 
         func_item = QtGui.QStandardItem(exp.func.__name__)
