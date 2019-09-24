@@ -16,8 +16,6 @@ _Changed:_
 
 _Fixed:_
 
-- Fixed an issue where experiments where saved with the wrong title (starting with
-  "autosave_". The title now defaults to the given filename.
 - Fixed a bug which could cause `customXepr.setGateVoltage()` and subsequent Keithley
   commands to fail due to an invalid command sent to the Keithley.
 - Fixed a bug which would cause queued function calls without any arguments not to show
