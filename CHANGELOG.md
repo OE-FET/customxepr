@@ -20,6 +20,8 @@ _Fixed:_
   "autosave_". The title now defaults to the given filename.
 - Fixed a bug which could cause `customXepr.setGateVoltage()` and subsequent Keithley
   commands to fail due to an invalid command sent to the Keithley.
+- Fixed a bug which would cause queued function calls without any arguments not to show
+  in the job queue window.
 
 #### v2.3.3 (2019-07-15)
 
