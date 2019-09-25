@@ -16,14 +16,13 @@ import logging
 try:
     # noinspection PyUnresolvedReferences
     from IPython import get_ipython
+    from qtpy import QtWidgets
     IP = get_ipython()
+    if IP:
+        IP.enable_gui("qt")
+        app = QtWidgets.QApplication(['CustomXepr'])
 except ImportError:
     IP = None
-
-if IP:  # if we are running from IPython start integrated Qt event loop
-    from qtpy import QtWidgets
-    IP.magic('%gui qt')
-    app = QtWidgets.QApplication(['CustomXepr'])
 
 
 # ========================================================================================
@@ -35,30 +34,23 @@ def get_qt_app():
     Creates a new Qt application or returns an existing one (for instance if run
     from an IPython console with Qt backend).
 
-    :returns: Tuple (``app``, ``interactive``) where ``interactive`` is `True`
-        if run from an interactive jupyter console and `False` otherwise.
-    :rtype: (:class:`qtpy.QtWidgets.QApplication`, bool)
+    :returns: QApplication instance.
+    :rtype: `qtpy.QtWidgets.QApplication`
     """
 
     from qtpy import QtCore, QtWidgets
 
     if IP:
-        interactive = True
-        # disable autoreload
-        IP.magic('%load_ext autoreload')
-        IP.magic('%autoreload 0')
-        IP.magic('%gui qt')
         os.environ.update(SPY_UMR_ENABLED='False')
         # get app instance
         app = QtWidgets.QApplication.instance()
     else:
-        interactive = False
         app = QtWidgets.QApplication(['CustomXepr'])
         app.setApplicationName('CustomXepr')
 
     QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps)
 
-    return app, interactive
+    return app
 
 
 # ========================================================================================
@@ -159,6 +151,26 @@ def start_gui(customXepr, mercury_feed, keithley):
     return customXepr_gui, mercury_gui, keithley_gui
 
 
+def _exit_hook(instruments, uis=None):
+    import sys
+    if uis:
+        for ui in uis:
+            try:
+                ui.exit_()  # this will disconnect automatically
+            except Exception:
+                pass
+
+    for inst in instruments:
+        try:
+            inst.disconnect()  # disconnect instruments manually
+        except Exception:
+            pass
+    if IP:
+        IP.ask_exit()
+    else:
+        sys.exit()
+
+
 def run(gui=True):
     """
     Runs CustomXepr -- this is the main entry point. Calling ``run`` will first
@@ -177,30 +189,31 @@ def run(gui=True):
     :returns: Tuple containing instrument instances (and UIs).
     :rtype: tuple
     """
-
     from customxepr.main import __version__, __author__, __year__
     from customxepr.gui.error_dialog import patch_excepthook
 
-    banner = ('Welcome to CustomXepr %s. ' % __version__ +
-              'You can access connected instruments through "customXepr" ' +
-              'or directly as "xepr", "keithley" and "mercury".\n\n' +
-              'Use "%run -i path/to/file.py" to run a python script such ' +
-              'as a measurement routine. An introduction to CustomXepr is ' +
-              'available at \x1b[1;34mhttps://customxepr.readthedocs.io\x1b[0m. '
-              'Type "exit" to exit CustomXepr.\n\n' +
-              '(c) 2016 - %s, %s.' % (__year__, __author__))
+    banner = (
+        'Welcome to CustomXepr {0}. You can access connected instruments through '
+        '"customXepr" or directly as "xepr", "keithley" and "mercury".\n\n'
+        'Use "%run -i path/to/file.py" to run a python script such '
+        'as a measurement routine. An introduction to CustomXepr is '
+        'available at \x1b[1;34mhttps://customxepr.readthedocs.io\x1b[0m. '
+        'Type "exit_customxepr" to gracefully exit CustomXepr.\n\n '
+        '(c) 2016-{1}, {2}.'.format(__version__, __year__, __author__)
+    )
 
     ui = ()
+
+    global exit_customxepr
 
     if not gui:
         print("Connecting to instruments...")
         xepr, customXepr, mercury, mercury_feed, keithley = connect_to_instruments()
-        if IP:
-            IP.magic('%clear')
+        exit_customxepr = lambda: _exit_hook(instruments=(mercury, keithley))
         print(banner)
 
     else:
-        app, interactive = get_qt_app()  # create a new Qt app or return an existing one
+        app = get_qt_app()  # create a new Qt app or return an existing one
         splash = show_splash_screen()  # create splash screen for messages
 
         splash.showMessage("Connecting to instruments...")
@@ -209,14 +222,12 @@ def run(gui=True):
         splash.showMessage("Loading user interface...")
         ui = start_gui(customXepr, mercury_feed, keithley)
 
-        # set shutdown behaviour
-        if not sys.platform == 'darwin':
-            for u in ui:
-                app.aboutToQuit.connect(u.exit_)
+        exit_customxepr = lambda: _exit_hook(instruments=(mercury, keithley), uis=ui)
 
-        if interactive:
-            if IP:
-                IP.magic('%clear')
+        if IP:  # we have been started from a jupyter console
+            # define shutdown behaviour
+            # print banner
+            IP.run_line_magic('clear', '')
             print(banner)
         else:
             # start ipython kernel and jupyter console
@@ -228,7 +239,8 @@ def run(gui=True):
             kernel.new_qt_console()
 
             var_dict = {'customXepr': customXepr, 'xepr': xepr, 'mercury': mercury,
-                        'mercury_feed': mercury_feed, 'keithley': keithley, 'ui': ui}
+                        'mercury_feed': mercury_feed, 'keithley': keithley, 'ui': ui,
+                        'exit_customxepr': exit_customxepr}
 
             kernel.send_to_namespace(var_dict)
 
@@ -239,6 +251,9 @@ def run(gui=True):
 
             # start event loop
             kernel.ipkernel.start()
+
+        import atexit
+        atexit.register(exit_customxepr)
 
     return customXepr, xepr, mercury, mercury_feed, keithley, ui
 
