@@ -1,10 +1,17 @@
 #### v2.3.4-dev1 (2019-07-26)
 
-No longer limit the allowed file names to save Xepr measurement data. We implement our own
-saving routine now.
+Main changes are:
+
+- Possible file names to save Xepr data are no longer limited by Xepr's file name
+  restrictions.
+- Added a function ``exit_customxepr`` which gracefully disconnects all instruments before
+  quitting the Python console. This avoids errors on the next startup.
+- Bug fixes.
 
 _Added:_
 
+- Added a function ``exit_customxepr`` which gracefully disconnects all instruments
+  and then exits the Python console. This avoids errors on the next startup.
 - Added a help button to the main UI, replacing the copyright notice.
 
 _Changed:_
