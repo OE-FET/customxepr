@@ -368,7 +368,6 @@ class ExperimentQueue(object):
 # ========================================================================================
 
 
-# Worker needs to inherit from QObject so that it can be moved to QThread later
 class Worker(object):
     """
     Worker that gets all method calls with args from :attr:`job_q` and executes
@@ -520,7 +519,11 @@ class Manager(object):
 
         # create background thread to process all executions in queue
         self.worker = Worker(self.job_queue, self.result_queue, self._abort_events)
-        self.thread = Thread(target=self.worker.process, name='ExperimentManagerThread')
+        self.thread = Thread(
+            target=self.worker.process,
+            name='ExperimentManagerThread',
+            daemon=True,
+            )
 
         self.worker.running.set()
         self.thread.start()
