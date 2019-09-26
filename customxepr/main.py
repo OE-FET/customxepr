@@ -1066,7 +1066,7 @@ class CustomXepr(object):
             return False
         else:
             # shift by 360° if maximum or minimum is encountered
-            direction = int(phase < phase_min) - int(phase > phase_max)
+            direction = int(phase <= phase_min) - int(phase >= phase_max)
             self.hidden['SignalPhase'].value = phase + direction*360*deg_step
             logger.info('Phase at limit, cycling by 360 deg.')
             time.sleep(4)

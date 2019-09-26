@@ -2,15 +2,16 @@
 
 Main changes are:
 
-- Possible file names to save Xepr data are no longer limited by Xepr's file name
-  restrictions.
-- Added a function ``exit_customxepr`` which gracefully disconnects all instruments before
+- Possible file names for Xepr data are no longer limited by Xepr's file name restrictions.
+- Added a function `exit_customxepr` which gracefully disconnects all instruments before
   quitting the Python console. This avoids errors on the next startup.
 - Bug fixes.
 
+In more detail:
+
 _Added:_
 
-- Added a function ``exit_customxepr`` which gracefully disconnects all instruments
+- Added a function `exit_customxepr` which gracefully disconnects all instruments
   and then exits the Python console. This avoids errors on the next startup.
 - Added a help button to the main UI, replacing the copyright notice.
 
@@ -27,6 +28,8 @@ _Fixed:_
   commands to fail due to an invalid command sent to the Keithley.
 - Fixed a bug which would cause queued function calls without any arguments not to show
   in the job queue window.
+- Fixed a bug which would prevent the phase from being cycled by 360 deg when hitting the
+  upper or lower limit during a tuning routine.
 
 #### v2.3.3 (2019-07-15)
 
