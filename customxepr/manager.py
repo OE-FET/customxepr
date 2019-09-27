@@ -522,8 +522,8 @@ class Manager(object):
         self.thread = Thread(
             target=self.worker.process,
             name='ExperimentManagerThread',
-            daemon=True,
             )
+        self.thread.daemon = True
 
         self.worker.running.set()
         self.thread.start()
