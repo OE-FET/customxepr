@@ -751,10 +751,10 @@ class CustomXepr(object):
             dset.pars['AcqFineTuning'] = 'Slice'  # TODO: confirm correct value
             dset.pars['AcqSliceFTuning'] = 'On'
 
-        if path:
-            dset.save(path)  # this may fail for many reasons, raise errors
-        else:
-            dset.save(tmp_path)
+        new_path = path or tmp_path
+
+        dset.save(new_path)
+        logger.info("Data saved to '%s'." % new_path)
 
         return dset
 
@@ -782,6 +782,8 @@ class CustomXepr(object):
               'stability and Q-value information to your data files.')
 
         self._saveData(path, exp)
+
+        logger.info("Data saved to '%s'." % path)
 
     @queued_exec(manager.job_queue)
     def setStandby(self):
@@ -858,7 +860,6 @@ class CustomXepr(object):
         time.sleep(self._wait)
         self.XeprCmds.vpSave('Current Primary', title,  path)
         time.sleep(self._wait)
-        logger.info('Data saved to %s.' % path)
 
     def _tuneBias(self, tolerance=1):
         # check for abort event
