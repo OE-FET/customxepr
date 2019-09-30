@@ -14,7 +14,6 @@ import os
 import logging
 
 try:
-    # noinspection PyUnresolvedReferences
     from IPython import get_ipython
     from qtpy import QtWidgets
     IP = get_ipython()
@@ -22,6 +21,7 @@ try:
         IP.enable_gui("qt")
         IP.run_line_magic("load_ext", "autoreload")
         IP.run_line_magic("autoreload", "0")
+        # create app here to trigger start of IPython Qt event loop
         app = QtWidgets.QApplication(['CustomXepr'])
 except ImportError:
     IP = None
