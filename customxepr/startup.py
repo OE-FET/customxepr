@@ -20,6 +20,8 @@ try:
     IP = get_ipython()
     if IP:
         IP.enable_gui("qt")
+        IP.run_line_magic("load_ext", "autoreload")
+        IP.run_line_magic("autoreload", "0")
         app = QtWidgets.QApplication(['CustomXepr'])
 except ImportError:
     IP = None
