@@ -267,7 +267,7 @@ def run(gui=True):
             splash.close()  # remove splash screen
 
             # start event loop
-            app.exec_()
+            sys.exit(app.exec_())
 
     return customXepr, xepr, mercury, mercury_feed, keithley, ui
 
