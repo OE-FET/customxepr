@@ -13,10 +13,8 @@ from keithleygui.pyqt_labutils.dark_mode_support import isDarkWindow
 
 class CustomRichJupyterWidget(RichJupyterWidget):
 
-    def __init__(self, banner=''):
-        RichJupyterWidget.__init__(self)
-        self.banner = banner
-        self.gui_completion = 'droplist'
+    def __init__(self, *args, **kwargs):
+        RichJupyterWidget.__init__(self, *args, **kwargs)
         self.update_darkmode()
 
     def changeEvent(self, QEvent):
@@ -31,4 +29,27 @@ class CustomRichJupyterWidget(RichJupyterWidget):
         else:
             self.set_default_style()
 
-        self.setStyleSheet("")
+        self.setStyleSheet('')
+
+
+if __name__ == '__main__':
+
+    from qtpy import QtWidgets
+    from qtconsole.inprocess import QtInProcessKernelManager
+
+    app = QtWidgets.QApplication([])
+
+    kernel_manager = QtInProcessKernelManager()
+    kernel_manager.start_kernel(show_banner=False)
+    kernel_manager.kernel.shell.banner1 = ''
+    kernel = kernel_manager.kernel
+
+    kernel_client = kernel_manager.client()
+    kernel_client.start_channels()
+
+    ipython_widget = CustomRichJupyterWidget(banner='Hi!')
+    ipython_widget.kernel_manager = kernel_manager
+    ipython_widget.kernel_client = kernel_client
+    ipython_widget.show()
+
+    app.exec_()
