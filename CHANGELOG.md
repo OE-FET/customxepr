@@ -14,6 +14,8 @@ _Added:_
 - Added a function `exit_customxepr` which gracefully disconnects all instruments
   and then exits the Python console. This avoids errors on the next startup.
 - Added a help button to the main UI, replacing the copyright notice.
+- Added support for dark interface themes, such as dark mode in macOS Mojave. This
+  requires a version of PyQt / Qt which supports system themes, e.q. PyQt 5.12+ for macOS.
 
 _Changed:_
 
@@ -21,6 +23,9 @@ _Changed:_
   first which is guaranteed to comply with Xepr's file name restrictions. This temporary
   file will then be reloaded to add custom parameters and will be saved through Python to
   any path which the file system accepts.
+- If CustomXepr is not started from an IPython console, use an in-process IPython kernel
+  and Jupyter console widget for user interactions. This gives us better control over the
+  appearance of the console widget.
 
 _Fixed:_
 
