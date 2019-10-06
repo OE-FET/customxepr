@@ -10,43 +10,6 @@
     <height>664</height>
    </rect>
   </property>
-  <property name="palette">
-   <palette>
-    <active>
-     <colorrole role="AlternateBase">
-      <brush brushstyle="SolidPattern">
-       <color alpha="255">
-        <red>241</red>
-        <green>243</green>
-        <blue>243</blue>
-       </color>
-      </brush>
-     </colorrole>
-    </active>
-    <inactive>
-     <colorrole role="AlternateBase">
-      <brush brushstyle="SolidPattern">
-       <color alpha="255">
-        <red>241</red>
-        <green>243</green>
-        <blue>243</blue>
-       </color>
-      </brush>
-     </colorrole>
-    </inactive>
-    <disabled>
-     <colorrole role="AlternateBase">
-      <brush brushstyle="SolidPattern">
-       <color alpha="255">
-        <red>241</red>
-        <green>243</green>
-        <blue>243</blue>
-       </color>
-      </brush>
-     </colorrole>
-    </disabled>
-   </palette>
-  </property>
   <property name="windowTitle">
    <string>CustomXepr</string>
   </property>
@@ -55,26 +18,7 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="styleSheet">
-    <string notr="true">QHeaderView::section {
-	height: 18;
-	border: 0px;
-	background: rgb(240, 240, 240);
-	padding-left: 5px;
-}
-
-QHeaderView::section:horizontal{
-    margin-top: 3px;
-    margin-bottom: 3px;
-    border-right: 1px solid rgb(212, 212, 212);
-}
-
-QHeaderView {
-	border: 1px solid rgb(183, 183, 183);
-	background: rgb(240, 240, 240);
-	border-left: 0px;
-	border-right: 0px;
-	font-size: 11pt;
-}</string>
+    <string notr="true"/>
    </property>
    <layout class="QGridLayout" name="gridLayout">
     <property name="leftMargin">
@@ -338,9 +282,6 @@ QTabWidget::pane
         </item>
         <item row="0" column="0" colspan="2">
          <widget class="QTreeView" name="jobQueueDisplay">
-          <property name="styleSheet">
-           <string notr="true"/>
-          </property>
           <property name="frameShape">
            <enum>QFrame::NoFrame</enum>
           </property>

@@ -167,10 +167,6 @@ def _exit_hook(instruments, uis=None):
             inst.disconnect()  # disconnect instruments manually
         except Exception:
             pass
-    if IP:
-        IP.ask_exit()
-    else:
-        sys.exit()
 
 
 def run(gui=True):
@@ -200,7 +196,7 @@ def run(gui=True):
         'Use "%run -i path/to/file.py" to run a python script such '
         'as a measurement routine. An introduction to CustomXepr is '
         'available at \x1b[1;34mhttps://customxepr.readthedocs.io\x1b[0m. '
-        'Type "exit_customxepr" to gracefully exit CustomXepr.\n\n '
+        'Type "exit_customxepr()" to gracefully exit CustomXepr.\n\n '
         '(c) 2016-{1}, {2}.'.format(__version__, __year__, __author__)
     )
 
@@ -224,38 +220,54 @@ def run(gui=True):
         splash.showMessage("Loading user interface...")
         ui = start_gui(customXepr, mercury_feed, keithley)
 
-        exit_customxepr = lambda: _exit_hook(instruments=(mercury, keithley), uis=ui)
-
         if IP:  # we have been started from a jupyter console
             # define shutdown behaviour
             # print banner
             IP.run_line_magic('clear', '')
             print(banner)
+
+            def exit_customxepr():
+                _exit_hook(instruments=(mercury, keithley), uis=ui)
+                IP.ask_exit()
+
+            import atexit
+            atexit.register(exit_customxepr)
+
         else:
             # start ipython kernel and jupyter console
             splash.showMessage("Loading console...")
 
-            from customxepr.utils.internal_ipkernel import InternalIPKernel
+            from qtconsole.inprocess import QtInProcessKernelManager
+            from customxepr.gui.jupyter_widget import CustomRichJupyterWidget
 
-            kernel = InternalIPKernel(banner=banner)
-            kernel.new_qt_console()
+            kernel_manager = QtInProcessKernelManager()
+            kernel_manager.start_kernel(show_banner=False)
+            kernel_manager.kernel.shell.banner1 = ""
+            kernel = kernel_manager.kernel
+
+            kernel_client = kernel_manager.client()
+            kernel_client.start_channels()
+
+            ipython_widget = CustomRichJupyterWidget(banner=banner)
+            ipython_widget.kernel_manager = kernel_manager
+            ipython_widget.kernel_client = kernel_client
+            ipython_widget.show()
+
+            def exit_customxepr():
+                _exit_hook(instruments=(mercury, keithley), uis=ui)
+                app.quit()
 
             var_dict = {'customXepr': customXepr, 'xepr': xepr, 'mercury': mercury,
                         'mercury_feed': mercury_feed, 'keithley': keithley, 'ui': ui,
                         'exit_customxepr': exit_customxepr}
 
-            kernel.send_to_namespace(var_dict)
-
-            app.aboutToQuit.connect(kernel.cleanup_consoles)
+            kernel.shell.push(var_dict)
 
             patch_excepthook()  # display errors from Qt event loop to user
             splash.close()  # remove splash screen
 
             # start event loop
-            kernel.ipkernel.start()
-
-        import atexit
-        atexit.register(exit_customxepr)
+            app.exec_()
 
     return customXepr, xepr, mercury, mercury_feed, keithley, ui
 
