@@ -49,7 +49,6 @@ setup(
                 "keithleygui>=1.1.2",
                 "pyvisa",
                 "pyvisa-py",
-                "pyqtgraph_cx",
                 "lmfit",
                 "matplotlib",
                 "markdown2",
