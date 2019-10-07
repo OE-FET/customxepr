@@ -248,9 +248,11 @@ def run(gui=True):
             kernel_client = kernel_manager.client()
             kernel_client.start_channels()
 
+            font_size = int(QtWidgets.QTextEdit().font().pointSize()*0.9)
+
             ipython_widget = CustomRichJupyterWidget(
                 banner=banner,
-                font_size=QtWidgets.QTextEdit().font().pointSize()*0.9,
+                font_size=font_size,
                 gui_completion='droplist'
             )
             ipython_widget.kernel_manager = kernel_manager
