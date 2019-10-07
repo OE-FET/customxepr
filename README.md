@@ -68,7 +68,7 @@ You can start CustomXepr from a Python command prompt as follows:
 ```
 If executed from an Jupyter console, this will automatically start the integrated Qt event
 loop and run in interactive mode. To start CustomXepr from the console / terminal, run
-`CustomXepr`.
+`customxepr`.
 
 CustomXepr has a user interface which displays all jobs waiting in the queue, all results
 returned from previous jobs, and all logging messages. Common tasks such as pausing,
