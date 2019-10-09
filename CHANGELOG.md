@@ -1,4 +1,4 @@
-#### v2.3.4-dev1 (2019-07-26)
+#### v2.3.4 (2019-10-09)
 
 Main changes are:
 
@@ -9,7 +9,7 @@ Main changes are:
 
 In more detail:
 
-_Added:_
+##### Added:
 
 - Added a function `exit_customxepr` which gracefully disconnects all instruments
   and then exits the Python console. This avoids errors on the next startup.
@@ -17,7 +17,7 @@ _Added:_
 - Added support for dark interface themes, such as dark mode in macOS Mojave. This
   requires a version of PyQt / Qt which supports system themes, e.q. PyQt 5.12+ for macOS.
 
-_Changed:_
+##### Changed:
 
 - Changed how Xepr data is saved: CustomXepr will now *always* save to a temporary file
   first which is guaranteed to comply with Xepr's file name restrictions. This temporary
@@ -26,8 +26,9 @@ _Changed:_
 - If CustomXepr is not started from an IPython console, use an in-process IPython kernel
   and Jupyter console widget for user interactions. This gives us better control over the
   appearance of the console widget.
+- Removed pyqrgraph dependency.
 
-_Fixed:_
+##### Fixed:
 
 - Fixed a bug which could cause `customXepr.setGateVoltage()` and subsequent Keithley
   commands to fail due to an invalid command sent to the Keithley.
