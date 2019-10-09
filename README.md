@@ -40,15 +40,6 @@ will be installed automatically). Then install CustomXepr by running in a termin
 ```
 $ pip install git+https://github.com/OE-FET/customxepr
 ```
-CustomXepr depends on its own version of [pyqtgraph](http://www.pyqtgraph.org) which
-includes some important bug fixes. If you previously did not have pyqtgraph installed, the
-correct version will automatically be downloaded and installed for you. Otherwise, please
-uninstall pyqtgraph and then reinstall it form [http://www.github.com/OE-
-FET/pyqtgraph](http://www.github.com/OE-FET/pyqtgraph) by running:
-```
-$ pip install git+https://github.com/OE-FET/pyqtgraph
-```
-This should not break any other packages which also depend on pyqtgraph.
 
 ## Instrument communication
 CustomXepr communicates with with the Keithley and MercuryiTC through NI-VISA or pyvisa-py
