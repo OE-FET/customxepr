@@ -207,8 +207,8 @@ class CustomXepr(object):
 
         self._check_for_xepr()
 
-        self.XeprCmds.aqParSet('AcqHidden', '*cwBridge.OpMode', 'Tune')
-        self.XeprCmds.aqParSet('AcqHidden', '*cwBridge.Tune', 'Up')
+        self.hidden['OpMode'].value = 'Tune'
+        self.hidden['Tune'].value = 'Up'
 
     @queued_exec(manager.job_queue)
     def finetune(self):
@@ -218,7 +218,7 @@ class CustomXepr(object):
 
         self._check_for_xepr()
 
-        self.XeprCmds.aqParSet('AcqHidden', '*cwBridge.Tune', 'Fine')
+        self.hidden['Tune'].value = 'Fine'
 
     @queued_exec(manager.job_queue)
     def customtune(self, low_q=False):
