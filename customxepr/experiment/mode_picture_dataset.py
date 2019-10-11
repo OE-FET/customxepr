@@ -103,8 +103,8 @@ class ModePicture(object):
             x_axis_mhz[zf] = self._points_to_mhz(n_points, zf, fit_rslt.best_values['x0'])
 
         # combine data from all zoom factors
-        x_axis_mhz_comb = np.concatenate(x_axis_mhz.values())
-        mode_pic_comb = np.concatenate(mode_pic_data.values())
+        x_axis_mhz_comb = np.concatenate(list(x_axis_mhz.values()))
+        mode_pic_comb = np.concatenate(list(mode_pic_data.values()))
 
         # sort arrays in order of ascending frequency
         indices = np.argsort(x_axis_mhz_comb)
