@@ -1,4 +1,4 @@
-#### v2.4.0
+#### v2.4.0-dev0
 
 This release drops support for Python 2.7. Only Python 3.6 and higher are supported.
 
