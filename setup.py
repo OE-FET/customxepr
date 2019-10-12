@@ -47,6 +47,7 @@ setup(
                 "ipython",
                 "keithley2600>=1.2.1",
                 "keithleygui>=1.1.2",
+                "pint",
                 "pyvisa",
                 "pyvisa-py",
                 "lmfit",

@@ -11,8 +11,11 @@ import sys
 import os
 import logging
 import time
+from datetime import timedelta, datetime
 import numpy as np
 import tempfile
+
+from pint import UnitRegistry
 from keithleygui.config.main import CONF as KCONF
 
 from customxepr.utils import EmailSender
@@ -36,6 +39,9 @@ __url__ = 'https://customxepr.readthedocs.io'
 PY2 = sys.version[0] == '2'
 _root = os.path.dirname(os.path.realpath(__file__))
 logger = logging.getLogger('customxepr')
+
+ureg = UnitRegistry()
+Q_ = ureg.Quantity
 
 
 def cmp(a, b):
@@ -579,6 +585,48 @@ class CustomXepr(object):
                 f.write(header)
             f.write(line)
 
+    @staticmethod
+    def getExpDuration(exp):
+        """
+        Estimates the time required to run the given experiment. The returned value is given in
+        seconds and is a lower limit, the actual run time may be longer due to fine-tuning between
+        scans, waiting times for stabilization and flybacks.
+
+        :param exp: Xepr experiment object to run.
+
+        :returns: Estimated experiment duration in seconds.
+        :rtype: float
+        """
+
+        sweep_time_par = exp['signalChannel.SweepTime']
+        sweep_time = Q_(sweep_time_par.value, sweep_time_par.aqGetParUnits())
+
+        field_delay_par = exp['fieldCtrl.Delay']  # given in s
+        field_delay = Q_(field_delay_par.value, field_delay_par.aqGetParUnits())
+
+        nb_scans = exp['NbScansToDo'].value
+
+        ramp_step_time = (sweep_time + field_delay) * nb_scans  # total time for one step
+
+        # check if we have a seconday axis
+        if 'ramp2.*' in exp:
+            if 'User defined' in exp['ramp2.sweepType'].value:
+                nb_ramp = len(exp['ramp2.SweepData'].value.split())  # returns a space delimited str
+            else:
+                nb_ramp = exp['ramp2.NbPoints'].value
+        else:
+            nb_ramp = 1
+
+        if 'delay2.*' in exp:
+            ramp_delay_par = exp['delay2.Delay']
+            ramp_delay = Q_(ramp_delay_par.value, ramp_delay_par.aqGetParUnits())
+        else:
+            ramp_delay = 0
+
+        total = (ramp_step_time + ramp_delay) * nb_ramp
+
+        return float(total / Q_('1 sec'))
+
     @queued_exec(manager.job_queue)
     def runXeprExperiment(self, exp, retune=True, path=None, **kwargs):
         """
@@ -629,6 +677,9 @@ class CustomXepr(object):
             apply.
         :param kwargs: Keyword arguments corresponding to Xepr experiment parameters.
             Allowed parameters will depend on the type of experiment.
+
+        :returns: Xepr dataset.
+        :rtype: :class:`customxepr.experiment.XeprData` instance.
         """
 
         self._check_for_xepr()
@@ -638,7 +689,11 @@ class CustomXepr(object):
             exp[key].value = kwargs[key]
             time.sleep(self._wait)
 
-        logger.info('Measurement "%s" is running. ' % exp.aqGetExpName())
+        d = timedelta(seconds=self.getExpDuration(exp))
+        eta = datetime.now() + d
+
+        logger.info('Measurement "%s" is running. Estimated duration: %sh (ETA %s).' %
+                    (exp.aqGetExpName(), str(d), eta.strftime("%H:%M")))
 
         # -------------------start experiment----------------------------------
         if self._check_for_mercury(raise_error=False):
