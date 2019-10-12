@@ -1,5 +1,7 @@
 [![Documentation Status](https://readthedocs.org/projects/customxepr/badge/?version=latest)](https://customxepr.readthedocs.io/en/latest/?badge=latest)
 
+**Warning:** Version 2.3.3 will be the last release that is developed and tested for Python 2.7. Future releases will only support Python 3.6 and higher.
+
 # CustomXepr
 
 A Python instrument controller and GUI for Bruker E500 EPR spectrometers, MercuryiTC
