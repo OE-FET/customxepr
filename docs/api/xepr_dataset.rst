@@ -47,5 +47,3 @@ Xepr data set class
 .. autoclass:: XeprParam
    :members:
    :show-inheritance:
-
-

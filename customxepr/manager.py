@@ -47,8 +47,7 @@ class ExpStatus(Enum):
 
 class Experiment(object):
     """
-    Class to hold a scheduled job / experiment and keep track of its
-    status and result.
+    Class to hold a scheduled job / experiment and keep track of its status and result.
 
     :param func: Function or method to call when running experiment.
     :param args: Arguments for function call.
@@ -72,19 +71,12 @@ class Experiment(object):
     @property
     def status(self):
         """
-        Returns the status of the job.
-
-        :returns: Experiment status of type :class:`ExpStatus`.
+        Proprty that hold the status of the job.
         """
         return self._status
 
     @status.setter
     def status(self, s):
-        """
-        Sets status of the job to `s`.
-
-        :param s: Experiment status. Must be of type :class:`ExpStatus`.
-        """
         if s not in ExpStatus:
             raise ValueError('Argument must be of type %s' % type(ExpStatus))
         else:
@@ -110,9 +102,9 @@ class SignalQueue(Queue, object):
     # inherit from object explicitly since Queue in Python 2.7 does not inherit from
     # object
     """
-    Custom queue that emits Qt signals if an item is added or removed. Inherits
-    from :class:`queue.Queue` and provides a thread-safe method to remove items
-    from the center of the queue.
+    Custom queue that emits PySignal signals if an item is added or removed. Inherits
+    from :class:`queue.Queue` and provides a thread-safe method to remove items from
+    the center of the queue.
 
     :cvar added_signal: Is emitted when an item is put into the queue.
     :cvar removed_signal: Is emitted when items are removed from the queue.
@@ -145,12 +137,12 @@ class SignalQueue(Queue, object):
     def remove_items(self, i_start, i_end=None):
         """
         Removes the items from index `i_start` to `i_end` inclusive from the queue.
-        Raises a :class:`ValueError` if the item belongs to a running or
-        already completed job. Emits the :attr:`removed_signal` for
-        every removed item. Calls :meth:`job_done` for every item removed.
+        Raises a :class:`ValueError` if the item belongs to a running or already
+        completed job. Emits the :attr:`removed_signal` for every removed item. Calls
+        :meth:`job_done` for every item removed.
 
-        This call has O(n) performance with regards to the queue length and
-        number of items to be removed.
+        This call has O(n) performance with regards to the queue length and number of
+        items to be removed.
 
         :param int i_start: Index of first item to remove.
         :param int i_end: Index of last item to remove (defaults to i_end = i_start).
@@ -189,15 +181,15 @@ class SignalQueue(Queue, object):
 
 class ExperimentQueue(object):
     """
-    Queue to hold all jobs: Pending, running and already completed. Items in
-    this queue should be of type :class:`Experiment`.
+    Queue to hold all jobs: Pending, running and already completed. Items in this queue
+    should be of type :class:`Experiment`.
 
     :cvar added_signal: Emitted when a new job is added to the queue.
-    :cvar removed_signal: Emitted when a job is removed from the queue.
-        Carriers the index of the job in :class:`ExperimentQueue`.
+    :cvar removed_signal: Emitted when a job is removed from the queue. Carriers the
+        index of the job in :class:`ExperimentQueue`.
     :cvar status_changed_signal: Emitted when a job status changes, e.g.,
-        from :class:`ExpStatus.QUEUED` to :class:`ExpStatus.RUNNING`. Carries
-        a tuple holding the job index and status.
+        from :class:`ExpStatus.QUEUED` to :class:`ExpStatus.RUNNING`. Carries a tuple
+        holding the job index and status.
     """
 
     added_signal = ClassSignal()
@@ -236,8 +228,8 @@ class ExperimentQueue(object):
         """
         Returns the next item with status :class:`ExpStatus.QUEUED` and flags it as
         running. If there are no items with status :class:`ExpStatus.QUEUED`,
-        :class:`queue.Empty` is raised. Emits the :attr:`status_changed_signal`
-        with the item's index and its new status.
+        :class:`queue.Empty` is raised. Emits the :attr:`status_changed_signal` with
+        the item's index and its new status.
         """
         with self._lock:
             exp = self._queued.get_nowait()
@@ -251,9 +243,9 @@ class ExperimentQueue(object):
 
     def job_done(self, exit_status, result=None):
         """
-        Call to inform the Experiment queue that a task is completed. Changes
-        the corresponding item's status to `exit_status` and its result to `result`.
-        Emits the `status_changed_signal` with the item's index and its new status.
+        Call to inform the Experiment queue that a task is completed. Changes the
+        corresponding item's status to `exit_status` and its result to `result`. Emits
+        the `status_changed_signal` with the item's index and its new status.
 
         :param exit_status: Status of the completed job, i.e., :class:`ExpStatus.ABORTED`.
         :param result: Return value of job, if available.
@@ -270,8 +262,8 @@ class ExperimentQueue(object):
 
     def remove_item(self, i):
         """
-        Removes the item with index `i` from the queue. Raises a :class:`ValueError`
-        if the item belongs to a running or already completed job. Emits the
+        Removes the item with index `i` from the queue. Raises a :class:`ValueError` if
+        the item belongs to a running or already completed job. Emits the
         :attr:`removed_signal` carrying the index.
 
         :param int i: Index of item to remove.
@@ -281,12 +273,11 @@ class ExperimentQueue(object):
     def remove_items(self, i_start, i_end=None):
         """
         Removes the items from index `i_start` to `i_end` inclusive from the queue.
-        Raises a :class:`ValueError` if the item belongs to a running or
-        already completed job. Emits the :attr:`removed_signal` for
-        every removed item.
+        Raises a :class:`ValueError` if the item belongs to a running or already
+        completed job. Emits the :attr:`removed_signal` for every removed item.
 
-        This call has O(n) performance with regards to the queue length and
-        number of items to be removed.
+        This call has O(n) performance with regards to the queue length and number of
+        items to be removed.
 
         :param int i_start: Index of first item to remove.
         :param int i_end: Index of last item to remove (defaults to i_end = i_start).
@@ -439,8 +430,8 @@ class Manager(object):
     :class:`Manager` provides methods to pause, resume and abort the execution of
     experiments. All results will be kept in the `result_queue` for later retrieval.
 
-    Function calls can be queued as experiments by decorating the function
-    with the :func:`manager.queued_exec` decorator:
+    Function calls can be queued as experiments by decorating the function with the
+    :func:`manager.queued_exec` decorator:
 
     >>> import time
     >>> from customxepr.manager import Manager, queued_exec
@@ -541,8 +532,8 @@ class Manager(object):
     @property
     def abort_events(self):
         """
-        List of abort events to be used when calling :func:`abort_job`. This is
-        in addition to :attr:`abort` which can be checked periodically by all experiments
+        List of abort events to be used when calling :func:`abort_job`. This is in
+        addition to :attr:`abort` which can be checked periodically by all experiments
         passed to the worker. All abort events will be cleared after the a job has been
         aborted.
         """

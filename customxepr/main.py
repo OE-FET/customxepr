@@ -584,9 +584,34 @@ class CustomXepr(object):
         """
         Runs the Xepr experiment ``exp``. Keyword arguments ``kwargs`` allow the user to
         pass experiment settings to Xepr (e.g., 'ModAmp' for modulation amplitude).
-        Allowed parameters will depend on the type of experiment and can be found from the
-        experiment table in Xepr (at 'Acquisition > Experiment Table...') by selecting
-        'Experiment > Show Description...'.
+        Allowed parameters will depend on the type of experiment and its functional
+        units, e.g., 'mwBridge', 'fieldCtrl' etc. You can get a list of all units an their
+        parameters for a given experiment ``exp`` as follows:
+
+        >>> print(exp.getFuList())
+            ['acqStart',
+             'fieldCtrl',
+             'fieldSweep',
+             'freqCounter',
+             'mwBridge',
+             'recorder',
+             'scanEnd',
+             'signalChannel']
+        >>> print(exp.getFuParList('mwBridge'))
+            ['AcqFineTuning',
+             'AcqScanFTuning',
+             'AcqSliceFTuning',
+             'BrConnStatus',
+             'BridgeCalib',
+             'EMBType',
+             'EWSMBC',
+             'EmbBridge',
+             'Power',
+             'PowerAt0DB',
+             'PowerAtten',
+             'PowerAttenMon',
+             'QValue',
+             'TuneStateExpMon']
 
         If a temperature controller is connected, CustomXepr monitors the temperature
         during the measurement and emits warnings when fluctuations repeatedly exceed the
@@ -613,9 +638,7 @@ class CustomXepr(object):
             exp[key].value = kwargs[key]
             time.sleep(self._wait)
 
-        message = ('Measurement "%s" is running. ' % exp.aqGetExpName())
-
-        logger.info(message)
+        logger.info('Measurement "%s" is running. ' % exp.aqGetExpName())
 
         # -------------------start experiment----------------------------------
         if self._check_for_mercury(raise_error=False):
