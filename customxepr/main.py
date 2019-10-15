@@ -801,7 +801,7 @@ class CustomXepr(object):
         # that Xepr can handle
         tmp_path = os.path.join(tempfile.gettempdir(), 'autosave_' +
                                 next(tempfile._get_candidate_names()))
-        title = os.path.splitext(os.path.basename(path))[0]
+        title = os.path.splitext(os.path.basename(path or tmp_path))[0]
         self._saveData(tmp_path, exp=exp, title=title)
         time.sleep(self._wait)
 
