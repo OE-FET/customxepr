@@ -692,9 +692,13 @@ class CustomXepr(object):
         d = timedelta(seconds=self.getExpDuration(exp))
         eta = datetime.now() + d
 
-        logger.info('Measurement "%s" is running. Estimated duration: %sh (ETA %s).' %
-                    (exp.aqGetExpName(), str(d), eta.strftime("%H:%M")))
-
+        logger.info(
+            'Measurement "{0}" is running. Estimated duration: {1} min (ETA {2}).'.format(
+                exp.aqGetExpName(),
+                int(d.total_seconds()/60),
+                eta.strftime("%H:%M")
+            )
+        )
         # -------------------start experiment----------------------------------
         if self._check_for_mercury(raise_error=False):
             temperature_fluct_history = np.array([])
