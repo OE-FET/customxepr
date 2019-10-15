@@ -898,12 +898,16 @@ class XeprData(object):
 
         fig = plt.figure()
 
-        x_label = self.pars['XNAM'].value + ' [%s]' % self.pars['XUNI'].value
+        x_label = '{} [{}]'.format(self.pars['XNAM'].value, self.pars['XUNI'].value)
 
         if self.y.size == 0:
             ax = fig.add_subplot(111)
             ax.autoscale(axis='x', tight=True)
-            ax.plot(self.x, self.o)
+            if isinstance(self.o, tuple):
+                for o in self.o:
+                    ax.plot(self.x, o)
+            else:
+                ax.plot(self.x, self.o)
 
             y_label = self.pars['IRNAM'].value
             ax.set_xlabel(x_label.replace("'", ""))
@@ -914,9 +918,13 @@ class XeprData(object):
 
             for y_point, z_data in zip(self.y, self.o):
                 y_data = np.full_like(self.x, y_point)
-                ax.plot(self.x, y_data, z_data)
+                if isinstance(z_data, tuple):
+                    for z in z_data:
+                        ax.plot(self.x, y_data, z)
+                else:
+                    ax.plot(self.x, y_data, z_data)
 
-            y_label = self.pars['YNAM'].value + ' [%s]' % self.pars['YUNI'].value
+            y_label = '{} [{}]'.format(self.pars['YNAM'].value, self.pars['YUNI'].value)
             z_label = self.pars['IRNAM'].value
 
             ax.set_xlabel(x_label.replace("'", ""))
