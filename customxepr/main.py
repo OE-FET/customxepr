@@ -834,6 +834,8 @@ class CustomXepr(object):
         dset.save(new_path)
         logger.info("Data saved to '%s'." % new_path)
 
+        logger.info("About to return dataset: %s" % dset)  # TODO: remove
+
         return dset
 
     @queued_exec(manager.job_queue)
