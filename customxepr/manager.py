@@ -13,11 +13,7 @@ import logging
 import logging.handlers
 import operator
 from PySignal import ClassSignal
-# noinspection PyCompatibility
-try:
-    from queue import Queue, Empty
-except ImportError:
-    from Queue import Queue, Empty
+from queue import Queue, Empty
 from threading import RLock, Event, Thread
 from enum import Enum
 import collections
