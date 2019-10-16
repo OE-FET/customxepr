@@ -27,7 +27,7 @@ except ImportError:
     IP = None
 
 
-API_PATH = os.popen('Xepr --apipath').read()
+XEPR_API_PATH = os.environ.get('XEPR_API_PATH', os.popen('Xepr --apipath').read())
 
 
 # ========================================================================================
@@ -107,7 +107,7 @@ def connect_to_instruments():
     mercury_visa_lib = MCONF.get('Connection', 'VISA_LIBRARY')
 
     try:
-        sys.path.insert(0, API_PATH)
+        sys.path.insert(0, XEPR_API_PATH)
         # noinspection PyUnresolvedReferences
         import XeprAPI
         xepr = XeprAPI.Xepr()

@@ -25,7 +25,6 @@ from customxepr.manager import Manager, queued_exec
 from customxepr.config import CONF
 
 try:
-    sys.path.insert(0, os.popen('Xepr --apipath').read())
     from XeprAPI import ExperimentError
 except ImportError:
     ExperimentError = RuntimeError
