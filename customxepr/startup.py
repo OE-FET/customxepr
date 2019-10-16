@@ -157,7 +157,6 @@ def start_gui(customXepr, mercury_feed, keithley):
 
 
 def _exit_hook(instruments, uis=None):
-    import sys
     if uis:
         for ui in uis:
             try:
@@ -245,8 +244,9 @@ def run(gui=True):
 
             kernel_manager = QtInProcessKernelManager()
             kernel_manager.start_kernel(show_banner=False)
-            kernel_manager.kernel.shell.banner1 = ''
             kernel = kernel_manager.kernel
+            kernel.shell.banner1 = ''
+            kernel.gui = 'qt'
 
             kernel_client = kernel_manager.client()
             kernel_client.start_channels()
