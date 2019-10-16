@@ -399,7 +399,6 @@ class Worker(object):
                 # noinspection PyBroadException
                 try:
                     result = exp.func(*exp.args, **exp.kwargs)  # run the job
-                    logger.info("Result returned: %s" % result)   # TODO: remove
                 except Exception:  # log exception and pause execution of jobs
                     logger.exception('Job error')
                     self.job_q.job_done(ExpStatus.FAILED, result=None)
@@ -407,9 +406,7 @@ class Worker(object):
                     logger.status('PAUSED')
                 else:
                     if result is not None:
-                        logger.info("Putting result in queue.")  # TODO: remove
                         self.result_q.put(result)
-                        logger.info("Result put in queue.")  # TODO: remove
 
                     if self.abort_is_set():
                         exit_status = ExpStatus.ABORTED
@@ -417,9 +414,7 @@ class Worker(object):
                     else:
                         exit_status = ExpStatus.FINISHED
 
-                    logger.info('Notifying job done.')  # TODO: remove
                     self.job_q.job_done(exit_status, result)
-                    logger.info('Job done nofified.')  # TODO: remove
                     logger.status('IDLE')
 
 
