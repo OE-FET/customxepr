@@ -767,6 +767,7 @@ class XeprData(object):
         assert len(dtypes_real) == len(ikkfs)
         assert len(dtypes_imag) == len(ikkfs)
 
+        # create lists containing field names and numpy data types
         field_names = []
         data_types = []
         for n, dtype_r, dtype_i in zip(range(len(ikkfs)), dtypes_real, dtypes_imag):
@@ -776,6 +777,7 @@ class XeprData(object):
                 data_types.append(self._byte_order + dtype_i)
                 field_names.append('o%s imag' % n)
 
+        # return list of tuples (field name, data type)
         return list((fn, dt) for fn, dt in zip(field_names, data_types))
 
     def _get_axis_dtype(self, axis='x'):
