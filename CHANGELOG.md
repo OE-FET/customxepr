@@ -6,6 +6,16 @@ This release drops support for Python 2.7. Only Python 3.6 and higher are suppor
 
 - Method `main.getExpDuration` to estimate the duration of an Xepr experiment.
 
+##### Changed:
+
+- Changed the abort behaviour of a measurement: Instead of finishing the current scan and
+  pausing afterwards, the scan is aborted immediately.
+
+##### Fixed:
+
+- Fixed a bug when plotting aquired results: This was related with the IPython kernel
+  using the wrong GUI backend. It now uses the Qt backend.
+
 ##### Removed:
 
 - Support for Python 2.7. Only Python 3.6 and higher will be supported. Please migrate.
