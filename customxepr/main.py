@@ -735,6 +735,7 @@ class CustomXepr(object):
             # check for abort event
             if self.abort.is_set():
                 exp.aqExpPause()
+                exp.aqExpAbort()
                 time.sleep(self._wait)
                 logger.info('Aborted by user.')
                 return
