@@ -10,6 +10,8 @@ This release drops support for Python 2.7. Only Python 3.6 and higher are suppor
 
 - Changed the abort behaviour of a measurement: Instead of finishing the current scan and
   pausing afterwards, the scan is aborted immediately.
+- Renamed `setDrainCurrent` to `setCurrent` and `setGateVoltage` to `setVoltage`.
+- `setVoltage` no longer turns the other SMUs off.
 
 ##### Fixed:
 
