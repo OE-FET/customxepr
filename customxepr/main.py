@@ -1407,11 +1407,11 @@ class CustomXepr(object):
         self.keithley.rampToVoltage(smu_actual, target_volt=v, delay=0.1, step_size=1)
 
     @queued_exec(manager.job_queue)
-    def applyDrainCurrent(self, i, smu=KCONF.get('Sweep', 'drain')):
+    def applyCurrent(self, i, smu=KCONF.get('Sweep', 'drain')):
         """
         Applies a specified current to the selected Keithley SMU.
 
-        :param float i: Drain current in Ampere.
+        :param float i: Current in Ampere.
         :param str smu: Name of SMU. Defaults to the SMU saved as drain.
         """
 
