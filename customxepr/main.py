@@ -1393,28 +1393,18 @@ class CustomXepr(object):
         return sd
 
     @queued_exec(manager.job_queue)
-    def setGateVoltage(self, v, smu_gate=KCONF.get('Sweep', 'gate')):
+    def setVoltage(self, v, smu=KCONF.get('Sweep', 'gate')):
         """
-        Sets the gate bias of the given Keithley SMU, grounds other SMUs.
+        Sets the bias of the given Keithley SMU.
 
         :param float v: Gate voltage in Volts.
-        :param str smu_gate: Name of SMU. Defaults to the SMU saved as gate.
+        :param str smu: Name of SMU. Defaults to the SMU saved as gate.
         """
 
         self._check_for_keithley()
 
-        gate = getattr(self.keithley, smu_gate)
-
-        # turn off all remaining SMUs
-        other_smus = filter(lambda a: a != smu_gate, self.keithley.SMU_LIST)
-        for smu_name in other_smus:
-            smu = getattr(self.keithley, smu_name)
-            smu.source.output = smu.OUTPUT_OFF
-
-        self.keithley.rampToVoltage(gate, target_volt=v, delay=0.1, step_size=1)
-
-        if v == 0:
-            self.keithley.reset()
+        smu_actual = getattr(self.keithley, smu)
+        self.keithley.rampToVoltage(smu_actual, target_volt=v, delay=0.1, step_size=1)
 
     @queued_exec(manager.job_queue)
     def applyDrainCurrent(self, i, smu=KCONF.get('Sweep', 'drain')):
