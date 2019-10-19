@@ -467,12 +467,12 @@ class ManagerApp(QtWidgets.QMainWindow):
             string list (default = 150).
         :param int min_item_len: Minimum number of characters per string (default = 13).
 
-        :returns: List of truncated strings.
+        :returns: Copy of the original list with truncated strings.
         :rtype: list
         """
         overlength = sum(len(s) for s in string_list) - max_total_len
         i = len(string_list) - 1
-        
+
         string_list_short = list(string_list)  # get copy of string list
 
         while overlength > 0 and i > -1:
