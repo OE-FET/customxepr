@@ -104,7 +104,7 @@ the `queued_exec` decorator from `customxepr.manager`:
     >>> from customxepr.manager import Manager, queued_exec
     >>> manager = Manager()
     >>> # create test function
-    >>> @queued_exec(manager.job_queue)
+    >>> @manager.queued_exec
     ... def test_func(*args):
     ...     # do something
     ...     for i in range(0, 10):

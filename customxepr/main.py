@@ -19,7 +19,7 @@ from keithleygui.config.main import CONF as KCONF
 from customxepr.utils import EmailSender
 from customxepr.experiment import ModePicture, XeprData, XeprParam
 from customxepr.experiment.xepr_dataset import ParamGroupDSL
-from customxepr.manager import Manager, queued_exec
+from customxepr.manager import Manager
 from customxepr.config import CONF
 
 try:
@@ -162,7 +162,7 @@ class CustomXepr(object):
         # update config file
         CONF.set('CustomXepr', 'temperature_tolerance', new_tol)
 
-    @queued_exec(manager.job_queue)
+    @manager.queued_exec
     def sendEmail(self, body):
         """
         Sends a text to the default email address.
@@ -171,7 +171,7 @@ class CustomXepr(object):
         """
         self.emailSender.sendmail(self.notify_address, 'CustomXepr Notification', body)
 
-    @queued_exec(manager.job_queue)
+    @manager.queued_exec
     def sleep(self, seconds):
         """
         Pauses for the specified amount of seconds. This sleep function checks
@@ -201,7 +201,7 @@ class CustomXepr(object):
 # set up Xepr functions
 # ========================================================================================
 
-    @queued_exec(manager.job_queue)
+    @manager.queued_exec
     def tune(self):
         """
         Runs Xepr's built-in tuning routine.
@@ -212,7 +212,7 @@ class CustomXepr(object):
         self.hidden['OpMode'].value = 'Tune'
         self.hidden['Tune'].value = 'Up'
 
-    @queued_exec(manager.job_queue)
+    @manager.queued_exec
     def finetune(self):
         """
         Runs Xepr's built-in finetuning routine.
@@ -222,7 +222,7 @@ class CustomXepr(object):
 
         self.hidden['Tune'].value = 'Fine'
 
-    @queued_exec(manager.job_queue)
+    @manager.queued_exec
     def customtune(self, low_q=False):
         """
         Custom tuning routine with higher accuracy. It takes longer than :meth:`tune`
@@ -337,7 +337,7 @@ class CustomXepr(object):
 
         logger.status('Tuning done.')
 
-    @queued_exec(manager.job_queue)
+    @manager.queued_exec
     def tuneBias(self, tolerance=1):
         """
         Tunes the diode bias. A perfectly tuned bias results in a diode current of 200 mA
@@ -349,7 +349,7 @@ class CustomXepr(object):
         self._check_for_xepr()
         self._tuneBias(tolerance)
 
-    @queued_exec(manager.job_queue)
+    @manager.queued_exec
     def tuneIris(self, tolerance=1):
         """
         Tunes the cavity's iris. A perfectly tuned iris results in a diode current of
@@ -361,7 +361,7 @@ class CustomXepr(object):
         self._check_for_xepr()
         self._tuneIris(tolerance)
 
-    @queued_exec(manager.job_queue)
+    @manager.queued_exec
     def tuneFreq(self, tolerance=2):
         """
         Tunes the microwave frequency to a lock offset close to zero.
@@ -372,7 +372,7 @@ class CustomXepr(object):
         self._check_for_xepr()
         self._tuneFreq(tolerance)
 
-    @queued_exec(manager.job_queue)
+    @manager.queued_exec
     def tunePhase(self):
         """
         Tunes the phase of the MW reference arm to maximise the diode current.
@@ -380,7 +380,7 @@ class CustomXepr(object):
         self._check_for_xepr()
         self._tunePhase()
 
-    @queued_exec(manager.job_queue)
+    @manager.queued_exec
     def getQValueFromXepr(self, path=None, temperature=298):
         """
         Gets the Q-Value as determined by Xepr, averaged over 20 readouts, and saves it
@@ -458,7 +458,7 @@ class CustomXepr(object):
 
         return q_mean
 
-    @queued_exec(manager.job_queue)
+    @manager.queued_exec
     def getQValueCalc(self, path=None, temperature=298):
         """
         Calculates the Q-value by fitting the cavity mode picture to a Lorentzian
@@ -623,7 +623,7 @@ class CustomXepr(object):
 
         return float(total / Q_('1 sec'))
 
-    @queued_exec(manager.job_queue)
+    @manager.queued_exec
     def runXeprExperiment(self, exp, retune=True, path=None, **kwargs):
         """
         Runs the Xepr experiment ``exp``. Keyword arguments ``kwargs`` allow the user to
@@ -837,7 +837,7 @@ class CustomXepr(object):
 
         return dset
 
-    @queued_exec(manager.job_queue)
+    @manager.queued_exec
     def saveCurrentData(self, path, exp=None):
         """
         Saves the data from a given experiment in Xepr to the specified path. If ``exp``
@@ -864,7 +864,7 @@ class CustomXepr(object):
 
         logger.info("Data saved to '%s'." % path)
 
-    @queued_exec(manager.job_queue)
+    @manager.queued_exec
     def setStandby(self):
         """
         Sets the magnetic field to zero and the MW bridge to standby.
@@ -1156,7 +1156,7 @@ class CustomXepr(object):
 # set up cryostat functions
 # ========================================================================================
 
-    @queued_exec(manager.job_queue)
+    @manager.queued_exec
     def setTemperature(self, target, auto_gf=True):
         """
         Sets the target temperature for the ESR900 cryostat and waits for it to stabilize
@@ -1283,7 +1283,7 @@ class CustomXepr(object):
             expected_time = abs(self._temperature_target - self.feed.readings['Temp']) / 5
         return expected_time * 60  # return value in sec
 
-    @queued_exec(manager.job_queue)
+    @manager.queued_exec
     def setTempRamp(self, ramp):
         """
         Sets the temperature ramp speed for the cryostat in K/min.
@@ -1301,7 +1301,7 @@ class CustomXepr(object):
 # set up Keithley functions
 # ========================================================================================
 
-    @queued_exec(manager.job_queue)
+    @manager.queued_exec
     def transferMeasurement(self, smu_gate=KCONF.get('Sweep', 'gate'),
                             smu_drain=KCONF.get('Sweep', 'drain'),
                             vg_start=KCONF.get('Sweep', 'VgStart'),
@@ -1345,7 +1345,7 @@ class CustomXepr(object):
 
         return sd
 
-    @queued_exec(manager.job_queue)
+    @manager.queued_exec
     def outputMeasurement(self, smu_gate=KCONF.get('Sweep', 'gate'),
                           smu_drain=KCONF.get('Sweep', 'drain'),
                           vd_start=KCONF.get('Sweep', 'VdStart'),
@@ -1389,7 +1389,7 @@ class CustomXepr(object):
 
         return sd
 
-    @queued_exec(manager.job_queue)
+    @manager.queued_exec
     def setVoltage(self, v, smu=KCONF.get('Sweep', 'gate')):
         """
         Sets the bias of the given Keithley SMU.
@@ -1403,7 +1403,7 @@ class CustomXepr(object):
         smu_actual = getattr(self.keithley, smu)
         self.keithley.rampToVoltage(smu_actual, target_volt=v, delay=0.1, step_size=1)
 
-    @queued_exec(manager.job_queue)
+    @manager.queued_exec
     def applyCurrent(self, i, smu=KCONF.get('Sweep', 'drain')):
         """
         Applies a specified current to the selected Keithley SMU.

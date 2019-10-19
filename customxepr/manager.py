@@ -16,8 +16,8 @@ from queue import Queue, Empty
 from threading import RLock, Event, Thread
 from enum import Enum
 import collections
+from functools import wraps
 
-from decorator import decorator
 from customxepr.config import CONF
 
 
@@ -89,9 +89,7 @@ class Experiment(object):
 # custom queue which emits PyQt signals on put and get
 # ========================================================================================
 
-class SignalQueue(Queue, object):
-    # inherit from object explicitly since Queue in Python 2.7 does not inherit from
-    # object
+class SignalQueue(Queue):
     """
     Custom queue that emits PySignal signals if an item is added or removed. Inherits
     from :class:`queue.Queue` and provides a thread-safe method to remove items from
@@ -349,7 +347,6 @@ class ExperimentQueue(object):
 # worker that gets function / method calls from queue and carriers them out
 # ========================================================================================
 
-
 class Worker(object):
     """
     Worker that gets all method calls with args from :attr:`job_q` and executes
@@ -413,7 +410,30 @@ class Worker(object):
                     logger.status('IDLE')
 
 
-# noinspection PyUnresolvedReferences
+# ========================================================================================
+# queued execution decorator which dumps a function / method call into a queue
+# ========================================================================================
+
+def queued_exec(queue):
+    """
+    Decorator that puts a call to a wrapped function into a
+    queue instead of executing it. Items in the queue will be
+    of type :class:`Experiment`.
+
+    :param queue: Queue to put function calls.
+    """
+    @decorator
+    def put_to_queue(func, *args, **kwargs):
+        exp = Experiment(func, args, kwargs)
+        queue.put(exp)
+
+    return put_to_queue
+
+
+# ========================================================================================
+# manager to coordinate everything
+# ========================================================================================
+
 class Manager(object):
     """
     :class:`Manager` provides a high level interface for the scheduling and executing
@@ -429,7 +449,7 @@ class Manager(object):
     >>> manager = Manager()
 
     >>> # create test function
-    >>> @queued_exec(manager.job_queue)
+    >>> @manager.queued_exec
     ... def decorated_test_func(*args):
     ...     # do something
     ...     for i in range(0, 10):
@@ -519,6 +539,19 @@ class Manager(object):
     # ====================================================================================
     # job execution management
     # ====================================================================================
+
+    def queued_exec(self, func):
+        """
+        Decorator that puts a call to a wrapped function into the job_queue queue
+        instead of executing it. Items in the queue will be of type  :class:`Experiment`.
+        """
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            exp = Experiment(func, args, kwargs)
+            self.job_queue.put(exp)
+
+        return wrapper
 
     @property
     def abort_events(self):
@@ -722,23 +755,3 @@ class Manager(object):
             eh[0].setLevel(level)
         # update conf file
         CONF.set('CustomXepr', 'email_handler_level', level)
-
-
-# ========================================================================================
-# queued execution decorator which dumps a function / method call into a queue
-# ========================================================================================
-
-def queued_exec(queue):
-    """
-    Decorator that puts a call to a wrapped function into a
-    queue instead of executing it. Items in the queue will be
-    of type :class:`Experiment`.
-
-    :param queue: Queue to put function calls.
-    """
-    @decorator
-    def put_to_queue(func, *args, **kwargs):
-        exp = Experiment(func, args, kwargs)
-        queue.put(exp)
-
-    return put_to_queue
