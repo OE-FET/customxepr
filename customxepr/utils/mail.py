@@ -10,15 +10,8 @@ from __future__ import division, absolute_import, unicode_literals
 import sys
 import smtplib
 
-PY2 = sys.version[0] == '2'
-
-if not PY2:  # in Python 3
-    from email.message import EmailMessage
-    from email.utils import localtime
-    basestring = str
-else:  # in Python 2
-    from email.mime.text import MIMEText
-    from email.utils import formatdate
+from email.message import EmailMessage
+from email.utils import localtime
 
 
 class EmailSender(object):
@@ -49,46 +42,27 @@ class EmailSender(object):
 
     def sendmail(self, toaddrs, subject, body):
 
-        if isinstance(toaddrs, basestring):
+        if isinstance(toaddrs, str):
             toaddrs = [toaddrs]
 
         try:
-            if not PY2:
-                port = self.mailport
-                if not port:
-                    port = smtplib.SMTP_PORT
-                smtp = smtplib.SMTP(self.mailhost, port)
-                msg = EmailMessage()
-                msg['From'] = self.fromaddr
-                msg['To'] = ','.join(toaddrs)
-                msg['Subject'] = subject
-                msg['Date'] = localtime()
-                msg.set_content(body)
-                if self.username:
-                    if self.secure is not None:
-                        smtp.ehlo()
-                        smtp.starttls(*self.secure)
-                        smtp.ehlo()
-                    smtp.login(self.username, self.password)
-                smtp.send_message(msg)
-                smtp.quit()
-            else:
-                port = self.mailport
-                if not port:
-                    port = smtplib.SMTP_PORT
-                smtp = smtplib.SMTP(self.mailhost, port)
-                msg = MIMEText(body)
-                msg['From'] = self.fromaddr
-                msg['To'] = ','.join(toaddrs)
-                msg['Subject'] = subject
-                msg['Date'] = formatdate()
-                if self.username:
-                    if self.secure is not None:
-                        smtp.ehlo()
-                        smtp.starttls(*self.secure)
-                        smtp.ehlo()
-                    smtp.login(self.username, self.password)
-                smtp.sendmail(self.fromaddr, toaddrs, msg.as_string())
-                smtp.quit()
-        except Exception:
-            print('Could not send email.')
+            port = self.mailport
+            if not port:
+                port = smtplib.SMTP_PORT
+            smtp = smtplib.SMTP(self.mailhost, port)
+            msg = EmailMessage()
+            msg['From'] = self.fromaddr
+            msg['To'] = ','.join(toaddrs)
+            msg['Subject'] = subject
+            msg['Date'] = localtime()
+            msg.set_content(body)
+            if self.username:
+                if self.secure is not None:
+                    smtp.ehlo()
+                    smtp.starttls(*self.secure)
+                    smtp.ehlo()
+                smtp.login(self.username, self.password)
+            smtp.send_message(msg)
+            smtp.quit()
+        except Exception as e:
+            print('Could not send email: {}'.format(e))

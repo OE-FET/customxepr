@@ -29,7 +29,6 @@ from customxepr.config.main import CONF
 from customxepr.gui.pyqt_labutils import Notipy
 
 
-PY2 = sys.version[0] == '2'
 _root = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -516,10 +515,7 @@ class ManagerApp(QtWidgets.QMainWindow):
 
         exp = self.job_queue.queue[index]
 
-        if PY2:
-            argspec = inspect.getargspec(exp.func)
-        else:
-            argspec = inspect.getfullargspec(exp.func)
+        argspec = inspect.getfullargspec(exp.func)
 
         argument_strings = [v for v in list(argspec.args) + list(exp.kwargs.keys())]
         value_strs = [repr(v) for v in list(exp.args) + list(exp.kwargs.values())]

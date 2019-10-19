@@ -35,7 +35,6 @@ __version__ = 'v2.4.0-dev0'
 __url__ = 'https://customxepr.readthedocs.io'
 
 
-PY2 = sys.version[0] == '2'
 _root = os.path.dirname(os.path.realpath(__file__))
 logger = logging.getLogger('customxepr')
 
@@ -82,7 +81,7 @@ class CustomXepr(object):
     def __init__(self, xepr=None, mercuryfeed=None, keithley=None):
 
         super(self.__class__, self).__init__()
-        self.emailSender = EmailSender(CONF.get('SMTP', 'mailhost'),
+        self.emailSender = EmailSender((CONF.get('SMTP', 'mailhost'), CONF.get('SMTP', 'port')),
                                        CONF.get('SMTP', 'fromaddr'),
                                        CONF.get('SMTP', 'credentials'),
                                        CONF.get('SMTP', 'secure'))

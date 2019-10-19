@@ -22,7 +22,6 @@ from decorator import decorator
 from customxepr.config import CONF
 
 
-PY2 = sys.version[0] == '2'
 logger = logging.getLogger('customxepr')
 
 
@@ -61,8 +60,7 @@ class Experiment(object):
         self._status = ExpStatus.QUEUED
         self.result = None
 
-        if PY2:
-            self.func.__name__ = func.func_name
+        self.func.__name__ = func.func_name
 
     @property
     def status(self):

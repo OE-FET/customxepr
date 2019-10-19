@@ -12,14 +12,7 @@ import os
 import re
 import numpy as np
 
-PY2 = sys.version[0] == '2'
-
-if PY2:
-    from collections import MutableMapping
-    from collections import OrderedDict
-    dict = OrderedDict
-else:
-    from collections.abc import MutableMapping
+from collections.abc import MutableMapping
 
 
 def is_metadata(line):
@@ -600,12 +593,7 @@ class XeprData(object):
         self.dsl = DeviceSpecificLayer()  # Device Specific Layer (optional)
         self.mhl = ManipulationHistoryLayer()  # Manipulation History Layer (optional)
 
-        self.param_layers = dict()  # add entries individually to preserve order in PY2
-        self.param_layers['DESC'] = self.desc
-        self.param_layers['SPL'] = self.spl
-        self.param_layers['DSL'] = self.dsl
-        self.param_layers['MHL'] = self.mhl
-
+        self.param_layers = dict(DESC=self.desc, SPL=self.spl, DSL=self.dsl, MHL=self.mhl)
         self.pars = ParamDict(layers=self.param_layers)
 
         self._dsc = None
