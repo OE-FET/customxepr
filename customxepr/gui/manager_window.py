@@ -453,9 +453,9 @@ class ManagerApp(QtWidgets.QMainWindow):
         if max_length < 5:
             raise ValueError("'max_length' must be larger than 4.")
         ll = max_length - 4
-        return string[:ll] + (string[ll:] and '...' + string[-1])
+        return (string[ll:] and string[0] + '...') + string[-ll:]
 
-    def _trunc_str_list(self, string_list, max_total_len=150, min_item_len=13):
+    def _trunc_str_list(self, string_list, max_total_len=200, min_item_len=13):
         """
         Tries to truncate strings in list until total length is smaller than
         `max_total_len`. Starts with the last string in list and moves to the first.
