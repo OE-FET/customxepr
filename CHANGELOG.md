@@ -12,6 +12,11 @@ This release drops support for Python 2.7. Only Python 3.6 and higher are suppor
   pausing afterwards, the scan is aborted immediately.
 - Renamed `setDrainCurrent` to `setCurrent` and `setGateVoltage` to `setVoltage`.
 - `setVoltage` no longer turns the other SMUs off.
+- Optimized the truncation of long items in the list of running expriements.
+- Changed the search order for the XeprAPI:
+    1) path from the environment variable `XEPR_API_PATH` (if set)
+    2) installed python packages
+    3) pre-installed version with Xepr
 
 ##### Fixed:
 
