@@ -267,7 +267,7 @@ read:
 
 ```ini
 [SMTP]
-mailhost = 'smtp.hermes.cam.ac.uk'
+mailhost = smtp.hermes.cam.ac.uk
 port = 587
 fromaddr = ss2151@cam.ac.uk
 credentials = ('ss2151', 'my-secret-password')
