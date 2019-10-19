@@ -6,8 +6,6 @@
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
-from __future__ import division, absolute_import
-import sys
 import os
 import logging
 import time

@@ -6,7 +6,6 @@
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
-import sys
 import os
 import time
 import logging
@@ -59,8 +58,6 @@ class Experiment(object):
 
         self._status = ExpStatus.QUEUED
         self.result = None
-
-        self.func.__name__ = func.func_name
 
     @property
     def status(self):
