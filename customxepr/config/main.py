@@ -40,10 +40,10 @@ DEFAULTS = [
               }),
             ('SMTP',
              {
-              'mailhost': 'localhost',
+              'mailhost': 'smtp.office365.com',
               'port': 587,
-              'fromaddr': 'ss2151@cam.ac.uk',
-              'credentials': None,
+              'fromaddr': 'customxepr@outlook.com',
+              'credentials': ('customxepr@outlook.com', 'user@xepr'),
               'secure': None,
              }),
             ('Version',
@@ -62,7 +62,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '6.0.0'
+CONF_VERSION = '6.1.0'
 
 # Main configuration instance
 try:
