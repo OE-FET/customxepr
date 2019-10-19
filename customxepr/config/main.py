@@ -41,6 +41,7 @@ DEFAULTS = [
             ('SMTP',
              {
               'mailhost': 'localhost',
+              'port': 587,
               'fromaddr': 'ss2151@cam.ac.uk',
               'credentials': None,
               'secure': None,

@@ -251,23 +251,24 @@ By default, the relevant section in the config file reads:
 ```ini
 [SMTP]
 mailhost = localhost
+port = 0
 fromaddr = ss2151@cam.ac.uk
 credentials = None
 secure = None
 ```
 
-To specify a non-standard SMTP port, use the `(host, port)` tuple format for the mailhost
-argument. To specify authentication credentials, supply a `(username, password)` tuple for
-the credentials argument. To specify the use of a secure protocol (TLS), pass in a tuple
-for the secure argument. This will only be used when authentication credentials are
-supplied. The tuple will be either an empty tuple, or a single-value tuple with the name
-of a keyfile, or a 2-value tuple with the names of the keyfile and certificate file. For
-example, to send emails via the Cambridge SMTP server, this section should be modified to
+To specify a non-standard SMTP port, change the `port` setting. To specify authentication
+credentials, supply a `(username, password)` tuple for the credentials argument. To specify the use
+of a secure protocol (TLS), pass in a tuple for the secure argument. This will only be used when
+authentication credentials are supplied. The tuple will be either an empty tuple, or a single-value
+tuple with the name of a keyfile, or a 2-value tuple with the names of the keyfile and certificate
+file. For example, to send emails via the Cambridge SMTP server, this section should be modified to
 read:
 
 ```ini
 [SMTP]
-mailhost = ('smtp.hermes.cam.ac.uk', 587)
+mailhost = 'smtp.hermes.cam.ac.uk'
+port = 587
 fromaddr = ss2151@cam.ac.uk
 credentials = ('ss2151', 'my-secret-password')
 secure = ()

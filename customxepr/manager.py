@@ -608,7 +608,7 @@ class Manager(object):
         if len(eh) == 0:
             # create and add email handler
             email_handler = logging.handlers.SMTPHandler(
-                mailhost=CONF.get('SMTP', 'mailhost'),
+                mailhost=(CONF.get('SMTP', 'mailhost'), CONF.get('SMTP', 'port')),
                 fromaddr=CONF.get('SMTP', 'fromaddr'),
                 toaddrs=CONF.get('CustomXepr', 'notify_address'),
                 subject='CustomXepr logger',
