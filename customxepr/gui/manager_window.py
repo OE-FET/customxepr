@@ -472,15 +472,17 @@ class ManagerApp(QtWidgets.QMainWindow):
         """
         overlength = sum(len(s) for s in string_list) - max_total_len
         i = len(string_list) - 1
+        
+        string_list_short = list(string_list)  # get copy of string list
 
         while overlength > 0 and i > -1:
-            keep = max(len(string_list[i]) - overlength, min_item_len)
-            string_list[i] = self._trunc_str(string_list[i], max_length=keep)
+            keep = max(len(string_list_short[i]) - overlength, min_item_len)
+            string_list_short[i] = self._trunc_str(string_list_short[i], max_length=keep)
 
-            overlength = sum(len(s) for s in string_list) - max_total_len
+            overlength = sum(len(s) for s in string_list_short) - max_total_len
             i -= 1
 
-        return string_list
+        return string_list_short
 
     def on_job_status_changed(self, index, status):
         """
@@ -520,16 +522,20 @@ class ManagerApp(QtWidgets.QMainWindow):
             argspec = inspect.getfullargspec(exp.func)
 
         argument_strings = [v for v in list(argspec.args) + list(exp.kwargs.keys())]
-        value_strings = [repr(v) for v in list(exp.args) + list(exp.kwargs.values())]
-        value_strings = self._trunc_str_list(value_strings)
+        value_strs = [repr(v) for v in list(exp.args) + list(exp.kwargs.values())]
+        value_strs_short = self._trunc_str_list(value_strs)
 
-        str_list = ['%s=%s' % (n, v) for n, v in zip(argument_strings, value_strings)]
+        str_list = ['%s=%s' % (n, v) for n, v in zip(argument_strings, value_strs)]
+        str_list_short = ['%s=%s' % (n, v) for n, v in zip(argument_strings, value_strs_short)]
 
         if len(argspec.args) > 0 and argspec.args[0] == 'self':
             str_list.pop(0)
+            str_list_short.pop(0)
 
         func_item = QtGui.QStandardItem(exp.func.__name__)
-        args_item = QtGui.QStandardItem(', '.join(str_list))
+        func_item.setToolTip(exp.func.__name__)
+        args_item = QtGui.QStandardItem(', '.join(str_list_short))
+        args_item.setToolTip(', '.join(str_list))
 
         func_item.setIcon(self.icon_queued)
 
