@@ -37,6 +37,7 @@ spectrometer remains with Xepr.
 ![CustomXepr structure](/screenshots/CustomXepr_structure.png)
 
 ## Installation
+
 Make sure that you have PyQt or PySide installed on your system (all other dependencies
 will be installed automatically). Then install CustomXepr by running in a terminal:
 ```
@@ -44,6 +45,7 @@ $ pip install git+https://github.com/OE-FET/customxepr
 ```
 
 ## Instrument communication
+
 CustomXepr communicates with with the Keithley and MercuryiTC through NI-VISA or pyvisa-py
 and is therefore independent of the actual interface, e.g., Ethernet, USB, or GPIB.
 Connections to the EPR spectrometer are handled through Bruker's Xepr Python API.
@@ -161,6 +163,7 @@ measurements.
 ![Screenshot of CustomXepr GUI](/screenshots/CustomXepr_log.png)
 
 ## Mercury controls
+
 CustomXepr includes a higher-level worker thread which regularly queries the MercuryiTC
 for its sensor readings and provides a live stream of this data to other parts of the
 software. This prevents individual functions from querying the MercuryiTC directly and
@@ -178,6 +181,7 @@ FET/mercurygui).
 ![Screenshot of Mercury GUI](/screenshots/MercuryGUI.png)
 
 ## Keithley controls
+
 As with the cryostat, CustomXepr includes a high-level user interface for Keithley 2600
 series instruments which allows the user to configure, record and save voltage sweeps such
 as transfer and output measurements. Since there typically is no need to provide a live
@@ -240,41 +244,30 @@ while the temperature is still being ramped.
 
 ## Email notifications
 
-By default, email notifications are sent from 'ss2151@cam.ac.uk' via 'localhost' and most
-email clients will therefore reject them as spam. CustomXepr at the moment provides no way
-to modify the email settings via the user interface, but you can set them manually in the
-config file in your home directory: '~/.CustomXepr/CustomXepr.ini'. Changes will be
-applied when restarting CustomXper.
+By default, email notifications are sent from 'customxepr@outlook.com'. CustomXepr at the moment
+provides no way to modify the email settings via the user interface, but you can set them manually
+in the config file in your home directory: '~/.CustomXepr/CustomXepr.ini'. Changes will be applied
+when restarting CustomXper.
 
 By default, the relevant section in the config file reads:
 
 ```ini
 [SMTP]
-mailhost = localhost
-port = 0
-fromaddr = ss2151@cam.ac.uk
-credentials = None
-secure = None
-```
-
-To specify a non-standard SMTP port, change the `port` setting. To specify authentication
-credentials, supply a `(username, password)` tuple for the credentials argument. To specify the use
-of a secure protocol (TLS), pass in a tuple for the secure argument. This will only be used when
-authentication credentials are supplied. The tuple will be either an empty tuple, or a single-value
-tuple with the name of a keyfile, or a 2-value tuple with the names of the keyfile and certificate
-file. For example, to send emails via the Cambridge SMTP server, this section should be modified to
-read:
-
-```ini
-[SMTP]
-mailhost = smtp.hermes.cam.ac.uk
+mailhost = smtp.office365.com
 port = 587
-fromaddr = ss2151@cam.ac.uk
-credentials = ('ss2151', 'my-secret-password')
+fromaddr = customxepr@outlook.com
+credentials = ('customxepr@outlook.com', 'user@xepr')
 secure = ()
 ```
 
+Authentication credentials are specified as a `(username, password)` tuple. To specify the use
+of a secure protocol (TLS), pass in a tuple for the `secure` argument. This will only be used when
+authentication credentials are supplied. The tuple will be either an empty tuple, or a single-value
+tuple with the name of a keyfile, or a 2-value tuple with the names of the keyfile and certificate
+file.
+
 ## Requirements
+
 *System requirements:*
 
 - Linux or macOS (not tested on Windows)
@@ -293,5 +286,6 @@ secure = ()
 - pyserial (only when using pyvisa-py backend)
 
 ## Acknowledgements
+
 - Config modules are based on the implementation from [Spyder](https://github.com/spyder-ide).
 - Scientific spin boxes are taken from [qudi](https://github.com/Ulm-IQO/qudi).
