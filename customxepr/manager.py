@@ -528,8 +528,13 @@ class Manager(object):
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-            exp = Experiment(func, args, kwargs)
-            self.job_queue.put(exp)
+            enqueued = getattr(func, "__enqueued__", False)
+            if enqueued:
+                return func(*args, **kwargs)
+            else:
+                func.__enqueued__ = True
+                exp = Experiment(func, args, kwargs)
+                self.job_queue.put(exp)
 
         return wrapper
 
