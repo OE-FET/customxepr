@@ -94,8 +94,6 @@ class CustomXepr(object):
 
         # hidden Xepr experiment, created when EPR is connected:
         self.hidden = None
-        # target temperature, set during first use
-        self._temperature_target = None
 
         self._check_for_xepr(raise_error=False)
         self._check_for_mercury(raise_error=False)
@@ -885,7 +883,7 @@ class CustomXepr(object):
         # -------------------start experiment----------------------------------
         if self._check_for_mercury(raise_error=False):
             temperature_fluct_history = np.array([])
-            temperature_set = self.feed.temperature.loop_tset
+            temperature_set = self._getTemperatureSetpoint()
         else:
             temperature_fluct_history = None
             temperature_set = None
@@ -950,7 +948,7 @@ class CustomXepr(object):
 
             # record temperature and warn if fluctuations exceed the tolerance
             if temperature_fluct_history is not None:
-                diff = abs(self.feed.readings['Temp'] - temperature_set)
+                diff = abs(self._getTemperature() - temperature_set)
                 temperature_fluct_history = np.append(temperature_fluct_history, diff)
                 # increment the number of violations n_out if temperature is unstable
                 n_out += (diff > 4*self._temperature_tolerance)
