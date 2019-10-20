@@ -1391,8 +1391,10 @@ class CustomXepr(object):
 
         self._check_for_keithley()
 
-        smu_actual = getattr(self.keithley, smu)
-        self.keithley.rampToVoltage(smu_actual, target_volt=v, delay=0.1, step_size=1)
+        smu = getattr(self.keithley, smu)
+
+        self.keithley.applyVoltage(smu, v)
+        self.keithley.beep(0.3, 2400)
 
     @manager.queued_exec
     def setCurrent(self, i, smu=KCONF.get('Sweep', 'drain')):
