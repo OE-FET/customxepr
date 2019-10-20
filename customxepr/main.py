@@ -584,9 +584,9 @@ class CustomXepr(object):
     @staticmethod
     def getExpDuration(exp):
         """
-        Estimates the time required to run the given experiment. The returned value is given in
-        seconds and is a lower limit, the actual run time may be longer due to fine-tuning between
-        scans, waiting times for stabilization and flybacks.
+        Estimates the time required to run the given experiment. The returned value is
+        given in seconds and is a lower limit, the actual run time may be longer due to
+        fine-tuning between scans, waiting times for stabilization and flybacks.
 
         :param exp: Xepr experiment object to run.
 
@@ -1185,10 +1185,10 @@ class CustomXepr(object):
         ht = self.heater_target(self._temperature_target)
         fmin = self.feed.readings['FlowMin']
 
-        heater_too_strong = (self.feed.readings['HeaterVolt'] > 1.2*ht)
+        above_heater_target = (self.feed.readings['HeaterVolt'] > 1.2*ht)
         flow_at_min = (self.feed.readings['FlowPercent'] == fmin)
 
-        if heater_too_strong and flow_at_min:
+        if above_heater_target and flow_at_min:
 
             logger.warning('Gas flow is too high, trying to reduce.')
             self.feed.temperature.loop_faut = 'ON'
