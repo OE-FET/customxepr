@@ -9,6 +9,7 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 import os
 import logging
 import time
+import types
 from datetime import timedelta, datetime
 import numpy as np
 import tempfile
@@ -121,6 +122,15 @@ class CustomXepr(object):
 
         if keithley is not None:
             self.manager.abort_events = [self.keithley.abort_event]
+
+        # =====================================================================
+        # create synchronous versions of CustomXepr methods
+        # =====================================================================
+
+        for attr_name in dir(self):
+            attr = getattr(self, attr_name)
+            if hasattr(attr, '__wrapped__'):
+                setattr(self, attr_name + '_sync', types.MethodType(attr.__wrapped__, self))
 
 # ========================================================================================
 # define basic functions for email notifications, pausing, etc.
