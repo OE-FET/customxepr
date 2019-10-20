@@ -1282,11 +1282,15 @@ class CustomXepr(object):
         :param float ramp: Ramp in Kelvin per minute.
         """
 
+    def _getTemperature(self):
+        """Returns the current temperature in Kelvin."""
         self._check_for_mercury()
+        return self.feed.readings['Temperature']
 
-        # set temperature and wait to stabilize
-        self.feed.temperature.loop_rset = ramp
-        logger.info('Temperature ramp set to %s K/min.' % ramp)
+    def _getTemperatureSetpoint(self):
+        """Returns the temperature setpoint in Kelvin."""
+        self._check_for_mercury()
+        return self.feed.temperature.loop_tset
 
 # ========================================================================================
 # set up Keithley functions
@@ -1328,9 +1332,11 @@ class CustomXepr(object):
         smu_gate = getattr(self.keithley, smu_gate)
         smu_drain = getattr(self.keithley, smu_drain)
 
-        sd = self.keithley.transferMeasurement(smu_gate, smu_drain, vg_start,
-                                               vg_stop, vg_step, vd_list, t_int,
-                                               delay, pulsed)
+        sd = self.keithley.transferMeasurement(
+            smu_gate, smu_drain, vg_start, vg_stop, vg_step, vd_list,
+            t_int, delay, pulsed
+        )
+
         if path is not None:
             sd.save(path)
 
@@ -1372,9 +1378,11 @@ class CustomXepr(object):
         smu_gate = getattr(self.keithley, smu_gate)
         smu_drain = getattr(self.keithley, smu_drain)
 
-        sd = self.keithley.outputMeasurement(smu_gate, smu_drain, vd_start,
-                                             vd_stop, vd_step, vg_list, t_int,
-                                             delay, pulsed)
+        sd = self.keithley.outputMeasurement(
+            smu_gate, smu_drain, vd_start, vd_stop,vd_step, vg_list,
+            t_int, delay, pulsed
+        )
+
         if path is not None:
             sd.save(path)
 
