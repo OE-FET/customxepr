@@ -1,10 +1,12 @@
-#### v2.4.0-dev0
+#### v2.4.0-dev
 
 This release drops support for Python 2.7. Only Python 3.6 and higher are supported.
 
 ##### Added:
 
 - Method `CustomXepr.getExpDuration` to estimate the duration of an Xepr experiment.
+- Added synchonous functions for all of CustomXepr's asynchronous functions (which will be queued).
+  These are automatically generated and end with the suffix "_sync".
 
 ##### Changed:
 
@@ -17,11 +19,19 @@ This release drops support for Python 2.7. Only Python 3.6 and higher are suppor
     1) path from the environment variable `XEPR_API_PATH` (if set)
     2) installed python packages
     3) pre-installed version with Xepr
+- Renamed `applyCurrent` to `setCurrent`.
+- The `queued_exec` decorator is now an attribute of `customXepr.manager.Manager` and no longer
+  requires giving the job queue as an argument.
+- The `queued_exec` decorator now is reentrant: decorated functions which are called from within a
+  queued function won't be queued themselves.
+- Moved `CustomXepr._wait_stable` to a public method `CustomXepr.waitTemperatureStable`.
 
 ##### Fixed:
 
 - Fixed a bug when plotting aquired results: This was related with the IPython kernel
   using the wrong GUI backend. It now uses the Qt backend.
+- Fixed a bug which would cause `XeprData.plot` to fail in case of multiple datasets per scan, e.g.,
+  for simultanious detection of the in-phase and ou-of-phase signals.
 
 ##### Removed:
 
