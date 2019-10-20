@@ -4,7 +4,7 @@ This release drops support for Python 2.7. Only Python 3.6 and higher are suppor
 
 ##### Added:
 
-- Method `main.getExpDuration` to estimate the duration of an Xepr experiment.
+- Method `CustomXepr.getExpDuration` to estimate the duration of an Xepr experiment.
 
 ##### Changed:
 
