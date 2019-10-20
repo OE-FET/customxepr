@@ -347,7 +347,44 @@ class CustomXepr(object):
             :meth:`tuneBias` returns.
         """
         self._check_for_xepr()
-        self._tuneBias(tolerance)
+
+        # check for abort event
+        if self.abort.is_set():
+            return
+
+        logger.status('Tuning (Bias).')
+        time.sleep(self._wait)
+
+        # get offset from 200 mA
+        diff = self.hidden['DiodeCurrent'].value - 200
+        time.sleep(self._wait)
+        tolerance1 = 10  # tolerance for fast tuning
+        tolerance2 = tolerance  # tolerance for second fine tuning
+
+        # rapid tuning with high tolerance and large steps
+        while abs(diff) > tolerance1:
+            # check for abort event
+            if self.abort.is_set():
+                return
+
+            step = 1*cmp(0, diff)  # coarse step of 1
+            self.XeprCmds.aqParStep('AcqHidden', '*cwBridge.SignalBias',
+                                    'Coarse %s' % step)  # TODO: migrate from XeprCmds
+            time.sleep(0.5)
+            diff = self.hidden['DiodeCurrent'].value - 200
+            time.sleep(self._wait)
+
+        # fine tuning with low tolerance and small steps
+        while abs(diff) > tolerance2:
+            # check for abort event
+            if self.abort.is_set():
+                return
+
+            step = 5*cmp(0, diff)  # fine step of 5
+            self.XeprCmds.aqParStep('AcqHidden', '*cwBridge.SignalBias', 'Fine %s' % step)  # TODO: migrate from XeprCmds
+            time.sleep(0.5)
+            diff = self.hidden['DiodeCurrent'].value - 200
+            time.sleep(self._wait)
 
     @manager.queued_exec
     def tuneIris(self, tolerance=1):
@@ -359,7 +396,47 @@ class CustomXepr(object):
             :meth:`tuneIris` returns.
         """
         self._check_for_xepr()
-        self._tuneIris(tolerance)
+
+        # check for abort event
+        if self.abort.is_set():
+            return
+
+        logger.status('Tuning (Iris).')
+        time.sleep(self._wait)
+
+        diff = self.hidden['DiodeCurrent'].value - 200
+
+        while abs(diff) > tolerance:
+            # check for abort event
+            if self.abort.is_set():
+                return
+
+            if diff < 0:
+                cmd = '*cwBridge.IrisUp'
+            elif diff > 0:
+                cmd = '*cwBridge.IrisDown'
+            else:
+                return
+
+            # determine step size for iris adjustment: slower adjustment when
+            # close to a diode current of 200, minimum step size of 0.3
+            step_size = max(abs(diff), 30) * 0.01
+            # scale step size for MW power: smaller steps at higher power
+            step = step_size * (self.hidden['PowerAtten'].value**2)/400
+            time.sleep(self._wait)
+            # set value to 0.1 if step is smaller
+            # (usually only happens below 10dB)
+            step = max(step, 0.1)
+            # increase waiting time between steps when close to tuned
+            # with a maximum waiting of 1 sec
+            wait = min(5/(abs(diff) + 0.1), 1)
+            self.XeprCmds.aqParSet('AcqHidden', cmd, 'True')  # TODO: migrate from XeprCmds
+            time.sleep(step)
+            self.XeprCmds.aqParSet('AcqHidden', cmd, 'False')  # TODO: migrate from XeprCmds
+            time.sleep(wait)
+
+            diff = self.hidden['DiodeCurrent'].value - 200
+            time.sleep(self._wait)
 
     @manager.queued_exec
     def tuneFreq(self, tolerance=2):
@@ -370,7 +447,27 @@ class CustomXepr(object):
             :meth:`tuneFreq` returns.
         """
         self._check_for_xepr()
-        self._tuneFreq(tolerance)
+
+        # check for abort event
+        if self.abort.is_set():
+            return
+
+        logger.status('Tuning (Freq).')
+        time.sleep(self._wait)
+
+        fq_offset = self.hidden['LockOffset'].value
+        time.sleep(self._wait)
+
+        while abs(fq_offset) > tolerance:
+            # check for abort event
+            if self.abort.is_set():
+                return
+
+            step = 1 * cmp(0, fq_offset) * max(abs(int(fq_offset/10)), 1)
+            self.XeprCmds.aqParStep('AcqHidden', '*cwBridge.Frequency', 'Fine %s' % step)
+            time.sleep(1)
+            fq_offset = self.hidden['LockOffset'].value
+            time.sleep(self._wait)
 
     @manager.queued_exec
     def tunePhase(self):
@@ -378,7 +475,97 @@ class CustomXepr(object):
         Tunes the phase of the MW reference arm to maximise the diode current.
         """
         self._check_for_xepr()
-        self._tunePhase()
+        # check for abort event
+        if self.abort.is_set():
+            return
+
+        logger.status('Tuning (Phase).')
+        time.sleep(self._wait)
+
+        t0 = time.time()
+
+        # get current phase and range
+        phase0 = self.hidden['SignalPhase'].value
+        time.sleep(self._wait)
+        phase_min = self.hidden['SignalPhase'].aqGetParMinValue()
+        time.sleep(self._wait)
+        phase_max = self.hidden['SignalPhase'].aqGetParMaxValue()
+        time.sleep(self._wait)
+        phase_step = self.hidden['SignalPhase'].aqGetParCoarseSteps()
+        time.sleep(self._wait)
+
+        # determine the direction of increasing diode current
+        diode_curr_array = np.array([])
+        interval_min = max(phase0-3*phase_step, phase_min)
+        interval_max = min(phase0+4*phase_step, phase_max)
+        phase_array = np.arange(interval_min, interval_max, phase_step)
+
+        for phase in phase_array:
+            # Check for abort event
+            if self.abort.is_set():
+                return
+            # Abort if phase at limit
+            if self._phase_at_limit(phase, phase_min, phase_max):
+                return
+            self.hidden['SignalPhase'].value = phase
+            time.sleep(1)
+            diode_curr = self.hidden['DiodeCurrent'].value
+            time.sleep(self._wait)
+            diode_curr_array = np.append(diode_curr_array, diode_curr)
+            if time.time() - t0 > self._tuning_timeout:
+                logger.info('Phase tuning timeout.')
+                break
+
+        upper = np.mean(diode_curr_array[phase_array > phase0])
+        lower = np.mean(diode_curr_array[phase_array < phase0])
+        direction = cmp(upper, lower)
+
+        # determine position of maximum phase by stepping until phase deceases again
+        self.hidden['SignalPhase'].value = phase0
+        time.sleep(1)
+        diode_curr_new = self.hidden['DiodeCurrent'].value
+        time.sleep(self._wait)
+
+        phase_array = np.array([phase0])
+        diode_curr_array = np.array([diode_curr_new])
+
+        new_phase = phase0
+
+        while diode_curr_new > np.max(diode_curr_array) - 15:
+            # get next phase step
+            new_phase += direction*phase_step
+
+            # check for abort event
+            if self.abort.is_set():
+                return
+
+            # check for limits of diode range, readjust iris if necessary and abort
+            if diode_curr_new in [0, 400]:
+                self._tuneIris(tolerance=10)
+                return
+
+            # abort if phase at limit
+            if self._phase_at_limit(new_phase, phase_min, phase_max):
+                return
+
+            # get new reading
+            self.hidden['SignalPhase'].value = new_phase
+            time.sleep(1)
+            diode_curr_new = self.hidden['DiodeCurrent'].value
+            time.sleep(self._wait)
+
+            diode_curr_array = np.append(diode_curr_array, diode_curr_new)
+            phase_array = np.append(phase_array, new_phase)
+
+            # timeout if Xepr is not responsive
+            if time.time() - t0 > self._tuning_timeout:
+                logger.info('Phase tuning timeout.')
+                break
+
+        # set phase to the best value
+        best_phase = phase_array[np.argmax(diode_curr_array)]
+        self.hidden['SignalPhase'].value = best_phase
+        time.sleep(self._wait)
 
     @manager.queued_exec
     def getQValueFromXepr(self, path=None, temperature=298):
@@ -938,202 +1125,6 @@ class CustomXepr(object):
         self.XeprCmds.ddPath(path)
         time.sleep(self._wait)
         self.XeprCmds.vpSave('Current Primary', title,  path)
-        time.sleep(self._wait)
-
-    def _tuneBias(self, tolerance=1):
-        # check for abort event
-        if self.abort.is_set():
-            return
-
-        logger.status('Tuning (Bias).')
-        time.sleep(self._wait)
-
-        # get offset from 200 mA
-        diff = self.hidden['DiodeCurrent'].value - 200
-        time.sleep(self._wait)
-        tolerance1 = 10  # tolerance for fast tuning
-        tolerance2 = tolerance  # tolerance for second fine tuning
-
-        # rapid tuning with high tolerance and large steps
-        while abs(diff) > tolerance1:
-            # check for abort event
-            if self.abort.is_set():
-                return
-
-            step = 1*cmp(0, diff)  # coarse step of 1
-            self.XeprCmds.aqParStep('AcqHidden', '*cwBridge.SignalBias',
-                                    'Coarse %s' % step)
-            time.sleep(0.5)
-            diff = self.hidden['DiodeCurrent'].value - 200
-            time.sleep(self._wait)
-
-        # fine tuning with low tolerance and small steps
-        while abs(diff) > tolerance2:
-            # check for abort event
-            if self.abort.is_set():
-                return
-
-            step = 5*cmp(0, diff)  # fine step of 5
-            self.XeprCmds.aqParStep('AcqHidden', '*cwBridge.SignalBias', 'Fine %s' % step)
-            time.sleep(0.5)
-            diff = self.hidden['DiodeCurrent'].value - 200
-            time.sleep(self._wait)
-
-    def _tuneIris(self, tolerance=1):
-        # check for abort event
-        if self.abort.is_set():
-            return
-
-        logger.status('Tuning (Iris).')
-        time.sleep(self._wait)
-
-        diff = self.hidden['DiodeCurrent'].value - 200
-
-        while abs(diff) > tolerance:
-            # check for abort event
-            if self.abort.is_set():
-                return
-
-            if diff < 0:
-                cmd = '*cwBridge.IrisUp'
-            elif diff > 0:
-                cmd = '*cwBridge.IrisDown'
-            else:
-                return
-
-            # determine step size for iris adjustment: slower adjustment when
-            # close to a diode current of 200, minimum step size of 0.3
-            step_size = max(abs(diff), 30) * 0.01
-            # scale step size for MW power: smaller steps at higher power
-            step = step_size * (self.hidden['PowerAtten'].value**2)/400
-            time.sleep(self._wait)
-            # set value to 0.1 if step is smaller
-            # (usually only happens below 10dB)
-            step = max(step, 0.1)
-            # increase waiting time between steps when close to tuned
-            # with a maximum waiting of 1 sec
-            wait = min(5/(abs(diff) + 0.1), 1)
-            self.XeprCmds.aqParSet('AcqHidden', cmd, 'True')
-            time.sleep(step)
-            self.XeprCmds.aqParSet('AcqHidden', cmd, 'False')
-            time.sleep(wait)
-
-            diff = self.hidden['DiodeCurrent'].value - 200
-            time.sleep(self._wait)
-
-    def _tuneFreq(self, tolerance=3):
-        # check for abort event
-        if self.abort.is_set():
-            return
-
-        logger.status('Tuning (Freq).')
-        time.sleep(self._wait)
-
-        fq_offset = self.hidden['LockOffset'].value
-        time.sleep(self._wait)
-
-        while abs(fq_offset) > tolerance:
-            # check for abort event
-            if self.abort.is_set():
-                return
-
-            step = 1 * cmp(0, fq_offset) * max(abs(int(fq_offset/10)), 1)
-            self.XeprCmds.aqParStep('AcqHidden', '*cwBridge.Frequency', 'Fine %s' % step)
-            time.sleep(1)
-            fq_offset = self.hidden['LockOffset'].value
-            time.sleep(self._wait)
-
-    def _tunePhase(self):
-        # check for abort event
-        if self.abort.is_set():
-            return
-
-        logger.status('Tuning (Phase).')
-        time.sleep(self._wait)
-
-        t0 = time.time()
-
-        # get current phase and range
-        phase0 = self.hidden['SignalPhase'].value
-        time.sleep(self._wait)
-        phase_min = self.hidden['SignalPhase'].aqGetParMinValue()
-        time.sleep(self._wait)
-        phase_max = self.hidden['SignalPhase'].aqGetParMaxValue()
-        time.sleep(self._wait)
-        phase_step = self.hidden['SignalPhase'].aqGetParCoarseSteps()
-        time.sleep(self._wait)
-
-        # determine the direction of increasing diode current
-        diode_curr_array = np.array([])
-        interval_min = max(phase0-3*phase_step, phase_min)
-        interval_max = min(phase0+4*phase_step, phase_max)
-        phase_array = np.arange(interval_min, interval_max, phase_step)
-
-        for phase in phase_array:
-            # Check for abort event
-            if self.abort.is_set():
-                return
-            # Abort if phase at limit
-            if self._phase_at_limit(phase, phase_min, phase_max):
-                return
-            self.hidden['SignalPhase'].value = phase
-            time.sleep(1)
-            diode_curr = self.hidden['DiodeCurrent'].value
-            time.sleep(self._wait)
-            diode_curr_array = np.append(diode_curr_array, diode_curr)
-            if time.time() - t0 > self._tuning_timeout:
-                logger.info('Phase tuning timeout.')
-                break
-
-        upper = np.mean(diode_curr_array[phase_array > phase0])
-        lower = np.mean(diode_curr_array[phase_array < phase0])
-        direction = cmp(upper, lower)
-
-        # determine position of maximum phase by stepping until phase deceases again
-        self.hidden['SignalPhase'].value = phase0
-        time.sleep(1)
-        diode_curr_new = self.hidden['DiodeCurrent'].value
-        time.sleep(self._wait)
-
-        phase_array = np.array([phase0])
-        diode_curr_array = np.array([diode_curr_new])
-
-        new_phase = phase0
-
-        while diode_curr_new > np.max(diode_curr_array) - 15:
-            # get next phase step
-            new_phase += direction*phase_step
-
-            # check for abort event
-            if self.abort.is_set():
-                return
-
-            # check for limits of diode range, readjust iris if necessary and abort
-            if diode_curr_new in [0, 400]:
-                self._tuneIris(tolerance=10)
-                return
-
-            # abort if phase at limit
-            if self._phase_at_limit(new_phase, phase_min, phase_max):
-                return
-
-            # get new reading
-            self.hidden['SignalPhase'].value = new_phase
-            time.sleep(1)
-            diode_curr_new = self.hidden['DiodeCurrent'].value
-            time.sleep(self._wait)
-
-            diode_curr_array = np.append(diode_curr_array, diode_curr_new)
-            phase_array = np.append(phase_array, new_phase)
-
-            # timeout if Xepr is not responsive
-            if time.time() - t0 > self._tuning_timeout:
-                logger.info('Phase tuning timeout.')
-                break
-
-        # set phase to the best value
-        best_phase = phase_array[np.argmax(diode_curr_array)]
-        self.hidden['SignalPhase'].value = best_phase
         time.sleep(self._wait)
 
     def _phase_at_limit(self, phase, phase_min, phase_max):
