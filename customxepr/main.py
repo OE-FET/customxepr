@@ -883,7 +883,7 @@ class CustomXepr(object):
         # -------------------start experiment----------------------------------
         if self._check_for_mercury(raise_error=False):
             temperature_fluct_history = np.array([])
-            temperature_set = self._getTemperatureSetpoint()
+            temperature_set = self.getTemperatureSetpoint()
         else:
             temperature_fluct_history = None
             temperature_set = None
@@ -948,7 +948,7 @@ class CustomXepr(object):
 
             # record temperature and warn if fluctuations exceed the tolerance
             if temperature_fluct_history is not None:
-                diff = abs(self._getTemperature() - temperature_set)
+                diff = abs(self.getTemperature() - temperature_set)
                 temperature_fluct_history = np.append(temperature_fluct_history, diff)
                 # increment the number of violations n_out if temperature is unstable
                 n_out += (diff > 4*self._temperature_tolerance)
@@ -1146,52 +1146,66 @@ class CustomXepr(object):
 # ========================================================================================
 
     @manager.queued_exec
-    def setTemperature(self, target, auto_gf=True):
+    def setTemperature(self, target, wait_stable=True):
         """
         Sets the target temperature for the ESR900 cryostat and waits for it to stabilize
         within :attr:`temp_wait_time` with fluctuations below
-        :attr:`temperature_tolerance`.
-
-        Warns the user if this takes too long.
+        :attr:`temperature_tolerance`. Warns the user if this takes too long.
 
         :param float target: Target temperature in Kelvin.
-        :param bool auto_gf: If `True`, the gas flow will be controlled automatically by
-            the Mercury.
+        :param bool wait_stable: If ``True``, this function will wait until the
+            temperature is stable before it returns. See :func:`waitTemperatureStable`
         """
 
         self._check_for_mercury()
 
-        # create instance variable here to allow outside access
-        self._temperature_target = target
-        logger.info('Setting target temperature to %sK.' % self._temperature_target)
+        logger.info('Setting target temperature to %sK.' % target)
 
         # set temperature and wait to stabilize
-        self.feed.temperature.loop_tset = self._temperature_target
-        self._waitStable(auto_gf=auto_gf)
+        self.feed.temperature.loop_tset = target
+        if wait_stable:
+            self.waitTemperatureStable(target)
 
-        # check if gas flow is too high for temperature set point
-        # if yes, reduce minimum value until target is reached
-        ht = self.heater_target(self._temperature_target)
-        fmin = self.feed.readings['FlowMin']
+            # check if gas flow is too high for temperature set point
+            # if yes, reduce minimum value until target is reached
+            ht = self._heater_target(target)
+            fmin = self.feed.readings['FlowMin']
 
-        above_heater_target = (self.feed.readings['HeaterVolt'] > 1.2*ht)
-        flow_at_min = (self.feed.readings['FlowPercent'] == fmin)
+            above_heater_target = (self.feed.readings['HeaterVolt'] > 1.2*ht)
+            flow_at_min = (self.feed.readings['FlowPercent'] == fmin)
 
-        if above_heater_target and flow_at_min:
+            if above_heater_target and flow_at_min:
 
-            logger.warning('Gas flow is too high, trying to reduce.')
-            self.feed.temperature.loop_faut = 'ON'
-            self.feed.gasflow.gmin = max(self.feed.readings['FlowMin'] - 1, 1)
+                logger.warning('Gas flow is too high, trying to reduce.')
+                self.feed.temperature.loop_faut = 'ON'
+                self.feed.gasflow.gmin = max(self.feed.readings['FlowMin'] - 1, 1)
 
-    def _waitStable(self, auto_gf=True):
+    @manager.queued_exec
+    def setTemperatureRamp(self, ramp):
+        """
+        Sets the temperature ramp speed for the cryostat in K/min.
+
+        :param float ramp: Ramp in Kelvin per minute.
+        """
+
+        self._check_for_mercury()
+
+        # set temperature and wait to stabilize
+        self.feed.temperature.loop_rset = ramp
+        logger.info('Temperature ramp set to %s K/min.' % ramp)
+
+    @manager.queued_exec
+    def waitTemperatureStable(self, target):
         """
         Waits for the cryostat temperature to stabilize within the specified tolerance
         :attr:`temperature_tolerance`. Releases after it has been stable for
         :attr:`temp_wait_time` seconds (default of 120 sec).
+
+        :param float target: Target temperature in Kelvin.
         """
 
         # time in sec after which a timeout warning is issued
-        temperature_timeout = (self._ramp_time() + 30*60)  # in sec
+        temperature_timeout = (self._ramp_time(target) + 30*60)  # in sec
         # counter for elapsed seconds since temperature has been stable
         stable_counter = 0
         # counter for setting gas flow to manual
@@ -1207,19 +1221,8 @@ class CustomXepr(object):
                 logger.info('Aborted by user.')
                 return
 
-            # set gas flow to minimum for temperatures above 247K, this improves
-            # the PID control and speeds up stabilization
-            if not auto_gf:
-                if gasflow_man_counter == 0:
-                    self.feed.temperature.loop_faut = 'OFF'
-                    if self._temperature_target > 247:
-                        self.feed.temperature.loop_fset = self.feed.readings['FlowMin']
-                    else:
-                        self.feed.temperature.loop_faut = 'ON'
-                    gasflow_man_counter += 1
-
             # check temperature deviation
-            self.T_diff = abs(self._temperature_target - self.feed.readings['Temp'])
+            self.T_diff = abs(target - self.feed.readings['Temp'])
             if self.T_diff > self._temperature_tolerance:
                 stable_counter = 0
                 time.sleep(self.feed.refresh)
@@ -1236,11 +1239,23 @@ class CustomXepr(object):
                 t0 = time.time()
                 temperature_timeout = 30*60
 
-        message = 'Mercury iTC: Temperature is stable at %sK.' % self._temperature_target
+        message = 'Mercury iTC: Temperature is stable at %sK.' % target
         logger.info(message)
 
+    @manager.queued_exec
+    def getTemperature(self):
+        """Returns the current temperature in Kelvin."""
+        self._check_for_mercury()
+        return self.feed.readings['Temperature']
+
+    @manager.queued_exec
+    def getTemperatureSetpoint(self):
+        """Returns the temperature setpoint in Kelvin."""
+        self._check_for_mercury()
+        return self.feed.temperature.loop_tset
+
     @staticmethod
-    def heater_target(temperature, htt_file=None):
+    def _heater_target(temperature, htt_file=None):
         """
         Returns the ideal heater voltage for a given temperature. This function can be
         used to check the current gas flow: If the heater voltage exceeds its target
@@ -1260,35 +1275,19 @@ class CustomXepr(object):
         htt = np.loadtxt(htt_file, delimiter=',')
         return np.interp(temperature, htt[:, 0], htt[:, 1])
 
-    def _ramp_time(self):
+    def _ramp_time(self, target):
         """
         Calculates the expected time in sec to reach the target temperature.
         Assumes a ramping speed of 5 K/min if "ramp" is turned off.
+
+        :param float target: Target temperature in Kelvin.
         """
         if self.feed.readings['TempRampEnable'] == 'ON':
-            expected_time = (abs(self._temperature_target - self.feed.readings['Temp']) /
+            expected_time = (abs(target - self.feed.readings['Temp']) /
                              self.feed.readings['TempRamp'])  # in min
         else:  # assume ramp of 5 K/min
-            expected_time = abs(self._temperature_target - self.feed.readings['Temp']) / 5
+            expected_time = abs(target - self.feed.readings['Temp']) / 5
         return expected_time * 60  # return value in sec
-
-    @manager.queued_exec
-    def setTempRamp(self, ramp):
-        """
-        Sets the temperature ramp speed for the cryostat in K/min.
-
-        :param float ramp: Ramp in Kelvin per minute.
-        """
-
-    def _getTemperature(self):
-        """Returns the current temperature in Kelvin."""
-        self._check_for_mercury()
-        return self.feed.readings['Temperature']
-
-    def _getTemperatureSetpoint(self):
-        """Returns the temperature setpoint in Kelvin."""
-        self._check_for_mercury()
-        return self.feed.temperature.loop_tset
 
 # ========================================================================================
 # set up Keithley functions
