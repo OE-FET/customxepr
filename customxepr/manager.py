@@ -411,26 +411,6 @@ class Worker(object):
 
 
 # ========================================================================================
-# queued execution decorator which dumps a function / method call into a queue
-# ========================================================================================
-
-def queued_exec(queue):
-    """
-    Decorator that puts a call to a wrapped function into a
-    queue instead of executing it. Items in the queue will be
-    of type :class:`Experiment`.
-
-    :param queue: Queue to put function calls.
-    """
-    @decorator
-    def put_to_queue(func, *args, **kwargs):
-        exp = Experiment(func, args, kwargs)
-        queue.put(exp)
-
-    return put_to_queue
-
-
-# ========================================================================================
 # manager to coordinate everything
 # ========================================================================================
 
