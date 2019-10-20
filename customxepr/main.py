@@ -1395,7 +1395,7 @@ class CustomXepr(object):
         self.keithley.rampToVoltage(smu_actual, target_volt=v, delay=0.1, step_size=1)
 
     @manager.queued_exec
-    def applyCurrent(self, i, smu=KCONF.get('Sweep', 'drain')):
+    def setCurrent(self, i, smu=KCONF.get('Sweep', 'drain')):
         """
         Applies a specified current to the selected Keithley SMU.
 
