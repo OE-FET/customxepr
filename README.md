@@ -101,7 +101,7 @@ the `queued_exec` decorator from `customxepr.manager`:
 
 ```python
     >>> import time
-    >>> from customxepr.manager import Manager, queued_exec
+    >>> from customxepr.manager import Manager
     >>> manager = Manager()
     >>> # create test function
     >>> @manager.queued_exec
