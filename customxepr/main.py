@@ -30,7 +30,7 @@ except ImportError:
 
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'
 __year__ = str(time.localtime().tm_year)
-__version__ = 'v2.4.0-dev0'
+__version__ = 'v3.0.0-dev0'
 __url__ = 'https://customxepr.readthedocs.io'
 
 
