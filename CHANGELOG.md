@@ -25,6 +25,7 @@ This release drops support for Python 2.7. Only Python 3.6 and higher are suppor
 - The `queued_exec` decorator now is reentrant: decorated functions which are called from within a
   queued function won't be queued themselves.
 - Moved `CustomXepr._wait_stable` to a public method `CustomXepr.waitTemperatureStable`.
+- Enforce usage of `exit_customxepr()` to exit.
 
 ##### Fixed:
 
