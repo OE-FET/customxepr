@@ -114,7 +114,7 @@ complex data and more exotic data formats.
   e.g., the number of significant digits, will be preserved unless the parameter value
   has changes
 
-#### Fixed:
+##### Fixed:
 
 - Fixed a bug in `XeprData` which would save y-axis and z-axis data files with the wrong
   byte-order. Ordinate data and x-axis data were not affected. Xepr expects data files to
@@ -151,7 +151,7 @@ fully separates UI from non-UI modules.
 - Removed all Qt related dependencies from non-GUI modules. This makes it easier to run
   CustomXepr in headless mode from the command line.
 
-#### Removed:
+##### Removed:
 
 - Deprecated `set_param` and `get_param` methods of `XeprData`. Use the `pars` attribute
   with dictionary type access instead.
@@ -171,7 +171,7 @@ the user interface (plotting data, deleting a large number of queued jobs, etc).
   previously _O(n^2)_, now _O(n)_ performance.
 - Better organization of code into submodules.
 
-#### Fixed:
+##### Fixed:
 
 - Bug fixes for PyQt 5.12.
 
@@ -195,7 +195,7 @@ format.
   and temperature set point.
 - Tweaked icons in user interface.
 
-#### Removed:
+##### Removed:
 
 - Removed the option to specify a title when saving an ESR data file. The file
   name is now always used as title.
@@ -233,14 +233,14 @@ improvements.
 - CustomXepr is now distributed as a python package and can be installed with
   pip.
 
-#### Fixed:
+##### Fixed:
 
 - Fixed a bug that could result in values inside spin-boxes to be displayed
   without their decimal marker on some systems.
 - Fixed a bug that could result in crashes after closing the keithley or
   mercury control windows.
 
-#### Removed:
+##### Removed:
 
 - Removed all ETA estimates for experiments.
 
@@ -256,7 +256,7 @@ improvements.
 - Proper disconnection from instruments when closing windows or shutting down
   the console with "exit" command.
 
-#### Fixed:
+##### Fixed:
 
 - Fixed a bug that would prevent Xepr experiments to run if the measurement
   time cannot be estimated. Applies for instance to rapid scan and time domain
@@ -272,7 +272,7 @@ improvements.
 
 - Split off mercury_gui and keithley_gui as separate packages.
 
-#### Removed:
+##### Removed:
 
 - Removed dark theme: code is easier to maintain. System level dark themes,
   such as macOS Mojave's dark mode, may be supported in the future when Qt
