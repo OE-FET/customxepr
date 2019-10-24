@@ -13,7 +13,7 @@ import logging.handlers
 import operator
 from PySignal import ClassSignal
 from queue import Queue, Empty
-from threading import RLock, Event, Thread
+from threading import RLock, Event, Thread, current_thread
 from enum import Enum
 import collections
 from functools import wraps
@@ -528,14 +528,12 @@ class Manager(object):
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-            enqueued = getattr(func, "__enqueued__", False)
-            if enqueued:
+            if current_thread() is self.thread:
                 return func(*args, **kwargs)
             else:
-                func.__enqueued__ = True
                 exp = Experiment(func, args, kwargs)
                 self.job_queue.put(exp)
-
+        
         return wrapper
 
     @property
