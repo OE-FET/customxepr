@@ -15,6 +15,7 @@ class CustomRichJupyterWidget(RichJupyterWidget):
 
     def __init__(self, *args, **kwargs):
         RichJupyterWidget.__init__(self, *args, **kwargs)
+        self.setWindowTitle("CustomXepr console")
         self.update_darkmode()
 
     def changeEvent(self, QEvent):
