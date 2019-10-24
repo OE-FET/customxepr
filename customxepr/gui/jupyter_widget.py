@@ -30,26 +30,3 @@ class CustomRichJupyterWidget(RichJupyterWidget):
             self.set_default_style()
 
         self.setStyleSheet('')
-
-
-if __name__ == '__main__':
-
-    from qtpy import QtWidgets
-    from qtconsole.inprocess import QtInProcessKernelManager
-
-    app = QtWidgets.QApplication([])
-
-    kernel_manager = QtInProcessKernelManager()
-    kernel_manager.start_kernel(show_banner=False)
-    kernel_manager.kernel.shell.banner1 = ''
-    kernel = kernel_manager.kernel
-
-    kernel_client = kernel_manager.client()
-    kernel_client.start_channels()
-
-    ipython_widget = CustomRichJupyterWidget(banner='Hi!')
-    ipython_widget.kernel_manager = kernel_manager
-    ipython_widget.kernel_client = kernel_client
-    ipython_widget.show()
-
-    app.exec_()
