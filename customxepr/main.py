@@ -4,7 +4,6 @@
 
 (c) Sam Schott; This work is licensed under a Creative Commons
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
-
 """
 import os
 import logging
@@ -268,16 +267,16 @@ class CustomXepr(object):
         # tune frequency and phase at 30 dB
         self.hidden['PowerAtten'].value = 30
         time.sleep(self._wait)
-        self._tuneFreq(freq_tolerance)
+        self.tuneFreq(freq_tolerance)
         time.sleep(self._wait)
-        self._tunePhase()
+        self.tunePhase()
         time.sleep(self._wait)
 
         # tune bias of reference arm at dB_max
         # (where diode current is determined by reference arm)
         self.hidden['PowerAtten'].value = dB_max
         time.sleep(self._wait)
-        self._tuneBias(bias_tolerance)
+        self.tuneBias(bias_tolerance)
         time.sleep(self._wait)
 
         # tune iris at 40 dB and 30 dB
@@ -292,7 +291,7 @@ class CustomXepr(object):
             self.hidden['PowerAtten'].value = atten
             time.sleep(self._wait)
 
-            self._tuneFreq(iris_tolerance)
+            self.tuneFreq(iris_tolerance)
             time.sleep(self._wait)
 
         # tune iris and phase and frequency at 20 dB and 10 dB
@@ -306,41 +305,41 @@ class CustomXepr(object):
 
             self.hidden['PowerAtten'].value = atten
             time.sleep(self._wait)
-            self._tunePhase()
+            self.tunePhase()
             time.sleep(self._wait)
-            self._tuneFreq(iris_tolerance)
+            self.tuneFreq(iris_tolerance)
             time.sleep(self._wait)
-            self._tuneFreq(freq_tolerance)
+            self.tuneFreq(freq_tolerance)
             time.sleep(self._wait)
 
         # tune bias at dB_max
         self.hidden['PowerAtten'].value = dB_max
         time.sleep(self._wait)
-        self._tuneBias(bias_tolerance)
+        self.tuneBias(bias_tolerance)
         time.sleep(self._wait)
 
         # tune iris at 15 dB
         self.hidden['PowerAtten'].value = 20
         time.sleep(self._wait)
-        self._tuneFreq(iris_tolerance)
+        self.tuneFreq(iris_tolerance)
         time.sleep(self._wait)
 
         # tune bias at dB_max
         self.hidden['PowerAtten'].value = dB_max
         time.sleep(self._wait)
-        self._tuneBias(bias_tolerance)
+        self.tuneBias(bias_tolerance)
         time.sleep(self._wait)
 
         # tune iris at dB_min
         self.hidden['PowerAtten'].value = dB_min
         time.sleep(self._wait)
-        self._tuneFreq(iris_tolerance)
+        self.tuneFreq(iris_tolerance)
         time.sleep(self._wait)
 
         # reset attenuation to original value, tune frequency again
         self.hidden['PowerAtten'].value = atten_start
         time.sleep(self._wait)
-        self._tuneFreq(freq_tolerance)
+        self.tuneFreq(freq_tolerance)
         time.sleep(self._wait)
 
         logger.status('Tuning done.')
@@ -549,7 +548,7 @@ class CustomXepr(object):
 
             # check for limits of diode range, readjust iris if necessary and abort
             if diode_curr_new in [0, 400]:
-                self._tuneIris(tolerance=10)
+                self.tuneIris(tolerance=10)
                 return
 
             # abort if phase at limit
@@ -629,10 +628,10 @@ class CustomXepr(object):
 
         time.sleep(3)
 
-        self._tuneFreq()
-        self._tuneFreq()
-        self._tuneBias()
-        self._tuneFreq()
+        self.tuneFreq()
+        self.tuneFreq()
+        self.tuneBias()
+        self.tuneFreq()
 
         self.hidden['PowerAtten'].value = att
         time.sleep(self._wait)
@@ -728,10 +727,10 @@ class CustomXepr(object):
 
         time.sleep(2)
 
-        self._tuneFreq()
-        self._tuneFreq()
-        self._tuneBias()
-        self._tuneFreq()
+        self.tuneFreq()
+        self.tuneFreq()
+        self.tuneBias()
+        self.tuneFreq()
 
         self.hidden['PowerAtten'].value = att
         time.sleep(self._wait)
@@ -942,9 +941,9 @@ class CustomXepr(object):
                 # tune frequency and iris when a new slice scan starts
                 if exp.isPaused and not nb_scans_done == nb_scans_to_do:
                     logger.status('Checking tuned.')
-                    self._tuneFreq(tolerance=3)
-                    self._tuneFreq(tolerance=3)
-                    self._tuneIris(tolerance=7)
+                    self.tuneFreq(tolerance=3)
+                    self.tuneFreq(tolerance=3)
+                    self.tuneIris(tolerance=7)
 
                     # start next scan
                     exp.aqExpRun()
