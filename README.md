@@ -253,14 +253,14 @@ By default, the relevant section in the config file reads:
 
 ```ini
 [SMTP]
-mailhost = smtp.office365.com
-port = 587
-fromaddr = customxepr@outlook.com
-credentials = ('customxepr@outlook.com', 'user@xepr')
-secure = ()
+mailhost = localhost
+port = 0
+fromaddr = ss2151@cam.ac.uk
+credentials =
+secure =
 ```
 
-Authentication credentials are specified as a `(username, password)` tuple. To specify the use
+Authentication credentials can be specified as a tuple `(username, password)`. To specify the use
 of a secure protocol (TLS), pass in a tuple for the `secure` argument. This will only be used when
 authentication credentials are supplied. The tuple will be either an empty tuple, or a single-value
 tuple with the name of a keyfile, or a 2-value tuple with the names of the keyfile and certificate
