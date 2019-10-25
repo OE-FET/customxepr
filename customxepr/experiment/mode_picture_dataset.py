@@ -221,7 +221,7 @@ class ModePicture(object):
 
         fig.show()
 
-    def save(self, filepath=None):
+    def save(self, filepath):
         """
         Saves mode picture data as a text file with headers. If no file path
         is given, the user is prompted to select a location and name through a
@@ -231,22 +231,17 @@ class ModePicture(object):
         """
         # create header and title for file
         time_str = time.strftime('%H:%M, %d/%m/%Y')
-        title = ('Cavity mode picture, recorded at %s\n'
-                 'Center frequency =  %0.3f GHz\n' % (time_str, self.freq0))
+        title = ['Cavity mode picture, recorded at {}'.format(time_str),
+                 'Center frequency = {:0.3f} GHz'.format(self.freq0)]
+        title = '\n'.join(title)
 
         header = ['freq [MHz]', 'MW abs. [a.u.]']
         header = '\t'.join(header)
 
-        data_matrix = [self.x_data_mhz, self.y_data]
-        data_matrix = zip(*data_matrix)
+        data_matrix = np.concatenate(([self.x_data_mhz], [self.y_data]), axis=0)
 
-
-        if len(filepath) > 4:
-            # noinspection PyTypeChecker
-            np.savetxt(filepath, data_matrix, fmt='%.9E', delimiter='\t',
-                       header=title+header)
-
-        return filepath
+        # noinspection PyTypeChecker
+        np.savetxt(filepath, data_matrix.T, fmt='%.9E', delimiter='\t', header=title+header)
 
     @staticmethod
     def load(filepath=None):
