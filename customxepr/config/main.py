@@ -44,7 +44,7 @@ DEFAULTS = [
               'port': 587,
               'fromaddr': 'customxepr@outlook.com',
               'credentials': ('customxepr@outlook.com', 'user@xepr'),
-              'secure': None,
+              'secure': (),
              }),
             ('Version',
              {'old_version': 'v2.2.1',
