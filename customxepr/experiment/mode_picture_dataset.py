@@ -240,15 +240,6 @@ class ModePicture(object):
         data_matrix = [self.x_data_mhz, self.y_data]
         data_matrix = zip(*data_matrix)
 
-        # save to file
-        if filepath is None:
-            from qtpy import QtWidgets
-            prompt = 'Save as file'
-            filename = 'untitled.txt'
-            formats = 'Text file (*.txt)'
-            filepath = QtWidgets.QFileDialog.getSaveFileName(None, prompt,
-                                                             filename, formats)
-            filepath = filepath[0]
 
         if len(filepath) > 4:
             # noinspection PyTypeChecker
