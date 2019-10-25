@@ -1255,7 +1255,7 @@ class CustomXepr(object):
     def getTemperature(self):
         """Returns the current temperature in Kelvin."""
         self._check_for_mercury()
-        return self.feed.readings['Temperature']
+        return self.feed.readings['Temp']
 
     @manager.queued_exec
     def getTemperatureSetpoint(self):
