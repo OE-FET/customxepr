@@ -16,11 +16,12 @@ nbScans = {5: 16, 10: 16, 20: 16, 30: 16, 50: 12, 80: 12, 110: 12, 140: 12, 170:
 multiplierVg = {0: 2.5, -10: 2.5, -20: 2.5, -30: 2, -40: 2, -50: 1.5, -60: 1, -70: 1}
 
 Vg = -70
+gate_smu = "smua"
 
 directory = '/home/ss2151/Dropbox/ESR_data_upload/my_sample'
 filename = 'my_sample'
 
-for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
+for T in (290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5):
 
     # ====================================================================================
     # Prepare temperature
@@ -44,48 +45,48 @@ for T in [290, 260, 230, 200, 170, 140, 110, 80, 50, 30, 20, 10, 5]:
     # Perform ESR measurements at Vg and background scan at 0V
     # ====================================================================================
 
-    for v in [0, Vg]:
+    for v in (0, Vg):
         path3 = "{0}/{1}_{2:03d}K_Vg_{3:03d}".format(directory, filename, T, v)
 
-        customXepr.setGateVoltage(v)
+        customXepr.setVoltage(v, smu=gate_smu)
         customXepr.runXeprExperiment(exp, path=path3,
                                     ModAmp=modAmp[T], PowerAtten=atten[T],
                                     SweepWidth=sweepWidth[T], NbScansToDo=nbScans[T])
-        customXepr.setGateVoltage(0)
+        customXepr.setVoltage(0, smu=gate_smu)
 
     # ====================================================================================
     # Perform PowerSat measurements at certain steps
     # ====================================================================================
-    if T in [5, 20, 50, 80, 140, 200, 260]:
+    if T in (5, 20, 50, 80, 140, 200, 260):
 
         customXepr.customtune()
 
         path4 = "{0}/{1}_PowerSat_{2:03d}K_Vg_{3:03d}".format(directory, filename, T, Vg)
 
-        customXepr.setGateVoltage(Vg)
+        customXepr.setVoltage(Vg, smu=gate_smu)
         customXepr.runXeprExperiment(pwrst, path=path4,
                                      ModAmp=modAmp[T], PowerAtten=atten[T],
                                      SweepWidth=sweepWidth[T])
-        customXepr.setGateVoltage(0)
+        customXepr.setVoltage(0, smu=gate_smu)
 
     # ====================================================================================
     # Gate voltage dependence
     # ====================================================================================
 
-    if T in [5, 50, 110, 170, 230, 290]:
+    if T in (5, 50, 110, 170, 230, 290):
 
         customXepr.customtune()
 
-        for v in [-10, -20, -30, -40, -50, -60]:
+        for v in (-10, -20, -30, -40, -50, -60):
 
             nscans = int(round(multiplierVg[v] * nbScans[T]))
             path5 = "{0}/{1}_{2:03d}K_Vg_{3:03d}".format(directory, filename, T, v)
 
-            customXepr.setGateVoltage(v)
+            customXepr.setVoltage(v, smu=gate_smu)
             customXepr.runXeprExperiment(
                     exp, path=path5,
                     ModAmp=modAmp[T], PowerAtten=atten[T],
                     SweepWidth=sweepWidth[T], NbScansToDo=nscans)
-            customXepr.setGateVoltage(0)
+            customXepr.setVoltage(0, smu=gate_smu)
 
     customXepr.sendEmail('Measurements at %sK completed.' % T)
