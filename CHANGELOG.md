@@ -21,7 +21,7 @@ This release drops support for Python 2.7. Only Python 3.6 and higher are suppor
     3) pre-installed version from Xepr
 - Renamed `applyCurrent` to `setCurrent`.
 - The `queued_exec` decorator is now an attribute of `customXepr.manager.Manager` and no longer
-  requires takes the job queue as an argument. Instead, the manager's `job_queue` will be used
+  requires the job queue as an argument. Instead, the manager's `job_queue` will be used
   automatically.
 - The `queued_exec` decorator now is re-entrant: decorated functions which are called from within
   the worker thread won't be queued themselves.
