@@ -30,11 +30,11 @@ This release drops support for Python 2.7. Only Python 3.6 and higher are suppor
 
 ##### Fixed:
 
-- Fixed a bug when plotting aquired results: This was related with the IPython kernel
+- Fixed a bug when plotting aquired results: This was related to the IPython kernel
   using the wrong GUI backend. It now uses the Qt backend.
 - Fixed a bug which would cause `XeprData.plot` to fail in case of multiple datasets per scan, e.g.,
-  for simultanious detection of the in-phase and ou-of-phase signals.
-- Fixed several bugs related to the migration to Python 3.
+  for simultanious detection of the in-phase and out-of-phase signals.
+- Fixed several Python 3 compatibility issues.
 
 ##### Removed:
 
