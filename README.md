@@ -229,11 +229,11 @@ for T in [5, 50, 100, 150, 200, 250, 300]:
 	# Perform EPR measurements at Vg = -70V and Vg = 0V
 	# =================================================================
 	for Vg in [0, -70]:
-        customXepr.biasGate(Vg)  # bias gate
+        customXepr.setVoltage(Vg, smu='smua')  # bias gate
         # perform preconfigured EPR measurement, save to 'esr_path'
         esr_file = folder + title + '_' + str(T) + 'K_Vg_' + str(Vg)
         customXepr.runXeprExperiment(exp, path=esr_file, ModAmp=modAmp[T])
-        customXepr.biasGate(0)  # set gate voltage to zero
+        customXepr.setVoltage(0, smu='smua')  # set gate voltage to zero
 
 customXepr.setStandby()  # ramp down field and set MW bridge to standby
 ```
