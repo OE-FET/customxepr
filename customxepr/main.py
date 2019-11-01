@@ -291,10 +291,10 @@ class CustomXepr(object):
             self.hidden['PowerAtten'].value = atten
             time.sleep(self._wait)
 
-            self.tuneFreq(iris_tolerance)
+            self.tuneIris(iris_tolerance)
             time.sleep(self._wait)
 
-        # tune iris and phase and frequency at 20 dB and 10 dB
+        # tune iris and phase and frequency at 20 dB and dB_min
         for atten in [20, dB_min]:
             # check for abort event, clear event
             if self.abort.is_set():
@@ -307,7 +307,7 @@ class CustomXepr(object):
             time.sleep(self._wait)
             self.tunePhase()
             time.sleep(self._wait)
-            self.tuneFreq(iris_tolerance)
+            self.tuneIris(iris_tolerance)
             time.sleep(self._wait)
             self.tuneFreq(freq_tolerance)
             time.sleep(self._wait)
@@ -321,7 +321,7 @@ class CustomXepr(object):
         # tune iris at 15 dB
         self.hidden['PowerAtten'].value = 20
         time.sleep(self._wait)
-        self.tuneFreq(iris_tolerance)
+        self.tuneIris(iris_tolerance)
         time.sleep(self._wait)
 
         # tune bias at dB_max
@@ -333,7 +333,7 @@ class CustomXepr(object):
         # tune iris at dB_min
         self.hidden['PowerAtten'].value = dB_min
         time.sleep(self._wait)
-        self.tuneFreq(iris_tolerance)
+        self.tuneIris(iris_tolerance)
         time.sleep(self._wait)
 
         # reset attenuation to original value, tune frequency again
