@@ -1408,7 +1408,7 @@ class CustomXepr(object):
         smu = getattr(self.keithley, smu)
 
         self.keithley.applyVoltage(smu, v)
-        self.keithley.beep(0.3, 2400)
+        self.keithley.beeper.beep(0.3, 2400)
 
     @manager.queued_exec
     def setCurrent(self, i, smu=KCONF.get('Sweep', 'drain')):
@@ -1424,7 +1424,7 @@ class CustomXepr(object):
         smu = getattr(self.keithley, smu)
 
         self.keithley.applyCurrent(smu, i)
-        self.keithley.beep(0.3, 2400)
+        self.keithley.beeper.beep(0.3, 2400)
 
 # ========================================================================================
 # Helper methods
