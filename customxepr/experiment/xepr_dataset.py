@@ -605,6 +605,13 @@ class XeprData(object):
         if path:
             self.load(path)
 
+    def __len__(self):
+        return len(self._x)
+
+    @property
+    def shape(self):
+        return tuple(len(a) for a in (self._x, self._y, self._z) if len(a) > 0)
+
     @property
     def x(self):
         """Returns x-axis data as numpy array."""
