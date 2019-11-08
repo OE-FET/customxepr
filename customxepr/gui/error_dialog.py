@@ -6,7 +6,6 @@
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
-from __future__ import division, absolute_import
 import sys
 from qtpy import QtCore, QtWidgets
 from pygments import highlight

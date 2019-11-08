@@ -6,7 +6,6 @@
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
-from __future__ import division, absolute_import, unicode_literals
 import os
 import markdown2
 from qtpy import QtWidgets, uic

@@ -6,8 +6,6 @@
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
-from __future__ import division, absolute_import, unicode_literals
-import sys
 import os
 import re
 import numpy as np
