@@ -247,45 +247,39 @@ class ModePicture(object):
         np.savetxt(filepath, data_matrix.T, fmt='%.9E', delimiter='\t', header=title+header)
 
     @staticmethod
-    def load(filepath=None):
+    def load(filepath):
         """
-        Loads mode picture data from text file. If no file path is given, the
-        user is prompted to select a location and name through a user interface.
+        Loads mode picture data from text file.
 
-        :param str filepath: Absolute file path.
+        :param str filepath: Absolute path to file.
         :returns: `(x_axis_mhz_comb, x_axis_points_comb, mode_pic_comb, freq0)`
             where `x_axis_mhz_comb` and `x_axis_points_comb` are the combined
             x-axis values of all mode pictures in mhz and points, respectively,
             `mode_pic_comb` is the combines y-axis data in a.u. and `freq0` is
             the center resonance frequency.
         """
-        if filepath is None:
-            from qtpy import QtWidgets
-            prompt = 'Select mode picture file'
-            filepath = QtWidgets.QFileDialog.getOpenFileName(None, prompt)
-            filepath = filepath[0]
 
-        if len(filepath) > 4:
-            data_matrix = np.loadtxt(filepath)
-            x_axis_mhz_comb = data_matrix[:, 0]
-            mode_pic_comb = data_matrix[:, 1]
+        data_matrix = np.loadtxt(filepath)
+        x_axis_mhz_comb = data_matrix[:, 0]
+        mode_pic_comb = data_matrix[:, 1]
 
-            x_axis_points_comb = 2 / 1e-3 * x_axis_mhz_comb
+        x_axis_points_comb = 2 / 1e-3 * x_axis_mhz_comb
 
-            freq = None
-            with open(filepath, 'r') as fh:
-                for line in fh:
-                    if 'GHz' in line:
-                        freq = list(filter(lambda x: x in '0123456789.', line))
-                        freq = ''.join(freq)
-                        break
+        freq = None
+        with open(filepath, 'r') as fh:
+            for line in fh:
+                if 'GHz' in line:
+                    freq = list(filter(lambda x: x in '0123456789.', line))
+                    freq = ''.join(freq)
+                    break
 
-            if freq is None:
-                raise RuntimeError('Could not find frequency information.')
+        if freq is None:
+            raise RuntimeError('Could not find frequency information.')
 
-            freq0 = float(freq[0])
+        freq0 = float(freq[0])
 
-            return x_axis_mhz_comb, x_axis_points_comb, mode_pic_comb, freq0
+        return x_axis_mhz_comb, x_axis_points_comb, mode_pic_comb, freq0
+
 
     def __repr__(self):
         return '<{0}(QValue = {1}+/-{2}, freq = {3}GHz)>'.format(
