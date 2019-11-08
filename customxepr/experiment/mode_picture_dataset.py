@@ -35,6 +35,7 @@ class ModePicture(object):
 
     :param dict mode_pic_data: Dict with zoom factors as keys and respective mode picture
         data sets as values.
+    :param filepath: Path to file with saved mode picture data.
     :param float freq: Cavity resonance frequency in GHz as float.
 
     :ivar x_data_mhz: Numpy array with x-axis data of mode picture in MHz.
@@ -45,10 +46,13 @@ class ModePicture(object):
     :ivar qvalue_stderr: Standard error of Q-Value from fitting.
     """
 
-    def __init__(self, mode_pic_data=None, freq=9.385):
+    def __init__(self, mode_pic_data=None, filepath=None, freq=9.385):
+
+        if not (filepath or mode_pic_data) or (filepath and mode_pic_data):
+            raise ValueError('You must either give mode picture data or a file path.')
 
         if mode_pic_data is None:
-            self.x_data_mhz, self.x_data_points, self.y_data, self.freq0 = self.load()
+            self.x_data_mhz, self.x_data_points, self.y_data, self.freq0 = self.load(filepath)
         else:
             if not isinstance(mode_pic_data, dict):
                 raise TypeError('"mode_pic_data" must be a dictionary containing ' +
