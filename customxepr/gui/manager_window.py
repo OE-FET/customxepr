@@ -543,9 +543,12 @@ class ManagerApp(QtWidgets.QMainWindow):
         result = self.result_queue.queue[index]
 
         try:
-            result_size = len(result)
-        except TypeError:
-            result_size = '--'
+            result_size = result.shape
+        except AttributeError:
+            try:
+                result_size = len(result)
+            except TypeError:
+                result_size = '--'
 
         if self.plotCheckBox.isChecked():
             try:
