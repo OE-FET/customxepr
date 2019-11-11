@@ -17,11 +17,13 @@ try:
     from qtpy import QtWidgets
     IP = get_ipython()
     if IP:
-        IP.enable_gui("qt")
-        IP.run_line_magic("load_ext", "autoreload")
-        IP.run_line_magic("autoreload", "0")
+        IP.enable_gui('qt')
+        IP.run_line_magic('load_ext', 'autoreload')
+        IP.run_line_magic('autoreload', '0')
         # create app here to trigger start of IPython Qt event loop
         app = QtWidgets.QApplication(['CustomXepr'])
+        import matplotlib
+        matplotlib.use('Qt5Agg')
 except ImportError:
     IP = None
 
@@ -237,7 +239,7 @@ def run(gui=True):
             def exit_customxepr():
                 _exit_hook(instruments=(mercury, keithley), guis=ui)
                 IP.ask_exit_saved()
-            
+
             splash.close()
 
         else:
