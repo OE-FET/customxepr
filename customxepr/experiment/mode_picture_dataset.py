@@ -33,9 +33,8 @@ class ModePicture(object):
     :class:`ModePicture` will rescale and combine the data into a single mode
     picture.
 
-    :param dict mode_pic_data: Dict with zoom factors as keys and respective mode picture
-        data sets as values.
-    :param filepath: Path to file with saved mode picture data.
+    :param dict input_path_or_data: Dict with zoom factors as keys and respective mode
+        picture data sets as values or path to file with saved mode picture data.
     :param float freq: Cavity resonance frequency in GHz as float.
 
     :ivar x_data_mhz: Numpy array with x-axis data of mode picture in MHz.
@@ -46,23 +45,20 @@ class ModePicture(object):
     :ivar qvalue_stderr: Standard error of Q-Value from fitting.
     """
 
-    def __init__(self, mode_pic_data=None, filepath=None, freq=9.385):
+    def __init__(self, input_path_or_data, freq=9.385):
 
-        if not (filepath or mode_pic_data) or (filepath and mode_pic_data):
-            raise ValueError('You must either give mode picture data or a file path.')
-
-        if mode_pic_data is None:
-            self.x_data_mhz, self.x_data_points, self.y_data, self.freq0 = self.load(filepath)
-        else:
-            if not isinstance(mode_pic_data, dict):
-                raise TypeError('"mode_pic_data" must be a dictionary containing ' +
-                                'mode pictures for with different zoom factors.')
-
-            self.mode_pic_data = mode_pic_data
+        if isinstance(input_path_or_data, str):
+            path = input_path_or_data
+            self.x_data_mhz, self.x_data_points, self.y_data, self.freq0 = self.load(path)
+        elif isinstance(input_path_or_data, dict):
+            self.mode_pic_data = input_path_or_data
             self.freq0 = freq
 
-            self.zoom_factors = list(mode_pic_data.keys())
-            self.x_data_mhz, self.x_data_points, self.y_data = self.combine_data(mode_pic_data)
+            self.zoom_factors = list(self.mode_pic_data.keys())
+            self.x_data_mhz, self.x_data_points, self.y_data = self.combine_data(self.mode_pic_data)
+        else:
+            raise TypeError('First argument must be a dictionary containing mode ' +
+                            'picture data or a path to a mode picture file.')
 
         self.qvalue, self.fit_result = self.fit_qvalue(self.x_data_points, self.y_data)
         self.qvalue_stderr = self.get_qvalue_stderr()
