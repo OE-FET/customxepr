@@ -512,19 +512,24 @@ class ManagerApp(QtWidgets.QMainWindow):
         """
 
         exp = self.job_queue.queue[index]
+        try:
+            sig = inspect.signature(exp.func)
+        except (ValueError, TypeError):
+            str_list = str_list_short = 'Could not construct signature'
+        else:
+            binding = sig.bind(*exp.args, **exp.kwargs)
+            binding.apply_defaults()
 
-        argspec = inspect.getfullargspec(exp.func)
+            arg_strings = list(binding.arguments.keys())
+            val_strings = list(repr(v) for v in binding.arguments.values())
+            val_strings_short = self._trunc_str_list(val_strings)
 
-        argument_strings = [v for v in list(argspec.args) + list(exp.kwargs.keys())]
-        value_strs = [repr(v) for v in list(exp.args) + list(exp.kwargs.values())]
-        value_strs_short = self._trunc_str_list(value_strs)
+            str_list = ['{}={!r}'.format(n, v) for n, v in binding.arguments.items()]
+            str_list_short = ['{}={}'.format(n, v) for n, v in zip(arg_strings, val_strings_short)]
 
-        str_list = ['%s=%s' % (n, v) for n, v in zip(argument_strings, value_strs)]
-        str_list_short = ['%s=%s' % (n, v) for n, v in zip(argument_strings, value_strs_short)]
-
-        if len(argspec.args) > 0 and argspec.args[0] == 'self':
-            str_list.pop(0)
-            str_list_short.pop(0)
+            if len(arg_strings) > 0 and arg_strings[0] == 'self':
+                str_list.pop(0)
+                str_list_short.pop(0)
 
         func_item = QtGui.QStandardItem(exp.func.__name__)
         func_item.setToolTip(exp.func.__name__)
