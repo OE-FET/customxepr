@@ -124,9 +124,9 @@ def connect_to_instruments():
         logging.info('No running Xepr instance could be found.')
         xepr = None
 
-    mercury = MercuryITC(mercury_address, mercury_visa_lib, open_timeout=1)
+    mercury = MercuryITC(mercury_address, mercury_visa_lib, open_timeout=1, timeout=5000)
     mercury_feed = MercuryFeed(mercury)
-    keithley = Keithley2600(keithley_address, keithley_visa_lib, open_timeout=1)
+    keithley = Keithley2600(keithley_address, keithley_visa_lib, open_timeout=1, timeout=5000)
     customXepr = CustomXepr(xepr, mercury_feed, keithley)
 
     return xepr, customXepr, mercury, mercury_feed, keithley
