@@ -1,4 +1,4 @@
-#### v3.0.0-dev
+#### v3.0.0
 
 This release drops support for Python 2.7. Only Python 3.6 and higher are supported.
 
@@ -28,6 +28,8 @@ This release drops support for Python 2.7. Only Python 3.6 and higher are suppor
   within the worker thread won't be queued themselves.
 - Moved `CustomXepr._wait_stable` to a public method `CustomXepr.waitTemperatureStable`.
 - Enforce usage of `exit_customxepr()` to exit.
+- Set the default address for email notifications to 'physics-oe-esr-owner@lists.cam.ac.uk'.
+- Increased the default timeout for PyVisa communication from 2 sec to 5 sec.
 
 ##### Fixed:
 
