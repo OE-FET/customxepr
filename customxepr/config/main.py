@@ -42,7 +42,7 @@ DEFAULTS = [
              {
               'mailhost': 'localhost',
               'port': 0,
-              'fromaddr': 'ss2151@cam.ac.uk',
+              'fromaddr': 'physics-oe-esr-owner@lists.cam.ac.uk',
               'credentials': None,
               'secure': None,
              }),
