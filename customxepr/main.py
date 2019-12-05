@@ -703,6 +703,8 @@ class CustomXepr(object):
         time.sleep(self._wait)
         self.hidden['RefArm'].value = 'Off'
         time.sleep(self._wait)
+        self.hidden['LogScaleEnab'].value = False  # ensure linear scale mode picture
+        time.sleep(self._wait)
         self.hidden['PowerAtten'].value = 33
         time.sleep(1)
 
