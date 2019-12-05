@@ -1,3 +1,14 @@
+#### v3.1.0-dev1
+
+##### Changed:
+
+- `CustomXepr.tune` and `CustomXepr.finetune` are now abortable.
+
+##### Fixed:
+
+- Fixes an issue where `CustomXepr.tune` and `CustomXepr.finetune` would return
+  immediately, even if tuning was not complete.
+
 #### v3.0.0
 
 This release drops support for Python 2.7. Only Python 3.6 and higher are supported.

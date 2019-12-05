@@ -29,7 +29,7 @@ except ImportError:
 
 __author__ = 'Sam Schott <ss2151@cam.ac.uk>'
 __year__ = str(time.localtime().tm_year)
-__version__ = 'v3.0.0'
+__version__ = 'v3.1.0-dev1'
 __url__ = 'https://customxepr.readthedocs.io'
 
 
@@ -215,7 +215,7 @@ class CustomXepr(object):
         """
 
         self._check_for_xepr()
-        
+
         idle_state = self.hidden['TuneState'].value
         time.sleep(self._wait)
 
@@ -223,7 +223,7 @@ class CustomXepr(object):
         time.sleep(self._wait)
         self.hidden['Tune'].value = 'Up'
         time.sleep(self._wait)
-        
+
         while self.hidden['TuneState'].value == idle_state:
             if self.abort.is_set():
                 self.hidden['Tune'].value = 'Stop'
@@ -241,7 +241,7 @@ class CustomXepr(object):
                 return
             else:
                 time.sleep(1)
-        
+
     @manager.queued_exec
     def finetune(self):
         """
@@ -253,7 +253,7 @@ class CustomXepr(object):
 
         self.hidden['Tune'].value = 'Fine'
         time.sleep(self._wait)
-        
+
         while self.hidden['TuneState'].value == idle_state:
             if self.abort.is_set():
                 self.hidden['Tune'].value = 'Stop'
