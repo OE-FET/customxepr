@@ -215,10 +215,21 @@ class CustomXepr(object):
         """
 
         self._check_for_xepr()
+        
+        idle_state = self.hidden['TuneState'].value
+        time.sleep(self._wait)
 
         self.hidden['OpMode'].value = 'Tune'
+        time.sleep(self._wait)
         self.hidden['Tune'].value = 'Up'
-
+        time.sleep(self._wait)
+        
+        while self.hidden['TuneState'] == idle_state:
+            time.sleep(1)  # wait until tuning starts
+        
+        while self.hidden['TuneState'] != idle_state:
+            time.sleep(1)  # wait until tuning is done
+        
     @manager.queued_exec
     def finetune(self):
         """
@@ -226,8 +237,16 @@ class CustomXepr(object):
         """
 
         self._check_for_xepr()
+        idle_state = self.hidden['TuneState'].value
 
         self.hidden['Tune'].value = 'Fine'
+        time.sleep(self._wait)
+        
+        while self.hidden['TuneState'] == idle_state:
+            time.sleep(1)  # wait until tuning starts
+        
+        while self.hidden['TuneState'] != idle_state:
+            time.sleep(1)  # wait until tuning is done
 
     @manager.queued_exec
     def customtune(self, low_q=False):
