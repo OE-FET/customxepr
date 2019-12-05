@@ -224,11 +224,23 @@ class CustomXepr(object):
         self.hidden['Tune'].value = 'Up'
         time.sleep(self._wait)
         
-        while self.hidden['TuneState'] == idle_state:
-            time.sleep(1)  # wait until tuning starts
-        
-        while self.hidden['TuneState'] != idle_state:
-            time.sleep(1)  # wait until tuning is done
+        while self.hidden['TuneState'].value == idle_state:
+            if self.abort.is_set():
+                self.hidden['Tune'].value = 'Stop'
+                time.sleep(self._wait)
+                logger.info('Tuning aborted by user.')
+                return
+            else:
+                time.sleep(1)
+
+        while self.hidden['TuneState'].value != idle_state:
+            if self.abort.is_set():
+                self.hidden['Tune'].value = 'Stop'
+                time.sleep(self._wait)
+                logger.info('Tuning aborted by user.')
+                return
+            else:
+                time.sleep(1)
         
     @manager.queued_exec
     def finetune(self):
@@ -242,11 +254,23 @@ class CustomXepr(object):
         self.hidden['Tune'].value = 'Fine'
         time.sleep(self._wait)
         
-        while self.hidden['TuneState'] == idle_state:
-            time.sleep(1)  # wait until tuning starts
-        
-        while self.hidden['TuneState'] != idle_state:
-            time.sleep(1)  # wait until tuning is done
+        while self.hidden['TuneState'].value == idle_state:
+            if self.abort.is_set():
+                self.hidden['Tune'].value = 'Stop'
+                time.sleep(self._wait)
+                logger.info('Tuning aborted by user.')
+                return
+            else:
+                time.sleep(1)
+
+        while self.hidden['TuneState'].value != idle_state:
+            if self.abort.is_set():
+                self.hidden['Tune'].value = 'Stop'
+                time.sleep(self._wait)
+                logger.info('Tuning aborted by user.')
+                return
+            else:
+                time.sleep(1)
 
     @manager.queued_exec
     def customtune(self, low_q=False):
