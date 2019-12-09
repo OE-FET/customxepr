@@ -49,7 +49,7 @@ class ErrorDialog(QtWidgets.QDialog):
         self.gridLayout.addWidget(self.buttonBox)
 
 
-def new_except_hook(etype, evalue, tb):
+def dialog_except_hook(etype, evalue, tb):
     """
     Custom exception hook which displays exceptions from threads in a QMessageBox.
     """
@@ -61,18 +61,17 @@ def new_except_hook(etype, evalue, tb):
     msg_box.exec_()
 
 
-def _patch_excepthook():
+def patch_excepthook(new_except_hook=dialog_except_hook):
     """
-    Replaces old exception hook with new.
-    """
-    sys.excepthook = new_except_hook
-
-
-def patch_excepthook():
-    """
-    Replaces old exception hook with new in Qt event loop.
+    Replaces old exception hook with new hook :param:`new_except_hook` in Qt event loop.
     """
     global TIMER
+
+    def _patch_excepthook():
+        """
+        Replaces old exception hook with new.
+        """
+        sys.excepthook = new_except_hook
 
     TIMER = QtCore.QTimer()
     TIMER.setSingleShot(True)
