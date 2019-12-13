@@ -6,7 +6,7 @@
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
-from qtpy import QtCore
+from PyQt5 import QtCore
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from keithleygui.pyqt_labutils.dark_mode_support import isDarkWindow
 

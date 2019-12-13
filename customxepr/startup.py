@@ -14,7 +14,7 @@ import logging
 
 try:
     from IPython import get_ipython
-    from qtpy import QtWidgets
+    from PyQt5 import QtWidgets
     IP = get_ipython()
     if IP:
         IP.enable_gui('qt')
@@ -42,10 +42,10 @@ def get_qt_app():
     from an IPython console with Qt backend).
 
     :returns: QApplication instance.
-    :rtype: `qtpy.QtWidgets.QApplication`
+    :rtype: `PyQt5.QtWidgets.QApplication`
     """
 
-    from qtpy import QtCore, QtWidgets
+    from PyQt5 import QtCore, QtWidgets
 
     if IP:
         os.environ.update(SPY_UMR_ENABLED='False')
@@ -68,10 +68,10 @@ def show_splash_screen():
     """
     Shows the CustomXepr splash screen.
 
-    :returns: :class:`qtpy.QtWidgets.QSplashScreen`.
+    :returns: :class:`PyQt5.QtWidgets.QSplashScreen`.
     """
 
-    from qtpy import QtWidgets
+    from PyQt5 import QtWidgets
     from customxepr.gui import SplashScreen
 
     splash = SplashScreen()

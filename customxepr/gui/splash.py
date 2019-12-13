@@ -8,7 +8,7 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 """
 import os
 
-from qtpy import QtWidgets, uic, QtGui, QtCore
+from PyQt5 import QtWidgets, QtGui, QtCore, uic
 
 SPLASH_UI_PATH = os.path.join(os.path.dirname(__file__), "splash.ui")
 LOGO_PATH = os.path.join(os.path.dirname(__file__), "resources/logo@2x.png")

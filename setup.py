@@ -56,7 +56,7 @@ setup(
                 "numpy",
                 "pygments",
                 "PySignal",
-                "qtpy",
+                "PyQt5",
                 "qtconsole",
                 "configparser;python_version<='2.7'",
                 "scipy",

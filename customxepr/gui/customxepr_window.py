@@ -8,7 +8,7 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 """
 import os
 import platform
-from qtpy import QtWidgets, uic
+from PyQt5 import QtWidgets, uic
 
 from customxepr.gui.manager_window import ManagerApp, logger
 

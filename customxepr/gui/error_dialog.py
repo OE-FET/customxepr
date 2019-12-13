@@ -7,7 +7,7 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
 import sys
-from qtpy import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import PythonTracebackLexer

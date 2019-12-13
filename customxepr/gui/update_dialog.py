@@ -8,7 +8,7 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 """
 import os
 import markdown2
-from qtpy import QtWidgets, uic
+from PyQt5 import QtWidgets, uic
 
 from customxepr.main import __version__, __url__
 

@@ -7,7 +7,7 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
 import os
-from qtpy import QtWidgets, uic
+from PyQt5 import QtWidgets, uic
 
 from customxepr.main import CustomXepr, __version__, __year__, __author__, __url__
 

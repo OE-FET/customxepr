@@ -15,7 +15,7 @@ import subprocess
 import re
 import inspect
 import webbrowser
-from qtpy import QtCore, QtWidgets, QtGui, uic
+from PyQt5 import QtCore, QtWidgets, QtGui, uic
 
 # local imports
 from customxepr.gui.about_window import AboutWindow
@@ -70,7 +70,7 @@ class QStatusLogHandler(logging.Handler, QtCore.QObject):
     Handler which emits a signal containing the logging message for every
     logged event. The signal will be connected to "Status" field of the GUI.
     """
-    status_signal = QtCore.Signal(str)
+    status_signal = QtCore.pyqtSignal(str)
 
     def __init__(self):
         logging.Handler.__init__(self)
@@ -88,7 +88,7 @@ class QErrorLogHandler(logging.Handler, QtCore.QObject):
     Handler which emits a signal containing the error message.
     """
 
-    error_signal = QtCore.Signal(tuple)
+    error_signal = QtCore.pyqtSignal(tuple)
 
     def __init__(self):
         logging.Handler.__init__(self)
