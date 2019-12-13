@@ -1,12 +1,26 @@
-#### v3.0.0-dev
+#### v3.1.0-dev1
+
+##### Changed:
+
+- `CustomXepr.tune` and `CustomXepr.finetune` can now be aborted.
+- Changed the default email address for notifications to
+  "physics-oe-esr-owner@lists.cam.ac.uk".
+
+##### Fixed:
+
+- Fixes an issue where `CustomXepr.tune` and `CustomXepr.finetune` would return
+  immediately, even if tuning was not complete.
+
+#### v3.0.0
 
 This release drops support for Python 2.7. Only Python 3.6 and higher are supported.
 
 ##### Added:
 
 - Method `CustomXepr.getExpDuration` to estimate the duration of an Xepr experiment.
-- Added synchonous functions for all of CustomXepr's asynchronous functions (which will be queued).
-  These are automatically generated and end with the suffix "_sync".
+- Added synchonous functions for all of CustomXepr's asynchronous functions (which will be
+  queued). These are automatically generated and end with the suffix "_sync".
+- Added `shape` attribute to `XeprData` class.
 
 ##### Changed:
 
@@ -15,23 +29,28 @@ This release drops support for Python 2.7. Only Python 3.6 and higher are suppor
 - Renamed `setDrainCurrent` to `setCurrent` and `setGateVoltage` to `setVoltage`.
 - `setVoltage` no longer turns the other SMUs off.
 - Optimized the truncation of long items in the list of running expriements.
-- Changed the search order for the XeprAPI:
+- Changed the priority of locations to search for the XeprAPI:
     1) path from the environment variable `XEPR_API_PATH` (if set)
     2) installed python packages
-    3) pre-installed version with Xepr
+    3) pre-installed version from Xepr
 - Renamed `applyCurrent` to `setCurrent`.
-- The `queued_exec` decorator is now an attribute of `customXepr.manager.Manager` and no longer
-  requires giving the job queue as an argument.
-- The `queued_exec` decorator now is reentrant: decorated functions which are called from within a
-  queued function won't be queued themselves.
+- The `queued_exec` decorator is now an attribute of `customXepr.manager.Manager` and no
+  longer requires the job queue as an argument. Instead, the manager's `job_queue` will be
+  used automatically.
+- The `queued_exec` decorator now is re-entrant: decorated functions which are called from
+  within the worker thread won't be queued themselves.
 - Moved `CustomXepr._wait_stable` to a public method `CustomXepr.waitTemperatureStable`.
+- Enforce usage of `exit_customxepr()` to exit.
+- Set the default address for email notifications to 'physics-oe-esr-owner@lists.cam.ac.uk'.
+- Increased the default timeout for PyVisa communication from 2 sec to 5 sec.
 
 ##### Fixed:
 
-- Fixed a bug when plotting aquired results: This was related with the IPython kernel
-  using the wrong GUI backend. It now uses the Qt backend.
-- Fixed a bug which would cause `XeprData.plot` to fail in case of multiple datasets per scan, e.g.,
-  for simultanious detection of the in-phase and ou-of-phase signals.
+- Fixed a bug when plotting aquired results: This was related to the IPython kernel or the
+  interactive console using the wrong GUI backend. It now uses the Qt backend.
+- Fixed a bug which would cause `XeprData.plot` to fail in case of multiple datasets per
+  scan, e.g., for simultanious detection of the in-phase and out-of-phase signals.
+- Fixed several Python 3 compatibility issues.
 
 ##### Removed:
 
@@ -114,7 +133,7 @@ complex data and more exotic data formats.
   e.g., the number of significant digits, will be preserved unless the parameter value
   has changes
 
-#### Fixed:
+##### Fixed:
 
 - Fixed a bug in `XeprData` which would save y-axis and z-axis data files with the wrong
   byte-order. Ordinate data and x-axis data were not affected. Xepr expects data files to
@@ -151,7 +170,7 @@ fully separates UI from non-UI modules.
 - Removed all Qt related dependencies from non-GUI modules. This makes it easier to run
   CustomXepr in headless mode from the command line.
 
-#### Removed:
+##### Removed:
 
 - Deprecated `set_param` and `get_param` methods of `XeprData`. Use the `pars` attribute
   with dictionary type access instead.
@@ -171,7 +190,7 @@ the user interface (plotting data, deleting a large number of queued jobs, etc).
   previously _O(n^2)_, now _O(n)_ performance.
 - Better organization of code into submodules.
 
-#### Fixed:
+##### Fixed:
 
 - Bug fixes for PyQt 5.12.
 
@@ -195,7 +214,7 @@ format.
   and temperature set point.
 - Tweaked icons in user interface.
 
-#### Removed:
+##### Removed:
 
 - Removed the option to specify a title when saving an ESR data file. The file
   name is now always used as title.
@@ -233,14 +252,14 @@ improvements.
 - CustomXepr is now distributed as a python package and can be installed with
   pip.
 
-#### Fixed:
+##### Fixed:
 
 - Fixed a bug that could result in values inside spin-boxes to be displayed
   without their decimal marker on some systems.
 - Fixed a bug that could result in crashes after closing the keithley or
   mercury control windows.
 
-#### Removed:
+##### Removed:
 
 - Removed all ETA estimates for experiments.
 
@@ -256,7 +275,7 @@ improvements.
 - Proper disconnection from instruments when closing windows or shutting down
   the console with "exit" command.
 
-#### Fixed:
+##### Fixed:
 
 - Fixed a bug that would prevent Xepr experiments to run if the measurement
   time cannot be estimated. Applies for instance to rapid scan and time domain
@@ -272,7 +291,7 @@ improvements.
 
 - Split off mercury_gui and keithley_gui as separate packages.
 
-#### Removed:
+##### Removed:
 
 - Removed dark theme: code is easier to maintain. System level dark themes,
   such as macOS Mojave's dark mode, may be supported in the future when Qt
