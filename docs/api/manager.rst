@@ -8,11 +8,11 @@ Job scheduling
    :members:
    :show-inheritance:
 
-.. autoclass:: queued_exec
+.. autoclass:: Experiment
    :members:
    :show-inheritance:
 
-.. autoclass:: Experiment
+.. autoclass:: ExpStatus
    :members:
    :show-inheritance:
 
