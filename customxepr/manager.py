@@ -422,10 +422,10 @@ class Manager(object):
     experiments. All results will be kept in the `result_queue` for later retrieval.
 
     Function calls can be queued as experiments by decorating the function with the
-    :func:`manager.queued_exec` decorator:
+    :attr:`Manager.queued_exec` decorator:
 
     >>> import time
-    >>> from customxepr.manager import Manager, queued_exec
+    >>> from customxepr.manager import Manager
     >>> manager = Manager()
 
     >>> # create test function
@@ -533,7 +533,7 @@ class Manager(object):
             else:
                 exp = Experiment(func, args, kwargs)
                 self.job_queue.put(exp)
-        
+
         return wrapper
 
     @property

@@ -172,7 +172,7 @@ class CustomXepr(object):
     @manager.queued_exec
     def sendEmail(self, body):
         """
-        Sends a text to the default email address.
+        Sends an email to the list of addresses given by :attr:`notify_address`.
 
         :param str body: Text to send.
         """
@@ -277,7 +277,7 @@ class CustomXepr(object):
         """
         Custom tuning routine with higher accuracy. It takes longer than :meth:`tune`
         and requires the spectrometer to be already close to tuned. In case of Q-values
-        < 4500, you can set ``lowQ`` to `True` so that the tuning routine will cycle
+        < 4500, you can set ``lowQ`` to ``True`` so that the tuning routine will cycle
         through a smaller range of microwave powers. If Q < 3000, it is recommended to
         tune the spectrometer manually.
 
@@ -390,8 +390,8 @@ class CustomXepr(object):
     @manager.queued_exec
     def tuneBias(self, tolerance=1):
         """
-        Tunes the diode bias. A perfectly tuned bias results in a diode current of 200 mA
-        for all microwave powers.
+        Tunes the diode bias only. A perfectly tuned bias results in a diode current of
+        200 mA for all microwave powers.
 
         :param int tolerance: Minimum diode current offset that must be achieved before
             :meth:`tuneBias` returns.
@@ -439,7 +439,7 @@ class CustomXepr(object):
     @manager.queued_exec
     def tuneIris(self, tolerance=1):
         """
-        Tunes the cavity's iris. A perfectly tuned iris results in a diode current of
+        Tunes the cavity's iris only. A perfectly tuned iris results in a diode current of
         200 mA for all microwave powers.
 
         :param int tolerance: Minimum diode current offset that must be achieved before
@@ -491,7 +491,7 @@ class CustomXepr(object):
     @manager.queued_exec
     def tuneFreq(self, tolerance=2):
         """
-        Tunes the microwave frequency to a lock offset close to zero.
+        Tunes the microwave frequency only, to a lock offset close to zero.
 
         :param int tolerance: Minimum lock offset that must be achieved before
             :meth:`tuneFreq` returns.
@@ -522,7 +522,8 @@ class CustomXepr(object):
     @manager.queued_exec
     def tunePhase(self):
         """
-        Tunes the phase of the MW reference arm to maximise the diode current.
+        Tunes the phase of the MW reference arm only such that the diode current is
+        maximized.
         """
         self._check_for_xepr()
         # check for abort event
@@ -709,7 +710,7 @@ class CustomXepr(object):
             Defaults to room temperature.
 
         :returns: Mode picture instance.
-        :rtype: :class:`mode_picture.ModePicture`
+        :rtype: :class:`experiment.mode_picture_dataset.ModePicture`
         """
 
         self._check_for_xepr()
@@ -868,8 +869,8 @@ class CustomXepr(object):
         Runs the Xepr experiment ``exp``. Keyword arguments ``kwargs`` allow the user to
         pass experiment settings to Xepr (e.g., 'ModAmp' for modulation amplitude).
         Allowed parameters will depend on the type of experiment and its functional
-        units, e.g., 'mwBridge', 'fieldCtrl' etc. You can get a list of all units an their
-        parameters for a given experiment ``exp`` as follows:
+        units, e.g., 'mwBridge', 'fieldCtrl' etc. You can get a list of all units and
+        their parameters for a given experiment ``exp`` as follows:
 
         >>> print(exp.getFuList())
             ['acqStart',
@@ -914,7 +915,7 @@ class CustomXepr(object):
             Allowed parameters will depend on the type of experiment.
 
         :returns: Xepr dataset.
-        :rtype: :class:`customxepr.experiment.XeprData` instance.
+        :rtype: :class:`experiment.xepr_dataset.XeprData` instance.
         """
 
         self._check_for_xepr()
