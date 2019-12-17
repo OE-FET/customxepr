@@ -3,8 +3,9 @@
 ##### Changed:
 
 - `CustomXepr.tune` and `CustomXepr.finetune` can now be aborted.
-- Changed the default email address for notifications to
-  physics-oe-esr-owner@lists.cam.ac.uk.
+- `ModePicture.load(...)` no longer returns the raw data but rather populates the class
+  attributes of `ModePicture` with the loaded data.
+- Changed the default email address for notifications to physics-oe-esr-owner@lists.cam.ac.uk.
 - Require PyQt5 instead of qtpy / PySide2.
 
 ##### Fixed:
