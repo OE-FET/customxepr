@@ -15,9 +15,8 @@ documented in the pages for the respective submodules:
 .. toctree::
    :maxdepth: 1
 
-   mode_picture_dataset <mode_picture_dataset>
    xepr_dataset <xepr_dataset>
-
+   mode_picture_dataset <mode_picture_dataset>
 
 .. module:: experiment
 
