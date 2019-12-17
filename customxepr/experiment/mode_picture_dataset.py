@@ -49,7 +49,7 @@ class ModePicture(object):
 
         if isinstance(input_path_or_data, str):
             path = input_path_or_data
-            self.x_data_mhz, self.x_data_points, self.y_data, self.freq0 = self.load(path)
+            self.x_data_mhz, self.x_data_points, self.y_data, self.freq0 = self._load(path)
         elif isinstance(input_path_or_data, dict):
             self.mode_pic_data = input_path_or_data
             self.freq0 = freq
@@ -243,8 +243,17 @@ class ModePicture(object):
         # noinspection PyTypeChecker
         np.savetxt(filepath, data_matrix.T, fmt='%.9E', delimiter='\t', header=title+header)
 
+    def load(self, filepath)
+        """
+        Loads mode picture data from text file and determines the resulting Q-factor.
+        """
+        self.x_data_mhz, self.x_data_points, self.y_data, self.freq0 = self._load(path)
+
+        self.qvalue, self.fit_result = self.fit_qvalue(self.x_data_points, self.y_data)
+        self.qvalue_stderr = self.get_qvalue_stderr()
+
     @staticmethod
-    def load(filepath):
+    def _load(filepath):
         """
         Loads mode picture data from text file.
 
