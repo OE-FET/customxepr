@@ -15,6 +15,8 @@ pictures.
    xepr_dataset <xepr_dataset>
 
 
+.. module:: experiment
+
 .. autoclass:: XeprData
    :members:
    :show-inheritance:
