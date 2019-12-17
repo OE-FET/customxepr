@@ -8,6 +8,10 @@ manipulate and plot Xepr datasets from Bruker's BES3T file format.
 ``mode_picture_dataset.xepr_dataset`` defines classes to read, write and plot cavity mode
 pictures.
 
+
+This page documents the main classes available from ``experiment``. The full API is
+documented in the pages for the respective submodules:
+
 .. toctree::
    :maxdepth: 1
 
