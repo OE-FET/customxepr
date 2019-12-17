@@ -196,6 +196,7 @@ class ModePicture(object):
     def plot(self):
         """
         Plots mode picture and the least squares fit used to determine the Q-value.
+        Requires matplotlib.
         """
         try:
             import matplotlib.pyplot as plt

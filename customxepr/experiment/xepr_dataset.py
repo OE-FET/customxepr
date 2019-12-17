@@ -882,7 +882,7 @@ class XeprData(object):
 
     def plot(self):
         """
-        Plots all recorded spectra / sweeps as 2D or 3D plots.
+        Plots all recorded spectra / sweeps as 2D or 3D plots. Requires matplotlib.
         """
 
         try:
