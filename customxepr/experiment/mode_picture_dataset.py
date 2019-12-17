@@ -243,7 +243,7 @@ class ModePicture(object):
         # noinspection PyTypeChecker
         np.savetxt(filepath, data_matrix.T, fmt='%.9E', delimiter='\t', header=title+header)
 
-    def load(self, filepath)
+    def load(self, filepath):
         """
         Loads mode picture data from text file and determines the resulting Q-factor.
         """
