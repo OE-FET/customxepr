@@ -22,11 +22,9 @@ documented in the pages for the respective submodules:
 
 .. autoclass:: XeprData
    :members:
-   :show-inheritance:
 
 .. autoclass:: XeprParam
    :members:
-   :show-inheritance:
 
 .. autoclass:: ModePicture
    :members:
