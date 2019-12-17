@@ -710,7 +710,7 @@ class CustomXepr(object):
             Defaults to room temperature.
 
         :returns: Mode picture instance.
-        :rtype: :class:`experiment.mode_picture_dataset.ModePicture`
+        :rtype: :class:`experiment.ModePicture`
         """
 
         self._check_for_xepr()
@@ -915,7 +915,7 @@ class CustomXepr(object):
             Allowed parameters will depend on the type of experiment.
 
         :returns: Xepr dataset.
-        :rtype: :class:`experiment.xepr_dataset.XeprData` instance.
+        :rtype: :class:`experiment.XeprData`
         """
 
         self._check_for_xepr()
