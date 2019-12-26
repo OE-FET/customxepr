@@ -277,13 +277,12 @@ class CustomXepr(object):
     def customtune(self, low_q=False):
         """
         Custom tuning routine with higher accuracy. It takes longer than :meth:`tune`
-        and requires the spectrometer to be already close to tuned. In case of Q-values
-        < 4500, you can set ``lowQ`` to ``True`` so that the tuning routine will cycle
-        through a smaller range of microwave powers. If Q < 3000, it is recommended to
-        tune the spectrometer manually.
+        and requires the spectrometer to be already close to tuned. In case of lossy
+        samples, you can set ``lowQ`` to ``True`` so that the tuning routine will cycle
+        through a smaller range of microwave powers. For lossy samples where the Q-value
+        will be lower than 3000, it is recommended to manually tune the cavity.
 
-        :param bool low_q: If True, the tuning routine will be adjusted for low Q-value
-            conditions. This is recommended for 3000 < Q < 5000.
+        :param bool low_q: If ``True``, the tuning routine will be adjusted for lossy samples.
         """
 
         self._check_for_xepr()
