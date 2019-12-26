@@ -137,7 +137,7 @@ class CustomXepr(object):
 
     @property
     def notify_address(self):
-        """List with email addresses for notifications."""
+        """List with email addresses for status notifications."""
         return self.manager.notify_address
 
     @notify_address.setter
@@ -173,6 +173,7 @@ class CustomXepr(object):
     def sendEmail(self, body):
         """
         Sends an email to the list of addresses given by :attr:`notify_address`.
+        The email server and sender address can be configured in the config file.
 
         :param str body: Text to send.
         """
@@ -181,8 +182,8 @@ class CustomXepr(object):
     @manager.queued_exec
     def sleep(self, seconds):
         """
-        Pauses for the specified amount of seconds. This sleep function checks
-        for an abort signal every minute to prevent permanent blocking.
+        Pauses for the specified amount of seconds. Sleeping can be aborted
+        by the user.
 
         :param int seconds: Number of seconds to pause.
         """
