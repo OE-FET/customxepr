@@ -202,9 +202,6 @@
           <property name="indentation">
            <number>0</number>
           </property>
-          <property name="uniformRowHeights">
-           <bool>true</bool>
-          </property>
          </widget>
         </item>
        </layout>
@@ -230,9 +227,6 @@
           </property>
           <property name="selectionMode">
            <enum>QAbstractItemView::ExtendedSelection</enum>
-          </property>
-          <property name="uniformRowHeights">
-           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -411,9 +405,6 @@
           </property>
           <property name="selectionMode">
            <enum>QAbstractItemView::ExtendedSelection</enum>
-          </property>
-          <property name="uniformRowHeights">
-           <bool>true</bool>
           </property>
          </widget>
         </item>

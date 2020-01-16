@@ -339,9 +339,6 @@ QTabWidget::pane
           <property name="selectionMode">
            <enum>QAbstractItemView::ExtendedSelection</enum>
           </property>
-          <property name="uniformRowHeights">
-           <bool>true</bool>
-          </property>
          </widget>
         </item>
         <item row="6" column="0">
@@ -532,9 +529,6 @@ QTabWidget::pane
           </property>
           <property name="selectionMode">
            <enum>QAbstractItemView::ExtendedSelection</enum>
-          </property>
-          <property name="uniformRowHeights">
-           <bool>true</bool>
           </property>
          </widget>
         </item>
