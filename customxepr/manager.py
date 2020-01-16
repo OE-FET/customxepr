@@ -130,7 +130,7 @@ class Experiment(object):
             info_strings.append('kwargs={}'.format(self.kwargs))
         info_strings.append('status={}'.format(self.status))
         if self.status is ExpStatus.FINISHED:
-            info_strings.append('has_result={}'.format(self.result is not None))
+            info_strings.append('has_result={}'.format(self._result is not None))
         return '<{0}({1})>'.format(self.__class__.__name__, ', '.join(info_strings))
 
 
@@ -264,10 +264,9 @@ class ExperimentQueue(object):
 
     def get_next_job(self):
         """
-        Returns the next item with status :class:`ExpStatus.QUEUED` and flags it as
-        running. If there are no items with status :class:`ExpStatus.QUEUED`,
-        :class:`queue.Empty` is raised. Emits the :attr:`status_changed_signal` with
-        the item's index and its new status.
+        Returns the next queued item and flags it as running. If there are no queued
+        items, :class:`queue.Empty` is raised. Emits the :attr:`status_changed_signal`
+        with the item's index and its new status.
         """
         with self._lock:
             exp = self._queued.get_nowait()
@@ -572,7 +571,8 @@ class Manager(object):
     def queued_exec(self, func):
         """
         Decorator that puts a call to a wrapped function into the job_queue queue
-        instead of executing it. Items in the queue will be of type  :class:`Experiment`.
+        instead of executing it. Returns the queued :class:`Experiment` which is similar
+        to a Python's :class:`concurrent.futures.Future`.
         """
 
         @wraps(func)
@@ -582,6 +582,7 @@ class Manager(object):
             else:
                 exp = Experiment(func, args, kwargs)
                 self.job_queue.put(exp)
+                return exp
 
         return wrapper
 
