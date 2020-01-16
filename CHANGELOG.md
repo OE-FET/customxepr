@@ -3,8 +3,13 @@
 ##### Added:
 
 - Added API similar to `concurrent.futures.Future` to `customxepr.manager.Experiment`.
-- Return an experiment instance from all async customxepr method calls.
+- Return an experiment instance from all async customxepr method calls. This instance can
+  be used to get the result directly, instead of getting it from the result queue. Usage:
   
+  ```Python
+  future = customXepr.runXeprExperiment(...)
+  result = future.result()  # will block until result is available
+  ```
 
 ##### Changed:
 
