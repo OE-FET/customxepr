@@ -28,6 +28,14 @@ logger = logging.getLogger('customxepr')
 # class to wrap queued function calls ("experiments") and provide metadata
 # ========================================================================================
 
+class CancelledError(Exception):
+    pass
+
+
+class TimeoutError(Exception):
+    pass
+
+
 class ExpStatus(Enum):
     """
     Enumeration to hold experiment status.
@@ -42,6 +50,7 @@ class ExpStatus(Enum):
 class Experiment(object):
     """
     Class to hold a scheduled job / experiment and keep track of its status and result.
+    It is similar in functionality to :class:`concurrent.futures.Future`.
 
     :param func: Function or method to call when running experiment.
     :param args: Arguments for function call.
@@ -56,8 +65,48 @@ class Experiment(object):
         self.args = args
         self.kwargs = kwargs
 
+        self._done_event = Event()
         self._status = ExpStatus.QUEUED
-        self.result = None
+        self._result = None
+
+    def running(self):
+        """Returns ``True`` if the job is running."""
+        return self._status == ExpStatus.RUNNING
+
+    def done(self):
+        """Returns ``True`` if the job is done, has failed or has been cancelled."""
+        return self._status in (ExpStatus.FINISHED, ExpStatus.FAILED, ExpStatus.ABORTED)
+
+    def _set_result(self, result):
+        self._result = result
+        self._done_event.set()
+
+    def result(self, timeout=None):
+        """
+        Returns the result of the experiment. If the experiment hasn’t yet completed then
+        this method will wait up to timeout seconds. If the experiment hasn’t completed in
+        timeout seconds, then a TimeoutError will be raised. If timeout is not specified
+        or None, there is no limit to the wait time.
+
+        If the experiment is cancelled before completing then CancelledError will be raised.
+
+        If the call raised, this method will raise the same exception.
+
+        :param int timeout: Time in seconds to wait for a result.
+        :raises: TimeoutError if no result becomes available within ``timeout``,
+            CancelledError if the expriment has been cancelled or Exception if an
+            exception occured during execution.
+        """
+        if self._status == ExpStatus.ABORTED:
+            raise CancelledError('Experiment has been cancelled.')
+
+        if self._done_event.wait(timeout):
+            if isinstance(self._result, Exception):
+                raise self._result
+            else:
+                return self._result
+        else:
+            raise TimeoutError('No result available yet.')
 
     @property
     def status(self):
@@ -243,7 +292,7 @@ class ExperimentQueue(object):
         with self._lock:
             exp = self._running.get_nowait()
             exp.status = exit_status
-            exp.result = result
+            exp._set_result(result)
             self._history.put(exp)
             index = self._history.qsize() - 1
 
@@ -391,9 +440,9 @@ class Worker(object):
                 # noinspection PyBroadException
                 try:
                     result = exp.func(*exp.args, **exp.kwargs)  # run the job
-                except Exception:  # log exception and pause execution of jobs
+                except Exception as e:  # log exception and pause execution of jobs
                     logger.exception('Job error')
-                    self.job_q.job_done(ExpStatus.FAILED, result=None)
+                    self.job_q.job_done(ExpStatus.FAILED, result=e)
                     self.running.clear()
                     logger.status('PAUSED')
                 else:
