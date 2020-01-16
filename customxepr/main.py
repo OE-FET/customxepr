@@ -53,10 +53,14 @@ class CustomXepr(object):
     :py:class:`keithley2600.Keithley2600` to handle interactions with the respective
     instruments.
 
-    All CustomXepr methods are executed in a worker thread in the order of their calls.
-    Scheduling of jobs and retrieval of results is handled by :class:`manager.Manager`.
-    For instructions on how to schedule your own experiments, see the documentation of
-    :mod:`manager`.
+    All CustomXepr methods that do not end with '_sync' are executed in a worker thread in
+    the order of their calls. Scheduling of jobs and retrieval of results is handled by
+    :class:`manager.Manager`. For instructions on how to schedule your own experiments,
+    please refer to the documentation of :mod:`manager`.
+
+    Every asynchronous method has an equivalent method ending with '_sync' which will be
+    called immediately and block until it is done. Those synchronous equivalents are
+    generated at runtime and not documented here.
 
     You can use :class:`CustomXepr` on its own, but it is recommended to start it with the
     function :func:`startup.run` in the :mod:`startup` module. This will automatically

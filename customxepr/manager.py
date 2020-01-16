@@ -55,8 +55,6 @@ class Experiment(object):
     :param func: Function or method to call when running experiment.
     :param args: Arguments for function call.
     :param kwargs: Keyword arguments for function call.
-
-    :ivar result: Holds the result returned by `func` after successful job completion.
     """
 
     def __init__(self, func, args, kwargs):
@@ -94,8 +92,8 @@ class Experiment(object):
 
         :param int timeout: Time in seconds to wait for a result.
         :raises: TimeoutError if no result becomes available within ``timeout``,
-            CancelledError if the expriment has been cancelled or Exception if an
-            exception occured during execution.
+            CancelledError if the experiment has been cancelled or Exception if an
+            exception occurred during execution.
         """
         if self._status == ExpStatus.ABORTED:
             raise CancelledError('Experiment has been cancelled.')
@@ -111,7 +109,7 @@ class Experiment(object):
     @property
     def status(self):
         """
-        Proprty that hold the status of the job.
+        Property that holds the status of the job.
         """
         return self._status
 
@@ -488,13 +486,17 @@ class Manager(object):
     ...     return args  # return input arguments
 
     >>> # run the function: this will return immediately
-    >>> decorated_test_func('test succeeded')
+    >>> exp = decorated_test_func('test succeeded')
 
-    The result returned by `test_func` can be retrieved from the result queue as follows:
+    The result returned by `test_func` can be retrieved from the result queue or the
+    returned Experiment instance:
 
-    >>> result = manager.result_queue.get()  # blocks until result is available
-    >>> print(result)
+    >>> res1 = manager.result_queue.get()  # blocks until result is available
+    >>> res2 = exp.result()  # blocks until result is available
+    >>> print(res1)
     test succeeded
+    >>> print(res1 is res2)
+    True
 
     Alternatively, it is possible to manually create an experiment from a function call
     and queue it for processing as follows:

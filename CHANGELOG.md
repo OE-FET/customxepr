@@ -1,5 +1,11 @@
 #### v3.1.0-dev1
 
+##### Added:
+
+- Added API similar to `concurrent.futures.Future` to `customxepr.manager.Experiment`.
+- Return an experiment instance from all async customxepr method calls.
+  
+
 ##### Changed:
 
 - `CustomXepr.tune` and `CustomXepr.finetune` can now be aborted.
