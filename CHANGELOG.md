@@ -5,7 +5,7 @@
 - Added API similar to `concurrent.futures.Future` to `customxepr.manager.Experiment`.
 - Return an experiment instance from all async customxepr method calls. This instance can
   be used to get the result directly, instead of getting it from the result queue. Usage:
-  
+
   ```Python
   future = customXepr.runXeprExperiment(...)
   result = future.result()  # will block until result is available
@@ -16,6 +16,7 @@
 - `CustomXepr.tune` and `CustomXepr.finetune` can now be aborted.
 - `ModePicture.load(...)` no longer returns the raw data but rather populates the class
   attributes of `ModePicture` with the loaded data.
+- `XeprData` now shows the experiment title in its string representation.
 - Changed the default email address for notifications to physics-oe-esr-owner@lists.cam.ac.uk.
 - Improvements to documentation.
 - Require PyQt5 instead of qtpy / PySide2.
