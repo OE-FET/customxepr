@@ -942,10 +942,12 @@ class CustomXepr(object):
         # -------------------start experiment----------------------------------
         if self._check_for_mercury(raise_error=False):
             temperature_fluct_history = np.array([])
-            temperature_set = self.getTemperatureSetpoint()
+            temperature_setpoint = self.getTemperatureSetpoint()
+            n_temperature_volatile = 0
         else:
             temperature_fluct_history = None
-            temperature_set = None
+            temperature_setpoint = None
+            n_temperature_volatile = None
 
         exp.select()
         time.sleep(self._wait)
@@ -960,9 +962,6 @@ class CustomXepr(object):
             time.sleep(1)
             exp.aqExpPause()
             time.sleep(self._wait)
-
-        # count the number of temperature stability violations
-        n_out = 0  # start at n_out = 0
 
         def is_running_or_paused():
             running = exp.isRunning
@@ -1007,18 +1006,18 @@ class CustomXepr(object):
 
             # record temperature and warn if fluctuations exceed the tolerance
             if temperature_fluct_history is not None:
-                diff = abs(self.getTemperature() - temperature_set)
+                diff = abs(self.getTemperature() - temperature_setpoint)
                 temperature_fluct_history = np.append(temperature_fluct_history, diff)
                 # increment the number of violations n_out if temperature is unstable
-                n_out += (diff > 4*self._temperature_tolerance)
+                n_temperature_volatile += (diff > 4*self._temperature_tolerance)
                 # warn once for every 120 temperature violations
-                if np.mod(n_out, 120) == 1:
+                if np.mod(n_temperature_volatile, 120) == 1:
                     max_diff = np.max(temperature_fluct_history)
                     logger.warning('Temperature fluctuations of +/-%.2fK.' % max_diff)
-                    n_out += 1  # prevent from warning again the next second
+                    n_temperature_volatile += 1  # prevent from warning again the next second
 
                 # Pause measurement and raise error after 15 min of instability
-                if n_out > 60 * 15:
+                if n_temperature_volatile > 60 * 15:
                     exp.aqExpPause()
                     raise RuntimeError('Temperature could not be kept stable for ' +
                                        '15 min. Aborting current measurement and ' +
@@ -1030,7 +1029,7 @@ class CustomXepr(object):
         if temperature_fluct_history is not None:
             max_diff = np.max(temperature_fluct_history)
             logger.info('Temperature stable at (%.2f+/-%.2f)K during scans.'
-                        % (temperature_set, max_diff))
+                        % (temperature_setpoint, max_diff))
 
         logger.info('All scans complete.')
 
@@ -1063,7 +1062,7 @@ class CustomXepr(object):
 
         if temperature_fluct_history is not None:
             dsl_temp = ParamGroupDSL(name='tempCtrl')
-            dsl_temp.pars['Temperature'] = XeprParam(temperature_set, 'K')
+            dsl_temp.pars['Temperature'] = XeprParam(temperature_setpoint, 'K')
             dsl_temp.pars['Stability'] = XeprParam(round(max_diff, 4), 'K')
             dsl_temp.pars['AcqWaitTime'] = XeprParam(self._temp_wait_time, 's')
             dsl_temp.pars['Tolerance'] = XeprParam(self._temperature_tolerance, 'K')
