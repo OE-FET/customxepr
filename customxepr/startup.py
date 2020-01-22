@@ -260,7 +260,7 @@ def run(gui=True):
             kernel_client = kernel_manager.client()
             kernel_client.start_channels()
 
-            font_size = int(QtWidgets.QTextEdit().font().pointSize()*0.9)
+            font_size = int(QtWidgets.QTextEdit().font().pointSize())
 
             ipython_widget = CustomRichJupyterWidget(
                 banner=banner,
