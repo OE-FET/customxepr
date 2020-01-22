@@ -23,6 +23,9 @@ class CustomRichJupyterWidget(RichJupyterWidget):
         if QEvent.type() == QtCore.QEvent.PaletteChange:
             self.update_darkmode()
 
+    def closeEvent(self, QEvent):
+        pass
+
     def update_darkmode(self):
 
         if isDarkWindow():
