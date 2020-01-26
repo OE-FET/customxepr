@@ -111,7 +111,7 @@ QTabWidget::pane
       </property>
       <widget class="QWidget" name="tab_1">
        <attribute name="title">
-        <string>Pending jobs</string>
+        <string>Job queue</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_4">
         <property name="leftMargin">
