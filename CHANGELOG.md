@@ -1,3 +1,9 @@
+#### v3.1.1-dev
+
+##### Changed:
+
+- Only show single-line previews of results in GUI.
+
 #### v3.1.0
 
 ##### Added:
