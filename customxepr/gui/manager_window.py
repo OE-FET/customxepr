@@ -563,7 +563,7 @@ class ManagerApp(QtWidgets.QMainWindow):
 
         rslt_type = QtGui.QStandardItem(type(result).__name__)
         rslt_size = QtGui.QStandardItem(str(result_size))
-        rslt_value = QtGui.QStandardItem(str(result))
+        rslt_value = QtGui.QStandardItem(str(result).split('\n')[0])
 
         self.resultQueueModel.appendRow([rslt_type, rslt_size, rslt_value])
 
