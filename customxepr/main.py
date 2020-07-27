@@ -74,7 +74,7 @@ class CustomXepr(object):
 # Set up basic CustomXepr functionality
 # ========================================================================================
 
-    def __init__(self, xepr=None, mercuryfeed=None, keithley=None):
+    def __init__(self, xepr=None, mercury=None, keithley=None):
 
         super(self.__class__, self).__init__()
         self.emailSender = EmailSender(
@@ -89,15 +89,28 @@ class CustomXepr(object):
         # =====================================================================
 
         self.xepr = xepr
-        self.feed = mercuryfeed
+        self.mercury = mercury
         self.keithley = keithley
 
         # hidden Xepr experiment, created when EPR is connected:
         self.hidden = None
 
         self._check_for_xepr(raise_error=False)
-        self._check_for_mercury(raise_error=False)
         self._check_for_keithley(raise_error=False)
+
+        if self._check_for_mercury(raise_error=False):
+
+            temperature_module_name = CONF.get('CustomXepr', 'esr_temperature_nick')
+            cooling_module_name = CONF.get('CustomXepr', 'cooling_temperature_nick')
+
+            self.esr_temperature, self.esr_gasflow, self.esr_heater = \
+                self._select_temp_sensor(temperature_module_name)
+
+            self.cooling_temperature, _, _ = self._select_temp_sensor(cooling_module_name)
+
+        else:
+            self.esr_temperature = self.esr_gasflow = self.esr_heater = None
+            self.cooling_temperature = None
 
         # =====================================================================
         # define / load certain settings for customxepr functions
@@ -105,8 +118,10 @@ class CustomXepr(object):
 
         # settling time for cryostat temperature (in sec)
         self._temp_wait_time = CONF.get('CustomXepr', 'temp_wait_time')
-        # temperature stability tolerance (in K)
-        self._temperature_tolerance = CONF.get('CustomXepr', 'temperature_tolerance')
+        # ESR temperature stability tolerance (in K)
+        self._temperature_tolerance = CONF.get('CustomXepr', 'esr_temperature_tolerance')
+        # cooling temperature stability tolerance (in K)
+        self._max_cooling_temperature = CONF.get('CustomXepr', 'max_cooling_temperature')
 
         self._wait = 0.2  # waiting time for Xepr to process commands (in sec)
         self._tuning_timeout = 60  # timeout for phase tuning (in sec)
@@ -938,14 +953,20 @@ class CustomXepr(object):
             )
         )
         # -------------------start experiment----------------------------------
-        if self._check_for_mercury(raise_error=False):
+
+        has_mercury = self._check_for_mercury(raise_error=False)
+
+        if has_mercury:
             temperature_fluct_history = np.array([])
-            temperature_setpoint = self.getTemperatureSetpoint()
+            temperature_setpoint = self.esr_temperature.loop_tset
             n_temperature_volatile = 0
         else:
             temperature_fluct_history = None
             temperature_setpoint = None
             n_temperature_volatile = None
+
+        if has_mercury and not self._cooling_temperature_ok():
+            return
 
         exp.select()
         time.sleep(self._wait)
@@ -1002,9 +1023,13 @@ class CustomXepr(object):
                     exp.aqExpPause()
                     time.sleep(self._wait)
 
-            # record temperature and warn if fluctuations exceed the tolerance
-            if temperature_fluct_history is not None:
-                diff = abs(self.getTemperature() - temperature_setpoint)
+            # check cryostat and cooling water temperatures
+            if has_mercury:
+
+                if not self._cooling_temperature_ok():
+                    return
+
+                diff = abs(self.esr_temperature.temp[0] - temperature_setpoint)
                 temperature_fluct_history = np.append(temperature_fluct_history, diff)
                 # increment the number of violations n_out if temperature is unstable
                 n_temperature_volatile += (diff > 4*self._temperature_tolerance)
@@ -1024,7 +1049,7 @@ class CustomXepr(object):
             time.sleep(1)
 
         # get temperature stability during scan if mercury was connected
-        if temperature_fluct_history is not None:
+        if has_mercury:
             max_diff = np.max(temperature_fluct_history)
             logger.info('Temperature stable at ({:.2f}+/-{:.2f})K during '
                         'scans.'.format(temperature_setpoint, max_diff))
@@ -1058,7 +1083,7 @@ class CustomXepr(object):
             dsl_mwbridge.pars['QValue'] = XeprParam(self._last_qvalue)
             dsl_mwbridge.pars['QValueErr'] = XeprParam(self._last_qvalue_err)
 
-        if temperature_fluct_history is not None:
+        if has_mercury:
             dsl_temp = ParamGroupDSL(name='tempCtrl')
             dsl_temp.pars['Temperature'] = XeprParam(temperature_setpoint, 'K')
             dsl_temp.pars['Stability'] = XeprParam(round(max_diff, 4), 'K')
@@ -1077,6 +1102,18 @@ class CustomXepr(object):
         logger.info('Data saved to "{}".'.format(new_path))
 
         return dset
+
+    def _cooling_temperature_ok(self):
+
+        if (self.cooling_temperature
+                and self.cooling_temperature.temp[0] > self._max_cooling_temperature):
+            logger.error('Cooling temperature above {} Celsius. Aborting '
+                         'measurement.'.format(self._max_cooling_temperature))
+            self.setStandby()
+            self.manager.pause_worker()
+            return False
+        else:
+            return True
 
     @manager.queued_exec
     def saveCurrentData(self, path, exp=None):
@@ -1218,23 +1255,23 @@ class CustomXepr(object):
         logger.info('Setting target temperature to {}K.'.format(target))
 
         # set temperature and wait to stabilize
-        self.feed.temperature.loop_tset = target
+        self.esr_temperature.loop_tset = target
         if wait_stable:
             self.waitTemperatureStable(target)
 
             # check if gas flow is too high for temperature set point
             # if yes, reduce minimum value until target is reached
             ht = self._heater_target(target)
-            fmin = self.feed.readings['FlowMin']
+            fmin = self.esr_gasflow.gmin
 
-            above_heater_target = (self.feed.readings['HeaterVolt'] > 1.2*ht)
-            flow_at_min = (self.feed.readings['FlowPercent'] == fmin)
+            above_heater_target = (self.esr_heater.volt[0] > 1.2*ht)
+            flow_at_min = (self.esr_gasflow.perc[0] == fmin)
 
             if above_heater_target and flow_at_min:
 
                 logger.warning('Gas flow is too high, trying to reduce.')
-                self.feed.temperature.loop_faut = 'ON'
-                self.feed.gasflow.gmin = max(self.feed.readings['FlowMin'] - 1, 1)
+                self.esr_temperature.loop_faut = 'ON'
+                self.esr_gasflow.gmin = max(fmin - 1, 1)
 
     @manager.queued_exec
     def setTemperatureRamp(self, ramp):
@@ -1247,7 +1284,7 @@ class CustomXepr(object):
         self._check_for_mercury()
 
         # set temperature and wait to stabilize
-        self.feed.temperature.loop_rset = ramp
+        self.esr_temperature.loop_rset = ramp
         logger.info('Temperature ramp set to {} K/min.'.format(ramp))
 
     @manager.queued_exec
@@ -1278,16 +1315,16 @@ class CustomXepr(object):
                 return
 
             # check temperature deviation
-            self.T_diff = abs(target - self.feed.readings['Temp'])
+            self.T_diff = abs(target - self.esr_temperature.temp[0])
             if self.T_diff > self._temperature_tolerance:
                 stable_counter = 0
-                time.sleep(self.feed.refresh)
+                time.sleep(1)
                 logger.status('Waiting for temperature to stabilize.')
             else:
-                stable_counter += self.feed.refresh
+                stable_counter += 1
                 logger.status('Stable for {}/{} sec.'.format(stable_counter,
                                                              self._temp_wait_time))
-                time.sleep(self.feed.refresh)
+                time.sleep(1)
 
             # warn if stabilization is taking longer than expected, and again every 30 min
             if time.time() - t0 > temperature_timeout:
@@ -1302,13 +1339,13 @@ class CustomXepr(object):
     def getTemperature(self):
         """Returns the current temperature in Kelvin."""
         self._check_for_mercury()
-        return self.feed.readings['Temp']
+        return self.esr_temperature.temp[0]
 
     @manager.queued_exec
     def getTemperatureSetpoint(self):
         """Returns the temperature setpoint in Kelvin."""
         self._check_for_mercury()
-        return self.feed.temperature.loop_tset
+        return self.esr_temperature.loop_tset
 
     @staticmethod
     def _heater_target(temperature, htt_file=None):
@@ -1334,15 +1371,15 @@ class CustomXepr(object):
     def _ramp_time(self, target):
         """
         Calculates the expected time in sec to reach the target temperature.
-        Assumes a ramping speed of 5 K/min if 'ramp' is turned off.
+        Assumes a ramp speed of 5 K/min if 'ramp' is turned off.
 
         :param float target: Target temperature in Kelvin.
         """
-        if self.feed.readings['TempRampEnable'] == 'ON':
-            expected_time = (abs(target - self.feed.readings['Temp']) /
-                             self.feed.readings['TempRamp'])  # in min
+        if self.esr_temperature.loop_rena == 'ON':
+            expected_time = (abs(target - self.esr_temperature.temp[0]) /
+                             self.esr_temperature.loop_rset)  # in min
         else:  # assume ramp of 5 K/min
-            expected_time = abs(target - self.feed.readings['Temp']) / 5
+            expected_time = abs(target - self.esr_temperature.temp[0]) / 5
         return expected_time * 60  # return value in sec
 
 # ========================================================================================
@@ -1479,26 +1516,32 @@ class CustomXepr(object):
 
     def _check_for_mercury(self, raise_error=True):
         """
-        Checks if a mercury instance has been passed and is connected to an an actual
-        instrument.
+        Checks if a MercuryITC is connect and correctly configured.
         """
 
-        if not self.feed or not self.feed.mercury:
+        if not self.mercury:
             error_info = ('No Mercury instance supplied. Functions that ' +
                           'require a connected cryostat will not work.')
-        elif not self.feed.mercury.connected:
+        elif not self.mercury.connected:
             error_info = ('MercuryiTC is not connected. Functions that ' +
                           'require a connected cryostat will not work.')
-        elif self.feed.heater is None:
-            error_info = ('MercuryiTC error: No heater module configured for {}. '
-                          'Functions that require a connected cryostat will not '
-                          'work.').format(self.feed.temperature.nick)
-        elif self.feed.gasflow is None:
-            error_info = ('MercuryiTC error: No gas flow module configured for {}. '
-                          'Functions that require a connected cryostat will not '
-                          'work.').format(self.feed.temperature.nick)
         else:
-            error_info = False
+            temperature_module_name = CONF.get('CustomXepr', 'esr_temperature_nick')
+            temp, gasflow, heater = self._select_temp_sensor(temperature_module_name)
+
+            if not temp:
+                error_info = ('MercuryiTC error: temperature sensor "{}" not '
+                              'found.').format(temperature_module_name)
+            elif not heater:
+                error_info = ('MercuryiTC error: No heater module configured for "{}". '
+                              'Functions that require a connected cryostat will not '
+                              'work.').format(temperature_module_name)
+            elif not gasflow:
+                error_info = ('MercuryiTC error: No gas flow module configured for "{}". '
+                              'Functions that require a connected cryostat will not '
+                              'work.').format(temperature_module_name)
+            else:
+                error_info = False
 
         if error_info:
             if raise_error:
@@ -1556,3 +1599,25 @@ class CustomXepr(object):
             return False
         else:
             return True
+
+    def _select_temp_sensor(self, nick):
+
+        # find all temperature modules
+        temp_mods = [m for m in self.mercury.modules if type(m) == MercuryITC_TEMP]
+        if len(temp_mods) == 0:
+            raise IOError('MercuryITC does not have any connected temperature modules')
+
+        # find the temperature module with given name
+        temperature = next((m for m in temp_mods if m.nick == nick), None)
+
+        if temperature:
+            htr_nick = temperature.loop_htr
+            aux_nick = temperature.loop_aux
+
+            heater = next((m for m in self.mercury.modules if m.nick == htr_nick), None)
+            gasflow = next((m for m in self.mercury.modules if m.nick == aux_nick), None)
+        else:
+            gasflow = None
+            heater = None
+
+        return temperature, gasflow, heater
