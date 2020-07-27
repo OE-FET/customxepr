@@ -1,3 +1,16 @@
+#### v3.1.1
+
+##### Changed:
+
+- Only show single-line previews of results in GUI.
+
+##### Added:
+
+- Monitor cooling water temperature during measurements and interrupt ESR measurements if 
+  too high. 
+- Added config file entries for the maximum cooling temperature and the temperature sensor
+  names for the ESR and cooling water.
+
 #### v3.1.0
 
 ##### Added:
