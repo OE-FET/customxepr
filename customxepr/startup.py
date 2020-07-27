@@ -115,8 +115,8 @@ def connect_to_instruments():
         # 3) pre-installed version with Xepr
         sys.path.insert(0, ENVIRON_XEPR_API_PATH)
         sys.path.insert(-1, BRUKER_XEPR_API_PATH)
-        import XeprAPI
-        xepr = XeprAPI.Xepr()
+        from XeprAPI import Xepr
+        xepr = Xepr()
     except ImportError:
         logging.info('XeprAPI could not be located.')
         xepr = None
