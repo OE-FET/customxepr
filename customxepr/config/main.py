@@ -36,7 +36,10 @@ DEFAULTS = [
               'notify_address': [getpass.getuser() + '@cam.ac.uk', ],
               'email_handler_level': 30,
               'temp_wait_time': 120,
-              'temperature_tolerance': 0.1
+              'esr_temperature_tolerance': 0.1,
+              'max_cooling_temperature': 18,
+              'esr_temperature_nick': 'ESR900',
+              'cooling_temperature_nick': 'COOLING',
               }),
             ('SMTP',
              {
@@ -62,7 +65,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '6.2.0'
+CONF_VERSION = '7.0.0'
 
 # Main configuration instance
 try:
