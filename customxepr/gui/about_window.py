@@ -7,9 +7,10 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
 import os
+import time
 from PyQt5 import QtWidgets, uic
 
-from customxepr.main import CustomXepr, __year__
+from customxepr.main import CustomXepr
 from customxepr import __author__, __version__, __url__
 
 _root = os.path.dirname(os.path.realpath(__file__))
@@ -39,5 +40,6 @@ class AboutWindow(QtWidgets.QWidget):
 
         # set copyright text
         placeholder = self.labelCopyRight.text()
-        self.labelCopyRight.setText(placeholder.format(__year__, __author__))
+        year = time.localtime().tm_year
+        self.labelCopyRight.setText(placeholder.format(year, __author__))
         self.labelWebsite.setText(self.labelWebsite.text().format(__url__))

@@ -15,6 +15,7 @@ import tempfile
 
 from pint import UnitRegistry
 from keithleygui.config.main import CONF as KCONF
+from mercuryitc.mercury_driver import MercuryITC_TEMP
 
 from customxepr.utils import EmailSender
 from customxepr.experiment import ModePicture, XeprData, XeprParam
