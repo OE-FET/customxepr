@@ -39,7 +39,7 @@ DEFAULTS = [
               'esr_temperature_tolerance': 0.1,
               'max_cooling_temperature': 18,
               'esr_temperature_nick': 'ESR900',
-              'cooling_temperature_nick': 'COOLING',
+              'cooling_temperature_nick': 'COOLWATER',
               }),
             ('SMTP',
              {
