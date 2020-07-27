@@ -7,7 +7,6 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
 from __future__ import division, absolute_import, unicode_literals
-import sys
 import smtplib
 
 from email.message import EmailMessage
