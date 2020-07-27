@@ -13,7 +13,7 @@ from pygments.formatters import HtmlFormatter
 from pygments.lexers import PythonTracebackLexer
 from traceback import format_exception
 
-from customxepr.main import __author__
+from customxepr import __author__
 
 
 class ErrorDialog(QtWidgets.QDialog):

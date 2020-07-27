@@ -195,7 +195,7 @@ def run(gui=True):
     :returns: Tuple containing instrument instances (and UIs).
     :rtype: tuple
     """
-    from customxepr.main import __version__, __author__, __year__
+    from customxepr import __version__, __author__
     from customxepr.gui.error_dialog import patch_excepthook
 
     banner = (

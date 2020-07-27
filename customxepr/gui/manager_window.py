@@ -21,7 +21,7 @@ from PyQt5 import QtCore, QtWidgets, QtGui, uic
 from customxepr.gui.about_window import AboutWindow
 from customxepr.gui.update_dialog import UpdateWindow
 from customxepr.gui.error_dialog import ErrorDialog
-from customxepr.main import __version__, __url__
+from customxepr import __version__, __url__
 from customxepr.manager import ExpStatus
 from customxepr.config.main import CONF
 from customxepr.gui.pyqt_labutils import Notipy

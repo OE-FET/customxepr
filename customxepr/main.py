@@ -27,12 +27,6 @@ try:
 except ImportError:
     ExperimentError = RuntimeError
 
-__author__ = 'Sam Schott <ss2151@cam.ac.uk>'
-__year__ = str(time.localtime().tm_year)
-__version__ = 'v3.1.1-dev1'
-__url__ = 'https://customxepr.readthedocs.io'
-
-
 _root = os.path.dirname(os.path.realpath(__file__))
 logger = logging.getLogger('customxepr')
 

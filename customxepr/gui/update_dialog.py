@@ -10,7 +10,7 @@ import os
 import markdown2
 from PyQt5 import QtWidgets, uic
 
-from customxepr.main import __version__, __url__
+from customxepr import __version__, __url__
 
 _root = os.path.dirname(os.path.realpath(__file__))
 

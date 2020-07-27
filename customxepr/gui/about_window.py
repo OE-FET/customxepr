@@ -9,7 +9,8 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 import os
 from PyQt5 import QtWidgets, uic
 
-from customxepr.main import CustomXepr, __version__, __year__, __author__, __url__
+from customxepr.main import CustomXepr, __year__
+from customxepr import __author__, __version__, __url__
 
 _root = os.path.dirname(os.path.realpath(__file__))
 
