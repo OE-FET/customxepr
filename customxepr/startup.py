@@ -11,6 +11,7 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 import sys
 import os
 import logging
+import time
 
 try:
     from IPython import get_ipython
@@ -100,8 +101,6 @@ def connect_to_instruments():
     from keithleygui.config.main import CONF as KCONF
     from mercuryitc import MercuryITC
     from mercurygui.config.main import CONF as MCONF
-    from mercurygui.feed import MercuryFeed
-    from customxepr.main import CustomXepr
 
     keithley_address = KCONF.get('Connection', 'VISA_ADDRESS')
     keithley_visa_lib = KCONF.get('Connection', 'VISA_LIBRARY')
@@ -125,18 +124,16 @@ def connect_to_instruments():
         xepr = None
 
     mercury = MercuryITC(mercury_address, mercury_visa_lib, open_timeout=1, timeout=5000)
-    mercury_feed = MercuryFeed(mercury)
     keithley = Keithley2600(keithley_address, keithley_visa_lib, open_timeout=1, timeout=5000)
-    customXepr = CustomXepr(xepr, mercury_feed, keithley)
 
-    return xepr, customXepr, mercury, mercury_feed, keithley
+    return xepr, mercury, keithley
 
 
 # ========================================================================================
 # Start CustomXepr and user interfaces
 # ========================================================================================
 
-def start_gui(customXepr, mercury_feed, keithley):
+def start_gui(customXepr, mercury, keithley):
     """
     Starts GUIs for Keithley, Mercury and CustomXepr.
 
@@ -147,7 +144,7 @@ def start_gui(customXepr, mercury_feed, keithley):
     from mercurygui.main import MercuryMonitorApp
     from customxepr.gui import CustomXeprGuiApp
 
-    mercury_gui = MercuryMonitorApp(mercury_feed)
+    mercury_gui = MercuryMonitorApp(mercury)
     keithley_gui = KeithleyGuiApp(keithley)
     customXepr_gui = CustomXeprGuiApp(customXepr)
 
@@ -196,7 +193,10 @@ def run(gui=True):
     :rtype: tuple
     """
     from customxepr import __version__, __author__
+    from customxepr.main import CustomXepr
     from customxepr.gui.error_dialog import patch_excepthook
+
+    year = str(time.localtime().tm_year)
 
     banner = (
         'Welcome to CustomXepr {0}. You can access connected instruments through '
@@ -205,7 +205,7 @@ def run(gui=True):
         'as a measurement routine. An introduction to CustomXepr is '
         'available at \x1b[1;34mhttps://customxepr.readthedocs.io\x1b[0m. '
         'Type "exit_customxepr()" to gracefully exit CustomXepr.\n\n '
-        '(c) 2016-{1}, {2}.'.format(__version__, __year__, __author__)
+        '(c) 2016-{1}, {2}.'.format(__version__, year, __author__)
     )
 
     ui = ()
@@ -214,7 +214,8 @@ def run(gui=True):
 
     if not gui:
         print('Connecting to instruments...')
-        xepr, customXepr, mercury, mercury_feed, keithley = connect_to_instruments()
+        xepr, mercury, keithley = connect_to_instruments()
+        customXepr = CustomXepr(xepr, mercury, keithley)
         exit_customxepr = lambda: _exit_hook(instruments=(mercury, keithley))
         print(banner)
 
@@ -223,10 +224,11 @@ def run(gui=True):
         splash = show_splash_screen()  # create splash screen for messages
 
         splash.showMessage('Connecting to instruments...')
-        xepr, customXepr, mercury, mercury_feed, keithley = connect_to_instruments()
+        xepr, mercury, keithley = connect_to_instruments()
+        customXepr = CustomXepr(xepr, mercury, keithley)
 
         splash.showMessage('Loading user interface...')
-        ui = start_gui(customXepr, mercury_feed, keithley)
+        ui = start_gui(customXepr, mercury, keithley)
 
         if IP:  # we have been started from a jupyter console
             # print banner
@@ -276,8 +278,8 @@ def run(gui=True):
                 app.quit()
 
             var_dict = {'customXepr': customXepr, 'xepr': xepr, 'mercury': mercury,
-                        'mercury_feed': mercury_feed, 'keithley': keithley, 'ui': ui,
-                        'exit_customxepr': exit_customxepr, "kernel_manager": kernel_manager}
+                        'keithley': keithley, 'ui': ui, 'exit_customxepr': exit_customxepr,
+                        'kernel_manager': kernel_manager}
 
             kernel.shell.push(var_dict)
 
@@ -287,8 +289,8 @@ def run(gui=True):
             # start event loop
             sys.exit(app.exec_())
 
-    return customXepr, xepr, mercury, mercury_feed, keithley, ui
+    return customXepr, xepr, mercury, keithley, ui
 
 
 if __name__ == '__main__':
-    customXepr, xepr, mercury, mercury_feed, keithley, ui = run()
+    customXepr, xepr, mercury, keithley, ui = run()
