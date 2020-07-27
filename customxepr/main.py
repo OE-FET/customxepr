@@ -83,10 +83,12 @@ class CustomXepr(object):
     def __init__(self, xepr=None, mercuryfeed=None, keithley=None):
 
         super(self.__class__, self).__init__()
-        self.emailSender = EmailSender((CONF.get('SMTP', 'mailhost'), CONF.get('SMTP', 'port')),
-                                       CONF.get('SMTP', 'fromaddr'),
-                                       CONF.get('SMTP', 'credentials'),
-                                       CONF.get('SMTP', 'secure'))
+        self.emailSender = EmailSender(
+            mailhost=(CONF.get('SMTP', 'mailhost'), CONF.get('SMTP', 'port')),
+            fromaddr=CONF.get('SMTP', 'fromaddr'),
+            credentials=CONF.get('SMTP', 'credentials'),
+            secure=CONF.get('SMTP', 'secure'),
+        )
 
         # =====================================================================
         # check if connections to Xepr, MercuryiTC and Keithley are present
@@ -193,14 +195,14 @@ class CustomXepr(object):
         """
         eta = time.time() + seconds
         eta_string = time.strftime('%H:%M', time.localtime(eta))
-        message = 'Waiting for %s seconds, ETA: %s.'
-        logger.info(message % (int(seconds), eta_string))
+        message = 'Waiting for {:d} seconds, ETA: {}.'.format(seconds, eta_string)
+        logger.info(message)
 
         # brake up into 1 sec sleep intervals, give option to abort
         if seconds > 1:
             for i in range(0, seconds):
                 time.sleep(1)
-                logger.status('Waiting %s/%s.' % (i+1, seconds))
+                logger.status('Waiting {:d}/{:d}.'.format(i+1, seconds))
                 # check for abort event
                 if self.abort.is_set():
                     logger.info('Aborted by user.')
@@ -423,7 +425,7 @@ class CustomXepr(object):
 
             step = 1*cmp(0, diff)  # coarse step of 1
             self.XeprCmds.aqParStep('AcqHidden', '*cwBridge.SignalBias',
-                                    'Coarse %s' % step)  # TODO: migrate from XeprCmds
+                                    'Coarse {}'.format(step))  # TODO: migrate from XeprCmds
             time.sleep(0.5)
             diff = self.hidden['DiodeCurrent'].value - 200
             time.sleep(self._wait)
@@ -435,7 +437,8 @@ class CustomXepr(object):
                 return
 
             step = 5*cmp(0, diff)  # fine step of 5
-            self.XeprCmds.aqParStep('AcqHidden', '*cwBridge.SignalBias', 'Fine %s' % step)  # TODO: migrate from XeprCmds
+            self.XeprCmds.aqParStep('AcqHidden', '*cwBridge.SignalBias',
+                                    'Fine {}'.format(step))  # TODO: migrate from XeprCmds
             time.sleep(0.5)
             diff = self.hidden['DiodeCurrent'].value - 200
             time.sleep(self._wait)
@@ -518,7 +521,8 @@ class CustomXepr(object):
                 return
 
             step = 1 * cmp(0, fq_offset) * max(abs(int(fq_offset/10)), 1)
-            self.XeprCmds.aqParStep('AcqHidden', '*cwBridge.Frequency', 'Fine %s' % step)
+            self.XeprCmds.aqParStep('AcqHidden', '*cwBridge.Frequency',
+                                    'Fine {}'.format(step))
             time.sleep(1)
             fq_offset = self.hidden['LockOffset'].value
             time.sleep(self._wait)
@@ -691,10 +695,10 @@ class CustomXepr(object):
             self._saveQValue2File(temperature, q_mean, q_stderr, path)
 
         if q_mean > 3000:
-            logger.info('Q = %i+/-%i.' % (q_mean, q_stderr))
+            logger.info('Q = {:d}+/-{:d}.'.format(q_mean, q_stderr))
         elif q_mean <= 3000:
-            logger.warning('Q = %i+/-%i is very small. ' % (q_mean, q_stderr) +
-                           'Please check on experiment.')
+            logger.warning('Q = {:d}+/-{:d} is very small. Please check on '
+                           'experiment.'.format(q_mean, q_stderr))
 
         self._wait = wait_old
 
@@ -786,15 +790,15 @@ class CustomXepr(object):
         time.sleep(self._wait)
 
         if mp.qvalue > 3000:
-            logger.info('Q = %i+/-%i.' % (mp.qvalue, mp.qvalue_stderr))
+            logger.info('Q = {:d}+/-{:d}.'.format(mp.qvalue, mp.qvalue_stderr))
         elif mp.qvalue <= 3000:
-            logger.warning('Q = %i+/-%i is very small. ' % (mp.qvalue, mp.qvalue_stderr) +
-                           'Please check on experiment.')
+            logger.warning('Q = {:d}+/-{:d} is very small. Please check on '
+                           'experiment.'.format(mp.qvalue, mp.qvalue_stderr))
 
         if path is not None:
             path = os.path.expanduser(path)
             if not os.path.isdir(path):
-                raise IOError('"%s" is not a valid directory.' % path)
+                raise IOError('"{}" is not a valid directory.'.format(path))
 
             path1 = os.path.join(path, 'QValues.txt')
             path2 = os.path.join(path, 'ModePicture{0:03d}K.txt'.format(int(temperature)))
@@ -936,7 +940,7 @@ class CustomXepr(object):
             'Measurement "{0}" is running. Estimated duration: {1} min (ETA {2}).'.format(
                 exp.aqGetExpName(),
                 int(d.total_seconds()/60),
-                eta.strftime("%H:%M")
+                eta.strftime('%H:%M')
             )
         )
         # -------------------start experiment----------------------------------
@@ -984,7 +988,7 @@ class CustomXepr(object):
             time.sleep(self._wait)
             nb_scans_to_do = exp['NbScansToDo'].value
             time.sleep(self._wait)
-            logger.status('Recording scan %i/%i.' % (nb_scans_done + 1, nb_scans_to_do))
+            logger.status('Recording scan {}/{}.'.format(nb_scans_done + 1, nb_scans_to_do))
 
             if retune:
                 # tune frequency and iris when a new slice scan starts
@@ -1013,7 +1017,7 @@ class CustomXepr(object):
                 # warn once for every 120 temperature violations
                 if np.mod(n_temperature_volatile, 120) == 1:
                     max_diff = np.max(temperature_fluct_history)
-                    logger.warning('Temperature fluctuations of +/-%.2fK.' % max_diff)
+                    logger.warning('Temperature fluctuations of +/-{:.2f}K.'.format(max_diff))
                     n_temperature_volatile += 1  # prevent from warning again the next second
 
                 # Pause measurement and raise error after 15 min of instability
@@ -1028,8 +1032,8 @@ class CustomXepr(object):
         # get temperature stability during scan if mercury was connected
         if temperature_fluct_history is not None:
             max_diff = np.max(temperature_fluct_history)
-            logger.info('Temperature stable at (%.2f+/-%.2f)K during scans.'
-                        % (temperature_setpoint, max_diff))
+            logger.info('Temperature stable at ({:.2f}+/-{:.2f})K during '
+                        'scans.'.format(temperature_setpoint, max_diff))
 
         logger.info('All scans complete.')
 
@@ -1076,7 +1080,7 @@ class CustomXepr(object):
         new_path = path or tmp_path
 
         dset.save(new_path)
-        logger.info("Data saved to '%s'." % new_path)
+        logger.info('Data saved to "{}".'.format(new_path))
 
         return dset
 
@@ -1105,7 +1109,7 @@ class CustomXepr(object):
 
         self._saveData(path, exp)
 
-        logger.info("Data saved to '%s'." % path)
+        logger.info('Data saved to "{}".'.format(path))
 
     @manager.queued_exec
     def setStandby(self):
@@ -1217,7 +1221,7 @@ class CustomXepr(object):
 
         self._check_for_mercury()
 
-        logger.info('Setting target temperature to %sK.' % target)
+        logger.info('Setting target temperature to {}K.'.format(target))
 
         # set temperature and wait to stabilize
         self.feed.temperature.loop_tset = target
@@ -1250,7 +1254,7 @@ class CustomXepr(object):
 
         # set temperature and wait to stabilize
         self.feed.temperature.loop_rset = ramp
-        logger.info('Temperature ramp set to %s K/min.' % ramp)
+        logger.info('Temperature ramp set to {} K/min.'.format(ramp))
 
     @manager.queued_exec
     def waitTemperatureStable(self, target):
@@ -1287,8 +1291,8 @@ class CustomXepr(object):
                 logger.status('Waiting for temperature to stabilize.')
             else:
                 stable_counter += self.feed.refresh
-                logger.status('Stable for %s/%s sec.' % (stable_counter,
-                                                         self._temp_wait_time))
+                logger.status('Stable for {}/{} sec.'.format(stable_counter,
+                                                             self._temp_wait_time))
                 time.sleep(self.feed.refresh)
 
             # warn if stabilization is taking longer than expected, and again every 30 min
@@ -1297,7 +1301,7 @@ class CustomXepr(object):
                 t0 = time.time()
                 temperature_timeout = 30*60
 
-        message = 'Mercury iTC: Temperature is stable at %sK.' % target
+        message = 'Mercury iTC: Temperature is stable at {}K.'.format(target)
         logger.info(message)
 
     @manager.queued_exec
@@ -1336,7 +1340,7 @@ class CustomXepr(object):
     def _ramp_time(self, target):
         """
         Calculates the expected time in sec to reach the target temperature.
-        Assumes a ramping speed of 5 K/min if "ramp" is turned off.
+        Assumes a ramping speed of 5 K/min if 'ramp' is turned off.
 
         :param float target: Target temperature in Kelvin.
         """
@@ -1492,13 +1496,13 @@ class CustomXepr(object):
             error_info = ('MercuryiTC is not connected. Functions that ' +
                           'require a connected cryostat will not work.')
         elif self.feed.heater is None:
-            error_info = ('MercuryiTC error: No heater module configured for ' +
-                          '%s. ' % self.feed.temperature.nick +
-                          'Functions that require a connected cryostat will not work.')
+            error_info = ('MercuryiTC error: No heater module configured for {}. '
+                          'Functions that require a connected cryostat will not '
+                          'work.').format(self.feed.temperature.nick)
         elif self.feed.gasflow is None:
-            error_info = ('MercuryiTC error: No gas flow module configured for ' +
-                          '%s. ' % self.feed.temperature.nick +
-                          'Functions that require a connected cryostat will not work.')
+            error_info = ('MercuryiTC error: No gas flow module configured for {}. '
+                          'Functions that require a connected cryostat will not '
+                          'work.').format(self.feed.temperature.nick)
         else:
             error_info = False
 

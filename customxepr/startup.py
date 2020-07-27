@@ -78,7 +78,7 @@ def show_splash_screen():
     splash.show()
     splash.raise_()
     QtWidgets.QApplication.processEvents()
-    splash.showMessage("Initializing...")
+    splash.showMessage('Initializing...')
 
     return splash
 
@@ -213,7 +213,7 @@ def run(gui=True):
     global exit_customxepr
 
     if not gui:
-        print("Connecting to instruments...")
+        print('Connecting to instruments...')
         xepr, customXepr, mercury, mercury_feed, keithley = connect_to_instruments()
         exit_customxepr = lambda: _exit_hook(instruments=(mercury, keithley))
         print(banner)
@@ -222,10 +222,10 @@ def run(gui=True):
         app = get_qt_app()  # create a new Qt app or return an existing one
         splash = show_splash_screen()  # create splash screen for messages
 
-        splash.showMessage("Connecting to instruments...")
+        splash.showMessage('Connecting to instruments...')
         xepr, customXepr, mercury, mercury_feed, keithley = connect_to_instruments()
 
-        splash.showMessage("Loading user interface...")
+        splash.showMessage('Loading user interface...')
         ui = start_gui(customXepr, mercury_feed, keithley)
 
         if IP:  # we have been started from a jupyter console

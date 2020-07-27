@@ -25,7 +25,7 @@ logger = logging.getLogger('customxepr')
 
 
 # ========================================================================================
-# class to wrap queued function calls ("experiments") and provide metadata
+# class to wrap queued function calls ('experiments') and provide metadata
 # ========================================================================================
 
 class CancelledError(Exception):
@@ -692,7 +692,7 @@ class Manager(object):
                 os.makedirs(logging_path)
 
             log_file = os.path.join(logging_path, 'root_logger '
-                                    + time.strftime("%Y-%m-%d_%H-%M-%S") + '.txt')
+                                    + time.strftime('%Y-%m-%d_%H-%M-%S') + '.txt')
             file_handler = logging.FileHandler(log_file)
             file_handler.setFormatter(f)
             file_handler.setLevel(logging.INFO)
