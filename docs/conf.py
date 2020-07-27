@@ -55,9 +55,9 @@ copyright = '{}, Sam Schott'.format(time.localtime().tm_year)
 author = 'Sam Schott'
 
 # The short X.Y version
-version = get_metadata('../customxepr/main.py', '__version__')
+version = get_metadata('../customxepr/__init__.py', '__version__')
 # The full version, including alpha/beta/rc tags
-release = get_metadata('../customxepr/main.py', '__version__')
+release = get_metadata('../customxepr/__init__.py', '__version__')
 
 
 # -- General configuration ---------------------------------------------------
