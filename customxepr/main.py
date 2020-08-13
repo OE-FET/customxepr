@@ -1067,8 +1067,10 @@ class CustomXepr(object):
 
         # save the data to tmp file, this insures that we always save to a file path
         # that Xepr can handle
-        tmp_path = os.path.join(tempfile.gettempdir(), 'autosave_' +
-                                next(tempfile._get_candidate_names()))
+
+        with tempfile.NamedTemporaryFile(prefix='autosave_', delete=False) as f:
+            tmp_path = f.name
+
         title = os.path.splitext(os.path.basename(path or tmp_path))[0]
         self._saveData(tmp_path, exp=exp, title=title)
         time.sleep(self._wait)
