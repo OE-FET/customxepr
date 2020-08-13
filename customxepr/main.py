@@ -205,14 +205,14 @@ class CustomXepr(object):
         """
         eta = time.time() + seconds
         eta_string = time.strftime('%H:%M', time.localtime(eta))
-        message = 'Waiting for {:d} seconds, ETA: {}.'.format(seconds, eta_string)
+        message = 'Waiting for {:.0f} seconds, ETA: {}.'.format(seconds, eta_string)
         logger.info(message)
 
         # brake up into 1 sec sleep intervals, give option to abort
         if seconds > 1:
             for i in range(0, seconds):
                 time.sleep(1)
-                logger.status('Waiting {:d}/{:d}.'.format(i+1, seconds))
+                logger.status('Waiting {:.0f}/{:.0f}.'.format(i+1, seconds))
                 # check for abort event
                 if self.abort.is_set():
                     logger.info('Aborted by user.')
@@ -705,9 +705,9 @@ class CustomXepr(object):
             self._saveQValue2File(temperature, q_mean, q_stderr, path)
 
         if q_mean > 3000:
-            logger.info('Q = {:d}+/-{:d}.'.format(q_mean, q_stderr))
+            logger.info('Q = {:.0f}+/-{:.0f}.'.format(q_mean, q_stderr))
         elif q_mean <= 3000:
-            logger.warning('Q = {:d}+/-{:d} is very small. Please check on '
+            logger.warning('Q = {:.0f}+/-{:.0f} is very small. Please check on '
                            'experiment.'.format(q_mean, q_stderr))
 
         self._wait = wait_old
@@ -800,9 +800,9 @@ class CustomXepr(object):
         time.sleep(self._wait)
 
         if mp.qvalue > 3000:
-            logger.info('Q = {:d}+/-{:d}.'.format(mp.qvalue, mp.qvalue_stderr))
+            logger.info('Q = {:.0f}+/-{:.0f}.'.format(mp.qvalue, mp.qvalue_stderr))
         elif mp.qvalue <= 3000:
-            logger.warning('Q = {:d}+/-{:d} is very small. Please check on '
+            logger.warning('Q = {:.0f}+/-{:.0f} is very small. Please check on '
                            'experiment.'.format(mp.qvalue, mp.qvalue_stderr))
 
         if path is not None:
@@ -1004,7 +1004,7 @@ class CustomXepr(object):
             time.sleep(self._wait)
             nb_scans_to_do = exp['NbScansToDo'].value
             time.sleep(self._wait)
-            logger.status('Recording scan {}/{}.'.format(nb_scans_done + 1, nb_scans_to_do))
+            logger.status('Recording scan {:.0f}/{.0f}.'.format(nb_scans_done + 1, nb_scans_to_do))
 
             if retune:
                 # tune frequency and iris when a new slice scan starts
