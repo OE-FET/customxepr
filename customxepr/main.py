@@ -1301,11 +1301,11 @@ class CustomXepr(object):
         """
 
         # time in sec after which a timeout warning is issued
-        temperature_timeout = (self._ramp_time(target) + 30*60)  # in sec
+        temperature_timeout = self._ramp_time(target) + 30*60  # in sec
         # counter for elapsed seconds since temperature has been stable
         stable_counter = 0
-        # counter for setting gas flow to manual
-        gasflow_man_counter = 0
+        # counter for temperature warnings
+        temperature_warning_counter = 0
         # starting time
         t0 = time.time()
 
@@ -1329,11 +1329,12 @@ class CustomXepr(object):
                                                              self._temp_wait_time))
                 time.sleep(1)
 
-            # warn if stabilization is taking longer than expected, and again every 30 min
-            if time.time() - t0 > temperature_timeout:
+            # warn if stabilization is taking longer than expected
+            if time.time() - t0 > temperature_timeout and temperature_warning_counter == 0:
                 logger.warning('Temperature is taking a long time to stabilize.')
                 t0 = time.time()
-                temperature_timeout = 30*60
+                temperature_timeout = self._ramp_time(target) + 30*60
+                temperature_warning_counter += 1
 
         message = 'Mercury iTC: Temperature is stable at {}K.'.format(target)
         logger.info(message)

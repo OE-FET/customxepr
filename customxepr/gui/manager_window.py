@@ -287,6 +287,7 @@ class ManagerApp(QtWidgets.QMainWindow):
         self.timeout_timer.setSingleShot(True)
         self.timeout_timer.timeout.connect(self.timeout_warning)
 
+        # reset timer when there is a status update
         status_handler.status_signal.connect(self.timeout_timer.start)
 
         # ================================================================================
