@@ -3,6 +3,8 @@
 ##### Changed:
 
 - Only show single-line previews of results in GUI.
+- Improve warnings for too high gasflow.
+- Allow overriding default tolerance and wait time in `waitTemperatureStable`.
 
 ##### Added:
 
