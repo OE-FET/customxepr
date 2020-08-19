@@ -1004,7 +1004,7 @@ class CustomXepr(object):
             time.sleep(self._wait)
             nb_scans_to_do = exp['NbScansToDo'].value
             time.sleep(self._wait)
-            logger.status('Recording scan {:.0f}/{.0f}.'.format(nb_scans_done + 1, nb_scans_to_do))
+            logger.status('Recording scan {:.0f}/{:.0f}.'.format(nb_scans_done + 1, nb_scans_to_do))
 
             if retune:
                 # tune frequency and iris when a new slice scan starts
