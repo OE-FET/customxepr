@@ -1259,6 +1259,7 @@ class CustomXepr(object):
 
         # set temperature and wait to stabilize
         self.esr_temperature.loop_tset = target
+
         if wait_stable:
             self.waitTemperatureStable(target)
 
@@ -1267,7 +1268,7 @@ class CustomXepr(object):
             ht = self._heater_target(target)
             fmin = self.esr_gasflow.gmin
 
-            above_heater_target = (self.esr_heater.volt[0] > 1.2*ht)
+            above_heater_target = (self.esr_heater.volt[0] > 1.1*ht)
             flow_at_min = (self.esr_gasflow.perc[0] == fmin)
 
             if above_heater_target and flow_at_min:
@@ -1275,6 +1276,8 @@ class CustomXepr(object):
                 logger.warning('Gas flow is too high, trying to reduce.')
                 self.esr_temperature.loop_faut = 'ON'
                 self.esr_gasflow.gmin = max(fmin - 1, 1)
+
+                self.waitTemperatureStable(target, wait_time=30)
 
     @manager.queued_exec
     def setTemperatureRamp(self, ramp):
