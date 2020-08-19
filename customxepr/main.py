@@ -1291,13 +1291,15 @@ class CustomXepr(object):
         logger.info('Temperature ramp set to {} K/min.'.format(ramp))
 
     @manager.queued_exec
-    def waitTemperatureStable(self, target):
+    def waitTemperatureStable(self, target, tolerance=None, wait_time=None):
         """
-        Waits for the cryostat temperature to stabilize within the specified tolerance
-        :attr:`temperature_tolerance`. Releases after it has been stable for
-        :attr:`temp_wait_time` seconds (default of 120 sec).
+        Waits for the cryostat temperature to stabilize.
 
         :param float target: Target temperature in Kelvin.
+        :param float tolerance: Allowed fluctuations in kelvin. Defaults to
+            :attr:`temperature_tolerance` if not given.
+        :param float wait_time: Time to wait for temperature to remain stable before
+            returning (seconds). Defaults to :attr:`temp_wait_time` if not given.
         """
 
         # time in sec after which a timeout warning is issued
@@ -1311,7 +1313,7 @@ class CustomXepr(object):
 
         logger.info('Waiting for temperature to stabilize.')
 
-        while stable_counter < self._temp_wait_time:
+        while stable_counter < (wait_time or self._temp_wait_time):
             # check for abort command
             if self.abort.is_set():
                 logger.info('Aborted by user.')
@@ -1319,14 +1321,14 @@ class CustomXepr(object):
 
             # check temperature deviation
             self.T_diff = abs(target - self.esr_temperature.temp[0])
-            if self.T_diff > self._temperature_tolerance:
+            if self.T_diff > (tolerance or self._temperature_tolerance):
                 stable_counter = 0
                 time.sleep(1)
                 logger.status('Waiting for temperature to stabilize.')
             else:
                 stable_counter += 1
                 logger.status('Stable for {}/{} sec.'.format(stable_counter,
-                                                             self._temp_wait_time))
+                                                             wait_time or self._temp_wait_time))
                 time.sleep(1)
 
             # warn if stabilization is taking longer than expected
