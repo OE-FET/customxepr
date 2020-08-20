@@ -48,7 +48,7 @@ class XeprParam(object):
 
     @property
     def unit(self):
-        return self._value
+        return self._unit
 
     @unit.setter
     def unit(self, unit):
