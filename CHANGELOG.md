@@ -12,6 +12,11 @@
   too high. 
 - Added config file entries for the maximum cooling temperature and the temperature sensor
   names for the ESR and cooling water.
+  
+##### Fixed:
+
+- Fixes an issue in `customxepr.experiment.xepr_dataset.XeprParam` where the `unit`
+  attribute would return the value instead of the unit.
 
 #### v3.1.0
 
