@@ -59,7 +59,7 @@ commands.
 You can start CustomXepr from a Python command prompt as follows:
 ```python
 >>> from customxepr import run
->>> customXepr, xepr, mercury, mercury_feed, keithley, ui = run()
+>>> customXepr, xepr, mercury, keithley, ui = run()
 ```
 If executed from an Jupyter console, this will automatically start the integrated Qt event
 loop and run in interactive mode. To start CustomXepr from the console / terminal, run
@@ -270,16 +270,17 @@ file.
 
 *System requirements:*
 
-- Linux or macOS (not tested on Windows)
+- Linux or macOS
 - Python 2.7 or 3.6 and higher
 
 *Recommended:*
 
 - Bruker Xepr software with Python XeprAPI (required for EPR related functions)
+  A Python 3 version of the API has been developed by us and is available upon request.
 - Postfix - mail transfer agent (required for email notifications from localhost)
 
 *Required python modules:*
-- PyQt5 >= 5.9 (PySide2 should also work but is not actively tested)
+- PyQt5 >= 5.9
 
 *Recommended python modules:*
 - pyusb (only when using pyvisa-py backend)
