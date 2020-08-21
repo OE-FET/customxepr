@@ -275,8 +275,8 @@ file.
 
 *Recommended:*
 
-- Bruker Xepr software with Python XeprAPI (required for EPR related functions).
-  A Python 3 version of the API is available [here](https://github.com/OE-FET/XeprAPI).
+- Bruker Xepr software with Python XeprAPI (required for EPR related functions),
+  a Python 3 version of the API is available [here](https://github.com/OE-FET/XeprAPI)
 - Postfix - mail transfer agent (required for email notifications from localhost)
 
 *Required python modules:*
