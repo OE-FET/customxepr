@@ -107,11 +107,11 @@ class CustomXepr(object):
             self.esr_temperature, self.esr_gasflow, self.esr_heater = \
                 self._select_temp_sensor(temperature_module_name)
 
-            self.cooling_temperature, _, _ = self._select_temp_sensor(cooling_module_name)
+            self.cooling_sensor, _, _ = self._select_temp_sensor(cooling_module_name)
 
         else:
             self.esr_temperature = self.esr_gasflow = self.esr_heater = None
-            self.cooling_temperature = None
+            self.cooling_sensor = None
 
         # =====================================================================
         # define / load certain settings for customxepr functions
@@ -1108,13 +1108,20 @@ class CustomXepr(object):
 
     def _cooling_temperature_ok(self):
 
-        if (self.cooling_temperature
-                and self.cooling_temperature.temp[0] > self._max_cooling_temperature):
-            logger.warning('Cooling temperature above {} Celsius. Aborting '
-                           'measurement.'.format(self._max_cooling_temperature))
-            self.setStandby()
-            self.manager.pause_worker()
-            return False
+        if self.cooling_sensor:
+
+            cool_t_kelvin = self.cooling_sensor.temp[0]
+            cool_t_deg_c = cool_t_kelvin - 273.15
+
+            if cool_t_kelvin > self._max_cooling_temperature:
+                logger.warning('Cooling temperature at {} Celsius. Aborting '
+                               'measurement.'.format(cool_t_deg_c))
+
+                self.setStandby()
+                self.manager.pause_worker()
+                return False
+            else:
+                return True
         else:
             return True
 
