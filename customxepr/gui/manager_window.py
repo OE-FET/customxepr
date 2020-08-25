@@ -96,7 +96,9 @@ class QErrorLogHandler(logging.Handler, QtCore.QObject):
 
     def emit(self, record):
         self.format(record)
-        self.error_signal.emit(record.exc_info)
+
+        if record.exc_info:
+            self.error_signal.emit(record.exc_info)
 
 
 # create QInfoLogHandler to handle all INFO level events
