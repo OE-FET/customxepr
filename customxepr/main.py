@@ -1110,8 +1110,8 @@ class CustomXepr(object):
 
         if (self.cooling_temperature
                 and self.cooling_temperature.temp[0] > self._max_cooling_temperature):
-            logger.error('Cooling temperature above {} Celsius. Aborting '
-                         'measurement.'.format(self._max_cooling_temperature))
+            logger.warning('Cooling temperature above {} Celsius. Aborting '
+                           'measurement.'.format(self._max_cooling_temperature))
             self.setStandby()
             self.manager.pause_worker()
             return False
