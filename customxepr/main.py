@@ -26,7 +26,7 @@ from customxepr.config import CONF
 try:
     from XeprAPI import ExperimentError, ParameterError
 except ImportError:
-    ExperimentError = RuntimeError
+    pass
 
 _root = os.path.dirname(os.path.realpath(__file__))
 logger = logging.getLogger('customxepr')
