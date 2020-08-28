@@ -24,7 +24,7 @@ from customxepr.manager import Manager
 from customxepr.config import CONF
 
 try:
-    from XeprAPI import ExperimentError
+    from XeprAPI import ExperimentError, ParameterError
 except ImportError:
     ExperimentError = RuntimeError
 
@@ -938,22 +938,27 @@ class CustomXepr(object):
 
         self._check_for_xepr()
 
-        # -----------set experiment parameters if given in kwargs--------------
+        # ----------- set experiment parameters if given in kwargs -----------------------
         for key in kwargs:
             exp[key].value = kwargs[key]
             time.sleep(self._wait)
 
-        d = timedelta(seconds=self.getExpDuration(exp))
-        eta = datetime.now() + d
+        # ----------- notify user, estimate runtime for cw experiments -------------------
+        try:
+            d = timedelta(seconds=self.getExpDuration(exp))
+            eta = datetime.now() + d
 
-        logger.info(
-            'Measurement "{0}" is running. Estimated duration: {1} min (ETA {2}).'.format(
-                exp.aqGetExpName(),
-                int(d.total_seconds()/60),
-                eta.strftime('%H:%M')
+            logger.info(
+                'Measurement "{0}" is running. Estimated duration: {1} min (ETA {2}).'.format(
+                    exp.aqGetExpName(),
+                    int(d.total_seconds()/60),
+                    eta.strftime('%H:%M')
+                )
             )
-        )
-        # -------------------start experiment----------------------------------
+        except ParameterError:
+            logger.info('Measurement "{0}" is running.')
+
+        # ----------- start experiment ---------------------------------------------------
 
         has_mercury = self._check_for_mercury(raise_error=False)
 
@@ -1004,7 +1009,8 @@ class CustomXepr(object):
             time.sleep(self._wait)
             nb_scans_to_do = exp['NbScansToDo'].value
             time.sleep(self._wait)
-            logger.status('Recording scan {:.0f}/{:.0f}.'.format(nb_scans_done + 1, nb_scans_to_do))
+            logger.status('Recording scan {:.0f}/{:.0f}.'.format(nb_scans_done + 1,
+                                                                 nb_scans_to_do))
 
             if retune:
                 # tune frequency and iris when a new slice scan starts
@@ -1057,7 +1063,7 @@ class CustomXepr(object):
 
         logger.info('All scans complete.')
 
-        # -----------------show and save data----------
+        # ----------- save data with custom parameters -----------------------------------
         # switch viewpoint to experiment which just finished running
         time.sleep(self._wait)
         exp_title = exp.aqGetExpName()
