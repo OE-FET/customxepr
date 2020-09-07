@@ -18,7 +18,7 @@ def is_metadata(line):
     return len(line) == 0 or not line[0].isalpha()
 
 
-class XeprParam(object):
+class XeprParam:
     """
     Holds a Bruker measurement parameter in the BES3T file format.
 
@@ -175,7 +175,7 @@ class XeprParam(object):
         return '<{0}({1})>'.format(self.__class__.__name__, self.to_string())
 
 
-class ParamGroup(object):
+class ParamGroup:
     """
     Class to hold an Xepr experiment parameter group, which is part of a layer.
 
@@ -280,7 +280,7 @@ class ParamGroupMHL(ParamGroup):
     DELIM = ''
 
 
-class ParamLayer(object):
+class ParamLayer:
     """
     Parameter layer object. Contains a top level parameter section of a
     Bruker BES3T file. This should be subclassed, depending on the actual
@@ -303,7 +303,7 @@ class ParamLayer(object):
 
     HEADER_FMT = '#{0}	{1} * {2}\n*'
     LB = '\n'
-    END = '*\n' + '*'*60 + '\n*'
+    END = '*\n' + '*' * 60 + '\n*'
 
     GROUP_CLASS = ParamGroup
 
@@ -492,7 +492,7 @@ class ParamDict(MutableMapping):
 
 
 # noinspection PyTypeChecker
-class XeprData(object):
+class XeprData:
     """
     Holds a Bruker EPR measurement result, including all measurement parameters.
     Supports importing and exporting to the Bruker BES3T file format ('.DSC',
