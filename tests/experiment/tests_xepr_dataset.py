@@ -6,42 +6,46 @@
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
-from __future__ import division, absolute_import, unicode_literals
 import os
 import unittest
 import filecmp
 
-from customxepr import XeprData, XeprParam
+
+from customxepr.experiment.xepr_dataset import XeprData, XeprParam
 
 DIR = os.path.dirname(os.path.realpath(__file__))
-
 EXTENTIONS = ('.DSC', '.DTA', '.YGF', '.ZSC')
+
+TEST_FILES = (
+    'cw_epr_angle_dep',
+    'cw_epr_complex',
+    'cw_epr_power_sat',
+    'pulsed_edmr_rabi',
+)
 
 
 class TestXeprData(unittest.TestCase):
 
-    PATH_ORIGINAL_2D = DIR + '/cw_epr_complex'
-    PATH_NEW_2D = DIR + '/cw_epr_power_sat_new'
-
-    PATH_ORIGINAL_CPLX = DIR + '/cw_epr_complex'
-    PATH_NEW_CPLX = DIR + '/cw_epr_complex_new'
-
-    def test_load_save_2d(self):
+    def test_load_save(self):
         """
-        Test loading and saving BES3T 2D data files. Assert that the saved files have the
+        Test loading and saving BES3T data files. Assert that the saved files have the
         same content as the original files. This test will fail in Python 2 since the
         order of sections will not be maintained.
         """
 
         # test loading and saving in the correct file format
 
-        dset = XeprData(self.PATH_ORIGINAL_2D + '.DSC')
-        dset.save(self.PATH_NEW_2D + '.DSC')
+        for file in TEST_FILES:
+            old_path = os.path.join(DIR, file)
+            new_path = os.path.join(DIR, file) + '_new'
 
-        for ext in EXTENTIONS:
-            if os.path.isfile(self.PATH_ORIGINAL_2D + ext):
-                self.assertTrue(filecmp.cmp(self.PATH_ORIGINAL_2D + ext,
-                                            self.PATH_NEW_2D + ext))
+            dset = XeprData(old_path + '.DSC')
+            dset.save(new_path + '.DSC')
+
+            for ext in EXTENTIONS:
+                if os.path.isfile(old_path + ext):
+                    self.assertTrue(filecmp.cmp(old_path + ext, new_path + ext),
+                                    'different contents for {}'.format(file + ext))
 
     def test_modify_ordinate(self):
         """
@@ -51,31 +55,18 @@ class TestXeprData(unittest.TestCase):
 
         # test loading and saving in the correct file format
 
-        dset = XeprData(self.PATH_ORIGINAL_2D + '.DSC')
-        dset.o = dset.o  # should not change the actual content
-        dset.save(self.PATH_NEW_2D + '.DSC')
+        for file in TEST_FILES:
+            old_path = os.path.join(DIR, file)
+            new_path = os.path.join(DIR, file) + '_new'
 
-        for ext in EXTENTIONS:
-            if os.path.isfile(self.PATH_ORIGINAL_2D + ext):
-                self.assertTrue(filecmp.cmp(self.PATH_ORIGINAL_2D + ext,
-                                            self.PATH_NEW_2D + ext))
+            dset = XeprData(old_path + '.DSC')
+            dset.o = dset.o  # should not change the actual content
+            dset.save(new_path + '.DSC')
 
-    def test_load_save_complex(self):
-        """
-        Test loading and saving BES3T data files with complex data. Assert that the saved
-        files have the same content as the original files. This test will fail in Python 2
-        since the order of sections will not be maintained.
-        """
-
-        # test loading and saving in the correct file format
-
-        dset = XeprData(self.PATH_ORIGINAL_CPLX + '.DSC')
-        dset.save(self.PATH_NEW_CPLX + '.DSC')
-
-        for ext in EXTENTIONS:
-            if os.path.isfile(self.PATH_ORIGINAL_CPLX + ext):
-                self.assertTrue(filecmp.cmp(self.PATH_ORIGINAL_CPLX + ext,
-                                            self.PATH_NEW_CPLX + ext))
+            for ext in EXTENTIONS:
+                if os.path.isfile(old_path + ext):
+                    self.assertTrue(filecmp.cmp(old_path + ext, new_path + ext),
+                                    'different contents for {}'.format(file + ext))
 
     def test_remove_param(self):
         """
@@ -83,9 +74,9 @@ class TestXeprData(unittest.TestCase):
         indeed gone.
         """
 
-        PATH_ORIGINAL = DIR + '/cw_epr_complex'
+        PATH_ORIGINAL = os.path.join(DIR, TEST_FILES[1])
 
-        dset = XeprData(self.PATH_ORIGINAL_2D + '.DSC')
+        dset = XeprData(PATH_ORIGINAL + '.DSC')
         del dset.pars['MWFQ']
 
         with self.assertRaises(KeyError):
@@ -97,12 +88,14 @@ class TestXeprData(unittest.TestCase):
         saved to the appropriate location in the DSC file.
         """
 
-        dset = XeprData(self.PATH_ORIGINAL_2D + '.DSC')
+        PATH_ORIGINAL = os.path.join(DIR, TEST_FILES[1])
+
+        dset = XeprData(PATH_ORIGINAL + '.DSC')
         dset.pars['NewParam1'] = 1234
         dset.pars['NewParam2'] = XeprParam(1234, 'K/sec')
-        dset.save(self.PATH_NEW_2D + '.DSC')
+        dset.save(PATH_ORIGINAL + '_new.DSC')
 
-        dset.load(self.PATH_NEW_2D + '.DSC')
+        dset.load(PATH_ORIGINAL + '_new.DSC')
 
         self.assertEqual(dset.pars['NewParam1'].value, 1234)
         self.assertEqual(dset.pars['NewParam2'].value, 1234)
@@ -116,6 +109,7 @@ class TestXeprData(unittest.TestCase):
 
         for f in new_files:
             os.remove(f)
+
 
 if __name__ == '__main__':
     unittest.main()

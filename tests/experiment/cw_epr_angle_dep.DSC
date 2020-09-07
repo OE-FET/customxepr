@@ -37,7 +37,6 @@ XWID	1218.57
 *
 #SPL	1.2 * STANDARD PARAMETER LAYER
 *
-
 OPER    ss2151
 SFOR    
 B0MA    0.0015
@@ -197,5 +196,6 @@ QValue             8317.6
 AcqSliceFTuning    On
 PowerAtten         15.0 dB
 QValueErr          28.5
+
 *
 ************************************************************
