@@ -29,9 +29,12 @@ class XeprParam:
         :attr:`comment` must start with "\*".
     """
 
+    HEADER_REGEX = '{(?P<ndmin>\d*);(?P<shape>[\d,]*);(?P<default>[0-9\.e+-]*)\[?(?P<unit>\w*)\]?}'
+
     def __init__(self, value=None, unit='', comment=''):
 
         self._value = value
+        self._matrix_default_value = 0
         self._unit = unit
         self._comment = comment
 
@@ -73,34 +76,55 @@ class XeprParam:
         """
         # return original parsed version, if present
 
-        if self._string:
-            return self._string
-        else:
-            return self._to_string()
+        if not self._string:
+            self._string = self._to_string()
+
+        return self._to_string()
 
     def _to_string(self):
 
-        # prepare value string (and potentially header string)
-        header_str = ''
-        if self._value is None:  # => empty string
-            value_str = ''
-        elif isinstance(self._value, np.ndarray):  # => flatten and add header
-            value_str = ','.join([str(x) for x in self._value.flatten()])
-            shape_str = str(self._value.shape).lstrip('(').strip(')').replace(' ', '')
-            header_str = '{{{0};{1};{2}}}'.format(self._value.ndim, shape_str, 0)
-        else:  # => take default string representation
-            value_str = str(self._value)
+        return_list = []
 
-        # determine order of strings (unit comes before value for arrays!)
-        if header_str:  # array
-            return_list = [header_str, self._unit, value_str, self._comment]
-        else:  # not an array
-            return_list = [value_str, self._unit, self._comment]
+        if self.value is not None:
 
-        # join all non-empty strings
-        return_str = ' '.join([r for r in return_list if r != ''])
+            is_matrix = isinstance(self.value, np.ndarray)
 
-        return return_str
+            if is_matrix:
+                value_str = ','.join([str(x) for x in self.value.flatten()])
+                shape_str = ','.join(str(x) for x in self.value.shape)
+                if self.unit:
+                    header_str = '{{{0};{1};{2}[{3}]}}'.format(
+                        self.value.ndim,
+                        shape_str,
+                        self._matrix_default_value,
+                        self.unit
+                    )
+                else:
+                    header_str = '{{{0};{1};{2}}}'.format(
+                        self.value.ndim,
+                        shape_str,
+                        self._matrix_default_value
+                    )
+
+                return_list.append(header_str)
+                return_list.append(value_str)
+            else:  # => take default string representation
+                value_str = str(self.value)
+                return_list.append(value_str)
+
+                if self.unit:
+                    return_list.append(self.unit)
+
+        if self.comment:
+
+            if self.comment.startswith('*'):
+                comment_str = self.comment
+            else:
+                comment_str = '* ' + self.comment
+
+            return_list.append(comment_str)
+
+        return ' '.join([r for r in return_list])
 
     def from_string(self, string):
         """
@@ -121,7 +145,7 @@ class XeprParam:
 
         # remove trailing comments
         if contents[-1].startswith('*'):
-            self._comment = contents[-1]
+            self._comment = contents[-1].lstrip('*')
             del contents[-1]
 
         par_header = None
@@ -145,17 +169,21 @@ class XeprParam:
                     self._unit = contents[1]
                 except ValueError:  # a string with spaces
                     par_value = ' '.join(contents)
-        # check if we have a header-unit-value triple
-        elif re.match(r'\{.*\}', contents[0]):
-            par_header = contents[0]
-            self._unit = contents[1]
-            par_value = contents[2]
         else:  # otherwise just save as string
             par_value = ' '.join(contents)
 
         if par_header:  # follow header instructions to parse the value
             array = np.array([float(x) for x in par_value.split(',')])
-            shape = [int(x) for x in par_header.split(';')[1].split(',')]
+            match = re.match(self.HEADER_REGEX, par_header)
+            ndim = int(match['ndmin'])
+            shape = [int(x) for x in match['shape'].split(',')]
+            self._matrix_default_value = float(match['default'])
+
+            if len(shape) != ndim:
+                raise ValueError('Inconsistent matrix dimensions: got '
+                                 '{} dimensions but shape is {}'.format(ndim, shape))
+
+            self._unit = match['unit']
             self._value = array.reshape(shape)
         else:  # try to convert the value to Python types int / float / bool / str
             try:
