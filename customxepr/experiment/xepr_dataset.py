@@ -18,6 +18,22 @@ def is_metadata(line):
     return len(line) == 0 or not line[0].isalpha()
 
 
+def num2str(number):
+    if isinstance(number, float):
+        return '{:.6e}'.format(number)
+    elif isinstance(number, int):
+        return str(number)
+    else:
+        raise ValueError('Number must be float or str')
+
+
+def str2num(string):
+    try:
+        return int(string)
+    except ValueError:
+        return float(string)
+
+
 class XeprParam:
     """
     Holds a Bruker measurement parameter in the BES3T file format.
@@ -90,26 +106,26 @@ class XeprParam:
             is_matrix = isinstance(self.value, np.ndarray)
 
             if is_matrix:
-                value_str = ','.join([str(x) for x in self.value.flatten()])
-                shape_str = ','.join(str(x) for x in self.value.shape)
+                value_str = ','.join([num2str(x) for x in self.value.flatten()])
+                shape_str = ','.join(num2str(x) for x in self.value.shape)
                 if self.unit:
                     header_str = '{{{0};{1};{2}[{3}]}}'.format(
                         self.value.ndim,
                         shape_str,
-                        self._matrix_default_value,
+                        num2str(self._matrix_default_value),
                         self.unit
                     )
                 else:
                     header_str = '{{{0};{1};{2}}}'.format(
                         self.value.ndim,
                         shape_str,
-                        self._matrix_default_value
+                        num2str(self._matrix_default_value)
                     )
 
                 return_list.append(header_str)
                 return_list.append(value_str)
             else:  # => take default string representation
-                value_str = str(self.value)
+                value_str = num2str(self.value)
                 return_list.append(value_str)
 
                 if self.unit:
@@ -173,11 +189,11 @@ class XeprParam:
             par_value = ' '.join(contents)
 
         if par_header:  # follow header instructions to parse the value
-            array = np.array([float(x) for x in par_value.split(',')])
+            array = np.array([str2num(x) for x in par_value.split(',')])
             match = re.match(self.HEADER_REGEX, par_header)
-            ndim = int(match['ndmin'])
-            shape = [int(x) for x in match['shape'].split(',')]
-            self._matrix_default_value = float(match['default'])
+            ndim = str2num(match['ndmin'])
+            shape = [str2num(x) for x in match['shape'].split(',')]
+            self._matrix_default_value = str2num(match['default'])
 
             if len(shape) != ndim:
                 raise ValueError('Inconsistent matrix dimensions: got '
@@ -187,15 +203,10 @@ class XeprParam:
             self._value = array.reshape(shape)
         else:  # try to convert the value to Python types int / float / bool / str
             try:
-                if '.' in par_value:
-                    self._value = float(par_value)
-                else:
-                    self._value = int(par_value)
+                self._value = str2num(par_value)
             except ValueError:
-                if par_value == 'True':
-                    self._value = True
-                elif par_value == 'False':
-                    self._value = False
+                if par_value in ('True', 'False'):
+                    self._value = bool(par_value)
                 else:
                     self._value = par_value
 
