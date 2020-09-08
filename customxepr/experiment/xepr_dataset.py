@@ -22,9 +22,9 @@ def is_metadata(line: str) -> bool:
 
 
 def num2str(number: float) -> str:
-    if isinstance(number, float):
+    if isinstance(number, (float, np.float64)):
         return '{:.6e}'.format(number)
-    elif isinstance(number, int):
+    elif isinstance(number, (int, np.int64)):
         return str(number)
     else:
         raise ValueError('Number must be float or str')
@@ -96,7 +96,7 @@ class XeprParam:
         if not self._string:
             self._string = self._to_string()
 
-        return self._to_string()
+        return self._string
 
     def _to_string(self) -> str:
 
@@ -191,7 +191,7 @@ class XeprParam:
 
         if par_header:  # follow header instructions to parse the value
             array = np.array([str2num(x) for x in par_value.split(',')])
-            match = re.match(self.HEADER_REGEX, par_header)
+            match = re.match(XeprParam.HEADER_REGEX, par_header)
             ndim = str2num(match['ndmin'])
             shape = [str2num(x) for x in match['shape'].split(',')]
             self._matrix_default_value = str2num(match['default'])
