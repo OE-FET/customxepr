@@ -9,16 +9,19 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 import os
 import re
 import numpy as np
+from typing import Optional, Union, Dict, Iterator, Tuple, List
 
 from collections.abc import MutableMapping
 
+ParamValueType = Union[float, bool, str, np.ndarray, None]
 
-def is_metadata(line):
+
+def is_metadata(line: str) -> bool:
     # metadata lines are either empty or start with a non-alphabetic character
     return len(line) == 0 or not line[0].isalpha()
 
 
-def num2str(number):
+def num2str(number: float) -> str:
     if isinstance(number, float):
         return '{:.6e}'.format(number)
     elif isinstance(number, int):
@@ -27,7 +30,7 @@ def num2str(number):
         raise ValueError('Number must be float or str')
 
 
-def str2num(string):
+def str2num(string: str) -> float:
     try:
         return int(string)
     except ValueError:
@@ -38,16 +41,15 @@ class XeprParam:
     """
     Holds a Bruker measurement parameter in the BES3T file format.
 
-    :ivar value: The parameter value. Should be of type :class:`int`, :class:`float`,
-        :class:`bool`, :class:`str`, or :class:`numpy.ndarray`.
-    :ivar str unit: String containing the unit. Defaults to an empty string.
-    :ivar str comment: Defaults to an empty string. If not empty,
-        :attr:`comment` must start with "\*".
+    :param value: The parameter value.
+    :param unit: String containing the unit. Defaults to an empty string.
+    :param comment: Defaults to an empty string.
     """
 
-    HEADER_REGEX = '{(?P<ndmin>\d*);(?P<shape>[\d,]*);(?P<default>[0-9\.e+-]*)\[?(?P<unit>\w*)\]?}'
+    HEADER_REGEX = r'{(?P<ndmin>\d*);(?P<shape>[\d,]*);(?P<default>[0-9\.e+-]*)\[?(?P<unit>\w*)\]?}'
 
-    def __init__(self, value=None, unit='', comment=''):
+    def __init__(self, value: ParamValueType = None,
+                 unit: str = '', comment: str = '') -> None:
 
         self._value = value
         self._matrix_default_value = 0
@@ -57,38 +59,37 @@ class XeprParam:
         self._string = None
 
     @property
-    def value(self):
+    def value(self) -> ParamValueType:
         return self._value
 
     @value.setter
-    def value(self, value):
+    def value(self, value: ParamValueType):
         self._value = value
         self._string = None
 
     @property
-    def unit(self):
+    def unit(self) -> str:
         return self._unit
 
     @unit.setter
-    def unit(self, unit):
+    def unit(self, unit: str):
         self._unit = unit
         self._string = None
 
     @property
-    def comment(self):
+    def comment(self) -> str:
         return self._comment
 
     @comment.setter
-    def comment(self, comment):
+    def comment(self, comment: str):
         self._comment = comment
         self._string = None
 
-    def to_string(self):
+    def to_string(self) -> str:
         """
         Prints a parameter as string in the Bruker BES3T format.
 
         :return: Parsed parameter.
-        :rtype: str
         """
         # return original parsed version, if present
 
@@ -97,7 +98,7 @@ class XeprParam:
 
         return self._to_string()
 
-    def _to_string(self):
+    def _to_string(self) -> str:
 
         return_list = []
 
@@ -142,7 +143,7 @@ class XeprParam:
 
         return ' '.join([r for r in return_list])
 
-    def from_string(self, string):
+    def from_string(self, string: str) -> None:
         """
         Parses a parameter from string given in the Bruker BES3T format.
 
@@ -174,7 +175,7 @@ class XeprParam:
             par_value = contents[0]
         elif len(contents) == 2:
             # check if we have a header-value pair, a value-unit pair, or a single value
-            if re.match(r'\{.*\}', contents[0]):  # first block is a header
+            if re.match(r'{.*}', contents[0]):  # first block is a header
                 par_header = contents[0]
                 par_value = contents[1]
             else:
@@ -210,7 +211,7 @@ class XeprParam:
                 else:
                     self._value = par_value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '<{0}({1})>'.format(self.__class__.__name__, self.to_string())
 
 
@@ -222,22 +223,22 @@ class ParamGroup:
     :cvar CELL_LENGTH: Length of cell containing the parameter name.
     :cvar DELIM: Delimiter between parameter name and value.
 
-    :ivar str name: The parameter group's name.
-    :ivar dict pars: Dictionary containing all :class:`XeprParam` instances belonging
-        to the group.
+    :ivar name: The parameter group's name.
+    :ivar pars: Dictionary containing all :class:`XeprParam` instances belonging to the
+    group.
     """
     HEADER_FMT = '* {0}'
     CELL_LENGTH = 19
     DELIM = ''
 
-    def __init__(self, name='', pars=None):
+    def __init__(self, name: str = '', pars: Optional[Dict[str, XeprParam]] = None) -> None:
         self.name = name
         if pars is None:
             self.pars = dict()
         else:
             self.pars = dict(pars)
 
-    def to_string(self):
+    def to_string(self) -> str:
         """
         Prints a parameter group as string.
         """
@@ -253,11 +254,11 @@ class ParamGroup:
 
         return '\n'.join(lines)
 
-    def from_string(self, string):
+    def from_string(self, string: str) -> None:
         """
         Parses a parameter group from given string.
 
-        :param str string: Parameter group string from Bruker .DSC file.
+        :param string: Parameter group string from Bruker .DSC file.
         """
 
         lines = string.split('\n')
@@ -272,7 +273,7 @@ class ParamGroup:
                 new_param.from_string(par_string)
                 self.pars[par_name] = new_param
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '<{0}({1})>'.format(self.__class__.__name__, self.name)
 
 
@@ -321,9 +322,8 @@ class ParamGroupMHL(ParamGroup):
 
 class ParamLayer:
     """
-    Parameter layer object. Contains a top level parameter section of a
-    Bruker BES3T file. This should be subclassed, depending on the actual
-    parameter layer type.
+    Parameter layer object. Contains a top level parameter section of a Bruker BES3T file.
+    This should be subclassed, depending on the actual parameter layer type.
 
     :cvar TYPE: Parameter layer type. Can be 'DESC' for a Descriptor Layer, 'SPL' for a
         Standard Parameter Layer, 'DSL' for a Device Specific Layer or 'MHL' for a
@@ -346,10 +346,11 @@ class ParamLayer:
 
     GROUP_CLASS = ParamGroup
 
-    def __init__(self, groups=None):
+    def __init__(self, groups: Optional[Dict[str, ParamGroup]] = None) -> None:
+
         self.groups = dict() if groups is None else groups
 
-    def to_string(self):
+    def to_string(self) -> str:
         """
         Prints the parameter layer as string.
 
@@ -365,7 +366,7 @@ class ParamLayer:
 
         return '\n'.join(lines)
 
-    def from_string(self, string):
+    def from_string(self, string: str) -> None:
         """
         Parses parameter layer string to contained parameters
 
@@ -421,7 +422,7 @@ class StandardParameterLayer(ParamLayer):
     def from_string(self, string):
         self.groups = dict()
 
-        new_group = self.GROUP_CLASS(name='')
+        new_group = self.GROUP_CLASS()
         new_group.from_string(string)
         self.groups[''] = new_group
 
@@ -457,15 +458,11 @@ class ParamDict(MutableMapping):
     """
     Object to allow dictionary-like access to all measurement parameters.
     """
-    def __init__(self, layers):
-
-        for layer in layers.values():
-            if not isinstance(layer, ParamLayer):
-                raise ValueError('Layers must all be instances of "ParamLayer".')
+    def __init__(self, layers: Dict[str, ParamLayer]) -> None:
 
         self.layers = layers
 
-    def _flatten(self):
+    def _flatten(self) -> Dict[str, XeprParam]:
 
         flat_dict = dict()
 
@@ -475,21 +472,13 @@ class ParamDict(MutableMapping):
 
         return flat_dict
 
-    def copy(self):
-        """
-        Returns the flatted dictionary.
-
-        :rtype: dict
-        """
-        return self._flatten()
-
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> XeprParam:
 
         flat_dict = self._flatten()
 
         return flat_dict[key]
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Union[XeprParam, ParamValueType]) -> None:
 
         # convert value to XeprParam if necessary
         if not isinstance(value, XeprParam):
@@ -508,7 +497,7 @@ class ParamDict(MutableMapping):
 
         self.layers['DSL'].groups['customXepr'].pars[key] = value
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: str) -> None:
 
         is_deleted = False
 
@@ -521,11 +510,11 @@ class ParamDict(MutableMapping):
         if not is_deleted:
             raise KeyError('Parameter "%s" does not exist.' % key)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         flat_dict = self._flatten()
         return iter(flat_dict)
 
-    def __len__(self):
+    def __len__(self) -> int:
         flat_dict = self._flatten()
         return len(flat_dict)
 
@@ -612,7 +601,7 @@ class XeprData:
 
         Save the modified data set:
 
-        >>> data_set.save('/path/to/file.DSC')
+        >>> dset.save('/path/to/file.DSC')
 
     """
 
@@ -620,7 +609,7 @@ class XeprData:
 
     byte_order = '>'  # Bruker data files default to 'big-endian' byte-order
 
-    def __init__(self, path=None):
+    def __init__(self, path: Optional[str] = None) -> None:
         """
         :param str path: If given, the data file will be loaded from ``path``.
         """
@@ -644,30 +633,30 @@ class XeprData:
         if path:
             self.load(path)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._x)
 
     @property
-    def shape(self):
+    def shape(self) -> Tuple[..., int]:
         return tuple(len(a) for a in (self._x, self._y, self._z) if len(a) > 0)
 
     @property
-    def x(self):
+    def x(self) -> np.ndarray:
         """Returns x-axis data as numpy array."""
         return self._x.astype(float)
 
     @property
-    def y(self):
+    def y(self) -> np.ndarray:
         """Returns y-axis data as numpy array."""
         return self._y.astype(float)
 
     @property
-    def z(self):
+    def z(self) -> np.ndarray:
         """Returns z-axis data as numpy array."""
         return self._z.astype(float)
 
     @property
-    def o(self):
+    def o(self) -> np.ndarray:
         """
         Returns ordinate data as numpy array or as a tuple of arrays containing all
         ordinate data sets. If real and imaginary parts are present, they will be
@@ -689,7 +678,7 @@ class XeprData:
         return r_list[0] if len(r_list) == 1 else tuple(r_list)
 
     @o.setter
-    def o(self, array_like):
+    def o(self, array_like) -> None:
 
         ikkf = self.pars['IKKF'].value.split(',')  # get ordinate type: real or complex
 
@@ -718,7 +707,7 @@ class XeprData:
 
             self._dta = self._o.flatten()
 
-    def load(self, path):
+    def load(self, path: str) -> None:
         """
         Loads data and parameters from a '.DSC' file and accompanying data files.
 
@@ -738,7 +727,7 @@ class XeprData:
         self._load_dsc(base_path)
         self._load_dta(base_path)
 
-    def _load_dsc(self, base_path):
+    def _load_dsc(self, base_path: str) -> None:
 
         dsc_path = base_path + '.DSC'
 
@@ -774,7 +763,7 @@ class XeprData:
         else:
             raise IOError('Byte-order of data file is not supported.')
 
-    def _get_dta_dtype(self):
+    def _get_dta_dtype(self) -> List[Tuple[str, str]]:
 
         # determine if acquired quantities are real or complex
         ikkfs = self.pars['IKKF'].value.split(',')
@@ -812,7 +801,7 @@ class XeprData:
         # return list of tuples (field name, data type)
         return list((fn, dt) for fn, dt in zip(field_names, data_types))
 
-    def _get_axis_dtype(self, axis='x'):
+    def _get_axis_dtype(self, axis: str = 'x') -> str:
 
         # determine type of data: int 32-bit, float 32-bit or float 64-bit
         par_name = axis.capitalize() + 'FMT'
@@ -823,7 +812,7 @@ class XeprData:
                           'must be double (64-bit), float(32-bit), or int (32-bit).')
         return self._byte_order + dtype
 
-    def _load_dta(self, base_path):
+    def _load_dta(self, base_path: str) -> None:
 
         dta_path = base_path + '.DTA'
         fmt = self._get_dta_dtype()
@@ -870,7 +859,7 @@ class XeprData:
         else:
             self._o = self._dta
 
-    def save(self, path):
+    def save(self, path: str) -> None:
         """
         Saves data and parameters to a '.DSC' file and accompanying data files.
 
@@ -901,7 +890,7 @@ class XeprData:
         if self.pars['ZTYP'].value == 'IGD':
             self._z.tofile(base_path + '.YGF')
 
-    def print_dsc(self):
+    def print_dsc(self) -> str:
         """
         Parses all parameters as '.DSC' file content and returns the result as a string.
 
@@ -919,7 +908,7 @@ class XeprData:
 
         return '\n'.join(lines)
 
-    def plot(self):
+    def plot(self) -> None:
         """
         Plots all recorded spectra / sweeps as 2D or 3D plots. Requires matplotlib.
         """
@@ -968,5 +957,5 @@ class XeprData:
         fig.tight_layout()
         fig.show()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '<{0}({1})>'.format(self.__class__.__name__, self.pars['TITL'].value)
