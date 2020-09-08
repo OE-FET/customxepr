@@ -637,7 +637,7 @@ class XeprData:
         return len(self._x)
 
     @property
-    def shape(self) -> Tuple[..., int]:
+    def shape(self) -> Tuple[int, ...]:
         return tuple(len(a) for a in (self._x, self._y, self._z) if len(a) > 0)
 
     @property
