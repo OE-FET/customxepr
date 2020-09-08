@@ -957,5 +957,28 @@ class XeprData:
         fig.tight_layout()
         fig.show()
 
+    def is_1d(self) -> bool:
+        return len(self.shape) == 1
+
+    def is_2d(self) -> bool:
+        return len(self.shape) == 2
+
+    def is_3d(self) -> bool:
+        return len(self.shape) == 3
+
+    def is_pulsed(self) -> bool:
+        dsl = self.param_layers.get('DSL')
+        if dsl:
+            return 'ftEpr' in dsl.groups
+        else:
+            return False
+
+    def is_cw(self) -> bool:
+        dsl = self.param_layers.get('DSL')
+        if dsl:
+            return 'ftEpr' not in dsl.groups
+        else:
+            return False
+
     def __repr__(self) -> str:
         return '<{0}({1})>'.format(self.__class__.__name__, self.pars['TITL'].value)
