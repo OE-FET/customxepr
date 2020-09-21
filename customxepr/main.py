@@ -1117,7 +1117,7 @@ class CustomXepr(object):
         if self.cooling_sensor:
 
             cool_t_kelvin = self.cooling_sensor.temp[0]
-            cool_t_deg_c = cool_t_kelvin - 273.15
+            cool_t_deg_c = round(cool_t_kelvin - 273.15, 2)
 
             if cool_t_kelvin > self._max_cooling_temperature:
                 logger.warning('Cooling temperature at {} Celsius. Aborting '
