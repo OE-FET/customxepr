@@ -37,7 +37,7 @@ DEFAULTS = [
               'email_handler_level': 30,
               'temp_wait_time': 120,
               'esr_temperature_tolerance': 0.1,
-              'max_cooling_temperature': 291,
+              'max_cooling_temperature': 293,
               'esr_temperature_nick': 'ESR900',
               'cooling_temperature_nick': 'COOLWATER',
               }),
