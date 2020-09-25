@@ -1,3 +1,12 @@
+#### v3.1.2.dev1
+
+##### Changed:
+
+- Remove custom `exit_customxepr()` function. Instead, close the console to exit
+  CustromXepr or run `exit` when started from an IPython or Jupyter shell.
+- Increase default maximum cooling temperature to 20°C.
+- Remember the location of the console window between restarts.
+
 #### v3.1.1
 
 ##### Changed:

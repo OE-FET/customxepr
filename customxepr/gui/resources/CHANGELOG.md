@@ -1,8 +1,19 @@
+#### v3.1.2.dev1
+
+##### Changed:
+
+- Remove custom `exit_customxepr()` function. Instead, close the console to exit
+  CustromXepr or run `exit` when started from an IPython or Jupyter shell.
+- Increase default maximum cooling temperature to 20°C.
+- Remember the location of the console window between restarts.
+
 #### v3.1.1
 
 ##### Changed:
 
 - Only show single-line previews of results in GUI.
+- Improve warnings for too high gasflow.
+- Allow overriding default tolerance and wait time in `waitTemperatureStable`.
 
 ##### Added:
 
@@ -10,6 +21,11 @@
   too high. 
 - Added config file entries for the maximum cooling temperature and the temperature sensor
   names for the ESR and cooling water.
+  
+##### Fixed:
+
+- Fixes an issue in `customxepr.experiment.xepr_dataset.XeprParam` where the `unit`
+  attribute would return the value instead of the unit.
 
 #### v3.1.0
 
