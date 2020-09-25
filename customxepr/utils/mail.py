@@ -50,10 +50,10 @@ class EmailSender(object):
                 port = smtplib.SMTP_PORT
             smtp = smtplib.SMTP(self.mailhost, port)
             msg = EmailMessage()
-            msg['From'] = self.fromaddr
-            msg['To'] = ','.join(toaddrs)
-            msg['Subject'] = subject
-            msg['Date'] = localtime()
+            msg["From"] = self.fromaddr
+            msg["To"] = ",".join(toaddrs)
+            msg["Subject"] = subject
+            msg["Date"] = localtime()
             msg.set_content(body)
             if self.username:
                 if self.secure is not None:
@@ -64,4 +64,4 @@ class EmailSender(object):
             smtp.send_message(msg)
             smtp.quit()
         except Exception as e:
-            print('Could not send email: {}'.format(e))
+            print("Could not send email: {}".format(e))

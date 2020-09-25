@@ -26,7 +26,7 @@ class ErrorDialog(QtWidgets.QDialog):
         self.setLayout(self.gridLayout)
 
         self.title = QtWidgets.QLabel(self)
-        self.title.setStyleSheet('font-weight: bold;')
+        self.title.setStyleSheet("font-weight: bold;")
         self.title.setText(title)
 
         self.message = QtWidgets.QLabel(self)
@@ -36,8 +36,11 @@ class ErrorDialog(QtWidgets.QDialog):
         self.details = QtWidgets.QTextEdit(self)
         self.details.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
         html_formatter = HtmlFormatter(noclasses=True, nobackground=True)
-        html_info = highlight(''.join(format_exception(*error_info)),
-                              PythonTracebackLexer(), html_formatter)
+        html_info = highlight(
+            "".join(format_exception(*error_info)),
+            PythonTracebackLexer(),
+            html_formatter,
+        )
         self.details.setHtml(html_info)
 
         self.buttonBox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok)
@@ -53,9 +56,11 @@ def dialog_except_hook(etype, evalue, tb):
     """
     Custom exception hook which displays exceptions from threads in a QMessageBox.
     """
-    title = 'CustomXepr Internal Error'
-    message = ('CustomXepr has encountered an internal error. ' +
-               'Please report this bug to %s.' % __author__)
+    title = "CustomXepr Internal Error"
+    message = (
+        "CustomXepr has encountered an internal error. "
+        + "Please report this bug to %s." % __author__
+    )
     error_info = (etype, evalue, tb)
     msg_box = ErrorDialog(title, message, error_info)
     msg_box.exec_()

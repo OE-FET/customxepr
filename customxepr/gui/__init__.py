@@ -12,14 +12,17 @@ from .splash import SplashScreen
 
 from PyQt5 import QtCore
 
-if LooseVersion(QtCore.PYQT_VERSION_STR) < LooseVersion('5.9'):
-    raise ImportError('PyQt5 5.9 or higher is required. ' +
-                      'You have PyQt5 %s installed.' % QtCore.PYQT_VERSION_STR)
+if LooseVersion(QtCore.PYQT_VERSION_STR) < LooseVersion("5.9"):
+    raise ImportError(
+        "PyQt5 5.9 or higher is required. "
+        + "You have PyQt5 %s installed." % QtCore.PYQT_VERSION_STR
+    )
 
 
 # =======================================================================================
 # suppress some Qt error messages
 # =======================================================================================
+
 
 def handler(msg_type, msg_log_context, msg_string):
     pass

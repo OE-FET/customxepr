@@ -17,6 +17,7 @@ import shutil
 # Configuration paths
 # =============================================================================
 
+
 def get_home_dir():
     """
     Return user home directory
@@ -25,28 +26,30 @@ def get_home_dir():
         # expanduser() returns a raw byte string which needs to be
         # decoded with the codec that the OS is using to represent
         # file paths.
-        path = osp.expanduser('~')
+        path = osp.expanduser("~")
     except Exception:
-        path = ''
+        path = ""
 
     if osp.isdir(path):
         return path
     else:
         # Get home from alternative locations
-        for env_var in ('HOME', 'USERPROFILE', 'TMP'):
+        for env_var in ("HOME", "USERPROFILE", "TMP"):
             # os.environ.get() returns a raw byte string which needs to be
             # decoded with the codec that the OS is using to represent
             # environment variables.
-            path = os.environ.get(env_var, '')
+            path = os.environ.get(env_var, "")
             if osp.isdir(path):
                 return path
             else:
-                path = ''
+                path = ""
 
         if not path:
-            raise RuntimeError('Please set the environment variable HOME to '
-                               'your user/home directory path so CustomXepr '
-                               'can start properly.')
+            raise RuntimeError(
+                "Please set the environment variable HOME to "
+                "your user/home directory path so CustomXepr "
+                "can start properly."
+            )
 
 
 def get_conf_path(subfolder=None, filename=None):
@@ -66,6 +69,7 @@ def get_conf_path(subfolder=None, filename=None):
 # =============================================================================
 # Reset config files
 # =============================================================================
+
 
 def reset_config_files(subfolder, saved_config_files):
     """Remove all config files"""

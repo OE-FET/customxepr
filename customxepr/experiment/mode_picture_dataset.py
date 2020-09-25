@@ -19,8 +19,8 @@ def lorentz_peak(x, x0, w, a):
     Lorentzian with area `a`, full-width-at-half-maximum `w`, and center `x0`.
     """
 
-    numerator = 2/math.pi * w
-    denominator = 4*(x - x0)**2 + w**2
+    numerator = 2 / math.pi * w
+    denominator = 4 * (x - x0) ** 2 + w ** 2
     return a * numerator / denominator
 
 
@@ -49,16 +49,22 @@ class ModePicture(object):
 
         if isinstance(input_path_or_data, str):
             path = input_path_or_data
-            self.x_data_mhz, self.x_data_points, self.y_data, self.freq0 = self._load(path)
+            self.x_data_mhz, self.x_data_points, self.y_data, self.freq0 = self._load(
+                path
+            )
         elif isinstance(input_path_or_data, dict):
             self.mode_pic_data = input_path_or_data
             self.freq0 = freq
 
             self.zoom_factors = list(self.mode_pic_data.keys())
-            self.x_data_mhz, self.x_data_points, self.y_data = self.combine_data(self.mode_pic_data)
+            self.x_data_mhz, self.x_data_points, self.y_data = self.combine_data(
+                self.mode_pic_data
+            )
         else:
-            raise TypeError('First argument must be a dictionary containing mode ' +
-                            'picture data or a path to a mode picture file.')
+            raise TypeError(
+                "First argument must be a dictionary containing mode "
+                + "picture data or a path to a mode picture file."
+            )
 
         self.qvalue, self.fit_result = self.fit_qvalue(self.x_data_points, self.y_data)
         self.qvalue_stderr = self.get_qvalue_stderr()
@@ -99,7 +105,9 @@ class ModePicture(object):
         # rescale x-axes according to zoom factor
         for zf in mode_pic_data.keys():
             q_value, fit_rslt = self.fit_qvalue(x_axis_points, mode_pic_data[zf], zf)
-            x_axis_mhz[zf] = self._points_to_mhz(n_points, zf, fit_rslt.best_values['x0'])
+            x_axis_mhz[zf] = self._points_to_mhz(
+                n_points, zf, fit_rslt.best_values["x0"]
+            )
 
         # combine data from all zoom factors
         x_axis_mhz_comb = np.concatenate(list(x_axis_mhz.values()))
@@ -124,13 +132,13 @@ class ModePicture(object):
         # find baseline height
         interval = 0.25
         n_points = len(x_data)
-        bs1 = np.mean(y_data[0:int(n_points * interval)])
-        bs2 = np.mean(y_data[-int(n_points * interval):-1])
+        bs1 = np.mean(y_data[0 : int(n_points * interval)])
+        bs2 = np.mean(y_data[-int(n_points * interval) : -1])
         baseline = np.mean([bs1, bs2])
 
         # find peak area
         peak_height = baseline - np.min(y_data)
-        peak_index = (y_data < peak_height / 2 + np.min(y_data))
+        peak_index = y_data < peak_height / 2 + np.min(y_data)
         fwhm = max(np.max(x_data[peak_index]) - np.min(x_data[peak_index]), 1)
         peak_area = peak_height * fwhm * math.pi / 2
 
@@ -165,15 +173,17 @@ class ModePicture(object):
         pars = pmod.guess(y_bg, x=x_bg)
 
         # add fit parameters for Lorentzian resonance dip
-        pars.add_many(('x0', peak_center, True, None, None, None, None),
-                      ('w', fwhm, True, None, None, None, None),
-                      ('a', peak_area, True, None, None, None, None))
+        pars.add_many(
+            ("x0", peak_center, True, None, None, None, None),
+            ("w", fwhm, True, None, None, None, None),
+            ("a", peak_area, True, None, None, None, None),
+        )
 
         # perform full fit
         fit_result = mode_picture_model.fit(y_data, pars, x=x_data)
 
         # calculate Q-value from resonance width
-        delta_freq = fit_result.best_values['w'] * 1e-3 / (2 * zoom_factor)
+        delta_freq = fit_result.best_values["w"] * 1e-3 / (2 * zoom_factor)
         q_value = round(self.freq0 / delta_freq, 1)
 
         return q_value, fit_result
@@ -186,10 +196,10 @@ class ModePicture(object):
         :rtype: float
         """
 
-        delta_freq = self.fit_result.params['w'].value * 1e-3 / 2
-        delta_freq_stderr = self.fit_result.params['w'].stderr * 1e-3 / 2
+        delta_freq = self.fit_result.params["w"].value * 1e-3 / 2
+        delta_freq_stderr = self.fit_result.params["w"].stderr * 1e-3 / 2
 
-        qvalue_stderr = round(self.freq0 / delta_freq**2 * delta_freq_stderr, 1)
+        qvalue_stderr = round(self.freq0 / delta_freq ** 2 * delta_freq_stderr, 1)
 
         return qvalue_stderr
 
@@ -201,23 +211,25 @@ class ModePicture(object):
         try:
             import matplotlib.pyplot as plt
         except ImportError:
-            raise ImportError('matplotlib is required for plotting.')
+            raise ImportError("matplotlib is required for plotting.")
 
         comps = self.fit_result.eval_components(x=self.x_data_points)
-        offset = self.fit_result.best_values['c0']
+        offset = self.fit_result.best_values["c0"]
 
         yfit = self.fit_result.best_fit
-        lz = offset - comps['lorentz_peak']
+        lz = offset - comps["lorentz_peak"]
 
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        ax.plot(self.x_data_mhz, self.y_data, '.', color='#2980B9', label='Mode picture')
-        ax.plot(self.x_data_mhz, lz, '--', color='#000000', label='Cavity dip')
-        ax.plot(self.x_data_mhz, yfit, '-', color='#C70039', label='Total fit')
+        ax.plot(
+            self.x_data_mhz, self.y_data, ".", color="#2980B9", label="Mode picture"
+        )
+        ax.plot(self.x_data_mhz, lz, "--", color="#000000", label="Cavity dip")
+        ax.plot(self.x_data_mhz, yfit, "-", color="#C70039", label="Total fit")
 
         ax.legend()
-        ax.set_xlabel('Microwave frequency [MHz]')
-        ax.set_ylabel('Microwave absorption [a.u.]')
+        ax.set_xlabel("Microwave frequency [MHz]")
+        ax.set_ylabel("Microwave absorption [a.u.]")
 
         fig.show()
 
@@ -230,18 +242,22 @@ class ModePicture(object):
         :param str filepath: Absolute file path.
         """
         # create header and title for file
-        time_str = time.strftime('%H:%M, %d/%m/%Y')
-        title = ['Cavity mode picture, recorded at {}'.format(time_str),
-                 'Center frequency = {:0.3f} GHz'.format(self.freq0)]
-        title = '\n'.join(title)
+        time_str = time.strftime("%H:%M, %d/%m/%Y")
+        title = [
+            "Cavity mode picture, recorded at {}".format(time_str),
+            "Center frequency = {:0.3f} GHz".format(self.freq0),
+        ]
+        title = "\n".join(title)
 
-        header = ['freq [MHz]', 'MW abs. [a.u.]']
-        header = '\t'.join(header)
+        header = ["freq [MHz]", "MW abs. [a.u.]"]
+        header = "\t".join(header)
 
         data_matrix = np.concatenate(([self.x_data_mhz], [self.y_data]), axis=0)
 
         # noinspection PyTypeChecker
-        np.savetxt(filepath, data_matrix.T, fmt='%.9E', delimiter='\t', header=title+header)
+        np.savetxt(
+            filepath, data_matrix.T, fmt="%.9E", delimiter="\t", header=title + header
+        )
 
     def load(self, filepath):
         """
@@ -272,15 +288,15 @@ class ModePicture(object):
         x_axis_points_comb = 2 / 1e-3 * x_axis_mhz_comb
 
         freq = None
-        with open(filepath, 'r') as fh:
+        with open(filepath, "r") as fh:
             for line in fh:
-                if 'GHz' in line:
-                    freq = list(filter(lambda x: x in '0123456789.', line))
-                    freq = ''.join(freq)
+                if "GHz" in line:
+                    freq = list(filter(lambda x: x in "0123456789.", line))
+                    freq = "".join(freq)
                     break
 
         if freq is None:
-            raise RuntimeError('Could not find frequency information.')
+            raise RuntimeError("Could not find frequency information.")
 
         freq0 = float(freq[0])
 
@@ -290,5 +306,9 @@ class ModePicture(object):
         return len(self.y_data)
 
     def __repr__(self):
-        return '<{0}(QValue = {1}+/-{2}, freq = {3}GHz)>'.format(
-            self.__class__.__name__, self.qvalue, self.qvalue_stderr, round(self.freq0, 4))
+        return "<{0}(QValue = {1}+/-{2}, freq = {3}GHz)>".format(
+            self.__class__.__name__,
+            self.qvalue,
+            self.qvalue_stderr,
+            round(self.freq0, 4),
+        )

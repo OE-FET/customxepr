@@ -23,7 +23,7 @@ class SplashScreen(QtWidgets.QMainWindow):
         self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.FramelessWindowHint)
 
         # adjust font sizes according to os defaults
-        font = QtWidgets.QLabel('test').font()
+        font = QtWidgets.QLabel("test").font()
         font_size = font.pointSize()
 
         fs_title = int(font_size * 2.31)

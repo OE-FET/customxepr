@@ -21,13 +21,12 @@ _root = os.path.dirname(os.path.realpath(__file__))
 
 # noinspection PyArgumentList
 class GridLayoutShortcuts(QtWidgets.QWidget):
-
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent=parent)
-        layout_file = 'customxepr_panel.ui'
+        layout_file = "customxepr_panel.ui"
         uic.loadUi(os.path.join(_root, layout_file), self)
 
-        if platform.system() == 'Darwin':
+        if platform.system() == "Darwin":
             self.layout.setContentsMargins(20, 0, 20, 0)
         else:
             self.layout.setContentsMargins(20, 15, 20, 10)
@@ -49,16 +48,24 @@ class CustomXeprGuiApp(ManagerApp):
         self.tabJobs.layout().addWidget(self.gridLayoutShortcuts)
 
         # get temperature control settings
-        self.gridLayoutShortcuts.lineEditT_tolerance.setValue(self.customxepr.temperature_tolerance)
-        self.gridLayoutShortcuts.lineEditT_settling.setValue(self.customxepr.temp_wait_time)
+        self.gridLayoutShortcuts.lineEditT_tolerance.setValue(
+            self.customxepr.temperature_tolerance
+        )
+        self.gridLayoutShortcuts.lineEditT_settling.setValue(
+            self.customxepr.temp_wait_time
+        )
         self.gridLayoutShortcuts.lineEditT_tolerance.setMinimum(0)
         self.gridLayoutShortcuts.lineEditT_settling.setMinimum(0)
 
         # connect quick settings
         self.gridLayoutShortcuts.qValueButton.clicked.connect(self.on_qvalue_clicked)
         self.gridLayoutShortcuts.tuneButton.clicked.connect(self.on_tune_clicked)
-        self.gridLayoutShortcuts.lineEditT_tolerance.valueChanged.connect(self.set_temperature_tolerance)
-        self.gridLayoutShortcuts.lineEditT_settling.valueChanged.connect(self.set_t_settling)
+        self.gridLayoutShortcuts.lineEditT_tolerance.valueChanged.connect(
+            self.set_temperature_tolerance
+        )
+        self.gridLayoutShortcuts.lineEditT_settling.valueChanged.connect(
+            self.set_t_settling
+        )
 
     # ====================================================================================
     # Button callbacks
@@ -70,7 +77,7 @@ class CustomXeprGuiApp(ManagerApp):
         """
 
         if self.job_queue.has_queued():
-            logger.info('Tuning job added to the job queue.')
+            logger.info("Tuning job added to the job queue.")
 
         self.customxepr.customtune()
 
@@ -80,7 +87,7 @@ class CustomXeprGuiApp(ManagerApp):
         """
 
         if self.job_queue.has_queued():
-            logger.info('Q-Value readout added to the job queue.')
+            logger.info("Q-Value readout added to the job queue.")
 
         self.customxepr.getQValueCalc()
 

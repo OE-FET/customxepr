@@ -50,7 +50,7 @@ class QInfoLogHandler(logging.Handler, QtCore.QObject):
 
         # create QStandardItemModel
         self.model = QtGui.QStandardItemModel(0, 3)
-        self.model.setHorizontalHeaderLabels(['Time', 'Level', 'Message'])
+        self.model.setHorizontalHeaderLabels(["Time", "Level", "Message"])
 
     def emit(self, record):
         # format logging record
@@ -62,7 +62,7 @@ class QInfoLogHandler(logging.Handler, QtCore.QObject):
         # add logging record to QStandardItemModel
         self.model.appendRow([time_item, level_item, msg_item])
         # show notification
-        self.notify.send(title='CustomXepr Info', message=record.message)
+        self.notify.send(title="CustomXepr Info", message=record.message)
 
 
 class QStatusLogHandler(logging.Handler, QtCore.QObject):
@@ -70,6 +70,7 @@ class QStatusLogHandler(logging.Handler, QtCore.QObject):
     Handler which emits a signal containing the logging message for every
     logged event. The signal will be connected to "Status" field of the GUI.
     """
+
     status_signal = QtCore.pyqtSignal(str)
 
     def __init__(self):
@@ -80,7 +81,7 @@ class QStatusLogHandler(logging.Handler, QtCore.QObject):
         # format logging record
         self.format(record)
         # emit logging record as signal
-        self.status_signal.emit('Status: %s' % record.message)
+        self.status_signal.emit("Status: %s" % record.message)
 
 
 class QErrorLogHandler(logging.Handler, QtCore.QObject):
@@ -102,8 +103,8 @@ class QErrorLogHandler(logging.Handler, QtCore.QObject):
 
 
 # create QInfoLogHandler to handle all INFO level events
-fmt_string = '%(asctime)s %(threadName)s %(levelname)s: %(message)s'
-info_fmt = logging.Formatter(fmt=fmt_string, datefmt='%H:%M')
+fmt_string = "%(asctime)s %(threadName)s %(levelname)s: %(message)s"
+info_fmt = logging.Formatter(fmt=fmt_string, datefmt="%H:%M")
 info_handler = QInfoLogHandler()
 info_handler.setFormatter(info_fmt)
 info_handler.setLevel(logging.INFO)
@@ -117,7 +118,7 @@ error_handler = QErrorLogHandler()
 error_handler.setLevel(logging.ERROR)
 
 # add handlers to customxepr logger
-logger = logging.getLogger('customxepr')
+logger = logging.getLogger("customxepr")
 logger.addHandler(status_handler)
 logger.addHandler(info_handler)
 logger.addHandler(error_handler)
@@ -165,14 +166,14 @@ class ManagerApp(QtWidgets.QMainWindow):
         # ================================================================================
 
         # load layout file, setup toolbar on macOS
-        if platform.system() == 'Darwin':
-            layout_file = 'manager_window_macos.ui'
+        if platform.system() == "Darwin":
+            layout_file = "manager_window_macos.ui"
         else:
-            layout_file = 'manager_window_linux.ui'
+            layout_file = "manager_window_linux.ui"
 
         uic.loadUi(os.path.join(_root, layout_file), self)
 
-        if platform.system() == 'Darwin':
+        if platform.system() == "Darwin":
             # create unified toolbar
             self.toolbar = QtWidgets.QToolBar(self)
             self.create_toolbar()
@@ -183,20 +184,22 @@ class ManagerApp(QtWidgets.QMainWindow):
         self.aboutWindow = AboutWindow()
 
         # load resources
-        self.icon_queued = QtGui.QIcon(_root + '/resources/queued@2x.icns')
-        self.icon_running = QtGui.QIcon(_root + '/resources/running@2x.icns')
-        self.icon_aborted = QtGui.QIcon(_root + '/resources/aborted@2x.icns')
-        self.icon_failed = QtGui.QIcon(_root + '/resources/failed@2x.icns')
-        self.icon_finished = QtGui.QIcon(_root + '/resources/finished@2x.icns')
+        self.icon_queued = QtGui.QIcon(_root + "/resources/queued@2x.icns")
+        self.icon_running = QtGui.QIcon(_root + "/resources/running@2x.icns")
+        self.icon_aborted = QtGui.QIcon(_root + "/resources/aborted@2x.icns")
+        self.icon_failed = QtGui.QIcon(_root + "/resources/failed@2x.icns")
+        self.icon_finished = QtGui.QIcon(_root + "/resources/finished@2x.icns")
 
         # assign menu bar actions
         self.action_About.triggered.connect(self.aboutWindow.show)
-        self.actionCustomXepr_Help.triggered.connect(lambda: webbrowser.open_new(__url__))
+        self.actionCustomXepr_Help.triggered.connect(
+            lambda: webbrowser.open_new(__url__)
+        )
         self.actionShow_log_files.triggered.connect(self.on_log_clicked)
         self.action_Exit.triggered.connect(self.exit_)
 
-        if not os.popen('Xepr --apipath').read() == '':
-            url = 'file://' + os.popen('Xepr --apipath').read() + '/docs/XeprAPI.html'
+        if not os.popen("Xepr --apipath").read() == "":
+            url = "file://" + os.popen("Xepr --apipath").read() + "/docs/XeprAPI.html"
             self.actionXeprAPI_Help.triggered.connect(lambda: webbrowser.open_new(url))
         else:
             self.actionXeprAPI_Help.setEnabled(False)
@@ -214,16 +217,16 @@ class ManagerApp(QtWidgets.QMainWindow):
         # get states of checkboxes, text edits, etc
         self.get_email_list()
         self.get_notification_level()
-        self.plotCheckBox.setChecked(CONF.get('Window', 'auto_plot_results'))
+        self.plotCheckBox.setChecked(CONF.get("Window", "auto_plot_results"))
 
         # create data models for message log, job queue and result queue
         self.messageLogModel = info_handler.model
         self.jobQueueModel = QtGui.QStandardItemModel(0, 2)
         self.resultQueueModel = QtGui.QStandardItemModel(0, 3)
 
-        h0 = ['Function', 'Arguments']
-        h1 = ['Type', 'Size', 'Value']
-        h2 = ['Time', 'Level', 'Message']
+        h0 = ["Function", "Arguments"]
+        h1 = ["Type", "Size", "Value"]
+        h2 = ["Time", "Level", "Message"]
 
         self.jobQueueModel.setHorizontalHeaderLabels(h0)
         self.resultQueueModel.setHorizontalHeaderLabels(h1)
@@ -263,8 +266,12 @@ class ManagerApp(QtWidgets.QMainWindow):
         error_handler.error_signal.connect(self.show_error)
 
         # connect context menu callbacks
-        self.resultQueueDisplay.customContextMenuRequested.connect(self.open_result_context_menu)
-        self.jobQueueDisplay.customContextMenuRequested.connect(self.open_job_context_menu)
+        self.resultQueueDisplay.customContextMenuRequested.connect(
+            self.open_result_context_menu
+        )
+        self.jobQueueDisplay.customContextMenuRequested.connect(
+            self.open_job_context_menu
+        )
 
         # plot result on double click
         self.resultQueueDisplay.doubleClicked.connect(self.on_result_double_clicked)
@@ -276,7 +283,7 @@ class ManagerApp(QtWidgets.QMainWindow):
 
         # connect log control settings
         self.lineEditEmailList.returnPressed.connect(self.set_email_list)
-        self.bG.buttonClicked['int'].connect(self.on_bg_clicked)
+        self.bG.buttonClicked["int"].connect(self.on_bg_clicked)
         self.plotCheckBox.toggled.connect(self.on_plot_checkbox_toggeled)
 
         # Universal timeout:
@@ -311,19 +318,19 @@ class ManagerApp(QtWidgets.QMainWindow):
         self.toolbar.addWidget(self.tabWidget)
 
     def restore_geometry(self):
-        x = CONF.get('ManagerWindow', 'x')
-        y = CONF.get('ManagerWindow', 'y')
-        w = CONF.get('ManagerWindow', 'width')
-        h = CONF.get('ManagerWindow', 'height')
+        x = CONF.get("ManagerWindow", "x")
+        y = CONF.get("ManagerWindow", "y")
+        w = CONF.get("ManagerWindow", "width")
+        h = CONF.get("ManagerWindow", "height")
 
         self.setGeometry(x, y, w, h)
 
     def save_geometry(self):
         geo = self.geometry()
-        CONF.set('ManagerWindow', 'height', geo.height())
-        CONF.set('ManagerWindow', 'width', geo.width())
-        CONF.set('ManagerWindow', 'x', geo.x())
-        CONF.set('ManagerWindow', 'y', geo.y())
+        CONF.set("ManagerWindow", "height", geo.height())
+        CONF.set("ManagerWindow", "width", geo.width())
+        CONF.set("ManagerWindow", "x", geo.x())
+        CONF.set("ManagerWindow", "y", geo.y())
 
     def exit_(self):
         self.manager.clear_all_jobs()
@@ -340,8 +347,8 @@ class ManagerApp(QtWidgets.QMainWindow):
         event.accept()
 
     def show_error(self, exc_info):
-        title = 'CustomXepr Job Error'
-        message = 'CustomXepr has encountered an error while executing a job.'
+        title = "CustomXepr Job Error"
+        message = "CustomXepr has encountered an error while executing a job."
         msg = ErrorDialog(title, message, exc_info, parent=self)
         msg.exec_()
 
@@ -368,16 +375,16 @@ class ManagerApp(QtWidgets.QMainWindow):
 
         popup_menu = QtWidgets.QMenu()
 
-        plot_action = popup_menu.addAction('Plot')
-        save_action = popup_menu.addAction('Save...')
-        delete_action = popup_menu.addAction('Delete')
+        plot_action = popup_menu.addAction("Plot")
+        save_action = popup_menu.addAction("Save...")
+        delete_action = popup_menu.addAction("Delete")
 
         plot_action.setEnabled(False)
         save_action.setEnabled(False)
 
-        if hasattr(self.result_queue.queue[i0], 'plot') and i0 == i1:
+        if hasattr(self.result_queue.queue[i0], "plot") and i0 == i1:
             plot_action.setEnabled(True)
-        if hasattr(self.result_queue.queue[i0], 'save') and i0 == i1:
+        if hasattr(self.result_queue.queue[i0], "save") and i0 == i1:
             save_action.setEnabled(True)
 
         action = popup_menu.exec_(QtGui.QCursor.pos())
@@ -387,8 +394,8 @@ class ManagerApp(QtWidgets.QMainWindow):
         elif action == delete_action:
             self.result_queue.remove_items(i0, i1)
         elif action == save_action:
-            prompt = 'Save as file'
-            filename = 'untitled.txt'
+            prompt = "Save as file"
+            filename = "untitled.txt"
             filepath = QtWidgets.QFileDialog.getSaveFileName(None, prompt, filename)
             if len(filepath[0]) < 4:
                 return
@@ -408,7 +415,7 @@ class ManagerApp(QtWidgets.QMainWindow):
         i0, i1 = indexes[0].row(), indexes[-1].row()
 
         popup_menu = QtWidgets.QMenu()
-        delete_action = popup_menu.addAction('Delete')
+        delete_action = popup_menu.addAction("Delete")
 
         if i0 < self.job_queue.first_queued_index():
             delete_action.setEnabled(False)
@@ -424,22 +431,24 @@ class ManagerApp(QtWidgets.QMainWindow):
         specified in self.t_timeout.
         """
         if self.job_queue.has_running() > 0:
-            logger.warning('No status update for %i min.' % self.t_timeout +
-                           ' Please check on experiment.')
+            logger.warning(
+                "No status update for %i min." % self.t_timeout
+                + " Please check on experiment."
+            )
 
     @staticmethod
     def is_updated():
-        old_version = CONF.get('Version', 'old_version')
+        old_version = CONF.get("Version", "old_version")
 
         if old_version in [__version__, None]:
             return False
         else:
-            CONF.set('Version', 'old_version', __version__)
+            CONF.set("Version", "old_version", __version__)
             return True
 
-# ========================================================================================
-# Functions to handle communication with job and result queues
-# ========================================================================================
+    # ========================================================================================
+    # Functions to handle communication with job and result queues
+    # ========================================================================================
 
     @staticmethod
     def _trunc_str(string, max_length=13):
@@ -455,7 +464,7 @@ class ManagerApp(QtWidgets.QMainWindow):
         if max_length < 5:
             raise ValueError("'max_length' must be larger than 4.")
         ll = max_length - 4
-        return (string[ll:] and string[0] + '...') + string[-ll:]
+        return (string[ll:] and string[0] + "...") + string[-ll:]
 
     def _trunc_str_list(self, string_list, max_total_len=200, min_item_len=13):
         """
@@ -479,7 +488,9 @@ class ManagerApp(QtWidgets.QMainWindow):
 
         while overlength > 0 and i > -1:
             keep = max(len(string_list_short[i]) - overlength, min_item_len)
-            string_list_short[i] = self._trunc_str(string_list_short[i], max_length=keep)
+            string_list_short[i] = self._trunc_str(
+                string_list_short[i], max_length=keep
+            )
 
             overlength = sum(len(s) for s in string_list_short) - max_total_len
             i -= 1
@@ -508,8 +519,10 @@ class ManagerApp(QtWidgets.QMainWindow):
         self.jobQueueDisplay.dataChanged(item_index1, item_index2)
 
         # update scroll position
-        top_item_index = self.jobQueueModel.createIndex(index-3, 1)
-        self.jobQueueDisplay.scrollTo(top_item_index, self.jobQueueDisplay.PositionAtTop)
+        top_item_index = self.jobQueueModel.createIndex(index - 3, 1)
+        self.jobQueueDisplay.scrollTo(
+            top_item_index, self.jobQueueDisplay.PositionAtTop
+        )
 
     def on_job_added(self, index=-1):
         """
@@ -520,7 +533,7 @@ class ManagerApp(QtWidgets.QMainWindow):
         try:
             sig = inspect.signature(exp.func)
         except (ValueError, TypeError):
-            str_list = str_list_short = 'Could not construct signature'
+            str_list = str_list_short = "Could not construct signature"
         else:
             binding = sig.bind(*exp.args, **exp.kwargs)
             binding.apply_defaults()
@@ -529,17 +542,19 @@ class ManagerApp(QtWidgets.QMainWindow):
             val_strings = list(repr(v) for v in binding.arguments.values())
             val_strings_short = self._trunc_str_list(val_strings)
 
-            str_list = ['{}={!r}'.format(n, v) for n, v in binding.arguments.items()]
-            str_list_short = ['{}={}'.format(n, v) for n, v in zip(arg_strings, val_strings_short)]
+            str_list = ["{}={!r}".format(n, v) for n, v in binding.arguments.items()]
+            str_list_short = [
+                "{}={}".format(n, v) for n, v in zip(arg_strings, val_strings_short)
+            ]
 
-            if len(arg_strings) > 0 and arg_strings[0] == 'self':
+            if len(arg_strings) > 0 and arg_strings[0] == "self":
                 str_list.pop(0)
                 str_list_short.pop(0)
 
         func_item = QtGui.QStandardItem(exp.func.__name__)
         func_item.setToolTip(exp.func.__name__)
-        args_item = QtGui.QStandardItem(', '.join(str_list_short))
-        args_item.setToolTip(', '.join(str_list))
+        args_item = QtGui.QStandardItem(", ".join(str_list_short))
+        args_item.setToolTip(", ".join(str_list))
 
         func_item.setIcon(self.icon_queued)
 
@@ -558,7 +573,7 @@ class ManagerApp(QtWidgets.QMainWindow):
             try:
                 result_size = len(result)
             except TypeError:
-                result_size = '--'
+                result_size = "--"
 
         if self.plotCheckBox.isChecked():
             try:
@@ -568,7 +583,7 @@ class ManagerApp(QtWidgets.QMainWindow):
 
         rslt_type = QtGui.QStandardItem(type(result).__name__)
         rslt_size = QtGui.QStandardItem(str(result_size))
-        rslt_value = QtGui.QStandardItem(str(result).split('\n')[0])
+        rslt_value = QtGui.QStandardItem(str(result).split("\n")[0])
 
         self.resultQueueModel.appendRow([rslt_type, rslt_size, rslt_value])
 
@@ -579,7 +594,9 @@ class ManagerApp(QtWidgets.QMainWindow):
 
     def on_results_removed(self, i0, n_items):
 
-        i0 = i0 % self.resultQueueModel.rowCount()  # convert negative to positive indices
+        i0 = (
+            i0 % self.resultQueueModel.rowCount()
+        )  # convert negative to positive indices
         self.resultQueueModel.removeRows(i0, n_items)
 
     def populate_jobs(self):
@@ -604,9 +621,9 @@ class ManagerApp(QtWidgets.QMainWindow):
         accordingly.
         """
         if self.manager.worker.running.is_set():
-            self.pauseButton.setText('Pause')
+            self.pauseButton.setText("Pause")
         else:
-            self.pauseButton.setText('Resume')
+            self.pauseButton.setText("Resume")
 
     # ====================================================================================
     # Button callbacks
@@ -627,14 +644,14 @@ class ManagerApp(QtWidgets.QMainWindow):
         """
         path = self.manager.log_file_dir
 
-        if platform.system() == 'Darwin':
-            subprocess.Popen(['open', path])
+        if platform.system() == "Darwin":
+            subprocess.Popen(["open", path])
         else:
-            subprocess.Popen(['xdg-open', path])
+            subprocess.Popen(["xdg-open", path])
 
     @staticmethod
     def on_plot_checkbox_toggeled(checked):
-        CONF.set('Window', 'auto_plot_results', checked)
+        CONF.set("Window", "auto_plot_results", checked)
 
     # ====================================================================================
     # Callbacks and functions for CustomXepr settings adjustments
@@ -647,13 +664,13 @@ class ManagerApp(QtWidgets.QMainWindow):
         # get string from lineEdit field
         address_string = self.lineEditEmailList.text()
         # convert string to list of strings
-        address_list = address_string.split(',')
+        address_list = address_string.split(",")
         # strip trailing spaces
         address_list = [x.strip() for x in address_list]
         # validate correct email address format
         for email in address_list:
-            if not re.match(r'[^@]+@[^@]+\.[^@]+', email):
-                logger.info(email + ' is not a valid email address.')
+            if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+                logger.info(email + " is not a valid email address.")
                 address_list = [x for x in address_list if (x is not email)]
 
         # send list to CustomXepr
@@ -665,7 +682,7 @@ class ManagerApp(QtWidgets.QMainWindow):
         """
         address_list = self.manager.notify_address
         if not self.lineEditEmailList.hasFocus():
-            self.lineEditEmailList.setText(', '.join(address_list))
+            self.lineEditEmailList.setText(", ".join(address_list))
 
     def get_notification_level(self):
         """
@@ -701,7 +718,7 @@ class ManagerApp(QtWidgets.QMainWindow):
     @property
     def t_timeout(self):
         """Gets the timeout limit in minutes from timeout_timer."""
-        return self.timeout_timer.interval()/self._min2msec
+        return self.timeout_timer.interval() / self._min2msec
 
     @t_timeout.setter
     def t_timeout(self, time_in_min):

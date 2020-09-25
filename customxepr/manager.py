@@ -21,12 +21,13 @@ from functools import wraps
 from customxepr.config import CONF
 
 
-logger = logging.getLogger('customxepr')
+logger = logging.getLogger("customxepr")
 
 
 # ========================================================================================
 # class to wrap queued function calls ('experiments') and provide metadata
 # ========================================================================================
+
 
 class CancelledError(Exception):
     pass
@@ -40,6 +41,7 @@ class ExpStatus(Enum):
     """
     Enumeration to hold experiment status.
     """
+
     QUEUED = object()
     RUNNING = object()
     ABORTED = object()
@@ -96,7 +98,7 @@ class Experiment(object):
             exception occurred during execution.
         """
         if self._status == ExpStatus.ABORTED:
-            raise CancelledError('Experiment has been cancelled.')
+            raise CancelledError("Experiment has been cancelled.")
 
         if self._done_event.wait(timeout):
             if isinstance(self._result, Exception):
@@ -104,7 +106,7 @@ class Experiment(object):
             else:
                 return self._result
         else:
-            raise TimeoutError('No result available yet.')
+            raise TimeoutError("No result available yet.")
 
     @property
     def status(self):
@@ -116,25 +118,26 @@ class Experiment(object):
     @status.setter
     def status(self, s):
         if s not in ExpStatus:
-            raise ValueError('Argument must be of type %s' % type(ExpStatus))
+            raise ValueError("Argument must be of type %s" % type(ExpStatus))
         else:
             self._status = s
 
     def __repr__(self):
-        info_strings = ['func={}'.format(self.func.__name__)]
+        info_strings = ["func={}".format(self.func.__name__)]
         if len(self.args) > 0:
-            info_strings.append('args={}'.format(self.args))
+            info_strings.append("args={}".format(self.args))
         if len(self.kwargs) > 0:
-            info_strings.append('kwargs={}'.format(self.kwargs))
-        info_strings.append('status={}'.format(self.status))
+            info_strings.append("kwargs={}".format(self.kwargs))
+        info_strings.append("status={}".format(self.status))
         if self.status is ExpStatus.FINISHED:
-            info_strings.append('has_result={}'.format(self._result is not None))
-        return '<{0}({1})>'.format(self.__class__.__name__, ', '.join(info_strings))
+            info_strings.append("has_result={}".format(self._result is not None))
+        return "<{0}({1})>".format(self.__class__.__name__, ", ".join(info_strings))
 
 
 # ========================================================================================
 # custom queue which emits PyQt signals on put and get
 # ========================================================================================
+
 
 class SignalQueue(Queue):
     """
@@ -208,12 +211,13 @@ class SignalQueue(Queue):
             self.task_done()
 
     def __repr__(self):
-        return '<{0}({1} results)>'.format(self.__class__.__name__, self.qsize())
+        return "<{0}({1} results)>".format(self.__class__.__name__, self.qsize())
 
 
 # ========================================================================================
 # custom queue for experiments where all history is kept
 # ========================================================================================
+
 
 class ExperimentQueue(object):
     """
@@ -246,8 +250,11 @@ class ExperimentQueue(object):
         Returns list of all items in queue (queued, running, and in history).
         """
         with self._lock:
-            return (list(self._history.queue) + list(self._running.queue) +
-                    list(self._queued.queue))
+            return (
+                list(self._history.queue)
+                + list(self._running.queue)
+                + list(self._queued.queue)
+            )
 
     def put(self, exp):
         """
@@ -331,11 +338,13 @@ class ExperimentQueue(object):
             i1 = i_end - self.first_queued_index()
 
             if i0 < 0:
-                raise ValueError('Only queued experiments can be removed.')
+                raise ValueError("Only queued experiments can be removed.")
             elif not i0 <= i1:
                 raise ValueError("'i_end' must be larger than or equal to 'i_start'.")
             else:
-                new_items = [x for i, x in enumerate(self._queued.queue) if i < i0 or i > i1]
+                new_items = [
+                    x for i, x in enumerate(self._queued.queue) if i < i0 or i > i1
+                ]
                 self._queued.queue = collections.deque(new_items)
 
             n_items = i_end - i_start + 1
@@ -347,7 +356,9 @@ class ExperimentQueue(object):
         """
         with self._lock:
             if self.has_queued():
-                self.removed_signal.emit(self.first_queued_index(), self._queued.qsize())
+                self.removed_signal.emit(
+                    self.first_queued_index(), self._queued.qsize()
+                )
             self._queued.queue.clear()
 
     def has_running(self):
@@ -374,24 +385,28 @@ class ExperimentQueue(object):
             return self._qsize(status)
 
     def _qsize(self, status):
-        if status == 'queued':
+        if status == "queued":
             return self._queued.qsize()
-        elif status == 'running':
+        elif status == "running":
             return self._running.qsize()
-        elif status == 'history':
+        elif status == "history":
             return self._history.qsize()
         else:
             return self._history.qsize() + self._running.qsize() + self._queued.qsize()
 
     def __repr__(self):
-        return '<{0}({1} done, {2} running, {3} queued)>'.format(
-            self.__class__.__name__, self.qsize('history'), self.qsize('running'),
-            self.qsize('queued'))
+        return "<{0}({1} done, {2} running, {3} queued)>".format(
+            self.__class__.__name__,
+            self.qsize("history"),
+            self.qsize("running"),
+            self.qsize("queued"),
+        )
 
 
 # ========================================================================================
 # worker that gets function / method calls from queue and carriers them out
 # ========================================================================================
+
 
 class Worker(object):
     """
@@ -413,7 +428,7 @@ class Worker(object):
         self.abort_events = abort_events
 
     def abort_is_set(self):
-        is_set = operator.methodcaller('is_set')
+        is_set = operator.methodcaller("is_set")
         return any(map(is_set, self.abort_events))
 
     def clear_abort(self):
@@ -425,7 +440,7 @@ class Worker(object):
             time.sleep(0.1)
 
             if not self.running.is_set():
-                logger.status('PAUSED')
+                logger.status("PAUSED")
 
             self.running.wait()
 
@@ -438,10 +453,10 @@ class Worker(object):
                 try:
                     result = exp.func(*exp.args, **exp.kwargs)  # run the job
                 except Exception as e:  # log exception and pause execution of jobs
-                    logger.exception('Job error')
+                    logger.exception("Job error")
                     self.job_q.job_done(ExpStatus.FAILED, result=e)
                     self.running.clear()
-                    logger.status('PAUSED')
+                    logger.status("PAUSED")
                 else:
                     if result is not None:
                         self.result_q.put(result)
@@ -453,12 +468,13 @@ class Worker(object):
                         exit_status = ExpStatus.FINISHED
 
                     self.job_q.job_done(exit_status, result)
-                    logger.status('IDLE')
+                    logger.status("IDLE")
 
 
 # ========================================================================================
 # manager to coordinate everything
 # ========================================================================================
+
 
 class Manager(object):
     """
@@ -553,8 +569,8 @@ class Manager(object):
         self.worker = Worker(self.job_queue, self.result_queue, self._abort_events)
         self.thread = Thread(
             target=self.worker.process,
-            name='ExperimentManagerThread',
-            )
+            name="ExperimentManagerThread",
+        )
         self.thread.daemon = True
 
         self.worker.running.set()
@@ -610,14 +626,14 @@ class Manager(object):
         Pauses the execution of jobs after the current job has been completed.
         """
         self.worker.running.clear()
-        logger.status('PAUSED')
+        logger.status("PAUSED")
 
     def resume_worker(self):
         """
         Resumes the execution of jobs.
         """
         self.worker.running.set()
-        logger.status('IDLE')
+        logger.status("IDLE")
 
     def abort_job(self):
         """
@@ -646,22 +662,28 @@ class Manager(object):
         root_logger = logging.getLogger()
 
         logging.STATUS = 15
-        logging.addLevelName(logging.STATUS, 'STATUS')
+        logging.addLevelName(logging.STATUS, "STATUS")
         for l in [logger, root_logger]:
             l.setLevel(logging.STATUS)
-            setattr(l, 'status', lambda message,
-                    *args: logger._log(logging.STATUS, message, args))
+            setattr(
+                l,
+                "status",
+                lambda message, *args: logger._log(logging.STATUS, message, args),
+            )
 
         # find all email handlers
-        eh = [x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler]
+        eh = [
+            x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler
+        ]
         # find all file handlers
         fh = [x for x in root_logger.handlers if type(x) == logging.FileHandler]
         # find all stream handlers
         sh = [x for x in root_logger.handlers if type(x) == logging.StreamHandler]
 
         # define standard format of logging messages
-        f = logging.Formatter(fmt='%(asctime)s %(name)s %(levelname)s: ' +
-                                  '%(message)s', datefmt='%H:%M')
+        f = logging.Formatter(
+            fmt="%(asctime)s %(name)s %(levelname)s: " + "%(message)s", datefmt="%H:%M"
+        )
 
         # remove stream handlers
         for handler in sh:
@@ -671,28 +693,30 @@ class Manager(object):
         if len(eh) == 0:
             # create and add email handler
             email_handler = logging.handlers.SMTPHandler(
-                mailhost=(CONF.get('SMTP', 'mailhost'), CONF.get('SMTP', 'port')),
-                fromaddr=CONF.get('SMTP', 'fromaddr'),
-                toaddrs=CONF.get('CustomXepr', 'notify_address'),
-                subject='CustomXepr logger',
-                credentials=CONF.get('SMTP', 'credentials'),
-                secure=CONF.get('SMTP', 'secure')
+                mailhost=(CONF.get("SMTP", "mailhost"), CONF.get("SMTP", "port")),
+                fromaddr=CONF.get("SMTP", "fromaddr"),
+                toaddrs=CONF.get("CustomXepr", "notify_address"),
+                subject="CustomXepr logger",
+                credentials=CONF.get("SMTP", "credentials"),
+                secure=CONF.get("SMTP", "secure"),
             )
             email_handler.setFormatter(f)
-            email_handler.setLevel(CONF.get('CustomXepr', 'email_handler_level'))
+            email_handler.setLevel(CONF.get("CustomXepr", "email_handler_level"))
 
             root_logger.addHandler(email_handler)
 
         # add file handler if not present
-        home_path = os.path.expanduser('~')
-        logging_path = os.path.join(home_path, '.CustomXepr', 'LOG_FILES')
+        home_path = os.path.expanduser("~")
+        logging_path = os.path.join(home_path, ".CustomXepr", "LOG_FILES")
 
         if len(fh) == 0:
             if not os.path.exists(logging_path):
                 os.makedirs(logging_path)
 
-            log_file = os.path.join(logging_path, 'root_logger '
-                                    + time.strftime('%Y-%m-%d_%H-%M-%S') + '.txt')
+            log_file = os.path.join(
+                logging_path,
+                "root_logger " + time.strftime("%Y-%m-%d_%H-%M-%S") + ".txt",
+            )
             file_handler = logging.FileHandler(log_file)
             file_handler.setFormatter(f)
             file_handler.setLevel(logging.INFO)
@@ -704,7 +728,7 @@ class Manager(object):
 
         for f in os.listdir(logging_path):
             f = os.path.join(logging_path, f)
-            if os.stat(f).st_mtime < now - days_to_keep*24*60*60:
+            if os.stat(f).st_mtime < now - days_to_keep * 24 * 60 * 60:
                 if os.path.isfile(f):
                     os.remove(f)
 
@@ -714,10 +738,12 @@ class Manager(object):
         # get root logger
         root_logger = logging.getLogger()
         # find all email handlers (there should be only one)
-        eh = [x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler]
+        eh = [
+            x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler
+        ]
 
         if len(eh) == 0:
-            logging.warning('No email handler could be found.')
+            logging.warning("No email handler could be found.")
 
         elif len(eh) > 0:
             # get emails from all handlers
@@ -733,19 +759,21 @@ class Manager(object):
         # get root logger
         root_logger = logging.getLogger()
         # find all email handlers (there should be only one)
-        eh = [x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler]
+        eh = [
+            x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler
+        ]
 
         if len(eh) == 0:
-            logging.warning('No email handler could be found.')
+            logging.warning("No email handler could be found.")
         elif len(eh) > 0:
             for handler in eh:
                 handler.toaddrs = email_list
 
-        email_list_str = ', '.join(email_list)
-        logger.info('Email notifications will be sent to ' + email_list_str + '.')
+        email_list_str = ", ".join(email_list)
+        logger.info("Email notifications will be sent to " + email_list_str + ".")
 
         # update conf file
-        CONF.set('CustomXepr', 'notify_address', email_list)
+        CONF.set("CustomXepr", "notify_address", email_list)
 
     @property
     def log_file_dir(self):
@@ -756,7 +784,7 @@ class Manager(object):
         fh = [x for x in root_log.handlers if type(x) == logging.FileHandler]
 
         if len(fh) == 0:
-            logger.warning('No file handler could be found.')
+            logger.warning("No file handler could be found.")
         else:
             file_name = fh[0].baseFilename
             return os.path.dirname(file_name)
@@ -769,10 +797,12 @@ class Manager(object):
         # get root logger
         root_logger = logging.getLogger()
         # find all email handlers (there should be only one)
-        eh = [x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler]
+        eh = [
+            x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler
+        ]
 
         if len(eh) == 0:
-            logger.warning('No email handler could be found.')
+            logger.warning("No email handler could be found.")
         else:
             return eh[0].level
 
@@ -782,11 +812,13 @@ class Manager(object):
         # get root logger
         root_logger = logging.getLogger()
         # find all email handlers (there should be only one)
-        eh = [x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler]
+        eh = [
+            x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler
+        ]
 
         if len(eh) == 0:
-            logger.warning('No email handler could be found.')
+            logger.warning("No email handler could be found.")
         else:
             eh[0].setLevel(level)
         # update conf file
-        CONF.set('CustomXepr', 'email_handler_level', level)
+        CONF.set("CustomXepr", "email_handler_level", level)

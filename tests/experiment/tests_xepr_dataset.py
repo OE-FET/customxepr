@@ -14,18 +14,17 @@ import filecmp
 from customxepr.experiment.xepr_dataset import XeprData, XeprParam
 
 DIR = os.path.dirname(os.path.realpath(__file__))
-EXTENTIONS = ('.DSC', '.DTA', '.YGF', '.ZSC')
+EXTENTIONS = (".DSC", ".DTA", ".YGF", ".ZSC")
 
 TEST_FILES = (
-    'cw_epr_angle_dep',
-    'cw_epr_complex',
-    'cw_epr_power_sat',
-    'pulsed_edmr_rabi',
+    "cw_epr_angle_dep",
+    "cw_epr_complex",
+    "cw_epr_power_sat",
+    "pulsed_edmr_rabi",
 )
 
 
 class TestXeprData(unittest.TestCase):
-
     def test_load_save(self):
         """
         Test loading and saving BES3T data files. Assert that the saved files have the
@@ -37,15 +36,17 @@ class TestXeprData(unittest.TestCase):
 
         for file in TEST_FILES:
             old_path = os.path.join(DIR, file)
-            new_path = os.path.join(DIR, file) + '_new'
+            new_path = os.path.join(DIR, file) + "_new"
 
-            dset = XeprData(old_path + '.DSC')
-            dset.save(new_path + '.DSC')
+            dset = XeprData(old_path + ".DSC")
+            dset.save(new_path + ".DSC")
 
             for ext in EXTENTIONS:
                 if os.path.isfile(old_path + ext):
-                    self.assertTrue(filecmp.cmp(old_path + ext, new_path + ext),
-                                    'different contents for {}'.format(file + ext))
+                    self.assertTrue(
+                        filecmp.cmp(old_path + ext, new_path + ext),
+                        "different contents for {}".format(file + ext),
+                    )
 
     def test_modify_ordinate(self):
         """
@@ -57,16 +58,18 @@ class TestXeprData(unittest.TestCase):
 
         for file in TEST_FILES:
             old_path = os.path.join(DIR, file)
-            new_path = os.path.join(DIR, file) + '_new'
+            new_path = os.path.join(DIR, file) + "_new"
 
-            dset = XeprData(old_path + '.DSC')
+            dset = XeprData(old_path + ".DSC")
             dset.o = dset.o  # should not change the actual content
-            dset.save(new_path + '.DSC')
+            dset.save(new_path + ".DSC")
 
             for ext in EXTENTIONS:
                 if os.path.isfile(old_path + ext):
-                    self.assertTrue(filecmp.cmp(old_path + ext, new_path + ext),
-                                    'different contents for {}'.format(file + ext))
+                    self.assertTrue(
+                        filecmp.cmp(old_path + ext, new_path + ext),
+                        "different contents for {}".format(file + ext),
+                    )
 
     def test_remove_param(self):
         """
@@ -76,11 +79,11 @@ class TestXeprData(unittest.TestCase):
 
         PATH_ORIGINAL = os.path.join(DIR, TEST_FILES[1])
 
-        dset = XeprData(PATH_ORIGINAL + '.DSC')
-        del dset.pars['MWFQ']
+        dset = XeprData(PATH_ORIGINAL + ".DSC")
+        del dset.pars["MWFQ"]
 
         with self.assertRaises(KeyError):
-            dset.pars['MWFQ']
+            dset.pars["MWFQ"]
 
     def test_add_param(self):
         """
@@ -90,26 +93,26 @@ class TestXeprData(unittest.TestCase):
 
         PATH_ORIGINAL = os.path.join(DIR, TEST_FILES[1])
 
-        dset = XeprData(PATH_ORIGINAL + '.DSC')
-        dset.pars['NewParam1'] = 1234
-        dset.pars['NewParam2'] = XeprParam(1234, 'K/sec')
-        dset.save(PATH_ORIGINAL + '_new.DSC')
+        dset = XeprData(PATH_ORIGINAL + ".DSC")
+        dset.pars["NewParam1"] = 1234
+        dset.pars["NewParam2"] = XeprParam(1234, "K/sec")
+        dset.save(PATH_ORIGINAL + "_new.DSC")
 
-        dset.load(PATH_ORIGINAL + '_new.DSC')
+        dset.load(PATH_ORIGINAL + "_new.DSC")
 
-        self.assertEqual(dset.pars['NewParam1'].value, 1234)
-        self.assertEqual(dset.pars['NewParam2'].value, 1234)
+        self.assertEqual(dset.pars["NewParam1"].value, 1234)
+        self.assertEqual(dset.pars["NewParam2"].value, 1234)
 
-        self.assertEqual(dset.dsl.groups['customXepr'].pars['NewParam1'].value, 1234)
-        self.assertEqual(dset.dsl.groups['customXepr'].pars['NewParam2'].value, 1234)
+        self.assertEqual(dset.dsl.groups["customXepr"].pars["NewParam1"].value, 1234)
+        self.assertEqual(dset.dsl.groups["customXepr"].pars["NewParam2"].value, 1234)
 
     def tearDown(self):
 
-        new_files = [os.path.join(DIR, f) for f in os.listdir(DIR) if 'new' in f]
+        new_files = [os.path.join(DIR, f) for f in os.listdir(DIR) if "new" in f]
 
         for f in new_files:
             os.remove(f)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

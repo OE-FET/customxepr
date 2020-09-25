@@ -50,16 +50,16 @@ class CustomRichJupyterWidget(RichJupyterWidget):
         self.setStyleSheet("")
 
     def restore_geometry(self):
-        x = CONF.get('ConsoleWindow', 'x')
-        y = CONF.get('ConsoleWindow', 'y')
-        w = CONF.get('ConsoleWindow', 'width')
-        h = CONF.get('ConsoleWindow', 'height')
+        x = CONF.get("ConsoleWindow", "x")
+        y = CONF.get("ConsoleWindow", "y")
+        w = CONF.get("ConsoleWindow", "width")
+        h = CONF.get("ConsoleWindow", "height")
 
         self.setGeometry(x, y, w, h)
 
     def save_geometry(self):
         geo = self.geometry()
-        CONF.set('ConsoleWindow', 'height', geo.height())
-        CONF.set('ConsoleWindow', 'width', geo.width())
-        CONF.set('ConsoleWindow', 'x', geo.x())
-        CONF.set('ConsoleWindow', 'y', geo.y())
+        CONF.set("ConsoleWindow", "height", geo.height())
+        CONF.set("ConsoleWindow", "width", geo.width())
+        CONF.set("ConsoleWindow", "x", geo.x())
+        CONF.set("ConsoleWindow", "y", geo.y())

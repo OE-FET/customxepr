@@ -21,20 +21,25 @@ class AboutWindow(QtWidgets.QWidget):
     """
     Shows version number, copyright info and url for CustomXepr in a new window.
     """
+
     def __init__(self):
         super(self.__class__, self).__init__()
         # load user interface file
-        uic.loadUi(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                'about_window.ui'), self)
+        uic.loadUi(
+            os.path.join(
+                os.path.dirname(os.path.realpath(__file__)), "about_window.ui"
+            ),
+            self,
+        )
 
         # get default platform font size, increase by 20% for title
-        font = QtWidgets.QLabel('test').font()
+        font = QtWidgets.QLabel("test").font()
         font_size = font.pointSize()
         fs_title = int(font_size * 1.2)
         font.setPointSize(fs_title)
 
         # set title string of window to CustomXepr version
-        self.title_string = (CustomXepr.__name__ + ' ' + __version__)
+        self.title_string = CustomXepr.__name__ + " " + __version__
         self.titleText.setText(self.title_string)
         self.titleText.setFont(font)
 

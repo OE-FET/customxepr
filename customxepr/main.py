@@ -29,7 +29,7 @@ except ImportError:
     pass
 
 _root = os.path.dirname(os.path.realpath(__file__))
-logger = logging.getLogger('customxepr')
+logger = logging.getLogger("customxepr")
 
 ureg = UnitRegistry()
 Q_ = ureg.Quantity
@@ -71,18 +71,18 @@ class CustomXepr(object):
 
     manager = Manager()
 
-# ========================================================================================
-# Set up basic CustomXepr functionality
-# ========================================================================================
+    # ========================================================================================
+    # Set up basic CustomXepr functionality
+    # ========================================================================================
 
     def __init__(self, xepr=None, mercury=None, keithley=None):
 
         super(self.__class__, self).__init__()
         self.emailSender = EmailSender(
-            mailhost=(CONF.get('SMTP', 'mailhost'), CONF.get('SMTP', 'port')),
-            fromaddr=CONF.get('SMTP', 'fromaddr'),
-            credentials=CONF.get('SMTP', 'credentials'),
-            secure=CONF.get('SMTP', 'secure'),
+            mailhost=(CONF.get("SMTP", "mailhost"), CONF.get("SMTP", "port")),
+            fromaddr=CONF.get("SMTP", "fromaddr"),
+            credentials=CONF.get("SMTP", "credentials"),
+            secure=CONF.get("SMTP", "secure"),
         )
 
         # =====================================================================
@@ -101,11 +101,14 @@ class CustomXepr(object):
 
         if self._check_for_mercury(raise_error=False):
 
-            temperature_module_name = CONF.get('CustomXepr', 'esr_temperature_nick')
-            cooling_module_name = CONF.get('CustomXepr', 'cooling_temperature_nick')
+            temperature_module_name = CONF.get("CustomXepr", "esr_temperature_nick")
+            cooling_module_name = CONF.get("CustomXepr", "cooling_temperature_nick")
 
-            self.esr_temperature, self.esr_gasflow, self.esr_heater = \
-                self._select_temp_sensor(temperature_module_name)
+            (
+                self.esr_temperature,
+                self.esr_gasflow,
+                self.esr_heater,
+            ) = self._select_temp_sensor(temperature_module_name)
 
             self.cooling_sensor, _, _ = self._select_temp_sensor(cooling_module_name)
 
@@ -118,11 +121,15 @@ class CustomXepr(object):
         # =====================================================================
 
         # settling time for cryostat temperature (in sec)
-        self._temp_wait_time = CONF.get('CustomXepr', 'temp_wait_time')
+        self._temp_wait_time = CONF.get("CustomXepr", "temp_wait_time")
         # ESR temperature stability tolerance (in K)
-        self._temperature_tolerance = CONF.get('CustomXepr', 'esr_temperature_tolerance')
+        self._temperature_tolerance = CONF.get(
+            "CustomXepr", "esr_temperature_tolerance"
+        )
         # cooling temperature stability tolerance (in K)
-        self._max_cooling_temperature = CONF.get('CustomXepr', 'max_cooling_temperature')
+        self._max_cooling_temperature = CONF.get(
+            "CustomXepr", "max_cooling_temperature"
+        )
 
         self._wait = 0.2  # waiting time for Xepr to process commands (in sec)
         self._tuning_timeout = 60  # timeout for phase tuning (in sec)
@@ -144,12 +151,14 @@ class CustomXepr(object):
 
         for attr_name in dir(self):
             attr = getattr(self, attr_name)
-            if hasattr(attr, '__wrapped__'):
-                setattr(self, attr_name + '_sync', types.MethodType(attr.__wrapped__, self))
+            if hasattr(attr, "__wrapped__"):
+                setattr(
+                    self, attr_name + "_sync", types.MethodType(attr.__wrapped__, self)
+                )
 
-# ========================================================================================
-# define basic functions for email notifications, pausing, etc.
-# ========================================================================================
+    # ========================================================================================
+    # define basic functions for email notifications, pausing, etc.
+    # ========================================================================================
 
     @property
     def notify_address(self):
@@ -171,7 +180,7 @@ class CustomXepr(object):
         """Setter: Wait time until temperature is considered stable."""
         self._temp_wait_time = new_time
         # update config file
-        CONF.set('CustomXepr', 'temp_wait_time', new_time)
+        CONF.set("CustomXepr", "temp_wait_time", new_time)
 
     @property
     def temperature_tolerance(self):
@@ -183,7 +192,7 @@ class CustomXepr(object):
         """Setter: Temperature fluctuation tolerance."""
         self._temperature_tolerance = new_tol
         # update config file
-        CONF.set('CustomXepr', 'temperature_tolerance', new_tol)
+        CONF.set("CustomXepr", "temperature_tolerance", new_tol)
 
     @manager.queued_exec
     def sendEmail(self, body):
@@ -193,7 +202,7 @@ class CustomXepr(object):
 
         :param str body: Text to send.
         """
-        self.emailSender.sendmail(self.notify_address, 'CustomXepr Notification', body)
+        self.emailSender.sendmail(self.notify_address, "CustomXepr Notification", body)
 
     @manager.queued_exec
     def sleep(self, seconds):
@@ -204,26 +213,26 @@ class CustomXepr(object):
         :param int seconds: Number of seconds to pause.
         """
         eta = time.time() + seconds
-        eta_string = time.strftime('%H:%M', time.localtime(eta))
-        message = 'Waiting for {:.0f} seconds, ETA: {}.'.format(seconds, eta_string)
+        eta_string = time.strftime("%H:%M", time.localtime(eta))
+        message = "Waiting for {:.0f} seconds, ETA: {}.".format(seconds, eta_string)
         logger.info(message)
 
         # brake up into 1 sec sleep intervals, give option to abort
         if seconds > 1:
             for i in range(0, seconds):
                 time.sleep(1)
-                logger.status('Waiting {:.0f}/{:.0f}.'.format(i+1, seconds))
+                logger.status("Waiting {:.0f}/{:.0f}.".format(i + 1, seconds))
                 # check for abort event
                 if self.abort.is_set():
-                    logger.info('Aborted by user.')
+                    logger.info("Aborted by user.")
                     return
         # use a single sleep command for less than one second pause
         else:
             time.sleep(seconds)
 
-# ========================================================================================
-# set up Xepr functions
-# ========================================================================================
+    # ========================================================================================
+    # set up Xepr functions
+    # ========================================================================================
 
     @manager.queued_exec
     def tune(self):
@@ -233,28 +242,28 @@ class CustomXepr(object):
 
         self._check_for_xepr()
 
-        idle_state = self.hidden['TuneState'].value
+        idle_state = self.hidden["TuneState"].value
         time.sleep(self._wait)
 
-        self.hidden['OpMode'].value = 'Tune'
+        self.hidden["OpMode"].value = "Tune"
         time.sleep(self._wait)
-        self.hidden['Tune'].value = 'Up'
+        self.hidden["Tune"].value = "Up"
         time.sleep(self._wait)
 
-        while self.hidden['TuneState'].value == idle_state:
+        while self.hidden["TuneState"].value == idle_state:
             if self.abort.is_set():
-                self.hidden['Tune'].value = 'Stop'
+                self.hidden["Tune"].value = "Stop"
                 time.sleep(self._wait)
-                logger.info('Tuning aborted by user.')
+                logger.info("Tuning aborted by user.")
                 return
             else:
                 time.sleep(1)
 
-        while self.hidden['TuneState'].value != idle_state:
+        while self.hidden["TuneState"].value != idle_state:
             if self.abort.is_set():
-                self.hidden['Tune'].value = 'Stop'
+                self.hidden["Tune"].value = "Stop"
                 time.sleep(self._wait)
-                logger.info('Tuning aborted by user.')
+                logger.info("Tuning aborted by user.")
                 return
             else:
                 time.sleep(1)
@@ -266,25 +275,25 @@ class CustomXepr(object):
         """
 
         self._check_for_xepr()
-        idle_state = self.hidden['TuneState'].value
+        idle_state = self.hidden["TuneState"].value
 
-        self.hidden['Tune'].value = 'Fine'
+        self.hidden["Tune"].value = "Fine"
         time.sleep(self._wait)
 
-        while self.hidden['TuneState'].value == idle_state:
+        while self.hidden["TuneState"].value == idle_state:
             if self.abort.is_set():
-                self.hidden['Tune'].value = 'Stop'
+                self.hidden["Tune"].value = "Stop"
                 time.sleep(self._wait)
-                logger.info('Tuning aborted by user.')
+                logger.info("Tuning aborted by user.")
                 return
             else:
                 time.sleep(1)
 
-        while self.hidden['TuneState'].value != idle_state:
+        while self.hidden["TuneState"].value != idle_state:
             if self.abort.is_set():
-                self.hidden['Tune'].value = 'Stop'
+                self.hidden["Tune"].value = "Stop"
                 time.sleep(self._wait)
-                logger.info('Tuning aborted by user.')
+                logger.info("Tuning aborted by user.")
                 return
             else:
                 time.sleep(1)
@@ -307,24 +316,24 @@ class CustomXepr(object):
         bias_tolerance = 3 if low_q else 1
         freq_tolerance = 5 if low_q else 2
 
-        logger.info('Tuning.')
+        logger.info("Tuning.")
 
         # save current operation mode and attenuation
-        mode = self.hidden['OpMode'].value
+        mode = self.hidden["OpMode"].value
         time.sleep(self._wait)
-        atten_start = self.hidden['PowerAtten'].value
+        atten_start = self.hidden["PowerAtten"].value
         time.sleep(self._wait)
 
         # switch mode to 'Operate'
-        if not mode == 'Operate':
-            self.hidden['OpMode'].value = 'Operate'
+        if not mode == "Operate":
+            self.hidden["OpMode"].value = "Operate"
             time.sleep(self._wait)
 
         dB_min = 10 if not low_q else 20
         dB_max = 50 if not low_q else 45
 
         # tune frequency and phase at 30 dB
-        self.hidden['PowerAtten'].value = 30
+        self.hidden["PowerAtten"].value = 30
         time.sleep(self._wait)
         self.tuneFreq(freq_tolerance)
         time.sleep(self._wait)
@@ -333,7 +342,7 @@ class CustomXepr(object):
 
         # tune bias of reference arm at dB_max
         # (where diode current is determined by reference arm)
-        self.hidden['PowerAtten'].value = dB_max
+        self.hidden["PowerAtten"].value = dB_max
         time.sleep(self._wait)
         self.tuneBias(bias_tolerance)
         time.sleep(self._wait)
@@ -342,12 +351,12 @@ class CustomXepr(object):
         for atten in [40, 30]:
             # check for abort event
             if self.abort.is_set():
-                self.hidden['PowerAtten'].value = atten_start
+                self.hidden["PowerAtten"].value = atten_start
                 time.sleep(self._wait)
-                logger.info('Aborted by user.')
+                logger.info("Aborted by user.")
                 return
 
-            self.hidden['PowerAtten'].value = atten
+            self.hidden["PowerAtten"].value = atten
             time.sleep(self._wait)
 
             self.tuneIris(iris_tolerance)
@@ -357,12 +366,12 @@ class CustomXepr(object):
         for atten in [20, dB_min]:
             # check for abort event, clear event
             if self.abort.is_set():
-                self.hidden['PowerAtten'].value = atten_start
+                self.hidden["PowerAtten"].value = atten_start
                 time.sleep(self._wait)
-                logger.info('Aborted by user.')
+                logger.info("Aborted by user.")
                 return
 
-            self.hidden['PowerAtten'].value = atten
+            self.hidden["PowerAtten"].value = atten
             time.sleep(self._wait)
             self.tunePhase()
             time.sleep(self._wait)
@@ -372,36 +381,36 @@ class CustomXepr(object):
             time.sleep(self._wait)
 
         # tune bias at dB_max
-        self.hidden['PowerAtten'].value = dB_max
+        self.hidden["PowerAtten"].value = dB_max
         time.sleep(self._wait)
         self.tuneBias(bias_tolerance)
         time.sleep(self._wait)
 
         # tune iris at 15 dB
-        self.hidden['PowerAtten'].value = 20
+        self.hidden["PowerAtten"].value = 20
         time.sleep(self._wait)
         self.tuneIris(iris_tolerance)
         time.sleep(self._wait)
 
         # tune bias at dB_max
-        self.hidden['PowerAtten'].value = dB_max
+        self.hidden["PowerAtten"].value = dB_max
         time.sleep(self._wait)
         self.tuneBias(bias_tolerance)
         time.sleep(self._wait)
 
         # tune iris at dB_min
-        self.hidden['PowerAtten'].value = dB_min
+        self.hidden["PowerAtten"].value = dB_min
         time.sleep(self._wait)
         self.tuneIris(iris_tolerance)
         time.sleep(self._wait)
 
         # reset attenuation to original value, tune frequency again
-        self.hidden['PowerAtten'].value = atten_start
+        self.hidden["PowerAtten"].value = atten_start
         time.sleep(self._wait)
         self.tuneFreq(freq_tolerance)
         time.sleep(self._wait)
 
-        logger.status('Tuning done.')
+        logger.status("Tuning done.")
 
     @manager.queued_exec
     def tuneBias(self, tolerance=1):
@@ -418,11 +427,11 @@ class CustomXepr(object):
         if self.abort.is_set():
             return
 
-        logger.status('Tuning (Bias).')
+        logger.status("Tuning (Bias).")
         time.sleep(self._wait)
 
         # get offset from 200 mA
-        diff = self.hidden['DiodeCurrent'].value - 200
+        diff = self.hidden["DiodeCurrent"].value - 200
         time.sleep(self._wait)
         tolerance1 = 10  # tolerance for fast tuning
         tolerance2 = tolerance  # tolerance for second fine tuning
@@ -433,11 +442,12 @@ class CustomXepr(object):
             if self.abort.is_set():
                 return
 
-            step = 1*cmp(0, diff)  # coarse step of 1
-            self.XeprCmds.aqParStep('AcqHidden', '*cwBridge.SignalBias',
-                                    'Coarse {}'.format(step))  # TODO: migrate from XeprCmds
+            step = 1 * cmp(0, diff)  # coarse step of 1
+            self.XeprCmds.aqParStep(
+                "AcqHidden", "*cwBridge.SignalBias", "Coarse {}".format(step)
+            )  # TODO: migrate from XeprCmds
             time.sleep(0.5)
-            diff = self.hidden['DiodeCurrent'].value - 200
+            diff = self.hidden["DiodeCurrent"].value - 200
             time.sleep(self._wait)
 
         # fine tuning with low tolerance and small steps
@@ -446,11 +456,12 @@ class CustomXepr(object):
             if self.abort.is_set():
                 return
 
-            step = 5*cmp(0, diff)  # fine step of 5
-            self.XeprCmds.aqParStep('AcqHidden', '*cwBridge.SignalBias',
-                                    'Fine {}'.format(step))  # TODO: migrate from XeprCmds
+            step = 5 * cmp(0, diff)  # fine step of 5
+            self.XeprCmds.aqParStep(
+                "AcqHidden", "*cwBridge.SignalBias", "Fine {}".format(step)
+            )  # TODO: migrate from XeprCmds
             time.sleep(0.5)
-            diff = self.hidden['DiodeCurrent'].value - 200
+            diff = self.hidden["DiodeCurrent"].value - 200
             time.sleep(self._wait)
 
     @manager.queued_exec
@@ -468,10 +479,10 @@ class CustomXepr(object):
         if self.abort.is_set():
             return
 
-        logger.status('Tuning (Iris).')
+        logger.status("Tuning (Iris).")
         time.sleep(self._wait)
 
-        diff = self.hidden['DiodeCurrent'].value - 200
+        diff = self.hidden["DiodeCurrent"].value - 200
 
         while abs(diff) > tolerance:
             # check for abort event
@@ -479,9 +490,9 @@ class CustomXepr(object):
                 return
 
             if diff < 0:
-                cmd = '*cwBridge.IrisUp'
+                cmd = "*cwBridge.IrisUp"
             elif diff > 0:
-                cmd = '*cwBridge.IrisDown'
+                cmd = "*cwBridge.IrisDown"
             else:
                 return
 
@@ -489,20 +500,24 @@ class CustomXepr(object):
             # close to a diode current of 200, minimum step size of 0.3
             step_size = max(abs(diff), 30) * 0.01
             # scale step size for MW power: smaller steps at higher power
-            step = step_size * (self.hidden['PowerAtten'].value**2)/400
+            step = step_size * (self.hidden["PowerAtten"].value ** 2) / 400
             time.sleep(self._wait)
             # set value to 0.1 if step is smaller
             # (usually only happens below 10dB)
             step = max(step, 0.1)
             # increase waiting time between steps when close to tuned
             # with a maximum waiting of 1 sec
-            wait = min(5/(abs(diff) + 0.1), 1)
-            self.XeprCmds.aqParSet('AcqHidden', cmd, 'True')  # TODO: migrate from XeprCmds
+            wait = min(5 / (abs(diff) + 0.1), 1)
+            self.XeprCmds.aqParSet(
+                "AcqHidden", cmd, "True"
+            )  # TODO: migrate from XeprCmds
             time.sleep(step)
-            self.XeprCmds.aqParSet('AcqHidden', cmd, 'False')  # TODO: migrate from XeprCmds
+            self.XeprCmds.aqParSet(
+                "AcqHidden", cmd, "False"
+            )  # TODO: migrate from XeprCmds
             time.sleep(wait)
 
-            diff = self.hidden['DiodeCurrent'].value - 200
+            diff = self.hidden["DiodeCurrent"].value - 200
             time.sleep(self._wait)
 
     @manager.queued_exec
@@ -519,10 +534,10 @@ class CustomXepr(object):
         if self.abort.is_set():
             return
 
-        logger.status('Tuning (Freq).')
+        logger.status("Tuning (Freq).")
         time.sleep(self._wait)
 
-        fq_offset = self.hidden['LockOffset'].value
+        fq_offset = self.hidden["LockOffset"].value
         time.sleep(self._wait)
 
         while abs(fq_offset) > tolerance:
@@ -530,11 +545,12 @@ class CustomXepr(object):
             if self.abort.is_set():
                 return
 
-            step = 1 * cmp(0, fq_offset) * max(abs(int(fq_offset/10)), 1)
-            self.XeprCmds.aqParStep('AcqHidden', '*cwBridge.Frequency',
-                                    'Fine {}'.format(step))
+            step = 1 * cmp(0, fq_offset) * max(abs(int(fq_offset / 10)), 1)
+            self.XeprCmds.aqParStep(
+                "AcqHidden", "*cwBridge.Frequency", "Fine {}".format(step)
+            )
             time.sleep(1)
-            fq_offset = self.hidden['LockOffset'].value
+            fq_offset = self.hidden["LockOffset"].value
             time.sleep(self._wait)
 
     @manager.queued_exec
@@ -548,25 +564,25 @@ class CustomXepr(object):
         if self.abort.is_set():
             return
 
-        logger.status('Tuning (Phase).')
+        logger.status("Tuning (Phase).")
         time.sleep(self._wait)
 
         t0 = time.time()
 
         # get current phase and range
-        phase0 = self.hidden['SignalPhase'].value
+        phase0 = self.hidden["SignalPhase"].value
         time.sleep(self._wait)
-        phase_min = self.hidden['SignalPhase'].aqGetParMinValue()
+        phase_min = self.hidden["SignalPhase"].aqGetParMinValue()
         time.sleep(self._wait)
-        phase_max = self.hidden['SignalPhase'].aqGetParMaxValue()
+        phase_max = self.hidden["SignalPhase"].aqGetParMaxValue()
         time.sleep(self._wait)
-        phase_step = self.hidden['SignalPhase'].aqGetParCoarseSteps()
+        phase_step = self.hidden["SignalPhase"].aqGetParCoarseSteps()
         time.sleep(self._wait)
 
         # determine the direction of increasing diode current
         diode_curr_array = np.array([])
-        interval_min = max(phase0-3*phase_step, phase_min)
-        interval_max = min(phase0+4*phase_step, phase_max)
+        interval_min = max(phase0 - 3 * phase_step, phase_min)
+        interval_max = min(phase0 + 4 * phase_step, phase_max)
         phase_array = np.arange(interval_min, interval_max, phase_step)
 
         for phase in phase_array:
@@ -576,13 +592,13 @@ class CustomXepr(object):
             # Abort if phase at limit
             if self._phase_at_limit(phase, phase_min, phase_max):
                 return
-            self.hidden['SignalPhase'].value = phase
+            self.hidden["SignalPhase"].value = phase
             time.sleep(1)
-            diode_curr = self.hidden['DiodeCurrent'].value
+            diode_curr = self.hidden["DiodeCurrent"].value
             time.sleep(self._wait)
             diode_curr_array = np.append(diode_curr_array, diode_curr)
             if time.time() - t0 > self._tuning_timeout:
-                logger.info('Phase tuning timeout.')
+                logger.info("Phase tuning timeout.")
                 break
 
         upper = np.mean(diode_curr_array[phase_array > phase0])
@@ -590,9 +606,9 @@ class CustomXepr(object):
         direction = cmp(upper, lower)
 
         # determine position of maximum phase by stepping until phase deceases again
-        self.hidden['SignalPhase'].value = phase0
+        self.hidden["SignalPhase"].value = phase0
         time.sleep(1)
-        diode_curr_new = self.hidden['DiodeCurrent'].value
+        diode_curr_new = self.hidden["DiodeCurrent"].value
         time.sleep(self._wait)
 
         phase_array = np.array([phase0])
@@ -602,7 +618,7 @@ class CustomXepr(object):
 
         while diode_curr_new > np.max(diode_curr_array) - 15:
             # get next phase step
-            new_phase += direction*phase_step
+            new_phase += direction * phase_step
 
             # check for abort event
             if self.abort.is_set():
@@ -618,9 +634,9 @@ class CustomXepr(object):
                 return
 
             # get new reading
-            self.hidden['SignalPhase'].value = new_phase
+            self.hidden["SignalPhase"].value = new_phase
             time.sleep(1)
-            diode_curr_new = self.hidden['DiodeCurrent'].value
+            diode_curr_new = self.hidden["DiodeCurrent"].value
             time.sleep(self._wait)
 
             diode_curr_array = np.append(diode_curr_array, diode_curr_new)
@@ -628,12 +644,12 @@ class CustomXepr(object):
 
             # timeout if Xepr is not responsive
             if time.time() - t0 > self._tuning_timeout:
-                logger.info('Phase tuning timeout.')
+                logger.info("Phase tuning timeout.")
                 break
 
         # set phase to the best value
         best_phase = phase_array[np.argmax(diode_curr_array)]
-        self.hidden['SignalPhase'].value = best_phase
+        self.hidden["SignalPhase"].value = best_phase
         time.sleep(self._wait)
 
     @manager.queued_exec
@@ -655,17 +671,17 @@ class CustomXepr(object):
         wait_old = self._wait
         self._wait = 1
 
-        logger.info('Reading Q-value.')
+        logger.info("Reading Q-value.")
 
-        att = self.hidden['PowerAtten'].value  # remember current attenuation
+        att = self.hidden["PowerAtten"].value  # remember current attenuation
         time.sleep(self._wait)
-        self.hidden['OpMode'].value = 'Tune'
+        self.hidden["OpMode"].value = "Tune"
         time.sleep(self._wait)
-        self.hidden['RefArm'].value = 'On'
+        self.hidden["RefArm"].value = "On"
         time.sleep(self._wait)
-        self.hidden['PowerAtten'].value = 33
+        self.hidden["PowerAtten"].value = 33
         time.sleep(self._wait)
-        self.hidden['ModeZoom'].value = 2
+        self.hidden["ModeZoom"].value = 2
         time.sleep(self._wait)
 
         q_values = np.array([])
@@ -675,18 +691,18 @@ class CustomXepr(object):
         for iteration in range(0, 40):
             # check for abort event
             if self.abort.is_set():
-                logger.info('Aborted by user.')
+                logger.info("Aborted by user.")
                 return
-            q_values = np.append(q_values, self.hidden['QValue'].value)
+            q_values = np.append(q_values, self.hidden["QValue"].value)
             time.sleep(1)
 
-        self.hidden['PowerAtten'].value = 32
+        self.hidden["PowerAtten"].value = 32
         time.sleep(self._wait)
-        self.hidden['ModeZoom'].value = 1
+        self.hidden["ModeZoom"].value = 1
         time.sleep(self._wait)
-        self.hidden['RefArm'].value = 'On'
+        self.hidden["RefArm"].value = "On"
         time.sleep(self._wait)
-        self.hidden['OpMode'].value = 'Operate'
+        self.hidden["OpMode"].value = "Operate"
 
         time.sleep(3)
 
@@ -695,20 +711,22 @@ class CustomXepr(object):
         self.tuneBias()
         self.tuneFreq()
 
-        self.hidden['PowerAtten'].value = att
+        self.hidden["PowerAtten"].value = att
         time.sleep(self._wait)
         q_mean = q_values.mean()
         q_stderr = q_values.std()
 
         if path is not None:
-            path = os.path.join(path, 'QValues.txt')
+            path = os.path.join(path, "QValues.txt")
             self._saveQValue2File(temperature, q_mean, q_stderr, path)
 
         if q_mean > 3000:
-            logger.info('Q = {:.0f}+/-{:.0f}.'.format(q_mean, q_stderr))
+            logger.info("Q = {:.0f}+/-{:.0f}.".format(q_mean, q_stderr))
         elif q_mean <= 3000:
-            logger.warning('Q = {:.0f}+/-{:.0f} is very small. Please check on '
-                           'experiment.'.format(q_mean, q_stderr))
+            logger.warning(
+                "Q = {:.0f}+/-{:.0f} is very small. Please check on "
+                "experiment.".format(q_mean, q_stderr)
+            )
 
         self._wait = wait_old
 
@@ -736,22 +754,22 @@ class CustomXepr(object):
         wait_old = self._wait
         self._wait = 1
 
-        logger.info('Reading Q-value.')
-        att = self.hidden['PowerAtten'].value  # remember current attenuation
+        logger.info("Reading Q-value.")
+        att = self.hidden["PowerAtten"].value  # remember current attenuation
         time.sleep(self._wait)
-        freq = self.hidden['FrequencyMon'].value  # get current frequency
+        freq = self.hidden["FrequencyMon"].value  # get current frequency
         time.sleep(self._wait)
 
-        self.hidden['OpMode'].value = 'Tune'
+        self.hidden["OpMode"].value = "Tune"
         time.sleep(self._wait)
-        self.hidden['RefArm'].value = 'Off'
+        self.hidden["RefArm"].value = "Off"
         time.sleep(self._wait)
-        self.hidden['LogScaleEnab'].value = False  # ensure linear scale mode picture
+        self.hidden["LogScaleEnab"].value = False  # ensure linear scale mode picture
         time.sleep(self._wait)
-        self.hidden['PowerAtten'].value = 33
+        self.hidden["PowerAtten"].value = 33
         time.sleep(1)
 
-        self.hidden['PowerAtten'].value = 20
+        self.hidden["PowerAtten"].value = 20
         time.sleep(2)
 
         # collect mode pictures for different zoom levels
@@ -761,19 +779,19 @@ class CustomXepr(object):
 
             # check for abort event
             if self.abort.is_set():
-                logger.info('Aborted by user.')
+                logger.info("Aborted by user.")
                 return
 
             y_data = np.array([])
 
-            self.hidden['ModeZoom'].value = mode_zoom
+            self.hidden["ModeZoom"].value = mode_zoom
             time.sleep(2)
 
-            n_points = int(self.hidden['DataRange'][1])
+            n_points = int(self.hidden["DataRange"][1])
             time.sleep(self._wait)
 
             for i in range(0, n_points):
-                y_data = np.append(y_data, self.hidden['Data'][i])
+                y_data = np.append(y_data, self.hidden["Data"][i])
 
             mode_pic_data[mode_zoom] = y_data
 
@@ -781,13 +799,13 @@ class CustomXepr(object):
         self._last_qvalue = mp.qvalue
         self._last_qvalue_err = mp.qvalue_stderr
 
-        self.hidden['PowerAtten'].value = 30
+        self.hidden["PowerAtten"].value = 30
         time.sleep(self._wait)
-        self.hidden['ModeZoom'].value = 1
+        self.hidden["ModeZoom"].value = 1
         time.sleep(self._wait)
-        self.hidden['RefArm'].value = 'On'
+        self.hidden["RefArm"].value = "On"
         time.sleep(self._wait)
-        self.hidden['OpMode'].value = 'Operate'
+        self.hidden["OpMode"].value = "Operate"
 
         time.sleep(2)
 
@@ -796,22 +814,26 @@ class CustomXepr(object):
         self.tuneBias()
         self.tuneFreq()
 
-        self.hidden['PowerAtten'].value = att
+        self.hidden["PowerAtten"].value = att
         time.sleep(self._wait)
 
         if mp.qvalue > 3000:
-            logger.info('Q = {:.0f}+/-{:.0f}.'.format(mp.qvalue, mp.qvalue_stderr))
+            logger.info("Q = {:.0f}+/-{:.0f}.".format(mp.qvalue, mp.qvalue_stderr))
         elif mp.qvalue <= 3000:
-            logger.warning('Q = {:.0f}+/-{:.0f} is very small. Please check on '
-                           'experiment.'.format(mp.qvalue, mp.qvalue_stderr))
+            logger.warning(
+                "Q = {:.0f}+/-{:.0f} is very small. Please check on "
+                "experiment.".format(mp.qvalue, mp.qvalue_stderr)
+            )
 
         if path is not None:
             path = os.path.expanduser(path)
             if not os.path.isdir(path):
                 raise IOError('"{}" is not a valid directory.'.format(path))
 
-            path1 = os.path.join(path, 'QValues.txt')
-            path2 = os.path.join(path, 'ModePicture{0:03d}K.txt'.format(int(temperature)))
+            path1 = os.path.join(path, "QValues.txt")
+            path2 = os.path.join(
+                path, "ModePicture{0:03d}K.txt".format(int(temperature))
+            )
 
             self._saveQValue2File(temperature, mp.qvalue, mp.qvalue_stderr, path1)
             mp.save(path2)
@@ -823,18 +845,18 @@ class CustomXepr(object):
     @staticmethod
     def _saveQValue2File(tmpr, qval, qval_stderr, path):
 
-        delim = '\t'
-        newline = '\n'
+        delim = "\t"
+        newline = "\n"
 
-        column_titles = ['Time stamp', 'Temperature [K]', 'QValue', 'Standard error']
+        column_titles = ["Time stamp", "Temperature [K]", "QValue", "Standard error"]
         header = delim.join(column_titles + [newline])
 
-        time_str = time.strftime('%Y-%m-%d %H:%M')
+        time_str = time.strftime("%Y-%m-%d %H:%M")
         line = delim.join([time_str, str(tmpr), str(qval), str(qval_stderr), newline])
 
         is_newfile = not os.path.isfile(path)
 
-        with open(path, 'a') as f:
+        with open(path, "a") as f:
             if is_newfile:
                 f.write(header)
             f.write(line)
@@ -852,34 +874,38 @@ class CustomXepr(object):
         :rtype: float
         """
 
-        sweep_time_par = exp['signalChannel.SweepTime']
+        sweep_time_par = exp["signalChannel.SweepTime"]
         sweep_time = Q_(sweep_time_par.value, sweep_time_par.aqGetParUnits())
 
-        field_delay_par = exp['fieldCtrl.Delay']  # given in s
+        field_delay_par = exp["fieldCtrl.Delay"]  # given in s
         field_delay = Q_(field_delay_par.value, field_delay_par.aqGetParUnits())
 
-        nb_scans = exp['NbScansToDo'].value
+        nb_scans = exp["NbScansToDo"].value
 
-        ramp_step_time = (sweep_time + field_delay) * nb_scans  # total time for one step
+        ramp_step_time = (
+            sweep_time + field_delay
+        ) * nb_scans  # total time for one step
 
         # check if we have a seconday axis
-        if 'ramp2.*' in exp:
-            if 'User defined' in exp['ramp2.sweepType'].value:
-                nb_ramp = len(exp['ramp2.SweepData'].value.split())  # returns a space delimited str
+        if "ramp2.*" in exp:
+            if "User defined" in exp["ramp2.sweepType"].value:
+                nb_ramp = len(
+                    exp["ramp2.SweepData"].value.split()
+                )  # returns a space delimited str
             else:
-                nb_ramp = exp['ramp2.NbPoints'].value
+                nb_ramp = exp["ramp2.NbPoints"].value
         else:
             nb_ramp = 1
 
-        if 'delay2.*' in exp:
-            ramp_delay_par = exp['delay2.Delay']
+        if "delay2.*" in exp:
+            ramp_delay_par = exp["delay2.Delay"]
             ramp_delay = Q_(ramp_delay_par.value, ramp_delay_par.aqGetParUnits())
         else:
             ramp_delay = 0
 
         total = (ramp_step_time + ramp_delay) * nb_ramp
 
-        return float(total / Q_('1 sec'))
+        return float(total / Q_("1 sec"))
 
     @manager.queued_exec
     def runXeprExperiment(self, exp, retune=True, path=None, **kwargs):
@@ -951,8 +977,8 @@ class CustomXepr(object):
             logger.info(
                 'Measurement "{0}" is running. Estimated duration: {1} min (ETA {2}).'.format(
                     exp.aqGetExpName(),
-                    int(d.total_seconds()/60),
-                    eta.strftime('%H:%M')
+                    int(d.total_seconds() / 60),
+                    eta.strftime("%H:%M"),
                 )
             )
         except ParameterError:
@@ -1002,20 +1028,23 @@ class CustomXepr(object):
                 exp.aqExpPause()
                 exp.aqExpAbort()
                 time.sleep(self._wait)
-                logger.info('Aborted by user.')
+                logger.info("Aborted by user.")
                 return
 
-            nb_scans_done = exp['NbScansDone'].value
+            nb_scans_done = exp["NbScansDone"].value
             time.sleep(self._wait)
-            nb_scans_to_do = exp['NbScansToDo'].value
+            nb_scans_to_do = exp["NbScansToDo"].value
             time.sleep(self._wait)
-            logger.status('Recording scan {:.0f}/{:.0f}.'.format(nb_scans_done + 1,
-                                                                 nb_scans_to_do))
+            logger.status(
+                "Recording scan {:.0f}/{:.0f}.".format(
+                    nb_scans_done + 1, nb_scans_to_do
+                )
+            )
 
             if retune:
                 # tune frequency and iris when a new slice scan starts
                 if exp.isPaused and not nb_scans_done == nb_scans_to_do:
-                    logger.status('Checking tuned.')
+                    logger.status("Checking tuned.")
                     self.tuneFreq(tolerance=3)
                     self.tuneFreq(tolerance=3)
                     self.tuneIris(tolerance=7)
@@ -1039,29 +1068,37 @@ class CustomXepr(object):
                 diff = abs(self.esr_temperature.temp[0] - temperature_setpoint)
                 temperature_fluct_history = np.append(temperature_fluct_history, diff)
                 # increment the number of violations n_out if temperature is unstable
-                n_temperature_volatile += (diff > 4*self._temperature_tolerance)
+                n_temperature_volatile += diff > 4 * self._temperature_tolerance
                 # warn once for every 120 temperature violations
                 if np.mod(n_temperature_volatile, 120) == 1:
                     max_diff = np.max(temperature_fluct_history)
-                    logger.warning('Temperature fluctuations of +/-{:.2f}K.'.format(max_diff))
-                    n_temperature_volatile += 1  # prevent from warning again the next second
+                    logger.warning(
+                        "Temperature fluctuations of +/-{:.2f}K.".format(max_diff)
+                    )
+                    n_temperature_volatile += (
+                        1  # prevent from warning again the next second
+                    )
 
                 # Pause measurement and raise error after 15 min of instability
                 if n_temperature_volatile > 60 * 15:
                     exp.aqExpPause()
-                    raise RuntimeError('Temperature could not be kept stable for ' +
-                                       '15 min. Aborting current measurement and ' +
-                                       'pausing all pending jobs.')
+                    raise RuntimeError(
+                        "Temperature could not be kept stable for "
+                        + "15 min. Aborting current measurement and "
+                        + "pausing all pending jobs."
+                    )
 
             time.sleep(1)
 
         # get temperature stability during scan if mercury was connected
         if has_mercury:
             max_diff = np.max(temperature_fluct_history)
-            logger.info('Temperature stable at ({:.2f}+/-{:.2f})K during '
-                        'scans.'.format(temperature_setpoint, max_diff))
+            logger.info(
+                "Temperature stable at ({:.2f}+/-{:.2f})K during "
+                "scans.".format(temperature_setpoint, max_diff)
+            )
 
-        logger.info('All scans complete.')
+        logger.info("All scans complete.")
 
         # ----------- save data with custom parameters -----------------------------------
         # switch viewpoint to experiment which just finished running
@@ -1074,7 +1111,7 @@ class CustomXepr(object):
         # save the data to tmp file, this insures that we always save to a file path
         # that Xepr can handle
 
-        with tempfile.NamedTemporaryFile(prefix='autosave_', delete=False) as f:
+        with tempfile.NamedTemporaryFile(prefix="autosave_", delete=False) as f:
             tmp_path = f.name
 
         title = os.path.splitext(os.path.basename(path or tmp_path))[0]
@@ -1082,28 +1119,28 @@ class CustomXepr(object):
         time.sleep(self._wait)
 
         # add temperature data and Q-value if available
-        basename = tmp_path.split('.')[0]
-        dsc_path = basename + '.DSC'
+        basename = tmp_path.split(".")[0]
+        dsc_path = basename + ".DSC"
 
         dset = XeprData(dsc_path)
 
         if self._last_qvalue is not None:
-            dsl_mwbridge = dset.dsl.groups['mwBridge']
-            dsl_mwbridge.pars['QValue'] = XeprParam(self._last_qvalue)
-            dsl_mwbridge.pars['QValueErr'] = XeprParam(self._last_qvalue_err)
+            dsl_mwbridge = dset.dsl.groups["mwBridge"]
+            dsl_mwbridge.pars["QValue"] = XeprParam(self._last_qvalue)
+            dsl_mwbridge.pars["QValueErr"] = XeprParam(self._last_qvalue_err)
 
         if has_mercury:
-            dsl_temp = ParamGroupDSL(name='tempCtrl')
-            dsl_temp.pars['Temperature'] = XeprParam(temperature_setpoint, 'K')
-            dsl_temp.pars['Stability'] = XeprParam(round(max_diff, 4), 'K')
-            dsl_temp.pars['AcqWaitTime'] = XeprParam(self._temp_wait_time, 's')
-            dsl_temp.pars['Tolerance'] = XeprParam(self._temperature_tolerance, 'K')
+            dsl_temp = ParamGroupDSL(name="tempCtrl")
+            dsl_temp.pars["Temperature"] = XeprParam(temperature_setpoint, "K")
+            dsl_temp.pars["Stability"] = XeprParam(round(max_diff, 4), "K")
+            dsl_temp.pars["AcqWaitTime"] = XeprParam(self._temp_wait_time, "s")
+            dsl_temp.pars["Tolerance"] = XeprParam(self._temperature_tolerance, "K")
 
-            dset.dsl.groups['tempCtrl'] = dsl_temp
+            dset.dsl.groups["tempCtrl"] = dsl_temp
 
         if retune:
-            dset.pars['AcqFineTuning'] = 'Slice'  # TODO: confirm correct value
-            dset.pars['AcqSliceFTuning'] = 'On'
+            dset.pars["AcqFineTuning"] = "Slice"  # TODO: confirm correct value
+            dset.pars["AcqSliceFTuning"] = "On"
 
         new_path = path or tmp_path
 
@@ -1120,8 +1157,10 @@ class CustomXepr(object):
             cool_t_deg_c = round(cool_t_kelvin - 273.15, 2)
 
             if cool_t_kelvin > self._max_cooling_temperature:
-                logger.warning('Cooling temperature at {} Celsius. Aborting '
-                               'measurement.'.format(cool_t_deg_c))
+                logger.warning(
+                    "Cooling temperature at {} Celsius. Aborting "
+                    "measurement.".format(cool_t_deg_c)
+                )
 
                 self.setStandby()
                 self.manager.pause_worker()
@@ -1150,9 +1189,11 @@ class CustomXepr(object):
             currently selected experiment if not given.
         """
 
-        print('To save a just completed measurement, please use the "path" argument ' +
-              'of "runXeprExperiment". This will automatically add temperature ' +
-              'stability and Q-value information to your data files.')
+        print(
+            'To save a just completed measurement, please use the "path" argument '
+            + 'of "runXeprExperiment". This will automatically add temperature '
+            + "stability and Q-value information to your data files."
+        )
 
         self._saveData(path, exp)
 
@@ -1168,26 +1209,27 @@ class CustomXepr(object):
 
         # check if WindDown experiment already exists, otherwise create
         try:
-            wd = self.xepr.XeprExperiment('WindDown')
+            wd = self.xepr.XeprExperiment("WindDown")
             time.sleep(self._wait)
         except ExperimentError:
-            wd = self.xepr.XeprExperiment('WindDown', exptype='C.W.',
-                                          axs1='Field', ordaxs='Signal channel')
+            wd = self.xepr.XeprExperiment(
+                "WindDown", exptype="C.W.", axs1="Field", ordaxs="Signal channel"
+            )
         time.sleep(self._wait)
 
         wd.aqExpActivate()
         time.sleep(self._wait)
-        wd['CenterField'].value = 0
+        wd["CenterField"].value = 0
         time.sleep(self._wait)
-        wd['AtCenter'].value = True
+        wd["AtCenter"].value = True
         time.sleep(self._wait)
 
-        self.hidden['OpMode'].value = 'Tune'
+        self.hidden["OpMode"].value = "Tune"
         time.sleep(3)
-        self.hidden['OpMode'].value = 'Stand By'
+        self.hidden["OpMode"].value = "Stand By"
         time.sleep(self._wait)
 
-        logger.info('EPR set to standby.')
+        logger.info("EPR set to standby.")
 
     def _saveData(self, path, exp=None, title=None):
         """
@@ -1209,8 +1251,9 @@ class CustomXepr(object):
         path = os.path.expanduser(path)
 
         if len(path) > 128:
-            raise ValueError('Only paths with with 128 characters or less are ' +
-                             'allowed by Xepr.')
+            raise ValueError(
+                "Only paths with with 128 characters or less are " + "allowed by Xepr."
+            )
 
         directory, basename = os.path.split(path)
 
@@ -1231,7 +1274,7 @@ class CustomXepr(object):
         # tell Xepr to save data
         self.XeprCmds.ddPath(path)
         time.sleep(self._wait)
-        self.XeprCmds.vpSave('Current Primary', title,  path)
+        self.XeprCmds.vpSave("Current Primary", title, path)
         time.sleep(self._wait)
 
     def _phase_at_limit(self, phase, phase_min, phase_max):
@@ -1245,14 +1288,14 @@ class CustomXepr(object):
         else:
             # shift by 360° if maximum or minimum is encountered
             direction = int(phase <= phase_min) - int(phase >= phase_max)
-            self.hidden['SignalPhase'].value = phase + direction*360*deg_step
-            logger.info('Phase at limit, cycling by 360 deg.')
+            self.hidden["SignalPhase"].value = phase + direction * 360 * deg_step
+            logger.info("Phase at limit, cycling by 360 deg.")
             time.sleep(4)
             return True
 
-# ========================================================================================
-# set up cryostat functions
-# ========================================================================================
+    # ========================================================================================
+    # set up cryostat functions
+    # ========================================================================================
 
     @manager.queued_exec
     def setTemperature(self, target, wait_stable=True):
@@ -1268,7 +1311,7 @@ class CustomXepr(object):
 
         self._check_for_mercury()
 
-        logger.info('Setting target temperature to {}K.'.format(target))
+        logger.info("Setting target temperature to {}K.".format(target))
 
         # set temperature and wait to stabilize
         self.esr_temperature.loop_tset = target
@@ -1281,13 +1324,13 @@ class CustomXepr(object):
             ht = self._heater_target(target)
             fmin = self.esr_gasflow.gmin
 
-            above_heater_target = (self.esr_heater.volt[0] > 1.1*ht)
-            flow_at_min = (self.esr_gasflow.perc[0] == fmin)
+            above_heater_target = self.esr_heater.volt[0] > 1.1 * ht
+            flow_at_min = self.esr_gasflow.perc[0] == fmin
 
             if above_heater_target and flow_at_min:
 
-                logger.warning('Gas flow is too high, trying to reduce.')
-                self.esr_temperature.loop_faut = 'ON'
+                logger.warning("Gas flow is too high, trying to reduce.")
+                self.esr_temperature.loop_faut = "ON"
                 self.esr_gasflow.gmin = max(fmin - 1, 1)
 
                 self.waitTemperatureStable(target, wait_time=30)
@@ -1304,7 +1347,7 @@ class CustomXepr(object):
 
         # set temperature and wait to stabilize
         self.esr_temperature.loop_rset = ramp
-        logger.info('Temperature ramp set to {} K/min.'.format(ramp))
+        logger.info("Temperature ramp set to {} K/min.".format(ramp))
 
     @manager.queued_exec
     def waitTemperatureStable(self, target, tolerance=None, wait_time=None):
@@ -1319,7 +1362,7 @@ class CustomXepr(object):
         """
 
         # time in sec after which a timeout warning is issued
-        temperature_timeout = self._ramp_time(target) + 30*60  # in sec
+        temperature_timeout = self._ramp_time(target) + 30 * 60  # in sec
         # counter for elapsed seconds since temperature has been stable
         stable_counter = 0
         # counter for temperature warnings
@@ -1327,12 +1370,12 @@ class CustomXepr(object):
         # starting time
         t0 = time.time()
 
-        logger.info('Waiting for temperature to stabilize.')
+        logger.info("Waiting for temperature to stabilize.")
 
         while stable_counter < (wait_time or self._temp_wait_time):
             # check for abort command
             if self.abort.is_set():
-                logger.info('Aborted by user.')
+                logger.info("Aborted by user.")
                 return
 
             # check temperature deviation
@@ -1340,21 +1383,27 @@ class CustomXepr(object):
             if self.T_diff > (tolerance or self._temperature_tolerance):
                 stable_counter = 0
                 time.sleep(1)
-                logger.status('Waiting for temperature to stabilize.')
+                logger.status("Waiting for temperature to stabilize.")
             else:
                 stable_counter += 1
-                logger.status('Stable for {}/{} sec.'.format(stable_counter,
-                                                             wait_time or self._temp_wait_time))
+                logger.status(
+                    "Stable for {}/{} sec.".format(
+                        stable_counter, wait_time or self._temp_wait_time
+                    )
+                )
                 time.sleep(1)
 
             # warn if stabilization is taking longer than expected
-            if time.time() - t0 > temperature_timeout and temperature_warning_counter == 0:
-                logger.warning('Temperature is taking a long time to stabilize.')
+            if (
+                time.time() - t0 > temperature_timeout
+                and temperature_warning_counter == 0
+            ):
+                logger.warning("Temperature is taking a long time to stabilize.")
                 t0 = time.time()
-                temperature_timeout = self._ramp_time(target) + 30*60
+                temperature_timeout = self._ramp_time(target) + 30 * 60
                 temperature_warning_counter += 1
 
-        message = 'Mercury iTC: Temperature is stable at {}K.'.format(target)
+        message = "Mercury iTC: Temperature is stable at {}K.".format(target)
         logger.info(message)
 
     @manager.queued_exec
@@ -1385,9 +1434,9 @@ class CustomXepr(object):
         :param str htt_file: Path to file with custom heater target table.
         """
         if htt_file is None:
-            htt_file = os.path.join(_root, 'experiment', 'mercury_htt.txt')
+            htt_file = os.path.join(_root, "experiment", "mercury_htt.txt")
 
-        htt = np.loadtxt(htt_file, delimiter=',')
+        htt = np.loadtxt(htt_file, delimiter=",")
         return np.interp(temperature, htt[:, 0], htt[:, 1])
 
     def _ramp_time(self, target):
@@ -1397,28 +1446,33 @@ class CustomXepr(object):
 
         :param float target: Target temperature in Kelvin.
         """
-        if self.esr_temperature.loop_rena == 'ON':
-            expected_time = (abs(target - self.esr_temperature.temp[0]) /
-                             self.esr_temperature.loop_rset)  # in min
+        if self.esr_temperature.loop_rena == "ON":
+            expected_time = (
+                abs(target - self.esr_temperature.temp[0])
+                / self.esr_temperature.loop_rset
+            )  # in min
         else:  # assume ramp of 5 K/min
             expected_time = abs(target - self.esr_temperature.temp[0]) / 5
         return expected_time * 60  # return value in sec
 
-# ========================================================================================
-# set up Keithley functions
-# ========================================================================================
+    # ========================================================================================
+    # set up Keithley functions
+    # ========================================================================================
 
     @manager.queued_exec
-    def transferMeasurement(self, smu_gate=KCONF.get('Sweep', 'gate'),
-                            smu_drain=KCONF.get('Sweep', 'drain'),
-                            vg_start=KCONF.get('Sweep', 'VgStart'),
-                            vg_stop=KCONF.get('Sweep', 'VgStop'),
-                            vg_step=KCONF.get('Sweep', 'VgStep'),
-                            vd_list=KCONF.get('Sweep', 'VdList'),
-                            t_int=KCONF.get('Sweep', 'tInt'),
-                            delay=KCONF.get('Sweep', 'delay'),
-                            pulsed=KCONF.get('Sweep', 'pulsed'),
-                            path=None):
+    def transferMeasurement(
+        self,
+        smu_gate=KCONF.get("Sweep", "gate"),
+        smu_drain=KCONF.get("Sweep", "drain"),
+        vg_start=KCONF.get("Sweep", "VgStart"),
+        vg_stop=KCONF.get("Sweep", "VgStop"),
+        vg_step=KCONF.get("Sweep", "VgStep"),
+        vd_list=KCONF.get("Sweep", "VdList"),
+        t_int=KCONF.get("Sweep", "tInt"),
+        delay=KCONF.get("Sweep", "delay"),
+        pulsed=KCONF.get("Sweep", "pulsed"),
+        path=None,
+    ):
         """
         Records a transfer curve and returns the resulting data. If a valid path is path
         given, the data is also saved as a .txt file.
@@ -1445,8 +1499,15 @@ class CustomXepr(object):
         smu_drain = getattr(self.keithley, smu_drain)
 
         sd = self.keithley.transferMeasurement(
-            smu_gate, smu_drain, vg_start, vg_stop, vg_step, vd_list,
-            t_int, delay, pulsed
+            smu_gate,
+            smu_drain,
+            vg_start,
+            vg_stop,
+            vg_step,
+            vd_list,
+            t_int,
+            delay,
+            pulsed,
         )
 
         if path is not None:
@@ -1455,16 +1516,19 @@ class CustomXepr(object):
         return sd
 
     @manager.queued_exec
-    def outputMeasurement(self, smu_gate=KCONF.get('Sweep', 'gate'),
-                          smu_drain=KCONF.get('Sweep', 'drain'),
-                          vd_start=KCONF.get('Sweep', 'VdStart'),
-                          vd_stop=KCONF.get('Sweep', 'VdStop'),
-                          vd_step=KCONF.get('Sweep', 'VdStep'),
-                          vg_list=KCONF.get('Sweep', 'VgList'),
-                          t_int=KCONF.get('Sweep', 'tInt'),
-                          delay=KCONF.get('Sweep', 'delay'),
-                          pulsed=KCONF.get('Sweep', 'pulsed'),
-                          path=None):
+    def outputMeasurement(
+        self,
+        smu_gate=KCONF.get("Sweep", "gate"),
+        smu_drain=KCONF.get("Sweep", "drain"),
+        vd_start=KCONF.get("Sweep", "VdStart"),
+        vd_stop=KCONF.get("Sweep", "VdStop"),
+        vd_step=KCONF.get("Sweep", "VdStep"),
+        vg_list=KCONF.get("Sweep", "VgList"),
+        t_int=KCONF.get("Sweep", "tInt"),
+        delay=KCONF.get("Sweep", "delay"),
+        pulsed=KCONF.get("Sweep", "pulsed"),
+        path=None,
+    ):
         """
         Records an output curve and returns the resulting data. If a valid path is given,
         the data is also saved as a .txt file.
@@ -1491,8 +1555,15 @@ class CustomXepr(object):
         smu_drain = getattr(self.keithley, smu_drain)
 
         sd = self.keithley.outputMeasurement(
-            smu_gate, smu_drain, vd_start, vd_stop,vd_step, vg_list,
-            t_int, delay, pulsed
+            smu_gate,
+            smu_drain,
+            vd_start,
+            vd_stop,
+            vd_step,
+            vg_list,
+            t_int,
+            delay,
+            pulsed,
         )
 
         if path is not None:
@@ -1501,7 +1572,7 @@ class CustomXepr(object):
         return sd
 
     @manager.queued_exec
-    def setVoltage(self, v, smu=KCONF.get('Sweep', 'gate')):
+    def setVoltage(self, v, smu=KCONF.get("Sweep", "gate")):
         """
         Sets the bias of the given Keithley SMU.
 
@@ -1517,7 +1588,7 @@ class CustomXepr(object):
         self.keithley.beeper.beep(0.3, 2400)
 
     @manager.queued_exec
-    def setCurrent(self, i, smu=KCONF.get('Sweep', 'drain')):
+    def setCurrent(self, i, smu=KCONF.get("Sweep", "drain")):
         """
         Applies a specified current to the selected Keithley SMU.
 
@@ -1532,9 +1603,9 @@ class CustomXepr(object):
         self.keithley.applyCurrent(smu, i)
         self.keithley.beeper.beep(0.3, 2400)
 
-# ========================================================================================
-# Helper methods
-# ========================================================================================
+    # ========================================================================================
+    # Helper methods
+    # ========================================================================================
 
     def _check_for_mercury(self, raise_error=True):
         """
@@ -1542,26 +1613,35 @@ class CustomXepr(object):
         """
 
         if not self.mercury:
-            error_info = ('No Mercury instance supplied. Functions that ' +
-                          'require a connected cryostat will not work.')
+            error_info = (
+                "No Mercury instance supplied. Functions that "
+                + "require a connected cryostat will not work."
+            )
         elif not self.mercury.connected:
-            error_info = ('MercuryiTC is not connected. Functions that ' +
-                          'require a connected cryostat will not work.')
+            error_info = (
+                "MercuryiTC is not connected. Functions that "
+                + "require a connected cryostat will not work."
+            )
         else:
-            temperature_module_name = CONF.get('CustomXepr', 'esr_temperature_nick')
+            temperature_module_name = CONF.get("CustomXepr", "esr_temperature_nick")
             temp, gasflow, heater = self._select_temp_sensor(temperature_module_name)
 
             if not temp:
-                error_info = ('MercuryiTC error: temperature sensor "{}" not '
-                              'found.').format(temperature_module_name)
+                error_info = (
+                    'MercuryiTC error: temperature sensor "{}" not ' "found."
+                ).format(temperature_module_name)
             elif not heater:
-                error_info = ('MercuryiTC error: No heater module configured for "{}". '
-                              'Functions that require a connected cryostat will not '
-                              'work.').format(temperature_module_name)
+                error_info = (
+                    'MercuryiTC error: No heater module configured for "{}". '
+                    "Functions that require a connected cryostat will not "
+                    "work."
+                ).format(temperature_module_name)
             elif not gasflow:
-                error_info = ('MercuryiTC error: No gas flow module configured for "{}". '
-                              'Functions that require a connected cryostat will not '
-                              'work.').format(temperature_module_name)
+                error_info = (
+                    'MercuryiTC error: No gas flow module configured for "{}". '
+                    "Functions that require a connected cryostat will not "
+                    "work."
+                ).format(temperature_module_name)
             else:
                 error_info = False
 
@@ -1580,11 +1660,15 @@ class CustomXepr(object):
         """
 
         if not self.keithley:
-            error_info = ('No Keithley instance supplied. Functions that ' +
-                          'require a connected Keithley SMU will not work.')
+            error_info = (
+                "No Keithley instance supplied. Functions that "
+                + "require a connected Keithley SMU will not work."
+            )
         elif not self.keithley.connected:
-            error_info = ('Keithley is not connected. Functions that ' +
-                          'require a connected Keithley will not work.')
+            error_info = (
+                "Keithley is not connected. Functions that "
+                + "require a connected Keithley will not work."
+            )
         else:
             error_info = False
 
@@ -1598,21 +1682,27 @@ class CustomXepr(object):
 
     def _check_for_xepr(self, raise_error=True):
         if not self.xepr:
-            error_info = ('No Xepr instance supplied. Functions that ' +
-                          'require Xepr will not work.')
+            error_info = (
+                "No Xepr instance supplied. Functions that "
+                + "require Xepr will not work."
+            )
         elif not self.xepr.XeprActive():
-            error_info = ('Xepr API not active. Please activate Xepr API by ' +
-                          'pressing "Processing > XeprAPI > Enable Xepr API"')
+            error_info = (
+                "Xepr API not active. Please activate Xepr API by "
+                + 'pressing "Processing > XeprAPI > Enable Xepr API"'
+            )
         else:
             error_info = False
             self.XeprCmds = self.xepr.XeprCmds
             if not self.hidden:
                 try:
-                    self.hidden = self.xepr.XeprExperiment('AcqHidden')
+                    self.hidden = self.xepr.XeprExperiment("AcqHidden")
                 except Exception:
-                    error_info = ('Xepr is not connected to the spectrometer. ' +
-                                  'Please connect by pressing "Acquisition > ' +
-                                  'Connect To Spectrometer..."')
+                    error_info = (
+                        "Xepr is not connected to the spectrometer. "
+                        + 'Please connect by pressing "Acquisition > '
+                        + 'Connect To Spectrometer..."'
+                    )
 
         if error_info:
             if raise_error:
@@ -1627,7 +1717,7 @@ class CustomXepr(object):
         # find all temperature modules
         temp_mods = [m for m in self.mercury.modules if type(m) == MercuryITC_TEMP]
         if len(temp_mods) == 0:
-            raise IOError('MercuryITC does not have any connected temperature modules')
+            raise IOError("MercuryITC does not have any connected temperature modules")
 
         # find the temperature module with given name
         temperature = next((m for m in temp_mods if m.nick == nick), None)
@@ -1637,7 +1727,9 @@ class CustomXepr(object):
             aux_nick = temperature.loop_aux
 
             heater = next((m for m in self.mercury.modules if m.nick == htr_nick), None)
-            gasflow = next((m for m in self.mercury.modules if m.nick == aux_nick), None)
+            gasflow = next(
+                (m for m in self.mercury.modules if m.nick == aux_nick), None
+            )
         else:
             gasflow = None
             heater = None
