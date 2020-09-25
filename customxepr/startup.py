@@ -204,14 +204,11 @@ def run(gui=True):
         '"customXepr" or directly as "xepr", "keithley" and "mercury".\n\n'
         'Use "%run -i path/to/file.py" to run a python script such '
         'as a measurement routine. An introduction to CustomXepr is '
-        'available at \x1b[1;34mhttps://customxepr.readthedocs.io\x1b[0m. '
-        'Type "exit_customxepr()" to gracefully exit CustomXepr.\n\n '
+        'available at \x1b[1;34mhttps://customxepr.readthedocs.io\x1b[0m.\n\n'
         '(c) 2016-{1}, {2}.'.format(__version__, year, __author__)
     )
 
     ui = ()
-
-    global exit_customxepr
 
     if not gui:
         print('Connecting to instruments...')
@@ -240,7 +237,7 @@ def run(gui=True):
             # print banner
             IP.run_line_magic('clear', '')
             IP.ask_exit_saved = IP.ask_exit
-            IP.ask_exit = lambda: print('Please use "exit_customxepr()" to exit.')
+            IP.ask_exit = exit_customxepr
             print(banner)
 
             splash.close()
@@ -260,8 +257,7 @@ def run(gui=True):
             kernel_manager.start_kernel(show_banner=False)
             kernel = kernel_manager.kernel
             kernel.shell.banner1 = ''
-            kernel_manager.kernel.shell.ask_exit = lambda: print(
-                'Please use "exit_customxepr()" to exit.')
+            kernel_manager.kernel.shell.ask_exit = lambda: print('Please close this window to exit.')
             kernel.gui = 'qt'
 
             kernel_client = kernel_manager.client()
@@ -280,8 +276,7 @@ def run(gui=True):
             ipython_widget.show()
 
             var_dict = {'customXepr': customXepr, 'xepr': xepr, 'mercury': mercury,
-                        'keithley': keithley, 'ui': ui, 'exit_customxepr': exit_customxepr,
-                        'kernel_manager': kernel_manager}
+                        'keithley': keithley, 'ui': ui, 'kernel_manager': kernel_manager}
 
             kernel.shell.push(var_dict)
 
