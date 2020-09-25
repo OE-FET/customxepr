@@ -12,6 +12,7 @@ import sys
 import os
 import logging
 import time
+import traceback
 
 try:
     from IPython import get_ipython
@@ -165,13 +166,13 @@ def _exit_hook(instruments, guis=None):
             try:
                 ui.exit_()  # this will disconnect automatically
             except Exception:
-                pass
+                traceback.print_exc()
 
     for inst in instruments:
         try:
             inst.disconnect()  # disconnect instruments manually
         except Exception:
-            pass
+            traceback.print_exc()
 
 
 def run(gui=True):
