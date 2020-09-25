@@ -5,7 +5,7 @@ setup(
     name='customxepr',
     version='',
     description='Python interface for for Bruker Xepr.',
-    url='v3.1.1',
+    url='v3.1.2.dev1',
     author='Sam Schott',
     author_email='ss2151@cam.ac.uk',
     license='MIT',
