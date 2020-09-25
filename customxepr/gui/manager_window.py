@@ -311,19 +311,19 @@ class ManagerApp(QtWidgets.QMainWindow):
         self.toolbar.addWidget(self.tabWidget)
 
     def restore_geometry(self):
-        x = CONF.get('Window', 'x')
-        y = CONF.get('Window', 'y')
-        w = CONF.get('Window', 'width')
-        h = CONF.get('Window', 'height')
+        x = CONF.get('ManagerWindow', 'x')
+        y = CONF.get('ManagerWindow', 'y')
+        w = CONF.get('ManagerWindow', 'width')
+        h = CONF.get('ManagerWindow', 'height')
 
         self.setGeometry(x, y, w, h)
 
     def save_geometry(self):
         geo = self.geometry()
-        CONF.set('Window', 'height', geo.height())
-        CONF.set('Window', 'width', geo.width())
-        CONF.set('Window', 'x', geo.x())
-        CONF.set('Window', 'y', geo.y())
+        CONF.set('ManagerWindow', 'height', geo.height())
+        CONF.set('ManagerWindow', 'width', geo.width())
+        CONF.set('ManagerWindow', 'x', geo.x())
+        CONF.set('ManagerWindow', 'y', geo.y())
 
     def exit_(self):
         self.manager.clear_all_jobs()
@@ -336,6 +336,8 @@ class ManagerApp(QtWidgets.QMainWindow):
             self.exit_()
         else:
             self.hide()
+
+        event.accept()
 
     def show_error(self, exc_info):
         title = 'CustomXepr Job Error'

@@ -23,14 +23,21 @@ SUBFOLDER = '.%s' % PACKAGE_NAME
 #  Defaults
 # =============================================================================
 DEFAULTS = [
-            ('Window',
+            ('ManagerWindow',
              {
               'x': 0,
               'y': 0,
               'width': 1024,
               'height': 650,
-              'auto_plot_results': True
+              'auto_plot_results': False
               }),
+            ('ConsoleWindow',
+             {
+                 'x': 200,
+                 'y': 200,
+                 'width': 650,
+                 'height': 400,
+             }),
             ('CustomXepr',
              {
               'notify_address': [getpass.getuser() + '@cam.ac.uk', ],
