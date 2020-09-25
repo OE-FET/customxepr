@@ -231,16 +231,16 @@ def run(gui=True):
         ui = start_gui(customXepr, mercury, keithley)
 
         if IP:  # we have been started from a jupyter console
+
+            def exit_customxepr():
+                _exit_hook(instruments=(mercury, keithley), guis=ui)
+                IP.ask_exit_saved()
+
             # print banner
             IP.run_line_magic('clear', '')
             IP.ask_exit_saved = IP.ask_exit
             IP.ask_exit = lambda: print('Please use "exit_customxepr()" to exit.')
             print(banner)
-
-            # define shutdown behaviour
-            def exit_customxepr():
-                _exit_hook(instruments=(mercury, keithley), guis=ui)
-                IP.ask_exit_saved()
 
             splash.close()
 
@@ -250,6 +250,10 @@ def run(gui=True):
 
             from qtconsole.inprocess import QtInProcessKernelManager
             from customxepr.gui.jupyter_widget import CustomRichJupyterWidget
+
+            def exit_customxepr():
+                _exit_hook(instruments=(mercury, keithley), guis=ui)
+                app.quit()
 
             kernel_manager = QtInProcessKernelManager()
             kernel_manager.start_kernel(show_banner=False)
@@ -267,15 +271,12 @@ def run(gui=True):
             ipython_widget = CustomRichJupyterWidget(
                 banner=banner,
                 font_size=font_size,
-                gui_completion='droplist'
+                gui_completion='droplist',
+                on_close=exit_customxepr
             )
             ipython_widget.kernel_manager = kernel_manager
             ipython_widget.kernel_client = kernel_client
             ipython_widget.show()
-
-            def exit_customxepr():
-                _exit_hook(instruments=(mercury, keithley), guis=ui)
-                app.quit()
 
             var_dict = {'customXepr': customXepr, 'xepr': xepr, 'mercury': mercury,
                         'keithley': keithley, 'ui': ui, 'exit_customxepr': exit_customxepr,
