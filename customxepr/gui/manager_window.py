@@ -217,7 +217,7 @@ class ManagerApp(QtWidgets.QMainWindow):
         # get states of checkboxes, text edits, etc
         self.get_email_list()
         self.get_notification_level()
-        self.plotCheckBox.setChecked(CONF.get("Window", "auto_plot_results"))
+        self.plotCheckBox.setChecked(CONF.get("ManagerWindow", "auto_plot_results"))
 
         # create data models for message log, job queue and result queue
         self.messageLogModel = info_handler.model
@@ -651,7 +651,7 @@ class ManagerApp(QtWidgets.QMainWindow):
 
     @staticmethod
     def on_plot_checkbox_toggeled(checked):
-        CONF.set("Window", "auto_plot_results", checked)
+        CONF.set("ManagerWindow", "auto_plot_results", checked)
 
     # ====================================================================================
     # Callbacks and functions for CustomXepr settings adjustments
