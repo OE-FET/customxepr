@@ -124,12 +124,12 @@ class XeprParam:
 
                 return_list.append(header_str)
                 return_list.append(value_str)
-            else:  # => take default string representation
+            else:
                 if isinstance(self.value, (float, int)):
                     value_str = num2str(self.value)
                 elif isinstance(self.value, str):
                     value_str = self.value
-                else:
+                else:  # => take default string representation
                     value_str = str(self.value)
 
                 return_list.append(value_str)
