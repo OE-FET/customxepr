@@ -100,29 +100,29 @@ related or unrelated to the EPR setup and its ancillary equipment. This can be d
 the `queued_exec` decorator from `customxepr.manager`:
 
 ```python
-    >>> import time
-    >>> from customxepr.manager import Manager
-    >>> manager = Manager()
-    >>> # create test function
-    >>> @manager.queued_exec
-    ... def test_func(*args):
-    ...     # do something
-    ...     for i in range(0, 10):
-    ...         time.sleep(1)
-    ...		    # check for requested aborts
-    ...         if manager.abort.is_set()
-    ...             break
-    ...     return args  # return input arguments
-    >>> # run the function: this will return immediately
-    >>> test_func('test succeeded')
+>>> import time
+>>> from customxepr.manager import Manager
+>>> manager = Manager()
+>>> # create test function
+>>> @manager.queued_exec
+... def test_func(*args):
+...     # do something
+...     for i in range(0, 10):
+...         time.sleep(1)
+...		    # check for requested aborts
+...         if manager.abort.is_set():
+...             break
+...     return args  # return input arguments
+>>> # run the function: this will return immediately
+>>> test_func('test succeeded')
 ```
 
 The result returned by `test_func` can be retrieved from the result queue as follows:
 
 ```python
-    >>> result = manager.result_queue.get()  # blocks until result is available
-    >>> print(result)
-	test succeeded
+>>> result = manager.result_queue.get()  # blocks until result is available
+>>> print(result)
+test succeeded
 ```
 
 More information regarding the manual scheduling of experiments can be found
@@ -200,13 +200,19 @@ A measurement script which cycles through different temperatures and records EPR
 and transfer curves at each step reads as follows:
 
 ```python
+# start customxepr
+from customxepr.startup import run
+
+customXepr, xepr, mercury, keithley, _ = run(gui=False)
+
 # get preconfigured experiment from Xepr
 exp = xepr.XeprExperiment('Experiment')
+
 # set up different modulation amplitudes in Gauss for different temperatures
 modAmp = {5: 3, 50: 2, 100: 1, 150: 1, 200: 1, 250: 1.5, 300: 2}
 
 # specify folder to save data
-folder = '/path/to/folder/'
+folder = '/path/to/folder'
 title = 'my_sample'
 
 for T in [5, 50, 100, 150, 200, 250, 300]:
@@ -221,7 +227,7 @@ for T in [5, 50, 100, 150, 200, 250, 300]:
 	# Perform FET measurements
 	# =================================================================
 	# generate file name for transfer curve
-	transfer_file = folder + title + '_' + str(T) + 'K_transfer.txt'
+	transfer_file = '{}/{}_{}K_transfer.txt'.format(folder, title, T)
 	# record default transfer curve and save to file
 	customXepr.transferMeasurement(path=transfer_file)
 
@@ -231,7 +237,7 @@ for T in [5, 50, 100, 150, 200, 250, 300]:
 	for Vg in [0, -70]:
         customXepr.setVoltage(Vg, smu='smua')  # bias gate
         # perform preconfigured EPR measurement, save to 'esr_path'
-        esr_file = folder + title + '_' + str(T) + 'K_Vg_' + str(Vg)
+        esr_file = '{}/{}_{}K_Vg_{}V.txt'.format(folder, title, T, Vg)
         customXepr.runXeprExperiment(exp, path=esr_file, ModAmp=modAmp[T])
         customXepr.setVoltage(0, smu='smua')  # set gate voltage to zero
 
