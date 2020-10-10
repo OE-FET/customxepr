@@ -199,6 +199,7 @@ class XeprParam:
             match = re.match(XeprParam.HEADER_REGEX, par_header)
             ndim = str2num(match["ndmin"])
             shape = [str2num(x) for x in match["shape"].split(",")]
+            shape.reverse()
             self._matrix_default_value = str2num(match["default"])
 
             if len(shape) != ndim:
