@@ -31,7 +31,6 @@ setup(
         "pyvisa",
         "pyvisa-py",
         "lmfit",
-        "matplotlib",
         "markdown2",
         "numpy",
         "pygments",
