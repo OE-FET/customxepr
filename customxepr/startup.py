@@ -12,6 +12,7 @@ import sys
 import os
 import logging
 import time
+import subprocess
 import traceback
 
 try:
@@ -31,8 +32,11 @@ try:
 except ImportError:
     IP = None
 
-
-BRUKER_XEPR_API_PATH = os.popen("Xepr --apipath").read()
+try:
+    res = subprocess.run(["Xepr", "--apipath"], capture_output=True)
+    BRUKER_XEPR_API_PATH = res.stdout.decode()
+except FileNotFoundError:
+    BRUKER_XEPR_API_PATH = ""
 ENVIRON_XEPR_API_PATH = os.environ.get("XEPR_API_PATH", "")
 
 
