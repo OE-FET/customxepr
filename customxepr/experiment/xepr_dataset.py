@@ -49,15 +49,20 @@ class XeprParam:
     HEADER_REGEX = r"{(?P<ndmin>\d*);(?P<shape>[\d,]*);(?P<default>[0-9\.e+-]*)\[?(?P<unit>\w*)\]?}"
 
     def __init__(
-        self, value: ParamValueType = None, unit: str = "", comment: str = ""
+        self, name: str, value: ParamValueType = None, unit: str = "", comment: str = ""
     ) -> None:
 
+        self._name = name
         self._value = value
         self._matrix_default_value = 0
         self._unit = unit
         self._comment = comment
 
         self._string = None
+
+    @property
+    def name(self) -> str:
+        return self._name
 
     @property
     def value(self) -> ParamValueType:
@@ -220,7 +225,9 @@ class XeprParam:
                     self._value = par_value
 
     def __repr__(self) -> str:
-        return "<{0}({1})>".format(self.__class__.__name__, self.to_string())
+        return "<{0}(name={1!r}, value={2})>".format(
+            self.__class__.__name__, self._name, self.to_string()
+        )
 
 
 class ParamGroup:
@@ -281,7 +288,7 @@ class ParamGroup:
                 par_name = contents[0]
                 par_string = " ".join(contents[1:])
 
-                new_param = XeprParam()
+                new_param = XeprParam(name=par_name)
                 new_param.from_string(par_string)
                 self.pars[par_name] = new_param
 
