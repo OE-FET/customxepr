@@ -37,6 +37,9 @@ def str2num(string: str) -> float:
         return float(string)
 
 
+# ==== classes to parse and represent experiment metadata ==============================
+
+
 class XeprParam:
     """
     Holds a Bruker measurement parameter in the BES3T file format.
@@ -248,13 +251,16 @@ class ParamGroup:
     DELIM = ""
 
     def __init__(
-        self, name: str = "", pars: Optional[Dict[str, XeprParam]] = None
+        self, name: str = "", pars: Optional[List[XeprParam]] = None
     ) -> None:
         self.name = name
         if pars is None:
             self.pars = dict()
         else:
-            self.pars = dict(pars)
+            self.pars = {p.name: p for p in pars}
+
+    def add_param(self, par: XeprParam) -> None:
+        self.pars[par.name] = par
 
     def to_string(self) -> str:
         """
@@ -371,9 +377,15 @@ class ParamLayer:
 
     GROUP_CLASS = ParamGroup
 
-    def __init__(self, groups: Optional[Dict[str, ParamGroup]] = None) -> None:
+    def __init__(self, groups: Optional[List[ParamGroup]] = None) -> None:
 
-        self.groups = dict() if groups is None else groups
+        if groups:
+            self.groups = {g.name: g for g in groups}
+        else:
+            self.groups = dict()
+
+    def add_group(self, group: ParamGroup) -> None:
+        self.groups[group.name] = group
 
     def to_string(self) -> str:
         """
@@ -480,73 +492,20 @@ class ManipulationHistoryLayer(ParamLayer):
     GROUP_CLASS = ParamGroupMHL
 
 
-class ParamDict(MutableMapping):
-    """
-    Object to allow dictionary-like access to all measurement parameters.
-    """
-
-    def __init__(self, layers: Dict[str, ParamLayer]) -> None:
-
-        self.layers = layers
-
-    def _flatten(self) -> Dict[str, XeprParam]:
-
-        flat_dict = dict()
-
-        for layer in self.layers.values():
-            for group in layer.groups.values():
-                flat_dict.update(group.pars)
-
-        return flat_dict
-
-    def __getitem__(self, key: str) -> XeprParam:
-
-        flat_dict = self._flatten()
-
-        return flat_dict[key]
-
-    def __setitem__(self, key: str, value: Union[XeprParam, ParamValueType]) -> None:
-
-        # convert value to XeprParam if necessary
-        if not isinstance(value, XeprParam):
-            value = XeprParam(value)
-
-        # if the parameter belongs to an existing group, update it with the new value
-        for layer in self.layers.values():
-            for group in layer.groups.values():
-                if key in group.pars.keys():
-                    group.pars[key] = value
-                    return  # we are done!
-
-        # if the parameter is new, add it as a 'customXepr' parameter
-        if "customXepr" not in self.layers["DSL"].groups:
-            self.layers["DSL"].groups["customXepr"] = ParamGroupDSL("customXepr")
-
-        self.layers["DSL"].groups["customXepr"].pars[key] = value
-
-    def __delitem__(self, key: str) -> None:
-
-        is_deleted = False
-
-        for layer in self.layers.values():
-            for group in layer.groups.values():
-                if key in group.pars.keys():
-                    del group.pars[key]
-                    is_deleted = True
-
-        if not is_deleted:
-            raise KeyError('Parameter "%s" does not exist.' % key)
-
-    def __iter__(self) -> Iterator[str]:
-        flat_dict = self._flatten()
-        return iter(flat_dict)
-
-    def __len__(self) -> int:
-        flat_dict = self._flatten()
-        return len(flat_dict)
+# ==== classes to describe pulse sequences =============================================
 
 
 class Pulse:
+    """
+    Object representing a single pulse.
+
+    :param position: Pulse position in ns.
+    :param length: Pulse length in ns.
+    :param position_increment: Increment in pulse position between subsequent
+        measurements in ns.
+    :param length_increment: Increment in pulse length between subsequent measurements
+        in ns.
+    """
     def __init__(
         self,
         position: int,
@@ -567,6 +526,23 @@ class Pulse:
 
 
 class PulseChannel:
+    """
+    On object representing a pulse channel in a pulsed ESR experiment. Pulse channels
+    can be for microwave pulses and acquisition (e.g., "+x", "+y", "AWG Trigger",
+    "Acquisition trigger") which are manually set by the user of for instrument control
+    pulses which are automatically determined (e.g., "TWT", ""Receiver Protection").
+
+    Every pulse channel can hold up to 1024 actual pulses, represented by :class:`Pulse`
+    instances.
+
+    :cvar N_PULSES_DEFAULT: Default number of programmable pulses: 400.
+    :cvar N_PULSES_MAX: Maximum number of programmable pulses 1024.
+    :cvar channel_descriptions: Verbose descriptions of pulse channels in a data file
+        (which are designated by numbers Psd1 to Psd34 only).
+
+    :param par: XeprParam holding the pulse channel table.
+    """
+
     N_PULSES_DEFAULT = 400
     N_PULSES_MAX = 1024
     N_RESERVED = 2
@@ -635,18 +611,22 @@ class PulseChannel:
 
     @property
     def name(self) -> str:
+        """Name of pulse channel, e.g., 'Psd6'."""
         return self._name
 
     @property
     def number(self) -> int:
+        """Number of pulse channel, e.g., 6."""
         return self._number
 
     @property
     def description(self) -> str:
+        """Description of pulse channel, e.g., '+x'."""
         return self._description
 
     @property
     def pulses(self) -> List[Pulse]:
+        """List of pulses in this channel."""
         return self._pulses
 
     def __repr__(self) -> str:
@@ -654,9 +634,15 @@ class PulseChannel:
 
 
 class PulseSequence:
+    """
+    Object which hold information about the pulse sequence used to acquire the dataset
+    (in case of pulsed experiments). This object is constructed from the pulse channel
+    tables "Psd1", "Psd2", etc, in the descriptor layer.
+    """
+
     def __init__(self, dset: "XeprData") -> None:
         self._dset = dset
-        self._pulse_channels = {}
+        self._pulse_channels = []
 
         ft_epr = self._dset.dsl.groups.get("ftEpr")
 
@@ -665,13 +651,13 @@ class PulseSequence:
         if ft_epr:
             for name, par in ft_epr.pars.items():
                 if name.startswith("Psd"):
-                    self._pulse_channels[par.name] = PulseChannel(par)
+                    self._pulse_channels.append(PulseChannel(par))
 
-        sorted_pairs = sorted(self._pulse_channels.items(), key=lambda x: x[1].number)
-        self._pulse_channels = dict(sorted_pairs)
+        self._pulse_channels.sort(key=lambda x: x.number)
 
     @property
-    def pulse_channels(self) -> Dict[str, PulseChannel]:
+    def pulse_channels(self) -> List[PulseChannel]:
+        """Returns a list of pulse channels present in the instrument."""
         return self._pulse_channels
 
     def plot(self) -> None:
@@ -716,7 +702,7 @@ class PulseSequence:
 
         xlim = 0
 
-        for channel in self.pulse_channels.values():
+        for channel in self.pulse_channels:
             for pulse in channel.pulses:
 
                 xlim = max(
@@ -746,7 +732,7 @@ class PulseSequence:
 
         ax.clear()
 
-        for channel in self.pulse_channels.values():
+        for channel in self.pulse_channels:
 
             # plot only channels 5 to 13:
             # Acquisition Trigger and MW pulses
@@ -777,7 +763,75 @@ class PulseSequence:
         ax.legend(loc="best")
 
 
-# noinspection PyTypeChecker
+# ==== main experiment class ===========================================================
+
+
+class ParamDict(MutableMapping):
+    """
+    Object to allow attribute access to all measurement parameters.
+    """
+
+    def __init__(self, layers: Dict[str, ParamLayer]) -> None:
+
+        self.layers = layers
+
+    def _flatten(self) -> Dict[str, XeprParam]:
+
+        flat_dict = dict()
+
+        for layer in self.layers.values():
+            for group in layer.groups.values():
+                flat_dict.update(group.pars)
+
+        return flat_dict
+
+    def __getitem__(self, key: str) -> XeprParam:
+
+        flat_dict = self._flatten()
+
+        return flat_dict[key]
+
+    def __setitem__(self, key: str, value: Union[XeprParam, ParamValueType]) -> None:
+
+        # convert value to XeprParam if necessary
+        if not isinstance(value, XeprParam):
+            value = XeprParam(value)
+
+        # if the parameter belongs to an existing group, update it with the new value
+        for layer in self.layers.values():
+            for group in layer.groups.values():
+                if key in group.pars.keys():
+                    group.pars[key] = value
+                    return  # we are done!
+
+        # if the parameter is new, add it as a 'customXepr' parameter
+        if "customXepr" not in self.layers["DSL"].groups:
+            self.layers["DSL"].groups["customXepr"] = ParamGroupDSL("customXepr")
+
+        self.layers["DSL"].groups["customXepr"].pars[key] = value
+
+    def __delitem__(self, key: str) -> None:
+
+        is_deleted = False
+
+        for layer in self.layers.values():
+            for group in layer.groups.values():
+                if key in group.pars.keys():
+                    del group.pars[key]
+                    is_deleted = True
+
+        if not is_deleted:
+            raise KeyError('Parameter "%s" does not exist.' % key)
+
+    def __iter__(self) -> Iterator[str]:
+        flat_dict = self._flatten()
+        return iter(flat_dict)
+
+    def __len__(self) -> int:
+        flat_dict = self._flatten()
+        return len(flat_dict)
+
+
 class XeprData:
     """
     Holds a Bruker EPR measurement result, including all measurement parameters.
@@ -797,8 +851,12 @@ class XeprData:
     :ivar mhl: :class:`ManipulationHistoryLayer` instance holding all parameters that
         describe manipulations performed on the data set (e.g., baseline correction,
         scaling, ...).
-    :ivar pars: Dictionary-like object giving direct access to all measurement parameters.
-        Allows for quickly reading and setting parameter values.
+    :ivar pars: Dictionary-like object giving direct access to all measurement
+        parameters. Allows for quickly reading and setting parameter values.
+    :ivar pulse_sequence: :class:`PulseSequence` instance which describes the pulse
+        sequence used to acquire the data (in case of pulsed experiments). This object
+        is constructed from the pulse channel tables "Psd1", "Psd2", etc, in the
+        descriptor layer.
 
     Setting the value of an existing parameter will automatically
     update it in the appropriate parameter layer. Setting a new parameter value will
@@ -820,46 +878,48 @@ class XeprData:
         Read a data file and get some information about the device specific parameters:
 
         >>> from customxepr import XeprData, XeprParam
-        >>> dset = XeprData('/path/to/file.DSC')
+        >>> dset = XeprData("/path/to/file.DSC")
         >>> dset.dsl.groups
-        {'fieldCtrl': <ParamGroupDSL(fieldCtrl)>,
-         'fieldSweep': <ParamGroupDSL(fieldSweep)>,
-         'freqCounter': <ParamGroupDSL(freqCounter)>,
-         'mwBridge': <ParamGroupDSL(mwBridge)>,
-         'recorder': <ParamGroupDSL(recorder)>,
-         'signalChannel': <ParamGroupDSL(signalChannel)>}
-        >>> dset.dsl.groups['mwBridge'].pars
-        {'AcqFineTuning': <XeprParam(Never)>,
-         'AcqScanFTuning': <XeprParam(Off)>,
-         'AcqSliceFTuning': <XeprParam(Off)>,
-         'BridgeCalib': <XeprParam(50.5)>,
-         'Power': <XeprParam(0.002 mW)>,
-         'PowerAtten': <XeprParam(50.0 dB)>,
-         'QValue': <XeprParam(5900)>}
+        {"fieldCtrl": <ParamGroupDSL(fieldCtrl)>,
+         "fieldSweep": <ParamGroupDSL(fieldSweep)>,
+         "freqCounter": <ParamGroupDSL(freqCounter)>,
+         "mwBridge": <ParamGroupDSL(mwBridge)>,
+         "recorder": <ParamGroupDSL(recorder)>,
+         "signalChannel": <ParamGroupDSL(signalChannel)>}
+        >>> dset.dsl.groups["mwBridge"].pars
+        {"AcqFineTuning": <XeprParam(Never)>,
+         "AcqScanFTuning": <XeprParam(Off)>,
+         "AcqSliceFTuning": <XeprParam(Off)>,
+         "BridgeCalib": <XeprParam(50.5)>,
+         "Power": <XeprParam(0.002 mW)>,
+         "PowerAtten": <XeprParam(50.0 dB)>,
+         "QValue": <XeprParam(5900)>}
 
         Change the value of an existing parameter:
 
-        >>> dset.pars['ModAmp'] = XeprParam(value=2, unit='G')
+        >>> dset.pars["ModAmp"].value = 2
 
         Add a new parameter without an associated group (it will be added to a
-        'customXepr' group in the DSL layer):
+        "CustomXepr" group in the DSL layer):
 
-        >>> dset.pars['NewParam'] = 1234
+        >>> dset.pars["NewParam"] = XeprParam("NewParam", 1234)
 
         Add a new parameter to the microwave bridge device group:
 
-        >>> dset.dsl.groups['mwBridge'].pars['QValue']  = XeprParam(6789)
+        >>> dset.dsl.groups["mwBridge"].add_param(XeprParam("QValue", 6789))
 
         Add a new parameter group for a temperature controller, with two parameters:
 
-        >>> pars = {'Temperature': XeprParam(290, 'K'),
-        ...         'AcqWaitTime': XeprParam(120, 's')}
-        >>> new_group = ParamGroupDSL('tempCtrl', pars)
-        >>> dset.dsl.groups['tempCtrl'] = new_group
+        >>> pars = [
+        ...    XeprParam("Temperature", 290, "K"),
+        ...    XeprParam("AcqWaitTime", 120, "s")
+        ...    ]
+        >>> new_group = ParamGroupDSL("tempCtrl", pars)
+        >>> dset.dsl.groups["tempCtrl"] = new_group
 
         Save the modified data set:
 
-        >>> dset.save('/path/to/file.DSC')
+        >>> dset.save("/path/to/file.DSC")
 
     """
 
