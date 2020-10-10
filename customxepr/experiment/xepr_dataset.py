@@ -546,57 +546,235 @@ class ParamDict(MutableMapping):
         return len(flat_dict)
 
 
+class Pulse:
+    def __init__(
+        self,
+        position: int,
+        length: int,
+        position_increment: int = 0,
+        length_increment: int = 0,
+    ) -> None:
+        self.position = position
+        self.length = length
+        self.position_increment = position_increment
+        self.length_increment = length_increment
+
+    def __repr__(self) -> str:
+        return (
+            f"<{self.__class__.__name__}"
+            f"(position={self.position}, length={self.length})>"
+        )
+
+
 class PulseChannel:
+    N_PULSES_DEFAULT = 400
+    N_PULSES_MAX = 1024
+    N_RESERVED = 2
 
-    MAXIMUM_PULSES = 32
+    channel_descriptions = [
+        "Pulse Gate",
+        "Decoupler",
+        "Receiver Protection 1",
+        "TWT",
+        "Acquisition trigger",
+        "+x",
+        "+<x>",
+        "-x",
+        "-<x>",
+        "+y",
+        "+<y>",
+        "-y",
+        "-<y>",
+        "Low Power Arm",
+        "",
+        "RF Trigger",
+        "",
+        "",
+        "U1",
+        "U2",
+        "U3",
+        "U4",
+        "U5",
+        "SPFU/MPFU Gate",
+        "ELDOR",
+        "Receiver Protection 2",
+        "AM Protection",
+        "AWG Trigger",
+        "RF1",
+        "RF2",
+        "AWG1",
+        "AWG2",
+        "AWG3",
+        "AWG4",
+    ]
 
-    def __init__(self, name: str, param: XeprParam) -> None:
-        pass
+    REGEX_NAME = r"Psd(?P<number>\d*)"
+
+    def __init__(self, par: XeprParam) -> None:
+
+        match = re.match(PulseChannel.REGEX_NAME, par.name)
+
+        if not match or not isinstance(par.value, np.ndarray):
+            raise ValueError("Need a pulse channel parameter as input")
+
+        self._par = par
+        self._name = self._par.name
+        self._number = int(match["number"])
+        try:
+            self._description = PulseChannel.channel_descriptions[self._number - 1]
+        except IndexError:
+            self._description = ""
+        self._pulses = []
+
+        matrix = par.value[:, PulseChannel.N_RESERVED :]
+        n_pulses = matrix.shape[1]
+
+        for i in range(0, n_pulses):
+            if matrix[0, i] != 0 or matrix[1, i] != 0:
+                self._pulses.append(Pulse(*matrix[:, i]))
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def number(self) -> int:
+        return self._number
+
+    @property
+    def description(self) -> str:
+        return self._description
+
+    @property
+    def pulses(self) -> List[Pulse]:
+        return self._pulses
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}" f"({self.name}: {self.description})>"
 
 
 class PulseSequence:
-
-    channel_to_title = {
-        "Psd1": "Pulse Gate",
-        "Psd2": "Decoupler",
-        "Psd3": "Reciever Protection 1",
-        "Psd4": "Reciever Protection 2",
-        "Psd5": "TWT",
-        "Psd6": "Acquisition trigger",
-        "Psd7": "+x",
-        "Psd8": "+<x>",
-        "Psd9": "-x",
-        "Psd10": "-<x>",
-        "Psd11": "+y",
-        "Psd12": "+<y>",
-        "Psd13": "-y",
-        "Psd14": "-<y>",
-        "Psd15": "ELDOR",
-        "Psd16": "Low Power Arm",
-        "Psd17": "RF1 Gate",
-        "Psd18": "RF1 Advance",
-        "Psd19": "RF2 Gate",
-        "Psd20": "RF2 Advance",
-        "Psd21": "U1",
-        "Psd22": "U2",
-        "Psd23": "U3",
-        "Psd24": "U4",
-        "Psd25": "U5",
-        "Psd26": "U6",
-        "Psd27": "AM Protection",
-        "Psd28": "Grad trigger",
-        "Psd29": "AWG1 Trigger",
-        "Psd30": "RF1",
-        "Psd31": "RF2",
-        "Psd32": "AWG1",
-        "Psd33": "AWG2",
-        "Psd34": "AWG3",
-        "Psd35": "AWG4",
-        "Psd36": "Grad Strength",
-    }
-
     def __init__(self, dset: "XeprData") -> None:
-        pass
+        self._dset = dset
+        self._pulse_channels = {}
+
+        ft_epr = self._dset.dsl.groups.get("ftEpr")
+
+        self._is_pulsed = ft_epr is not None
+
+        if ft_epr:
+            for name, par in ft_epr.pars.items():
+                if name.startswith("Psd"):
+                    self._pulse_channels[par.name] = PulseChannel(par)
+
+        sorted_pairs = sorted(self._pulse_channels.items(), key=lambda x: x[1].number)
+        self._pulse_channels = dict(sorted_pairs)
+
+    @property
+    def pulse_channels(self) -> Dict[str, PulseChannel]:
+        return self._pulse_channels
+
+    def plot(self) -> None:
+        """
+        Plots the pulse sequence used to acquire the data.
+
+        :raises: :class:`RuntimeError` if the experiment is not pulsed.
+        :raises: :class:`ImportError` if matplotlib is not installed.
+        """
+
+        if len(self._pulse_channels) == 0:
+            raise RuntimeError("No pulse channels to plot")
+
+        try:
+            import matplotlib.pyplot as plt
+            from matplotlib.widgets import Slider
+        except ImportError:
+            raise ImportError("Install matplotlib to support plotting.")
+
+        # set up axes and appearance
+
+        fig = plt.figure()
+
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
+        ax.set_xlabel("Time [ns]")
+
+        ax.get_yaxis().set_visible(False)
+
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.spines["bottom"].set_visible(True)
+        ax.spines["left"].set_visible(False)
+
+        # determine number of time steps with potentially different pulse sequences
+
+        if self._dset.pars["XAxisQuant"].value == "Time":
+            n_steps = self._dset.pars["XSpecRes"].value
+        else:
+            n_steps = 1
+
+        # determine the maximum total pulse sequence duration
+
+        xlim = 0
+
+        for channel in self.pulse_channels.values():
+            for pulse in channel.pulses:
+
+                xlim = max(
+                    xlim,
+                    pulse.position
+                    + pulse.length
+                    + n_steps * (pulse.position_increment + pulse.length_increment),
+                )
+
+        xlim = xlim * 1.1
+
+        # plot the first sequence
+
+        self._plot_step(ax, step=0, xlim=xlim)
+
+        # create slider to show subsequent sequences
+
+        if n_steps > 1:
+            ax.set_position([0.1, 0.2, 0.8, 0.7])
+            ax_slider = fig.add_axes([0.1, 0.05, 0.8, 0.05])
+            slider = Slider(ax_slider, "Step", 0, n_steps, valinit=0, valstep=1)
+            slider.on_changed(lambda x: self._plot_step(ax, slider.val, xlim))
+
+        fig.show()
+
+    def _plot_step(self, ax, step, xlim):
+
+        ax.clear()
+
+        for channel in self.pulse_channels.values():
+
+            # plot only channels 5 to 13:
+            # Acquisition Trigger and MW pulses
+            if channel.number in range(5, 14):
+
+                channel_x_data = [0]
+                channel_y_data = [0]
+
+                for pulse in channel.pulses:
+                    x_start = pulse.position + step * pulse.position_increment
+                    x_length = pulse.length + step * pulse.length_increment
+                    x_stop = x_start + x_length
+
+                    channel_x_data.extend([x_start, x_start])
+                    channel_y_data.extend([0, 1])
+                    channel_x_data.extend([x_stop, x_stop])
+                    channel_y_data.extend([1, 0])
+
+                ax.fill(
+                    channel_x_data,
+                    channel_y_data,
+                    alpha=0.8,
+                    label=f"{channel.name}: {channel.description}",
+                )
+
+        ax.set_xlim(0, xlim)
+        ax.set_ylim(0, 3)
+        ax.legend(loc="best")
 
 
 # noinspection PyTypeChecker
@@ -703,6 +881,7 @@ class XeprData:
             DESC=self.desc, SPL=self.spl, DSL=self.dsl, MHL=self.mhl
         )
         self.pars = ParamDict(layers=self.param_layers)
+        self.pulse_sequence = PulseSequence(self)
 
         self._dsc = None
         self._dta = np.array([])
@@ -810,6 +989,7 @@ class XeprData:
 
         self._load_dsc(base_path)
         self._load_dta(base_path)
+        self.pulse_sequence = PulseSequence(self)
 
     def _load_dsc(self, base_path: str) -> None:
 
