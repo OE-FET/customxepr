@@ -26,7 +26,8 @@ from customxepr.config import CONF
 try:
     from XeprAPI import ExperimentError, ParameterError
 except ImportError:
-    pass
+    ExperimentError = RuntimeError
+    ParameterError = RuntimeError
 
 _root = os.path.dirname(os.path.realpath(__file__))
 logger = logging.getLogger("customxepr")
@@ -1130,13 +1131,14 @@ class CustomXepr(object):
             dsl_mwbridge.pars["QValueErr"] = XeprParam(self._last_qvalue_err)
 
         if has_mercury:
-            dsl_temp = ParamGroupDSL(name="tempCtrl")
-            dsl_temp.pars["Temperature"] = XeprParam(temperature_setpoint, "K")
-            dsl_temp.pars["Stability"] = XeprParam(round(max_diff, 4), "K")
-            dsl_temp.pars["AcqWaitTime"] = XeprParam(self._temp_wait_time, "s")
-            dsl_temp.pars["Tolerance"] = XeprParam(self._temperature_tolerance, "K")
+            pars = [
+                XeprParam("Temperature", temperature_setpoint, "K"),
+                XeprParam("Stability", round(max_diff, 4), "K"),
+                XeprParam("AcqWaitTime", self._temp_wait_time, "s"),
+                XeprParam("Tolerance", self._temperature_tolerance, "K")
+            ]
 
-            dset.dsl.groups["tempCtrl"] = dsl_temp
+            dset.dsl.add_group(ParamGroupDSL("tempCtrl", pars))
 
         if retune:
             dset.pars["AcqFineTuning"] = "Slice"  # TODO: confirm correct value
