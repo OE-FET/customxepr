@@ -41,6 +41,7 @@ setup(
         "scipy",
         "mercuryitc>=0.2.1",
         "mercurygui>=2.0.0",
+        "XeprAPI"
     ],
     zip_safe=False,
     entry_points={
