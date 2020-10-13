@@ -3,7 +3,17 @@
 #### Added:
 
 - Added support to parse and plot the pulse sequence information stored in the Bruker DSC
-  file in the tables Psd1 to Psd36.
+  file in the tables Psd1 to Psd36:
+  
+  ```Python
+  >>> from customxepr.experiment import XeprData
+  >>> dset = XeprData("path")
+  >>> dset.pulse_sequence.plot()
+  >>> print(dset.pulse_sequence.pulse_channels[5])
+  <PulseChannel(Psd6: +x)>
+  >>> print(dset.pulse_sequence.pulse_channels[5].pulses)
+  [<Pulse(position=276, length=4)>, <Pulse(position=676, length=44)>]
+  ```
 
 #### Changed:
 
