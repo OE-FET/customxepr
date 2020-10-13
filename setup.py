@@ -3,9 +3,9 @@ from setuptools import setup, find_packages
 
 setup(
     name="customxepr",
-    version="",
+    version="v3.1.2.dev1",
     description="Python interface for for Bruker Xepr.",
-    url="v3.1.2.dev1",
+    url="https://github.com/OE-FET/customxepr",
     author="Sam Schott",
     author_email="ss2151@cam.ac.uk",
     license="MIT",

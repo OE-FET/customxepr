@@ -8,4 +8,4 @@ from customxepr.experiment.mode_picture_dataset import ModePicture
 
 __author__ = "Sam Schott <ss2151@cam.ac.uk>"
 __version__ = "v3.1.2.dev1"
-__url__ = "https://customxepr.readthedocs.io"
+__url__ = "https://github.com/OE-FET/customxepr"
