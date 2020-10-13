@@ -250,9 +250,7 @@ class ParamGroup:
     CELL_LENGTH = 19
     DELIM = ""
 
-    def __init__(
-        self, name: str = "", pars: Optional[List[XeprParam]] = None
-    ) -> None:
+    def __init__(self, name: str = "", pars: Optional[List[XeprParam]] = None) -> None:
         self.name = name
         if pars is None:
             self.pars = dict()
@@ -506,6 +504,7 @@ class Pulse:
     :param length_increment: Increment in pulse length between subsequent measurements
         in ns.
     """
+
     def __init__(
         self,
         position: int,
@@ -643,6 +642,7 @@ class PulseSequence:
     def __init__(self, dset: "XeprData") -> None:
         self._dset = dset
         self._pulse_channels = []
+        self._fig = None
 
         ft_epr = self._dset.dsl.groups.get("ftEpr")
 
@@ -678,18 +678,17 @@ class PulseSequence:
             raise ImportError("Install matplotlib to support plotting.")
 
         # set up axes and appearance
+        self._fig = plt.figure()
 
-        fig = plt.figure()
+        self._ax = self._fig.add_axes([0.1, 0.1, 0.8, 0.8])
+        self._ax.set_xlabel("Time [ns]")
 
-        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
-        ax.set_xlabel("Time [ns]")
+        self._ax.get_yaxis().set_visible(False)
 
-        ax.get_yaxis().set_visible(False)
-
-        ax.spines["top"].set_visible(False)
-        ax.spines["right"].set_visible(False)
-        ax.spines["bottom"].set_visible(True)
-        ax.spines["left"].set_visible(False)
+        self._ax.spines["top"].set_visible(False)
+        self._ax.spines["right"].set_visible(False)
+        self._ax.spines["bottom"].set_visible(True)
+        self._ax.spines["left"].set_visible(False)
 
         # determine number of time steps with potentially different pulse sequences
 
@@ -712,25 +711,27 @@ class PulseSequence:
                     + n_steps * (pulse.position_increment + pulse.length_increment),
                 )
 
-        xlim = xlim * 1.1
+        self._plot_xlim = xlim * 1.1
 
         # plot the first sequence
 
-        self._plot_step(ax, step=0, xlim=xlim)
+        self._plot_step(0)
 
         # create slider to show subsequent sequences
 
         if n_steps > 1:
-            ax.set_position([0.1, 0.2, 0.8, 0.7])
-            ax_slider = fig.add_axes([0.1, 0.05, 0.8, 0.05])
-            slider = Slider(ax_slider, "Step", 0, n_steps, valinit=0, valstep=1)
-            slider.on_changed(lambda x: self._plot_step(ax, slider.val, xlim))
+            self._ax.set_position([0.1, 0.2, 0.8, 0.7])
+            ax_slider = self._fig.add_axes([0.1, 0.05, 0.8, 0.05])
+            self._plot_slider = Slider(
+                ax_slider, "Step", 0, n_steps, valinit=0, valstep=1
+            )
+            self._plot_slider.on_changed(self._plot_step)
 
-        fig.show()
+        self._fig.show()
 
-    def _plot_step(self, ax, step, xlim):
+    def _plot_step(self, slider_val):
 
-        ax.clear()
+        self._ax.clear()
 
         for channel in self.pulse_channels:
 
@@ -742,8 +743,8 @@ class PulseSequence:
                 channel_y_data = [0]
 
                 for pulse in channel.pulses:
-                    x_start = pulse.position + step * pulse.position_increment
-                    x_length = pulse.length + step * pulse.length_increment
+                    x_start = pulse.position + slider_val * pulse.position_increment
+                    x_length = pulse.length + slider_val * pulse.length_increment
                     x_stop = x_start + x_length
 
                     channel_x_data.extend([x_start, x_start])
@@ -751,16 +752,16 @@ class PulseSequence:
                     channel_x_data.extend([x_stop, x_stop])
                     channel_y_data.extend([1, 0])
 
-                ax.fill(
+                self._ax.fill(
                     channel_x_data,
                     channel_y_data,
                     alpha=0.8,
                     label=f"{channel.name}: {channel.description}",
                 )
 
-        ax.set_xlim(0, xlim)
-        ax.set_ylim(0, 3)
-        ax.legend(loc="best")
+        self._ax.set_xlim(0, self._plot_xlim)
+        self._ax.set_ylim(0, 3)
+        self._ax.legend(loc="best")
 
 
 # ==== main experiment class ===========================================================
