@@ -1127,8 +1127,8 @@ class CustomXepr(object):
 
         if self._last_qvalue is not None:
             dsl_mwbridge = dset.dsl.groups["mwBridge"]
-            dsl_mwbridge.pars["QValue"] = XeprParam(self._last_qvalue)
-            dsl_mwbridge.pars["QValueErr"] = XeprParam(self._last_qvalue_err)
+            dsl_mwbridge.pars["QValue"] = XeprParam("QValue", self._last_qvalue)
+            dsl_mwbridge.pars["QValueErr"] = XeprParam("QValueErr", self._last_qvalue_err)
 
         if has_mercury:
             pars = [
