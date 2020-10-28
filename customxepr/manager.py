@@ -626,7 +626,6 @@ class Manager(object):
         Pauses the execution of jobs after the current job has been completed.
         """
         self.worker.running.clear()
-        logger.status("PAUSED")
 
     def resume_worker(self):
         """
