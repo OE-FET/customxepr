@@ -528,16 +528,16 @@ class PulseChannel:
     """
     On object representing a pulse channel in a pulsed ESR experiment. Pulse channels
     can be for microwave pulses and acquisition (e.g., "+x", "+y", "AWG Trigger",
-    "Acquisition trigger") which are manually set by the user of for instrument control
+    "Acquisition trigger") which are manually set by the user or for instrument control
     pulses which are automatically determined (e.g., "TWT", ""Receiver Protection").
 
-    Every pulse channel can hold up to 1024 actual pulses, represented by :class:`Pulse`
+    Every pulse channel can hold up to 1024 pulses, represented by :class:`Pulse`
     instances.
 
     :cvar N_PULSES_DEFAULT: Default number of programmable pulses: 400.
     :cvar N_PULSES_MAX: Maximum number of programmable pulses 1024.
     :cvar channel_descriptions: Verbose descriptions of pulse channels in a data file
-        (which are designated by numbers Psd1 to Psd34 only).
+        (otherwise designated by numbers Psd1 to Psd34 only).
 
     :param par: XeprParam holding the pulse channel table.
     """
