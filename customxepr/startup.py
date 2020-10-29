@@ -33,10 +33,11 @@ except ImportError:
     IP = None
 
 try:
-    res = subprocess.run(["Xepr", "--apipath"], capture_output=True)
-    BRUKER_XEPR_API_PATH = res.stdout.decode()
-except FileNotFoundError:
+    res = subprocess.check_output(["Xepr", "--apipath"])
+except (FileNotFoundError, subprocess.CalledProcessError):
     BRUKER_XEPR_API_PATH = ""
+else:
+    BRUKER_XEPR_API_PATH = res.decode()
 ENVIRON_XEPR_API_PATH = os.environ.get("XEPR_API_PATH", "")
 
 
