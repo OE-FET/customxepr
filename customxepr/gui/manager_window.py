@@ -30,16 +30,16 @@ from customxepr.gui.pyqt_labutils import Notipy
 _root = os.path.dirname(os.path.realpath(__file__))
 
 
-# ========================================================================================
+# ======================================================================================
 # Set up logging handlers for STATUS, INFO and ERROR messages
-# ========================================================================================
+# ======================================================================================
 
 
 class QInfoLogHandler(logging.Handler, QtCore.QObject):
     """
-    Handler which adds all logging event messages to a QStandardItemModel. This
-    model will be used to populate the "Message log" in the GUI with all
-    logging messages of level INFO and higher.
+    Handler which adds all logging event messages to a QStandardItemModel. This model
+    will be used to populate the "Message log" in the GUI with all logging messages of
+    level INFO and higher.
     """
 
     notify = Notipy()
@@ -124,9 +124,9 @@ logger.addHandler(info_handler)
 logger.addHandler(error_handler)
 
 
-# ========================================================================================
+# ======================================================================================
 # Define JobStatusApp class
-# ========================================================================================
+# ======================================================================================
 
 # noinspection PyArgumentList,PyCallByClass
 class ManagerApp(QtWidgets.QMainWindow):
@@ -161,9 +161,9 @@ class ManagerApp(QtWidgets.QMainWindow):
         self.job_queue = self.manager.job_queue
         self.result_queue = self.manager.result_queue
 
-        # ================================================================================
+        # ==============================================================================
         # Set-up the UI
-        # ================================================================================
+        # ==============================================================================
 
         # load layout file, setup toolbar on macOS
         if platform.system() == "Darwin":
@@ -207,9 +207,9 @@ class ManagerApp(QtWidgets.QMainWindow):
         # restore last position and size
         self.restore_geometry()
 
-        # ================================================================================
+        # ==============================================================================
         # Updated UI to reflect Manager status
-        # ================================================================================
+        # ==============================================================================
 
         # check status of worker thread (Paused or Running) and adjust buttons
         self.check_paused()
@@ -245,9 +245,9 @@ class ManagerApp(QtWidgets.QMainWindow):
         self.resultQueueDisplay.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.jobQueueDisplay.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
 
-        # ================================================================================
+        # ==============================================================================
         # Connect signals, slots, and callbacks
-        # ================================================================================
+        # ==============================================================================
 
         # update views when items are added to or removed from queues
         self.result_queue.added_signal.connect(self.on_result_added)
@@ -299,17 +299,17 @@ class ManagerApp(QtWidgets.QMainWindow):
         # reset timer when there is a status update
         status_handler.status_signal.connect(self.timeout_timer.start)
 
-        # ================================================================================
+        # ==============================================================================
         # Inform user of changes
-        # ================================================================================
+        # ==============================================================================
 
         if self.is_updated():
             self.updateWindow = UpdateWindow()
             QtCore.QTimer.singleShot(5000, self.updateWindow.exec_)
 
-    # ====================================================================================
+    # ==================================================================================
     # User interface setup
-    # ====================================================================================
+    # ==================================================================================
 
     def create_toolbar(self):
         self.toolbar.setFloatable(False)
@@ -446,9 +446,9 @@ class ManagerApp(QtWidgets.QMainWindow):
             CONF.set("Version", "old_version", __version__)
             return True
 
-    # ========================================================================================
+    # ==================================================================================
     # Functions to handle communication with job and result queues
-    # ========================================================================================
+    # ==================================================================================
 
     @staticmethod
     def _trunc_str(string, max_length=13):
@@ -625,9 +625,9 @@ class ManagerApp(QtWidgets.QMainWindow):
         else:
             self.pauseButton.setText("Resume")
 
-    # ====================================================================================
+    # ==================================================================================
     # Button callbacks
-    # ====================================================================================
+    # ==================================================================================
 
     def on_pause_clicked(self):
         """
@@ -653,9 +653,9 @@ class ManagerApp(QtWidgets.QMainWindow):
     def on_plot_checkbox_toggeled(checked):
         CONF.set("ManagerWindow", "auto_plot_results", checked)
 
-    # ====================================================================================
+    # ==================================================================================
     # Callbacks and functions for CustomXepr settings adjustments
-    # ====================================================================================
+    # ==================================================================================
 
     def set_email_list(self):
         """
@@ -711,9 +711,9 @@ class ManagerApp(QtWidgets.QMainWindow):
         elif clicked_button == self.radioButtonNoMail:
             self.manager.email_handler_level = 50
 
-    # ====================================================================================
+    # ==================================================================================
     # Properties
-    # ====================================================================================
+    # ==================================================================================
 
     @property
     def t_timeout(self):

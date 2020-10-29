@@ -6,7 +6,6 @@
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
-from __future__ import division, absolute_import, unicode_literals
 import smtplib
 
 from email.message import EmailMessage
@@ -18,13 +17,13 @@ class EmailSender(object):
     Class to send plain text email notifications.
 
     Initialize the instance with the from address. To specify a non-standard SMTP port,
-    use the (host, port) tuple format for the mailhost argument. To specify authentication
-    credentials, supply a (username, password) tuple for the credentials argument. To
-    specify the use of a secure protocol (TLS), pass in a tuple for the secure argument.
-    This will only be used when authentication credentials are supplied. The tuple will be
-    either an empty tuple, or a single-value tuple with the name of a keyfile, or a
-    2-value tuple with the names of the keyfile and certificate file. (This tuple is
-    passed to the `starttls` method).
+    use the (host, port) tuple format for the mailhost argument. To specify
+    authentication credentials, supply a (username, password) tuple for the credentials
+    argument. To specify the use of a secure protocol (TLS), pass in a tuple for the
+    secure argument. This will only be used when authentication credentials are
+    supplied. The tuple will be either an empty tuple, or a single-value tuple with the
+    name of a keyfile, or a 2-value tuple with the names of the keyfile and certificate
+    file. (This tuple is passed to the `starttls` method).
     """
 
     def __init__(self, mailhost, fromaddr, credentials=None, secure=None):

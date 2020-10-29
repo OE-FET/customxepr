@@ -44,37 +44,38 @@ def cmp(a, b):
 class CustomXepr(object):
     """
     CustomXepr defines routines to control Bruker's Xepr software and to run full ESR
-    measurement cycles. When creating an instance of CustomXepr, you can pass instances of
-    :class:`XeprAPI.XeprAPI`, :class:`mercurygui.MercuryFeed` and
+    measurement cycles. When creating an instance of CustomXepr, you can pass instances
+    of :class:`XeprAPI.XeprAPI`, :class:`mercurygui.MercuryFeed` and
     :py:class:`keithley2600.Keithley2600` to handle interactions with the respective
     instruments.
 
-    All CustomXepr methods that do not end with '_sync' are executed in a worker thread in
-    the order of their calls. Scheduling of jobs and retrieval of results is handled by
-    :class:`manager.Manager`. For instructions on how to schedule your own experiments,
-    please refer to the documentation of :mod:`manager`.
+    All CustomXepr methods that do not end with '_sync' are executed in a worker thread
+    in the order of their calls. Scheduling of jobs and retrieval of results is handled
+    by :class:`manager.Manager`. For instructions on how to schedule your own
+    experiments, please refer to the documentation of :mod:`manager`.
 
     Every asynchronous method has an equivalent method ending with '_sync' which will be
     called immediately and block until it is done. Those synchronous equivalents are
     generated at runtime and not documented here.
 
-    You can use :class:`CustomXepr` on its own, but it is recommended to start it with the
-    function :func:`startup.run` in the :mod:`startup` module. This will automatically
-    connect to available instruments and start CustomXepr's graphical user interfaces.
+    You can use :class:`CustomXepr` on its own, but it is recommended to start it with
+    the function :func:`startup.run` in the :mod:`startup` module. This will
+    automatically connect to available instruments and start CustomXepr's graphical user
+    interfaces.
 
     :param xepr: Xepr instance from the Bruker Python XeprAPI. Defaults to `None` if not
         provided.
     :param mercuryfeed: :class:`mercurygui.MercuryFeed` instance for live feed from
         MercuryiTC temperature controller. Defaults to `None` if not provided.
-    :param keithley: :class:`keithley2600.Keithley2600` instance from keithley2600 driver.
-        Defaults to `None` if not provided.
+    :param keithley: :class:`keithley2600.Keithley2600` instance from keithley2600
+        driver. Defaults to `None` if not provided.
     """
 
     manager = Manager()
 
-    # ========================================================================================
+    # ==================================================================================
     # Set up basic CustomXepr functionality
-    # ========================================================================================
+    # ==================================================================================
 
     def __init__(self, xepr=None, mercury=None, keithley=None):
 
@@ -157,9 +158,9 @@ class CustomXepr(object):
                     self, attr_name + "_sync", types.MethodType(attr.__wrapped__, self)
                 )
 
-    # ========================================================================================
+    # ==================================================================================
     # define basic functions for email notifications, pausing, etc.
-    # ========================================================================================
+    # ==================================================================================
 
     @property
     def notify_address(self):
@@ -231,9 +232,9 @@ class CustomXepr(object):
         else:
             time.sleep(seconds)
 
-    # ========================================================================================
+    # ==================================================================================
     # set up Xepr functions
-    # ========================================================================================
+    # ==================================================================================
 
     @manager.queued_exec
     def tune(self):
@@ -308,7 +309,8 @@ class CustomXepr(object):
         through a smaller range of microwave powers. For lossy samples where the Q-value
         will be lower than 3000, it is recommended to manually tune the cavity.
 
-        :param bool low_q: If ``True``, the tuning routine will be adjusted for lossy samples.
+        :param bool low_q: If ``True``, the tuning routine will be adjusted for lossy
+            samples.
         """
 
         self._check_for_xepr()
@@ -468,8 +470,8 @@ class CustomXepr(object):
     @manager.queued_exec
     def tuneIris(self, tolerance=1):
         """
-        Tunes the cavity's iris only. A perfectly tuned iris results in a diode current of
-        200 mA for all microwave powers.
+        Tunes the cavity's iris only. A perfectly tuned iris results in a diode current
+        of 200 mA for all microwave powers.
 
         :param int tolerance: Minimum diode current offset that must be achieved before
             :meth:`tuneIris` returns.
@@ -738,8 +740,8 @@ class CustomXepr(object):
         """
         Calculates the Q-value by fitting the cavity mode picture to a Lorentzian
         resonance with a polynomial baseline. It uses all available zoom factors to
-        resolve both sharp and broad resonances (high and low Q-values, respectively) and
-        is therefore more accurate than :meth:`getQValueFromXepr`.
+        resolve both sharp and broad resonances (high and low Q-values, respectively)
+        and is therefore more accurate than :meth:`getQValueFromXepr`.
 
         :param str path: Directory where Q-Value reading is saved with corresponding
             temperature and time-stamp.
@@ -943,19 +945,19 @@ class CustomXepr(object):
              'TuneStateExpMon']
 
         If a temperature controller is connected, CustomXepr monitors the temperature
-        during the measurement and emits warnings when fluctuations repeatedly exceed the
-        given temperature stability requirement.
+        during the measurement and emits warnings when fluctuations repeatedly exceed
+        the given temperature stability requirement.
 
         If the ``path`` argument is given, the resulting data set is saved to the drive.
-        Otherwise, a temporary file will be created (those are deleted periodically by the
-        operating system). The temperature and its stability as well as the
-        last-measurement Q-value (if available) are written to the Bruker '.DSC' file.
+        Otherwise, a temporary file will be created (those are deleted periodically by
+        the operating system). The temperature and its stability as well as the last-
+        measurement Q-value (if available) are written to the Bruker '.DSC' file.
 
         :param exp: Xepr experiment object to run.
         :param bool retune: Retune iris and freq between scans (default: True).
-        :param str path: Path to file. If given, the data set will be saved to this path,
-            otherwise, a temporary file will be created. No Xepr file name restrictions
-            apply.
+        :param str path: Path to file. If given, the data set will be saved to this
+            path, otherwise, a temporary file will be created. No Xepr file name
+            restrictions apply.
         :param kwargs: Keyword arguments corresponding to Xepr experiment parameters.
             Allowed parameters will depend on the type of experiment.
 
@@ -965,12 +967,12 @@ class CustomXepr(object):
 
         self._check_for_xepr()
 
-        # ----------- set experiment parameters if given in kwargs -----------------------
+        # ----------- set experiment parameters if given in kwargs ---------------------
         for key in kwargs:
             exp[key].value = kwargs[key]
             time.sleep(self._wait)
 
-        # ----------- notify user, estimate runtime for cw experiments -------------------
+        # ----------- notify user, estimate runtime for cw experiments -----------------
         try:
             d = timedelta(seconds=self.getExpDuration(exp))
             eta = datetime.now() + d
@@ -985,7 +987,7 @@ class CustomXepr(object):
         except ParameterError:
             logger.info('Measurement "{0}" is running.')
 
-        # ----------- start experiment ---------------------------------------------------
+        # ----------- start experiment -------------------------------------------------
 
         has_mercury = self._check_for_mercury(raise_error=False)
 
@@ -1101,7 +1103,7 @@ class CustomXepr(object):
 
         logger.info("All scans complete.")
 
-        # ----------- save data with custom parameters -----------------------------------
+        # ----------- save data with custom parameters ---------------------------------
         # switch viewpoint to experiment which just finished running
         time.sleep(self._wait)
         exp_title = exp.aqGetExpName()
@@ -1185,8 +1187,8 @@ class CustomXepr(object):
            :func:`runXeprExperiment`. This will automatically add temperature stability
            and Q-value information to your data files.
 
-        :param str path: Absolute path to save data file. The path must be compatible with
-            Xepr, i.e., it must be shorter than 128 characters.
+        :param str path: Absolute path to save data file. The path must be compatible
+            with Xepr, i.e., it must be shorter than 128 characters.
         :param exp: Xepr experiment instance associated with data set. Defaults to
             currently selected experiment if not given.
         """
@@ -1295,15 +1297,15 @@ class CustomXepr(object):
             time.sleep(4)
             return True
 
-    # ========================================================================================
+    # ==================================================================================
     # set up cryostat functions
-    # ========================================================================================
+    # ==================================================================================
 
     @manager.queued_exec
     def setTemperature(self, target, wait_stable=True):
         """
-        Sets the target temperature for the ESR900 cryostat and waits for it to stabilize
-        within :attr:`temp_wait_time` with fluctuations below
+        Sets the target temperature for the ESR900 cryostat and waits for it to
+        stabilize within :attr:`temp_wait_time` with fluctuations below
         :attr:`temperature_tolerance`. Warns the user if this takes too long.
 
         :param float target: Target temperature in Kelvin.
@@ -1457,9 +1459,9 @@ class CustomXepr(object):
             expected_time = abs(target - self.esr_temperature.temp[0]) / 5
         return expected_time * 60  # return value in sec
 
-    # ========================================================================================
+    # ==================================================================================
     # set up Keithley functions
-    # ========================================================================================
+    # ==================================================================================
 
     @manager.queued_exec
     def transferMeasurement(
@@ -1532,8 +1534,8 @@ class CustomXepr(object):
         path=None,
     ):
         """
-        Records an output curve and returns the resulting data. If a valid path is given,
-        the data is also saved as a .txt file.
+        Records an output curve and returns the resulting data. If a valid path is
+        given, the data is also saved as a .txt file.
 
         :param smu_gate: Name of SMU attached to the gate electrode of an FET.
         :param smu_drain: Name of SMU attached to the drain electrode of an FET.
@@ -1605,9 +1607,9 @@ class CustomXepr(object):
         self.keithley.applyCurrent(smu, i)
         self.keithley.beeper.beep(0.3, 2400)
 
-    # ========================================================================================
+    # ==================================================================================
     # Helper methods
-    # ========================================================================================
+    # ==================================================================================
 
     def _check_for_mercury(self, raise_error=True):
         """

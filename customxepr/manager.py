@@ -24,9 +24,9 @@ from customxepr.config import CONF
 logger = logging.getLogger("customxepr")
 
 
-# ========================================================================================
+# ======================================================================================
 # class to wrap queued function calls ('experiments') and provide metadata
-# ========================================================================================
+# ======================================================================================
 
 
 class CancelledError(Exception):
@@ -83,12 +83,13 @@ class Experiment(object):
 
     def result(self, timeout=None):
         """
-        Returns the result of the experiment. If the experiment hasn’t yet completed then
-        this method will wait up to timeout seconds. If the experiment hasn’t completed in
-        timeout seconds, then a TimeoutError will be raised. If timeout is not specified
-        or None, there is no limit to the wait time.
+        Returns the result of the experiment. If the experiment hasn’t yet completed
+        then this method will wait up to timeout seconds. If the experiment hasn’t
+        completed in timeout seconds, then a TimeoutError will be raised. If timeout is
+        not specified or None, there is no limit to the wait time.
 
-        If the experiment is cancelled before completing then CancelledError will be raised.
+        If the experiment is cancelled before completing then CancelledError will be
+        raised.
 
         If the call raised, this method will raise the same exception.
 
@@ -134,16 +135,16 @@ class Experiment(object):
         return "<{0}({1})>".format(self.__class__.__name__, ", ".join(info_strings))
 
 
-# ========================================================================================
+# ======================================================================================
 # custom queue which emits PyQt signals on put and get
-# ========================================================================================
+# ======================================================================================
 
 
 class SignalQueue(Queue):
     """
     Custom queue that emits PySignal signals if an item is added or removed. Inherits
-    from :class:`queue.Queue` and provides a thread-safe method to remove items from
-    the center of the queue.
+    from :class:`queue.Queue` and provides a thread-safe method to remove items from the
+    center of the queue.
 
     :cvar added_signal: Is emitted when an item is put into the queue.
     :cvar removed_signal: Is emitted when items are removed from the queue.
@@ -214,9 +215,9 @@ class SignalQueue(Queue):
         return "<{0}({1} results)>".format(self.__class__.__name__, self.qsize())
 
 
-# ========================================================================================
+# ======================================================================================
 # custom queue for experiments where all history is kept
-# ========================================================================================
+# ======================================================================================
 
 
 class ExperimentQueue(object):
@@ -403,15 +404,15 @@ class ExperimentQueue(object):
         )
 
 
-# ========================================================================================
+# ======================================================================================
 # worker that gets function / method calls from queue and carriers them out
-# ========================================================================================
+# ======================================================================================
 
 
 class Worker(object):
     """
-    Worker that gets all method calls with args from :attr:`job_q` and executes
-    them. Results are then stored in the :attr:`result_q`.
+    Worker that gets all method calls with args from :attr:`job_q` and executes them.
+    Results are then stored in the :attr:`result_q`.
 
     :param job_q: Queue with jobs to be performed.
     :param result_q: Queue with results from completed jobs.
@@ -471,9 +472,9 @@ class Worker(object):
                     logger.status("IDLE")
 
 
-# ========================================================================================
+# ======================================================================================
 # manager to coordinate everything
-# ========================================================================================
+# ======================================================================================
 
 
 class Manager(object):
@@ -582,9 +583,9 @@ class Manager(object):
         # set up logging functionality
         self._setup_root_logger()
 
-    # ====================================================================================
+    # ==================================================================================
     # job execution management
-    # ====================================================================================
+    # ==================================================================================
 
     def queued_exec(self, func):
         """
@@ -650,9 +651,9 @@ class Manager(object):
         """
         self.job_queue.clear()
 
-    # ====================================================================================
+    # ==================================================================================
     # logging facilities
-    # ====================================================================================
+    # ==================================================================================
 
     @staticmethod
     def _setup_root_logger():

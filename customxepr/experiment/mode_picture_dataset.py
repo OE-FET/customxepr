@@ -26,12 +26,11 @@ def lorentz_peak(x, x0, w, a):
 
 class ModePicture(object):
     """
-    Class to store mode pictures. It provides methods to calculate Q-values,
-    and save and load mode picture data from and to .txt files.
+    Class to store mode pictures. It provides methods to calculate Q-values, and save
+    and load mode picture data from and to .txt files.
 
-    If several mode pictures with different zoom factors are given,
-    :class:`ModePicture` will rescale and combine the data into a single mode
-    picture.
+    If several mode pictures with different zoom factors are given, :class:`ModePicture`
+    will rescale and combine the data into a single mode picture.
 
     :param dict input_path_or_data: Dict with zoom factors as keys and respective mode
         picture data sets as values or path to file with saved mode picture data.
@@ -75,8 +74,8 @@ class ModePicture(object):
         Converts an x-axis from points to MHz according to the mode picture's zoom factor.
 
         :param int n_points: Number of data points in mode picture.
-        :param int zf: Zoom factor, i.e., scaling factor of x-axis. Typically is 1, 2, 4,
-            or 8.
+        :param int zf: Zoom factor, i.e., scaling factor of x-axis. Typically is 1, 2,
+            4, or 8.
         :param int x0: Center of axis corresponding to `freq0`.
         :returns: X-axis of mode picture in MHz.
         :rtype: np.array
