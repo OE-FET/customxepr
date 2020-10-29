@@ -165,18 +165,7 @@ class ManagerApp(QtWidgets.QMainWindow):
         # Set-up the UI
         # ==============================================================================
 
-        # load layout file, setup toolbar on macOS
-        if platform.system() == "Darwin":
-            layout_file = "manager_window_macos.ui"
-        else:
-            layout_file = "manager_window_linux.ui"
-
-        uic.loadUi(os.path.join(_root, layout_file), self)
-
-        if platform.system() == "Darwin":
-            # create unified toolbar
-            self.toolbar = QtWidgets.QToolBar(self)
-            self.create_toolbar()
+        uic.loadUi(os.path.join(_root, "manager_window.ui"), self)
 
         self.helpButton.clicked.connect(lambda: webbrowser.open_new(__url__))
 
@@ -310,12 +299,6 @@ class ManagerApp(QtWidgets.QMainWindow):
     # ==================================================================================
     # User interface setup
     # ==================================================================================
-
-    def create_toolbar(self):
-        self.toolbar.setFloatable(False)
-        self.toolbar.setMovable(False)
-        self.addToolBar(self.toolbar)
-        self.toolbar.addWidget(self.tabWidget)
 
     def restore_geometry(self):
         x = CONF.get("ManagerWindow", "x")
