@@ -4,7 +4,7 @@
 
 - Added support to parse and plot the pulse sequence information stored in the Bruker DSC
   file in the tables Psd1 to Psd36:
-  
+
   ```Python
   >>> from customxepr.experiment import XeprData
   >>> dset = XeprData("path")
@@ -21,6 +21,8 @@
   CustromXepr or run `exit` when started from an IPython or Jupyter shell.
 - Increase default maximum cooling temperature to 20°C.
 - Remember the location of the console window between restarts.
+- The Qt event loop is no longer started on every import but just when actually starting
+  the GUI or plotting a figure.
 
 ## v3.1.1
 
@@ -32,11 +34,11 @@
 
 #### Added:
 
-- Monitor cooling water temperature during measurements and interrupt ESR measurements if 
-  too high. 
+- Monitor cooling water temperature during measurements and interrupt ESR measurements if
+  too high.
 - Added config file entries for the maximum cooling temperature and the temperature sensor
   names for the ESR and cooling water.
-  
+
 #### Fixed:
 
 - Fixes an issue in `customxepr.experiment.xepr_dataset.XeprParam` where the `unit`
