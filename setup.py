@@ -45,7 +45,7 @@ setup(
     ],
     zip_safe=False,
     entry_points={
-        "console_scripts": ["customxepr=customxepr.startup:run"],
+        "console_scripts": ["customxepr=customxepr.startup:run_gui"],
     },
     classifiers=[
         "License :: OSI Approved :: MIT License",

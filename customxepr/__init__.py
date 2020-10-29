@@ -1,5 +1,4 @@
-from __future__ import division, absolute_import, unicode_literals
-from customxepr.startup import run
+from customxepr.startup import run_cli, run_gui
 from customxepr.main import CustomXepr, logger
 from customxepr.manager import Experiment, Manager
 from customxepr.experiment.xepr_dataset import XeprData, XeprParam
