@@ -1,6 +1,7 @@
 [![Documentation Status](https://readthedocs.org/projects/customxepr/badge/?version=latest)](https://customxepr.readthedocs.io/en/latest/?badge=latest)
 
-**Warning:** Version 2.3.3 will be the last release that is developed and tested for Python 2.7. Future releases will only support Python 3.6 and higher.
+**Warning:** Version 2.3.3 is the last release that supports Python 2.7. All newer 
+releases only support Python 3.6 and higher.
 
 # CustomXepr
 
