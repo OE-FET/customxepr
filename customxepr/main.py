@@ -9,10 +9,11 @@ import os
 import logging
 import time
 import types
+import shlex
 from datetime import timedelta, datetime
-import numpy as np
 import tempfile
 
+import numpy as np
 from pint import UnitRegistry
 from keithleygui.config.main import CONF as KCONF
 from mercuryitc.mercury_driver import MercuryITC_TEMP
@@ -1151,6 +1152,11 @@ class CustomXepr(object):
         dset.save(new_path)
         logger.info('Data saved to "{}".'.format(new_path))
 
+        # switch to saved folder
+        escaped_dirname = shlex.quote(os.path.dirname(new_path))
+        self.XeprCmds.ddPath(escaped_dirname)
+        time.sleep(self._wait)
+
         return dset
 
     def _cooling_temperature_ok(self):
@@ -1276,8 +1282,6 @@ class CustomXepr(object):
             time.sleep(self._wait)
 
         # tell Xepr to save data
-        self.XeprCmds.ddPath(path)
-        time.sleep(self._wait)
         self.XeprCmds.vpSave("Current Primary", title, path)
         time.sleep(self._wait)
 
