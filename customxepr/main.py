@@ -1282,7 +1282,7 @@ class CustomXepr(object):
             time.sleep(self._wait)
 
         # tell Xepr to save data
-        self.XeprCmds.vpSave("Current Primary", title, path)
+        self.XeprCmds.vpSave("Current Primary", title, shlex.quote(path))
         time.sleep(self._wait)
 
     def _phase_at_limit(self, phase, phase_min, phase_max):
