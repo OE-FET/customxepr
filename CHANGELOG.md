@@ -18,11 +18,17 @@
 #### Changed:
 
 - Remove custom `exit_customxepr()` function. Instead, close the console to exit
-  CustromXepr or run `exit` when started from an IPython or Jupyter shell.
+  CustomXepr or run `exit` when started from an IPython or Jupyter shell.
 - Increase default maximum cooling temperature to 20°C.
 - Remember the location of the console window between restarts.
+- Set current directory of Xepr to directory of last-saved data.
 - The Qt event loop is no longer started on every import but just when actually starting
   the GUI or plotting a figure.
+
+#### Fixed:
+
+- Fixed an issue when saving a dateset through Xepr when the path contains whitespace or
+  backslashes. The path is now quoted with `shlex.quote` before being passed to Xepr.
 
 ## v3.1.1
 
