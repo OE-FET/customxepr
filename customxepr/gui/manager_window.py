@@ -621,6 +621,8 @@ class ManagerApp(QtWidgets.QMainWindow):
         else:
             self.manager.resume_worker()
 
+        self.check_paused()
+
     def on_log_clicked(self):
         """
         Opens directory with log files with current log file selected.
