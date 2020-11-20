@@ -728,17 +728,15 @@ class CustomXepr(object):
         return q_mean
 
     @manager.queued_exec
-    def getQValueCalc(self, path=None, temperature=298):
+    def getQValueCalc(self, path=None):
         """
         Calculates the Q-value by fitting the cavity mode picture to a Lorentzian
         resonance with a polynomial baseline. It uses all available zoom factors to
         resolve both sharp and broad resonances (high and low Q-values, respectively)
         and is therefore more accurate than :meth:`getQValueFromXepr`.
 
-        :param str path: Directory where Q-Value reading is saved with corresponding
-            temperature and time-stamp.
-        :param float temperature: Temperature in Kelvin during a Q-value measurement.
-            Defaults to room temperature.
+        :param str path: Filename where Q-Value mode picture is saved together with any
+            metadata (temperature, time stamp).
 
         :returns: Mode picture instance.
         :rtype: :class:`experiment.ModePicture`
@@ -820,41 +818,24 @@ class CustomXepr(object):
                 "experiment.".format(mp.qvalue, mp.qvalue_stderr)
             )
 
+        # add temperature to metadata
+        if self._check_for_mercury(raise_error=False):
+            temperature = self.esr_temperature.temp[0]
+        else:
+            temperature = 298
+
+        mp.metadata["Temperature"] = f"{temperature:.3f}K"
+
         if path is not None:
             path = os.path.expanduser(path)
             if not os.path.isdir(path):
                 raise IOError('"{}" is not a valid directory.'.format(path))
 
-            path1 = os.path.join(path, "QValues.txt")
-            path2 = os.path.join(
-                path, "ModePicture{0:03d}K.txt".format(int(temperature))
-            )
-
-            self._saveQValue2File(temperature, mp.qvalue, mp.qvalue_stderr, path1)
-            mp.save(path2)
+            mp.save(path)
 
         self._wait = wait_old
 
         return mp
-
-    @staticmethod
-    def _saveQValue2File(tmpr, qval, qval_stderr, path):
-
-        delim = "\t"
-        newline = "\n"
-
-        column_titles = ["Time stamp", "Temperature [K]", "QValue", "Standard error"]
-        header = delim.join(column_titles + [newline])
-
-        time_str = time.strftime("%Y-%m-%d %H:%M")
-        line = delim.join([time_str, str(tmpr), str(qval), str(qval_stderr), newline])
-
-        is_newfile = not os.path.isfile(path)
-
-        with open(path, "a") as f:
-            if is_newfile:
-                f.write(header)
-            f.write(line)
 
     @staticmethod
     def getExpDuration(exp):
