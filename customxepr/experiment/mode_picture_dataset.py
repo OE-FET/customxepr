@@ -24,7 +24,7 @@ def lorentz_peak(x, x0, w, a):
     return a * numerator / denominator
 
 
-class ModePicture(object):
+class ModePicture:
     """
     Class to store mode pictures. It provides methods to calculate Q-values, and save
     and load mode picture data from and to .txt files.
@@ -35,6 +35,7 @@ class ModePicture(object):
     :param dict input_path_or_data: Dict with zoom factors as keys and respective mode
         picture data sets as values or path to file with saved mode picture data.
     :param float freq: Cavity resonance frequency in GHz as float.
+    :param dict metadata: Optional dictionary with metadata to save in the file header.
 
     :ivar x_data_mhz: Numpy array with x-axis data of mode picture in MHz.
     :ivar x_data_points: Numpy array with x-axis data of mode picture in pts.
@@ -44,7 +45,7 @@ class ModePicture(object):
     :ivar qvalue_stderr: Standard error of Q-Value from fitting.
     """
 
-    def __init__(self, input_path_or_data, freq=9.385):
+    def __init__(self, input_path_or_data, freq=9.385, metadata=None):
 
         if isinstance(input_path_or_data, str):
             path = input_path_or_data
@@ -62,11 +63,12 @@ class ModePicture(object):
         else:
             raise TypeError(
                 "First argument must be a dictionary containing mode "
-                + "picture data or a path to a mode picture file."
+                "picture data or a path to a mode picture file."
             )
 
         self.qvalue, self.fit_result = self.fit_qvalue(self.x_data_points, self.y_data)
         self.qvalue_stderr = self.get_qvalue_stderr()
+        self.metadata = metadata if metadata else {}
 
     @staticmethod
     def _points_to_mhz(n_points, zf, x0):
@@ -240,13 +242,13 @@ class ModePicture(object):
 
         :param str filepath: Absolute file path.
         """
+
+        self.metadata["Time"] = time.strftime("%H:%M, %d/%m/%Y")
+        self.metadata["Frequency"] = time.strftime("%H:%M, %d/%m/%Y")
+
         # create header and title for file
-        time_str = time.strftime("%H:%M, %d/%m/%Y")
-        title = [
-            "Cavity mode picture, recorded at {}".format(time_str),
-            "Center frequency = {:0.3f} GHz".format(self.freq0),
-        ]
-        title = "\n".join(title)
+        metadata_lines = [f"{k}:\t{v}" for k, v in self.metadata.items()]
+        title = "\n".join(metadata_lines)
 
         header = ["freq [MHz]", "MW abs. [a.u.]"]
         header = "\t".join(header)
@@ -258,48 +260,42 @@ class ModePicture(object):
             filepath, data_matrix.T, fmt="%.9E", delimiter="\t", header=title + header
         )
 
-    def load(self, filepath):
+    def load(self, path):
         """
         Loads mode picture data from text file and determines the resulting Q-factor.
+
+        :param str path: Path of file.
         """
-        self.x_data_mhz, self.x_data_points, self.y_data, self.freq0 = self._load(path)
+
+        data_matrix = np.loadtxt(path)
+
+        self.x_data_mhz = data_matrix[:, 0]
+        self.y_data = data_matrix[:, 1]
+        self.x_data_points = 2 / 1e-3 * self.x_data_mhz
+
+        with open(path) as f:
+            lines = f.readlines()
+
+        header_length = sum([line.startswith("#") for line in lines])
+        metadata_length = header_length - 1  # last line of header are column titles
+
+        self.metadata.clear()
+
+        for line in lines[:metadata_length]:
+            try:
+                key, value = line.split("\t")
+            except ValueError:
+                pass
+            else:
+                self.metadata[key] = value
+
+        freq_data = filter(lambda x: x in "0123456789.", self.metadata["Frequency"])
+        freq_str = "".join(freq_data)
+
+        self.freq0 = float(freq_str)
 
         self.qvalue, self.fit_result = self.fit_qvalue(self.x_data_points, self.y_data)
         self.qvalue_stderr = self.get_qvalue_stderr()
-
-    @staticmethod
-    def _load(filepath):
-        """
-        Loads mode picture data from text file.
-
-        :param str filepath: Absolute path to file.
-        :returns: `(x_axis_mhz_comb, x_axis_points_comb, mode_pic_comb, freq0)`
-            where `x_axis_mhz_comb` and `x_axis_points_comb` are the combined
-            x-axis values of all mode pictures in mhz and points, respectively,
-            `mode_pic_comb` is the combines y-axis data in a.u. and `freq0` is
-            the center resonance frequency.
-        """
-
-        data_matrix = np.loadtxt(filepath)
-        x_axis_mhz_comb = data_matrix[:, 0]
-        mode_pic_comb = data_matrix[:, 1]
-
-        x_axis_points_comb = 2 / 1e-3 * x_axis_mhz_comb
-
-        freq = None
-        with open(filepath, "r") as fh:
-            for line in fh:
-                if "GHz" in line:
-                    freq = list(filter(lambda x: x in "0123456789.", line))
-                    freq = "".join(freq)
-                    break
-
-        if freq is None:
-            raise RuntimeError("Could not find frequency information.")
-
-        freq0 = float(freq[0])
-
-        return x_axis_mhz_comb, x_axis_points_comb, mode_pic_comb, freq0
 
     def __len__(self):
         return len(self.y_data)
