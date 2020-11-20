@@ -657,14 +657,9 @@ class CustomXepr(object):
         time.sleep(self._wait)
 
     @manager.queued_exec
-    def getQValueFromXepr(self, path=None, temperature=298):
+    def getQValueFromXepr(self):
         """
-        Gets the Q-Value as determined by Xepr, averaged over 20 readouts, and saves it
-        in the specified file.
-
-        :param str path: Directory where Q-Value reading is saved with corresponding
-            temperature and time-stamp.
-        :param float temperature: Temperature in Kelvin during Q-Value measurement.
+        Gets the Q-Value as determined by Xepr, averaged over 20 readouts.
 
         :returns: Measured Q-Value.
         :rtype: float
@@ -719,10 +714,6 @@ class CustomXepr(object):
         time.sleep(self._wait)
         q_mean = q_values.mean()
         q_stderr = q_values.std()
-
-        if path is not None:
-            path = os.path.join(path, "QValues.txt")
-            self._saveQValue2File(temperature, q_mean, q_stderr, path)
 
         if q_mean > 3000:
             logger.info("Q = {:.0f}+/-{:.0f}.".format(q_mean, q_stderr))
