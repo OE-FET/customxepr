@@ -25,8 +25,8 @@ setup(
     install_requires=[
         "decorator",
         "ipython",
-        "keithley2600>=1.2.1",
-        "keithleygui>=1.1.2",
+        "keithley2600>=2.0.0",
+        "keithleygui>=1.2.0",
         "pint",
         "pyvisa",
         "pyvisa-py",
