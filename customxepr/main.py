@@ -1497,7 +1497,7 @@ class CustomXepr(object):
         smu_gate = getattr(self.keithley, smu_gate)
         smu_drain = getattr(self.keithley, smu_drain)
 
-        sd = self.keithley.transferMeasurement(
+        sd = self.keithley.transfer_measurement(
             smu_gate,
             smu_drain,
             vg_start,
@@ -1553,7 +1553,7 @@ class CustomXepr(object):
         smu_gate = getattr(self.keithley, smu_gate)
         smu_drain = getattr(self.keithley, smu_drain)
 
-        sd = self.keithley.outputMeasurement(
+        sd = self.keithley.output_measurement(
             smu_gate,
             smu_drain,
             vd_start,
@@ -1583,7 +1583,7 @@ class CustomXepr(object):
 
         smu = getattr(self.keithley, smu)
 
-        self.keithley.applyVoltage(smu, v)
+        self.keithley.apply_voltage(smu, v)
         self.keithley.beeper.beep(0.3, 2400)
 
     @manager.queued_exec
@@ -1599,7 +1599,7 @@ class CustomXepr(object):
 
         smu = getattr(self.keithley, smu)
 
-        self.keithley.applyCurrent(smu, i)
+        self.keithley.apply_current(smu, i)
         self.keithley.beeper.beep(0.3, 2400)
 
     # ==================================================================================
