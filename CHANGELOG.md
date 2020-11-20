@@ -14,6 +14,9 @@
   >>> print(dset.pulse_sequence.pulse_channels[5].pulses)
   [<Pulse(position=276, length=4)>, <Pulse(position=676, length=44)>]
   ```
+- Added a keyword argument `settling_time` to `runXeprExperiment` to wait between
+  individual scans. This can be useful in case of temperature fluctuations between
+  scans.
 
 #### Changed:
 

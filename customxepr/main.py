@@ -912,7 +912,7 @@ class CustomXepr(object):
         return float(total / Q_("1 sec"))
 
     @manager.queued_exec
-    def runXeprExperiment(self, exp, retune=True, path=None, **kwargs):
+    def runXeprExperiment(self, exp, retune=True, settling_time=0, path=None, **kwargs):
         """
         Runs the Xepr experiment ``exp``. Keyword arguments ``kwargs`` allow the user to
         pass experiment settings to Xepr (e.g., 'ModAmp' for modulation amplitude).
@@ -956,6 +956,8 @@ class CustomXepr(object):
 
         :param exp: Xepr experiment object to run.
         :param bool retune: Retune iris and freq between scans (default: True).
+        :param settling_time: Settling time in seconds between individual slice scans
+            (default: 0).
         :param str path: Path to file. If given, the data set will be saved to this
             path, otherwise, a temporary file will be created. No Xepr file name
             restrictions apply.
@@ -967,6 +969,9 @@ class CustomXepr(object):
         """
 
         self._check_for_xepr()
+
+        seconds = int(settling_time)
+        pause_between_scans = retune or settling_time > 0
 
         # ----------- set experiment parameters if given in kwargs ---------------------
         for key in kwargs:
@@ -1013,7 +1018,7 @@ class CustomXepr(object):
         while not exp.isRunning:
             time.sleep(self._wait)
 
-        if retune:  # schedule pause after scan to retune
+        if pause_between_scans:  # schedule pause after scan to tune / settle
             time.sleep(1)
             exp.aqExpPause()
             time.sleep(self._wait)
@@ -1045,23 +1050,37 @@ class CustomXepr(object):
                 )
             )
 
-            if retune:
-                # tune frequency and iris when a new slice scan starts
-                if exp.isPaused and not nb_scans_done == nb_scans_to_do:
-                    logger.status("Checking tuned.")
-                    self.tuneFreq(tolerance=3)
-                    self.tuneFreq(tolerance=3)
-                    self.tuneIris(tolerance=7)
+            between_scans = exp.isPaused and not nb_scans_done == nb_scans_to_do
 
-                    # start next scan
-                    exp.aqExpRun()
-                    time.sleep(self._wait)
+            if between_scans:
 
-                    # wait for scan to start and schedule next pause
-                    while not exp.isRunning:
+                if settling_time > 0:
+                    # wait for requested settling time
+                    for i in range(0, seconds):
                         time.sleep(1)
-                    exp.aqExpPause()
-                    time.sleep(self._wait)
+                        logger.status("Waiting {:.0f}/{:.0f}.".format(i + 1, seconds))
+                        # check for abort event
+                        if self.abort.is_set():
+                            logger.info("Aborted by user.")
+                            return
+
+                if retune:
+                    # tune frequency and iris when a new slice scan starts
+                    if exp.isPaused and not nb_scans_done == nb_scans_to_do:
+                        logger.status("Checking tuned.")
+                        self.tuneFreq(tolerance=3)
+                        self.tuneFreq(tolerance=3)
+                        self.tuneIris(tolerance=7)
+
+                # start next scan
+                exp.aqExpRun()
+                time.sleep(self._wait)
+
+                # wait for scan to start and schedule next pause
+                while not exp.isRunning:
+                    time.sleep(1)
+                exp.aqExpPause()
+                time.sleep(self._wait)
 
             # check cryostat and cooling water temperatures
             if has_mercury:
