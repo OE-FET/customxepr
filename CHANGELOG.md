@@ -27,6 +27,14 @@
 - Set current directory of Xepr to directory of last-saved data.
 - The Qt event loop is no longer started on every import but just when actually starting
   the GUI or plotting a figure.
+- `getValueXepr` no longer accepts a path argument.
+- `getQValueCalc` no longer saves two files but the mode picture only. The given path
+  must now be the full file path. The temperature data will now be saved together with
+  the mode picture.
+- `getQValueCalc` no longer accepts a temperature argument. Instead, the temperature
+  will be read from the Mercury if available.
+- The `ModePicture` class now accepts arbitrary metadata in dictionary form. This data
+  will be saved as tab-delimited metadata in the mode picture file.
 
 #### Fixed:
 
