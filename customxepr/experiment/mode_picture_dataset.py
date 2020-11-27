@@ -6,6 +6,7 @@
 Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 
 """
+import re
 import math
 import numpy as np
 import time
@@ -47,6 +48,10 @@ class ModePicture:
 
     def __init__(self, input_path_or_data, freq=9.385, metadata=None):
 
+        self.metadata = metadata if metadata else {}
+        self.metadata["Time"] = time.strftime("%H:%M, %d/%m/%Y")
+        self.metadata["Frequency"] = f"{freq} GHz"
+
         if isinstance(input_path_or_data, str):
             path = input_path_or_data
             self.load(path)
@@ -66,7 +71,6 @@ class ModePicture:
 
         self.qvalue, self.fit_result = self.fit_qvalue(self.x_data_points, self.y_data)
         self.qvalue_stderr = self.get_qvalue_stderr()
-        self.metadata = metadata if metadata else {}
 
     @staticmethod
     def _points_to_mhz(n_points, zf, x0):
@@ -241,9 +245,6 @@ class ModePicture:
         :param str filepath: Absolute file path.
         """
 
-        self.metadata["Time"] = time.strftime("%H:%M, %d/%m/%Y")
-        self.metadata["Frequency"] = f"{self.freq0} GHz"
-
         # create header and title for file
         metadata = [f"{k}:\t{v}" for k, v in self.metadata.items()]
 
@@ -270,21 +271,18 @@ class ModePicture:
         self.y_data = data_matrix[:, 1]
         self.x_data_points = 2 / 1e-3 * self.x_data_mhz
 
-        with open(path) as f:
+        with open(path, "r") as f:
             lines = f.readlines()
 
-        header_length = sum([line.startswith("#") for line in lines])
+        header_length = sum(line.startswith("#") for line in lines)
         metadata_length = header_length - 1  # last line of header are column titles
 
         self.metadata.clear()
 
         for line in lines[:metadata_length]:
-            try:
-                key, value = line.split("\t")
-            except ValueError:
-                pass
-            else:
-                self.metadata[key] = value
+            match = re.match(r"# (?P<key>\w*):\t(?P<value>.*)", line)
+            if match:
+                self.metadata[match["key"]] = match["value"]
 
         freq_data = filter(lambda x: x in "0123456789.", self.metadata["Frequency"])
         freq_str = "".join(freq_data)
