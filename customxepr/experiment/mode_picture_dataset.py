@@ -49,9 +49,7 @@ class ModePicture:
 
         if isinstance(input_path_or_data, str):
             path = input_path_or_data
-            self.x_data_mhz, self.x_data_points, self.y_data, self.freq0 = self._load(
-                path
-            )
+            self.load(path)
         elif isinstance(input_path_or_data, dict):
             self.mode_pic_data = input_path_or_data
             self.freq0 = freq
@@ -244,21 +242,20 @@ class ModePicture:
         """
 
         self.metadata["Time"] = time.strftime("%H:%M, %d/%m/%Y")
-        self.metadata["Frequency"] = time.strftime("%H:%M, %d/%m/%Y")
+        self.metadata["Frequency"] = f"{self.freq0} GHz"
 
         # create header and title for file
-        metadata_lines = [f"{k}:\t{v}" for k, v in self.metadata.items()]
-        title = "\n".join(metadata_lines)
+        metadata = [f"{k}:\t{v}" for k, v in self.metadata.items()]
 
-        header = ["freq [MHz]", "MW abs. [a.u.]"]
-        header = "\t".join(header)
+        column_titles = ["freq [MHz]", "MW abs. [a.u.]"]
+        column_titles = "\t".join(column_titles)
+
+        header = "\n".join(metadata + [column_titles])
 
         data_matrix = np.concatenate(([self.x_data_mhz], [self.y_data]), axis=0)
 
         # noinspection PyTypeChecker
-        np.savetxt(
-            filepath, data_matrix.T, fmt="%.9E", delimiter="\t", header=title + header
-        )
+        np.savetxt(filepath, data_matrix.T, fmt="%.9E", delimiter="\t", header=header)
 
     def load(self, path):
         """
