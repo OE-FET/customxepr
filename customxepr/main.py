@@ -884,7 +884,9 @@ class CustomXepr(object):
         return float(total / Q_("1 sec"))
 
     @manager.queued_exec
-    def runXeprExperiment(self, exp, retune=True, settling_time=0, path=None, **kwargs):
+    def runXeprExperiment(
+        self, exp, retune=True, settling_time=0, path=None, callback=None, **kwargs
+    ):
         """
         Runs the Xepr experiment ``exp``. Keyword arguments ``kwargs`` allow the user to
         pass experiment settings to Xepr (e.g., 'ModAmp' for modulation amplitude).
@@ -933,6 +935,10 @@ class CustomXepr(object):
         :param str path: Path to file. If given, the data set will be saved to this
             path, otherwise, a temporary file will be created. No Xepr file name
             restrictions apply.
+        :param callback: Optional function to be called between individual scans. Will
+            be called after retuning and the optional settling time. Will be called
+            with the number of completed scans as a single argument. May return a single
+            number which will be saved in the DSC file.
         :param kwargs: Keyword arguments corresponding to Xepr experiment parameters.
             Allowed parameters will depend on the type of experiment.
 
@@ -943,7 +949,9 @@ class CustomXepr(object):
         self._check_for_xepr()
 
         seconds = int(settling_time)
-        pause_between_scans = retune or settling_time > 0
+        pause_between_scans = callback or retune or settling_time > 0
+
+        callback_results = []
 
         # ----------- set experiment parameters if given in kwargs ---------------------
         for key in kwargs:
@@ -1044,6 +1052,9 @@ class CustomXepr(object):
                         self.tuneFreq(tolerance=3)
                         self.tuneIris(tolerance=7)
 
+                res = callback(nb_scans_done)
+                callback_results.append(res)
+
                 # start next scan
                 exp.aqExpRun()
                 time.sleep(self._wait)
@@ -1122,17 +1133,29 @@ class CustomXepr(object):
         if self._last_qvalue is not None:
             dsl_mwbridge = dset.dsl.groups["mwBridge"]
             dsl_mwbridge.pars["QValue"] = XeprParam("QValue", round(self._last_qvalue))
-            dsl_mwbridge.pars["QValueErr"] = XeprParam("QValueErr", round(self._last_qvalue_err))
+            dsl_mwbridge.pars["QValueErr"] = XeprParam(
+                "QValueErr", round(self._last_qvalue_err)
+            )
 
         if has_mercury:
             pars = [
                 XeprParam("Temperature", temperature_setpoint, "K"),
                 XeprParam("Stability", round(max_diff, 4), "K"),
                 XeprParam("AcqWaitTime", self._temp_wait_time, "s"),
-                XeprParam("Tolerance", self._temperature_tolerance, "K")
+                XeprParam("Tolerance", self._temperature_tolerance, "K"),
             ]
 
             dset.dsl.add_group(ParamGroupDSL("tempCtrl", pars))
+
+        if callback:
+
+            try:
+                callback_results = list(map(float, callback_results))
+            except TypeError:
+                pass
+            else:
+                pars = [XeprParam("CallbackResults", np.array(callback_results))]
+                dset.dsl.add_group(ParamGroupDSL("CustomXepr", pars))
 
         if retune:
             dset.pars["AcqFineTuning"] = "Slice"  # TODO: confirm correct value
