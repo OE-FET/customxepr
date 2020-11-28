@@ -154,7 +154,7 @@ class CustomXepr(object):
 
         for attr_name in dir(self):
             attr = getattr(self, attr_name)
-            if hasattr(attr, "__wrapped__"):
+            if callable(attr) and hasattr(attr, "__wrapped__"):
                 setattr(
                     self, attr_name + "_sync", types.MethodType(attr.__wrapped__, self)
                 )
