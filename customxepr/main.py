@@ -828,9 +828,8 @@ class CustomXepr(object):
 
         if path is not None:
             path = os.path.expanduser(path)
-            if not os.path.isdir(path):
-                raise IOError('"{}" is not a valid directory.'.format(path))
-
+            dirname = os.path.dirname(path)
+            os.makedirs(dirname, exist_ok=True)
             mp.save(path)
 
         self._wait = wait_old
