@@ -1051,8 +1051,9 @@ class CustomXepr(object):
                         self.tuneFreq(tolerance=3)
                         self.tuneIris(tolerance=7)
 
-                res = callback(nb_scans_done)
-                callback_results.append(res)
+                if callback is not None:
+                    res = callback(nb_scans_done)
+                    callback_results.append(res)
 
                 # start next scan
                 exp.aqExpRun()
@@ -1146,7 +1147,7 @@ class CustomXepr(object):
 
             dset.dsl.add_group(ParamGroupDSL("tempCtrl", pars))
 
-        if callback:
+        if callback is not None:
 
             try:
                 callback_results = list(map(float, callback_results))
