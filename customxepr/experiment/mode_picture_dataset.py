@@ -49,12 +49,9 @@ class ModePicture:
     def __init__(self, input_path_or_data, freq=9.385, metadata=None):
 
         self.metadata = metadata if metadata else {}
-        self.metadata["Time"] = time.strftime("%H:%M, %d/%m/%Y")
-        self.metadata["Frequency"] = f"{freq} GHz"
 
         if isinstance(input_path_or_data, str):
-            path = input_path_or_data
-            self.load(path)
+            self.load(input_path_or_data)
         elif isinstance(input_path_or_data, dict):
             self.mode_pic_data = input_path_or_data
             self.freq0 = freq
@@ -63,14 +60,22 @@ class ModePicture:
             self.x_data_mhz, self.x_data_points, self.y_data = self.combine_data(
                 self.mode_pic_data
             )
+
+            self.qvalue, self.fit_result = self.fit_qvalue(
+                self.x_data_points, self.y_data
+            )
+            self.qvalue_stderr = self.get_qvalue_stderr()
+
+            self.metadata["Time"] = time.strftime("%H:%M, %d/%m/%Y")
+            self.metadata["Frequency"] = f"{freq} GHz"
+            self.metadata["QValue"] = self.qvalue
+            self.metadata["QValueErr"] = self.qvalue_stderr
+
         else:
             raise TypeError(
                 "First argument must be a dictionary containing mode "
                 "picture data or a path to a mode picture file."
             )
-
-        self.qvalue, self.fit_result = self.fit_qvalue(self.x_data_points, self.y_data)
-        self.qvalue_stderr = self.get_qvalue_stderr()
 
     @staticmethod
     def _points_to_mhz(n_points, zf, x0):
