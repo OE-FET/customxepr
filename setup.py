@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="customxepr",
-    version="v3.1.2.dev1",
+    version="v3.1.2",
     description="Python interface for for Bruker Xepr.",
     url="https://github.com/OE-FET/customxepr",
     author="Sam Schott",
