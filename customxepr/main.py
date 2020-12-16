@@ -953,8 +953,8 @@ class CustomXepr(object):
         callback_results = []
 
         # ----------- set experiment parameters if given in kwargs ---------------------
-        for key in kwargs:
-            exp[key].value = kwargs[key]
+        for key, value in kwargs.items():
+            exp[key].value = value
             time.sleep(self._wait)
 
         # ----------- notify user, estimate runtime for cw experiments -----------------
