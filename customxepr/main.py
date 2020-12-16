@@ -861,7 +861,7 @@ class CustomXepr(object):
             sweep_time + field_delay
         ) * nb_scans  # total time for one step
 
-        # check if we have a seconday axis
+        # check if we have a secondary axis
         if "ramp2.*" in exp:
             if "User defined" in exp["ramp2.sweepType"].value:
                 nb_ramp = len(
@@ -959,13 +959,13 @@ class CustomXepr(object):
 
         # ----------- notify user, estimate runtime for cw experiments -----------------
         try:
-            d = timedelta(seconds=self.getExpDuration(exp))
-            eta = datetime.now() + d
+            duration = timedelta(seconds=self.getExpDuration(exp))
+            eta = datetime.now() + duration
 
             logger.info(
                 'Measurement "{0}" is running. Estimated duration: {1} min (ETA {2}).'.format(
                     exp.aqGetExpName(),
-                    int(d.total_seconds() / 60),
+                    int(duration.total_seconds() / 60),
                     eta.strftime("%H:%M"),
                 )
             )
