@@ -128,6 +128,7 @@ logger.addHandler(error_handler)
 # Define JobStatusApp class
 # ======================================================================================
 
+
 # noinspection PyArgumentList,PyCallByClass
 class ManagerApp(QtWidgets.QMainWindow):
 
@@ -178,20 +179,6 @@ class ManagerApp(QtWidgets.QMainWindow):
         self.icon_aborted = QtGui.QIcon(_root + "/resources/aborted@2x.icns")
         self.icon_failed = QtGui.QIcon(_root + "/resources/failed@2x.icns")
         self.icon_finished = QtGui.QIcon(_root + "/resources/finished@2x.icns")
-
-        # assign menu bar actions
-        self.action_About.triggered.connect(self.aboutWindow.show)
-        self.actionCustomXepr_Help.triggered.connect(
-            lambda: webbrowser.open_new(__url__)
-        )
-        self.actionShow_log_files.triggered.connect(self.on_log_clicked)
-        self.action_Exit.triggered.connect(self.exit_)
-
-        if not os.popen("Xepr --apipath").read() == "":
-            url = "file://" + os.popen("Xepr --apipath").read() + "/docs/XeprAPI.html"
-            self.actionXeprAPI_Help.triggered.connect(lambda: webbrowser.open_new(url))
-        else:
-            self.actionXeprAPI_Help.setEnabled(False)
 
         # restore last position and size
         self.restore_geometry()
@@ -253,6 +240,20 @@ class ManagerApp(QtWidgets.QMainWindow):
 
         # notify user of any errors in job execution with a message box
         error_handler.error_signal.connect(self.show_error)
+
+        # connect menu bar callbacks
+        self.action_About.triggered.connect(self.aboutWindow.show)
+        self.actionCustomXepr_Help.triggered.connect(
+            lambda: webbrowser.open_new(__url__)
+        )
+        self.actionShow_log_files.triggered.connect(self.on_log_clicked)
+        self.action_Exit.triggered.connect(self.exit_)
+
+        if not os.popen("Xepr --apipath").read() == "":
+            url = "file://" + os.popen("Xepr --apipath").read() + "/docs/XeprAPI.html"
+            self.actionXeprAPI_Help.triggered.connect(lambda: webbrowser.open_new(url))
+        else:
+            self.actionXeprAPI_Help.setEnabled(False)
 
         # connect context menu callbacks
         self.resultQueueDisplay.customContextMenuRequested.connect(
@@ -646,20 +647,16 @@ class ManagerApp(QtWidgets.QMainWindow):
         """
         Gets the email list from the UI and updates it in CustomXepr.
         """
-        # get string from lineEdit field
-        address_string = self.lineEditEmailList.text()
-        # convert string to list of strings
-        address_list = address_string.split(",")
-        # strip trailing spaces
-        address_list = [x.strip() for x in address_list]
-        # validate correct email address format
-        for email in address_list:
-            if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-                logger.info(email + " is not a valid email address.")
-                address_list = [x for x in address_list if (x is not email)]
 
-        # send list to CustomXepr
-        self.manager.notify_address = address_list
+        # Split email addresses on delimiters ";", "," and " " and remove emtpy entries.
+        tokens = re.split(r"[;, ]+", self.lineEditEmailList.text())
+        tokens = [token for token in tokens if len(token) > 0]
+
+        # clean up displayed text
+        self.lineEditEmailList.setText(", ".join(tokens))
+
+        # send list to customxepr.manager
+        self.manager.notify_address = tokens
 
     def get_email_list(self):
         """
