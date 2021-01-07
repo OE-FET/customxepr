@@ -38,7 +38,7 @@ spectrometer remains with Xepr.
 ![CustomXepr structure](/screenshots/CustomXepr_structure.png)
 
 Finally, CustomXepr fully supports Bruker BES3T data files (DSC, DTA, etc). The
-`customxepr.experiment.XeprData` enables loading, plotting, modifying and saving such
+`customxepr.experiment.XeprData` class enables loading, plotting, modifying and saving such
 data files from regular, 2D or pulsed experiements. It also supports reading and plotting
 the pulse sequences used to acquire the data, as saved in the DSC file. More information
 is provided in the API documentation for the
