@@ -37,6 +37,14 @@ spectrometer remains with Xepr.
 
 ![CustomXepr structure](/screenshots/CustomXepr_structure.png)
 
+Finally, CustomXepr fully supports Bruker BES3T data files (DSC, DTA, etc). The
+`customxepr.experiment.XeprData` class enables loading, plotting, modifying and saving such
+data files from regular, 2D or pulsed experiements. It also supports reading and plotting
+the pulse sequences used to acquire the data, as saved in the DSC file. More information
+is provided in the API documentation for the
+[XeprData](https://customxepr.readthedocs.io/en/latest/api/xepr_dataset.html#experiment.xepr_dataset.XeprData)
+class.
+
 ## Installation
 
 Make sure that you have PyQt or PySide installed on your system (all other dependencies
@@ -138,7 +146,7 @@ program got stuck asking the user if it should really override a data file. Cust
 therefore includes logging capabilities to track the progress of jobs and notify the user
 of potential problems.
 
-All CustomXper methods release logging messages during their execution which may have the
+All CustomXepr methods release logging messages during their execution which may have the
 levels "status", "info", "warning", and "error". Status notifications will only be shown
 in the user interface and typically contain information about the progress of a job
 (number of completed scans in an EPR measurement, countdown until the temperature is
