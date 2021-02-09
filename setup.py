@@ -24,6 +24,7 @@ setup(
     },
     install_requires=[
         "decorator",
+        "desktop-notifier",
         "ipython",
         "keithley2600>=2.0.0",
         "keithleygui>=1.2.0",

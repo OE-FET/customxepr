@@ -17,6 +17,8 @@ import inspect
 import webbrowser
 from PyQt5 import QtCore, QtWidgets, QtGui, uic
 
+from desktop_notifier import DesktopNotifier
+
 # local imports
 from customxepr.gui.about_window import AboutWindow
 from customxepr.gui.update_dialog import UpdateWindow
@@ -24,7 +26,6 @@ from customxepr.gui.error_dialog import ErrorDialog
 from customxepr import __version__, __url__
 from customxepr.manager import ExpStatus
 from customxepr.config.main import CONF
-from customxepr.gui.pyqt_labutils import Notipy
 
 
 _root = os.path.dirname(os.path.realpath(__file__))
@@ -42,7 +43,10 @@ class QInfoLogHandler(logging.Handler, QtCore.QObject):
     level INFO and higher.
     """
 
-    notify = Notipy()
+    notify = DesktopNotifier(
+        app_name="CustomXepr",
+        app_icon=os.path.join(_root, "resources", "logo@2x.png"),
+    )
 
     def __init__(self):
         logging.Handler.__init__(self)
@@ -62,7 +66,7 @@ class QInfoLogHandler(logging.Handler, QtCore.QObject):
         # add logging record to QStandardItemModel
         self.model.appendRow([time_item, level_item, msg_item])
         # show notification
-        self.notify.send(title="CustomXepr Info", message=record.message)
+        self.notify.send_sync(title="CustomXepr Info", message=record.message)
 
 
 class QStatusLogHandler(logging.Handler, QtCore.QObject):
