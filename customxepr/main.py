@@ -146,7 +146,7 @@ class CustomXepr(object):
         self.abort = self.manager.abort
 
         if keithley is not None:
-            self.manager.abort_events = [self.keithley.abort_event]
+            self.manager.abort_events.append(self.keithley.abort_event)
 
         # =====================================================================
         # create synchronous versions of CustomXepr methods

@@ -429,8 +429,7 @@ class Worker(object):
         self.abort_events = abort_events
 
     def abort_is_set(self):
-        is_set = operator.methodcaller("is_set")
-        return any(map(is_set, self.abort_events))
+        return any(event.is_set() for event in self.abort_events)
 
     def clear_abort(self):
         for event in self.abort_events:
@@ -560,14 +559,14 @@ class Manager(object):
     job_queue = ExperimentQueue()
     result_queue = SignalQueue()
 
-    abort = Event()
-    _abort_events = [abort]
-
     def __init__(self):
         super(self.__class__, self).__init__()
 
+        self.abort = Event()
+        self.abort_events = [self.abort]
+
         # create background thread to process all executions in queue
-        self.worker = Worker(self.job_queue, self.result_queue, self._abort_events)
+        self.worker = Worker(self.job_queue, self.result_queue, self.abort_events)
         self.thread = Thread(
             target=self.worker.process,
             name="ExperimentManagerThread",
@@ -578,7 +577,6 @@ class Manager(object):
         self.thread.start()
 
         self.running = self.worker.running
-        self._abort_events = []
 
         # set up logging functionality
         self._setup_root_logger()
@@ -605,23 +603,6 @@ class Manager(object):
 
         return wrapper
 
-    @property
-    def abort_events(self):
-        """
-        List of abort events to be used when calling :func:`abort_job`. This is in
-        addition to :attr:`abort` which can be checked periodically by all experiments
-        passed to the worker. All abort events will be cleared after the a job has been
-        aborted.
-        """
-        return self._abort_events[1:]
-
-    @abort_events.setter
-    def abort_events(self, events):
-        """
-        Setter for :attr:`set_abort_events`.
-        """
-        self._abort_events = [self.abort] + events
-
     def pause_worker(self):
         """
         Pauses the execution of jobs after the current job has been completed.
@@ -640,10 +621,8 @@ class Manager(object):
         Aborts the current job and continues with the next.
         """
         if self.job_queue.has_running() > 0:
-            self.abort.set()
-
-        for event in self._abort_events:
-            event.set()
+            for event in self.abort_events:
+                event.set()
 
     def clear_all_jobs(self):
         """
