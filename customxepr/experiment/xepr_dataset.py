@@ -241,9 +241,9 @@ class ParamGroup:
     :cvar CELL_LENGTH: Length of cell containing the parameter name.
     :cvar DELIM: Delimiter between parameter name and value.
 
-    :ivar name: The parameter group's name.
-    :ivar pars: Dictionary containing all :class:`XeprParam` instances belonging to the
-    group.
+    :param name: The parameter group's name.
+    :param pars: Dictionary containing all :class:`XeprParam` instances belonging to the
+        group.
     """
 
     HEADER_FMT = "* {0}"
