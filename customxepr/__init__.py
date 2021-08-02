@@ -6,5 +6,5 @@ from customxepr.experiment.mode_picture_dataset import ModePicture
 
 
 __author__ = "Sam Schott <ss2151@cam.ac.uk>"
-__version__ = "v3.1.2"
+__version__ = "v3.1.3"
 __url__ = "https://github.com/OE-FET/customxepr"
