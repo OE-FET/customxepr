@@ -1,3 +1,9 @@
+## v3.1.3
+
+#### Fixed:
+
+- Fixed spurious notifications from log messages emitted outside of customxepr. 
+
 ## v3.1.2
 
 #### Added:
