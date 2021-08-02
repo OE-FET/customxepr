@@ -8,11 +8,14 @@ Attribution-NonCommercial-NoDerivs 2.0 UK: England & Wales License.
 """
 import os
 import platform
+import logging
 from PyQt5 import QtWidgets, uic
 
-from customxepr.gui.manager_window import ManagerApp, logger
+from customxepr.gui.manager_window import ManagerApp
+
 
 _root = os.path.dirname(os.path.realpath(__file__))
+logger = logging.getLogger(__name__)
 
 
 # ======================================================================================

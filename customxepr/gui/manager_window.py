@@ -29,6 +29,7 @@ from customxepr.config.main import CONF
 
 
 _root = os.path.dirname(os.path.realpath(__file__))
+logger = logging.getLogger(__name__)
 
 
 # ======================================================================================
@@ -113,19 +114,19 @@ info_handler = QInfoLogHandler()
 info_handler.setFormatter(info_fmt)
 info_handler.setLevel(logging.INFO)
 
-# create QStatusLogHandler to handle all STATUS level events
+# create QStatusLogHandler to handle all DEBUG level events
 status_handler = QStatusLogHandler()
-status_handler.setLevel(logging.STATUS)
+status_handler.setLevel(logging.DEBUG)
 
 # create QErrorLogHandler to handle all ERROR level events
 error_handler = QErrorLogHandler()
 error_handler.setLevel(logging.ERROR)
 
 # add handlers to customxepr logger
-logger = logging.getLogger("customxepr")
-logger.addHandler(status_handler)
-logger.addHandler(info_handler)
-logger.addHandler(error_handler)
+root_logger = logging.getLogger("customxepr")
+root_logger.addHandler(status_handler)
+root_logger.addHandler(info_handler)
+root_logger.addHandler(error_handler)
 
 
 # ======================================================================================

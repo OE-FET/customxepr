@@ -31,6 +31,8 @@ else:
 ENVIRON_XEPR_API_PATH = os.environ.get("XEPR_API_PATH", "")
 os.environ["SPY_UMR_ENABLED"] = "False"
 
+logger = logging.getLogger(__name__)
+
 
 # ======================================================================================
 # Create splash screen
@@ -91,10 +93,10 @@ def connect_to_instruments():
 
         xepr = Xepr()
     except ImportError:
-        logging.info("XeprAPI could not be located.")
+        logger.info("XeprAPI could not be located.")
         xepr = None
     except IOError:
-        logging.info("No running Xepr instance could be found.")
+        logger.info("No running Xepr instance could be found.")
         xepr = None
 
     mercury = MercuryITC(
@@ -257,6 +259,9 @@ def run_gui():
 
     patch_excepthook()  # display errors from Qt event loop to user
     splash.close()  # remove splash screen
+
+    # clear all root loggers
+    logging.getLogger().handlers.clear()
 
     # start event loop
     sys.exit(app.exec_())

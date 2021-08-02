@@ -31,7 +31,7 @@ except ImportError:
     ParameterError = RuntimeError
 
 _root = os.path.dirname(os.path.realpath(__file__))
-logger = logging.getLogger("customxepr")
+logger = logging.getLogger(__name__)
 
 ureg = UnitRegistry()
 Q_ = ureg.Quantity
@@ -224,7 +224,7 @@ class CustomXepr(object):
         if seconds > 1:
             for i in range(0, seconds):
                 time.sleep(1)
-                logger.status("Waiting {:.0f}/{:.0f}.".format(i + 1, seconds))
+                logger.debug("Waiting {:.0f}/{:.0f}.".format(i + 1, seconds))
                 # check for abort event
                 if self.abort.is_set():
                     logger.info("Aborted by user.")
@@ -414,7 +414,7 @@ class CustomXepr(object):
         self.tuneFreq(freq_tolerance)
         time.sleep(self._wait)
 
-        logger.status("Tuning done.")
+        logger.debug("Tuning done.")
 
     @manager.queued_exec
     def tuneBias(self, tolerance=1):
@@ -431,7 +431,7 @@ class CustomXepr(object):
         if self.abort.is_set():
             return
 
-        logger.status("Tuning (Bias).")
+        logger.debug("Tuning (Bias).")
         time.sleep(self._wait)
 
         # get offset from 200 mA
@@ -483,7 +483,7 @@ class CustomXepr(object):
         if self.abort.is_set():
             return
 
-        logger.status("Tuning (Iris).")
+        logger.debug("Tuning (Iris).")
         time.sleep(self._wait)
 
         diff = self.hidden["DiodeCurrent"].value - 200
@@ -538,7 +538,7 @@ class CustomXepr(object):
         if self.abort.is_set():
             return
 
-        logger.status("Tuning (Freq).")
+        logger.debug("Tuning (Freq).")
         time.sleep(self._wait)
 
         fq_offset = self.hidden["LockOffset"].value
@@ -568,7 +568,7 @@ class CustomXepr(object):
         if self.abort.is_set():
             return
 
-        logger.status("Tuning (Phase).")
+        logger.debug("Tuning (Phase).")
         time.sleep(self._wait)
 
         t0 = time.time()
@@ -1023,7 +1023,7 @@ class CustomXepr(object):
             time.sleep(self._wait)
             nb_scans_to_do = exp["NbScansToDo"].value
             time.sleep(self._wait)
-            logger.status(
+            logger.debug(
                 "Recording scan {:.0f}/{:.0f}.".format(
                     nb_scans_done + 1, nb_scans_to_do
                 )
@@ -1037,7 +1037,7 @@ class CustomXepr(object):
                     # wait for requested settling time
                     for i in range(0, seconds):
                         time.sleep(1)
-                        logger.status("Waiting {:.0f}/{:.0f}.".format(i + 1, seconds))
+                        logger.debug("Waiting {:.0f}/{:.0f}.".format(i + 1, seconds))
                         # check for abort event
                         if self.abort.is_set():
                             logger.info("Aborted by user.")
@@ -1046,7 +1046,7 @@ class CustomXepr(object):
                 if retune:
                     # tune frequency and iris when a new slice scan starts
                     if exp.isPaused and not nb_scans_done == nb_scans_to_do:
-                        logger.status("Checking tuned.")
+                        logger.debug("Checking tuned.")
                         self.tuneFreq(tolerance=3)
                         self.tuneFreq(tolerance=3)
                         self.tuneIris(tolerance=7)
@@ -1405,10 +1405,10 @@ class CustomXepr(object):
             if self.T_diff > (tolerance or self._temperature_tolerance):
                 stable_counter = 0
                 time.sleep(1)
-                logger.status("Waiting for temperature to stabilize.")
+                logger.debug("Waiting for temperature to stabilize.")
             else:
                 stable_counter += 1
-                logger.status(
+                logger.debug(
                     "Stable for {}/{} sec.".format(
                         stable_counter, wait_time or self._temp_wait_time
                     )

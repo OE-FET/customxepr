@@ -10,7 +10,6 @@ import os
 import time
 import logging
 import logging.handlers
-import operator
 from PySignal import ClassSignal
 from queue import Queue, Empty
 from threading import RLock, Event, Thread, current_thread
@@ -21,7 +20,8 @@ from functools import wraps
 from customxepr.config import CONF
 
 
-logger = logging.getLogger("customxepr")
+logger = logging.getLogger(__name__)
+root_logger = logging.getLogger("customxepr")
 
 
 # ======================================================================================
@@ -440,7 +440,7 @@ class Worker(object):
             time.sleep(0.1)
 
             if not self.running.is_set():
-                logger.status("PAUSED")
+                logger.debug("PAUSED")
 
             self.running.wait()
 
@@ -456,7 +456,7 @@ class Worker(object):
                     logger.exception("Job error")
                     self.job_q.job_done(ExpStatus.FAILED, result=e)
                     self.running.clear()
-                    logger.status("PAUSED")
+                    logger.debug("PAUSED")
                 else:
                     if result is not None:
                         self.result_q.put(result)
@@ -468,7 +468,7 @@ class Worker(object):
                         exit_status = ExpStatus.FINISHED
 
                     self.job_q.job_done(exit_status, result)
-                    logger.status("IDLE")
+                    logger.debug("IDLE")
 
 
 # ======================================================================================
@@ -614,7 +614,7 @@ class Manager(object):
         Resumes the execution of jobs.
         """
         self.worker.running.set()
-        logger.status("IDLE")
+        logger.debug("IDLE")
 
     def abort_job(self):
         """
@@ -637,69 +637,43 @@ class Manager(object):
     @staticmethod
     def _setup_root_logger():
 
-        # Set up new STATUS level
-        root_logger = logging.getLogger()
-
-        logging.STATUS = 15
-        logging.addLevelName(logging.STATUS, "STATUS")
-        for l in [logger, root_logger]:
-            l.setLevel(logging.STATUS)
-            setattr(
-                l,
-                "status",
-                lambda message, *args: logger._log(logging.STATUS, message, args),
-            )
-
-        # find all email handlers
-        eh = [
-            x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler
-        ]
-        # find all file handlers
-        fh = [x for x in root_logger.handlers if type(x) == logging.FileHandler]
-        # find all stream handlers
-        sh = [x for x in root_logger.handlers if type(x) == logging.StreamHandler]
+        root_logger.setLevel(logging.DEBUG)
+        root_logger.handlers.clear()
 
         # define standard format of logging messages
         f = logging.Formatter(
             fmt="%(asctime)s %(name)s %(levelname)s: " + "%(message)s", datefmt="%H:%M"
         )
 
-        # remove stream handlers
-        for handler in sh:
-            root_logger.handlers.remove(handler)
+        # create and add email handler
+        email_handler = logging.handlers.SMTPHandler(
+            mailhost=(CONF.get("SMTP", "mailhost"), CONF.get("SMTP", "port")),
+            fromaddr=CONF.get("SMTP", "fromaddr"),
+            toaddrs=CONF.get("CustomXepr", "notify_address"),
+            subject="CustomXepr logger",
+            credentials=CONF.get("SMTP", "credentials"),
+            secure=CONF.get("SMTP", "secure"),
+        )
+        email_handler.setFormatter(f)
+        email_handler.setLevel(CONF.get("CustomXepr", "email_handler_level"))
 
-        # add email handler if not present
-        if len(eh) == 0:
-            # create and add email handler
-            email_handler = logging.handlers.SMTPHandler(
-                mailhost=(CONF.get("SMTP", "mailhost"), CONF.get("SMTP", "port")),
-                fromaddr=CONF.get("SMTP", "fromaddr"),
-                toaddrs=CONF.get("CustomXepr", "notify_address"),
-                subject="CustomXepr logger",
-                credentials=CONF.get("SMTP", "credentials"),
-                secure=CONF.get("SMTP", "secure"),
-            )
-            email_handler.setFormatter(f)
-            email_handler.setLevel(CONF.get("CustomXepr", "email_handler_level"))
+        root_logger.addHandler(email_handler)
 
-            root_logger.addHandler(email_handler)
-
-        # add file handler if not present
+        # add file handler
         home_path = os.path.expanduser("~")
         logging_path = os.path.join(home_path, ".CustomXepr", "LOG_FILES")
 
-        if len(fh) == 0:
-            if not os.path.exists(logging_path):
-                os.makedirs(logging_path)
+        if not os.path.exists(logging_path):
+            os.makedirs(logging_path)
 
-            log_file = os.path.join(
-                logging_path,
-                "root_logger " + time.strftime("%Y-%m-%d_%H-%M-%S") + ".txt",
-            )
-            file_handler = logging.FileHandler(log_file)
-            file_handler.setFormatter(f)
-            file_handler.setLevel(logging.INFO)
-            root_logger.addHandler(file_handler)
+        log_file = os.path.join(
+            logging_path,
+            "root_logger " + time.strftime("%Y-%m-%d_%H-%M-%S") + ".txt",
+        )
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setFormatter(f)
+        file_handler.setLevel(logging.INFO)
+        root_logger.addHandler(file_handler)
 
         # delete old log files
         now = time.time()
@@ -735,8 +709,7 @@ class Manager(object):
     @notify_address.setter
     def notify_address(self, email_list):
         """Setter: Address list for email notifications."""
-        # get root logger
-        root_logger = logging.getLogger()
+
         # find all email handlers (there should be only one)
         eh = [
             x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler
@@ -758,7 +731,7 @@ class Manager(object):
     def log_file_dir(self):
         """Directory for log files. Defaults to '~/.CustomXepr'."""
         # get root logger
-        root_log = logging.getLogger()
+        root_log = logging.getLogger("customxepr")
         # find all email handlers (there should be only one)
         fh = [x for x in root_log.handlers if type(x) == logging.FileHandler]
 
@@ -773,8 +746,7 @@ class Manager(object):
         """
         Logging level for email notifications. Defaults to :class:`logging.WARNING`.
         """
-        # get root logger
-        root_logger = logging.getLogger()
+
         # find all email handlers (there should be only one)
         eh = [
             x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler
@@ -788,8 +760,7 @@ class Manager(object):
     @email_handler_level.setter
     def email_handler_level(self, level=logging.WARNING):
         """Setter: Logging level for email notifications."""
-        # get root logger
-        root_logger = logging.getLogger()
+
         # find all email handlers (there should be only one)
         eh = [
             x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler
