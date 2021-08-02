@@ -688,23 +688,7 @@ class Manager(object):
     @property
     def notify_address(self):
         """ List of addresses for email notifications."""
-        # get root logger
-        root_logger = logging.getLogger()
-        # find all email handlers (there should be only one)
-        eh = [
-            x for x in root_logger.handlers if type(x) == logging.handlers.SMTPHandler
-        ]
-
-        if len(eh) == 0:
-            logging.warning("No email handler could be found.")
-
-        elif len(eh) > 0:
-            # get emails from all handlers
-            email_list = []
-            for handler in eh:
-                email_list += handler.toaddrs
-            # remove duplicates and return
-            return list(set(email_list))
+        return CONF.get("CustomXepr", "notify_address")
 
     @notify_address.setter
     def notify_address(self, email_list):
