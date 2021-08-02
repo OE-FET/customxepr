@@ -1,5 +1,3 @@
-decorator
-pyvisa
-pyvisa-py
-keithleygui
+git+git://github.com/OE-FET/customxepr
+sphinx
 m2r
