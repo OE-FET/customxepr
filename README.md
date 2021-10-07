@@ -184,8 +184,7 @@ power, and ramping speed while lower-level configurations such as calibration ta
 be changed programmatically through the provided Jupyter console.
 
 The MercuryiTC user interface and driver have been split off as separate packages
-[mercuryitc](https://github.com/OE-FET/mercuryitc) and [mercurygui](https://github.com/OE-
-FET/mercurygui).
+[mercuryitc](https://github.com/OE-FET/mercuryitc) and [mercurygui](https://github.com/OE-FET/mercurygui).
 
 ![Screenshot of Mercury GUI](/screenshots/MercuryGUI.png)
 
