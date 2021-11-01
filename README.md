@@ -1,6 +1,6 @@
 [![Documentation Status](https://readthedocs.org/projects/customxepr/badge/?version=latest)](https://customxepr.readthedocs.io/en/latest/?badge=latest)
 
-**Warning:** Version 2.3.3 is the last release that supports Python 2.7. All newer 
+**Warning:** Version 2.3.3 is the last release that supports Python 2.7. All newer
 releases only support Python 3.6 and higher.
 
 # CustomXepr
@@ -67,12 +67,10 @@ commands.
 
 You can start CustomXepr from a Python command prompt as follows:
 ```python
->>> from customxepr import run
->>> customXepr, xepr, mercury, keithley, ui = run()
+>>> from customxepr import run_gui
+>>> run_gui()
 ```
-If executed from an Jupyter console, this will automatically start the integrated Qt event
-loop and run in interactive mode. To start CustomXepr from the console / terminal, run
-`customxepr`.
+To start the CustomXepr GUI from a console / terminal, run `customxepr`.
 
 CustomXepr has a user interface which displays all jobs waiting in the queue, all results
 returned from previous jobs, and all logging messages. Common tasks such as pausing,
@@ -204,57 +202,73 @@ The Keithley 2600 user interface and driver have been split off as separate pack
 
 ## Example code
 
-A measurement script which cycles through different temperatures and records EPR spectra
-and transfer curves at each step reads as follows:
+A measurement script is given below which uses CustomXepr to cycles through different
+temperatures and records EPR spectra and transfer curves at each step. When run from an
+interactive Python console, it is possible to then uses the created `customxepr` instance
+to pause or resume and even abort running measurements.
 
 ```python
-# start customxepr
-from customxepr.startup import run
+from XeprAPI import Xepr
+from keithley2600 import Keithley2600
+from mercuryitc import MercuryITC
+from customxepr import CustomXepr
 
-customXepr, xepr, mercury, keithley, _ = run(gui=False)
 
-# get preconfigured experiment from Xepr
+# Connect to individual instruments.
+xepr = Xepr()
+mercury = MercuryITC("MERCURY_VISA_ADDRESS")
+keithley = Keithley2600("KEITHLEY_VISA_ADDRESS")
+
+# Create a new instance of CustomXepr to coordinate measurements.
+customxepr = CustomXepr(xepr, mercury, keithley)
+
+# Get a preconfigured experiment from Xepr.
 exp = xepr.XeprExperiment('Experiment')
 
-# set up different modulation amplitudes in Gauss for different temperatures
+# Set up different modulation amplitudes in Gauss for different temperatures.
 modAmp = {5: 3, 50: 2, 100: 1, 150: 1, 200: 1, 250: 1.5, 300: 2}
 
-# specify folder to save data
+# Specify folder to save data.
 folder = '/path/to/folder'
 title = 'my_sample'
 
 for T in [5, 50, 100, 150, 200, 250, 300]:
-	# =================================================================
-	# Prepare temperature
-	# =================================================================
-	customXepr.setTemperature(T)        # set desired temperature
-	customXepr.customtune()             # tune the cavity
-	customXepr.getQValueCalc(folder, T) # measure and save the Q factor
 
-	# =================================================================
-	# Perform FET measurements
-	# =================================================================
-	# generate file name for transfer curve
-	transfer_file = '{}/{}_{}K_transfer.txt'.format(folder, title, T)
-	# record default transfer curve and save to file
-	customXepr.transferMeasurement(path=transfer_file)
+    # =================================================================
+    # Prepare temperature
+    # =================================================================
 
-	# =================================================================
-	# Perform EPR measurements at Vg = -70V and Vg = 0V
-	# =================================================================
-	for Vg in [0, -70]:
-        customXepr.setVoltage(Vg, smu='smua')  # bias gate
-        # perform preconfigured EPR measurement, save to 'esr_path'
+    customxepr.setTemperature(T)        # set desired temperature
+    customxepr.customtune()             # tune the cavity
+    customxepr.getQValueCalc(folder, T) # measure and save the Q factor
+
+    # =================================================================
+    # Perform FET measurements
+    # =================================================================
+
+    # Generate file name for transfer curve.
+    transfer_file = '{}/{}_{}K_transfer.txt'.format(folder, title, T)
+    # Record default transfer curve and save to file.
+    customxepr.transferMeasurement(path=transfer_file)
+
+    # =================================================================
+    # Perform EPR measurements at Vg = -70V and Vg = 0V
+    # =================================================================
+
+    for Vg in [0, -70]:
+        customxepr.setVoltage(Vg, smu='smua')  # bias gate
+        # Perform preconfigured EPR measurement, save to file.
         esr_file = '{}/{}_{}K_Vg_{}V.txt'.format(folder, title, T, Vg)
-        customXepr.runXeprExperiment(exp, path=esr_file, ModAmp=modAmp[T])
-        customXepr.setVoltage(0, smu='smua')  # set gate voltage to zero
+        customxepr.runXeprExperiment(exp, path=esr_file, ModAmp=modAmp[T])
+        customxepr.setVoltage(0, smu='smua')  # set gate voltage to zero
 
-customXepr.setStandby()  # ramp down field and set MW bridge to standby
+customxepr.setStandby()  # Ramp down field and set MW bridge to standby.
 ```
 
 In this code, all functions belonging to CustomXepr will be added to the job queue and
 will be carried out successively such that, for instance, EPR measurements will not start
-while the temperature is still being ramped.
+while the temperature is still being ramped. Note that this example script will not load
+a graphical user interface.
 
 ## Email notifications
 
